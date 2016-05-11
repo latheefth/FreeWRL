@@ -282,14 +282,19 @@ void fiducialDrawB(int cursortype, int x, int y)
 	FXY fxy;
 	int i,k;
 	GLfloat p[3][2];
+	float aspect;
 	GLint  positionLoc;
 	struct cline *cur, *line;
 	s_shader_capabilities_t *scap;
 	ttglobal tg = gglobal();
 
+	//as of May 2016 the mouse/touch events come in the pick() stack relative to the whole window
+	// -not shifted relative to the current vport in the vport stack.
+	// if that changes, then the following few lines would also need to change
 	xy = mouse2screen2(x,y);
 	FW_GL_VIEWPORT(0, 0, tg->display.screenWidth, tg->display.screenHeight);
 	fxy = screen2normalized((GLfloat)xy.x,(GLfloat)xy.y);
+	aspect = (float)tg->display.screenHeight/(float)tg->display.screenWidth;
 
 
 	FW_GL_DEPTHMASK(GL_FALSE);
@@ -309,7 +314,7 @@ void fiducialDrawB(int cursortype, int x, int y)
 	line = &cur[k];
 	while(line->n){
 		for(i=0;i<line->n;i++){
-			p[i][0] = line->p[i*2] + fxy.x;
+			p[i][0] = line->p[i*2]*aspect + fxy.x;
 			p[i][1] = line->p[i*2 + 1] + fxy.y;
 		}
 		glVertexAttribPointer (positionLoc, 2, GL_FLOAT, 

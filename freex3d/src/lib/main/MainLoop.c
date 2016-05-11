@@ -148,21 +148,19 @@ enum {
 struct Touch
 {
 	//int buttonState[4]; /*none down=0, LMB =1, MMB=2, RMB=3*/
-	int buttonState; //0 up, 1 down
-	//bool isDown; /* false = up, true = down */
+	int buttonState; //0 up, 1 down. For ^ hover mode, buttonstate will be 0 even when touch down
 	int mev; /* down/press=4, move/drag=6, up/release=5 */
 	unsigned int ID;  /* for multitouch: 0-20, represents one finger drag. Recycle after an up */
-	int inUse; //flag for recycling = 0 not in use, else in use
+	int inUse; //flag for garbage collection/recycling = 0 not in use, else in use
 	float angle; /*some multitouch -like smarttech- track the angle of the finger */
 	int x; //coordinates as registered at scene level, after transformations in the contenttype stack
 	int y; //y-up
-	float fx,fy; //normalized coordinates ie -1 to 1 or 0 to 1 
+	float fx,fy; //normalized coordinates ie -1 to 1 or 0 to 1 for navigation
 	int dragStart; //flag set generically on mouse down, and cleared by claimant when they've applied mousedown
 	int dragEnd; //flag set generically on mouse up, and cleared by claimant after cleaning up their drag state
 	int windex; //multi_window window index 0=default for regular freewrl
 	void* stageId; //unique ID for a stage, should be same for pick and render passes, otherwise in render not-for-me
 	int rx,ry; //raw input coords at emulation level, for finding and dragging and rendering
-	int handled; //==FALSE when message pump first delivers message, then when setup_picking handles it, set to TRUE. a hack instead of a queue.
 	int claimant; // {unprocessed,pedal,sensor,navigation,none}
 	int passed; //which claimants have seen it and passed on claiming it {PEDAL | SENSOR | NAV }
 
@@ -2954,7 +2952,8 @@ void init_targetwindow(void *_self){
 struct pedal_state {
 	int x,y;
 	int rx,ry;
-	int inUse;
+	int isDown;
+	int initialized;
 };
 
 typedef struct pMainloop{
@@ -3514,7 +3513,7 @@ void targetwindow_set_params(int itargetwindow, freewrl_params_t* params){
 	if(0){
 		t = twindows;
 		while(t){
-			printf("windex=%d t->next = %ld\n",itargetwindow,t->next);
+			printf("windex=%d t->next = %p\n",itargetwindow,t->next);
 			t=t->next;
 		}
 		printf("hows that?\n");
@@ -4658,7 +4657,7 @@ void setup_picking(){
 		- sendSensorEvents > get_hyperhit Renderfuncs.hp,.hpp etc needs to also be vectorized 
 			somehow so each drag and hyperdrag is per-touch. Then you could have multiple simaltaneous touches
 	*/
-	int windex, ID;
+	int windex;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
@@ -4668,6 +4667,7 @@ void setup_picking(){
 	//if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 	if (tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 		//p->currentCursor = 0;
+		struct X3D_Node *sensornode;
 		int x,yup,ktouch,priorclaimants;
 		struct Touch *touch;
 		//touch = currentTouch();
@@ -4681,8 +4681,6 @@ void setup_picking(){
 	//	if(ID == 0) continue; //for testing e3dmouse only
 			if(touch->windex != windex) continue; //return;
 			if(touch->stageId != current_stageId()) continue;
-//		if(touch->handled) continue; //already processed, for testing only 
-			touch->handled = TRUE;
 			x = touch->x;
 			yup = touch->y;
 			//justpressed = touch->buttonState[LMB] && touch->dragStart; //touch->mev == ButtonPress;
@@ -4709,14 +4707,14 @@ void setup_picking(){
 							//touch->claimant = TOUCHCLAIMANT_SENSOR;
 							//ConsoleMessage("setup_picking rolling back startofNavigation\n");
 							touch->claimant = TOUCHCLAIMANT_SENSOR;
-							printf("xy=%d %d hyper %d ",x,yup, tg->RenderFuncs.hypersensitive);
-							printf("claim %d\n",touch->ID);
+							//printf("xy=%d %d hyper %d ",x,yup, tg->RenderFuncs.hypersensitive);
+							//printf("claim %d\n",touch->ID);
 							//touch->dragStart = 0;
 							//dragStart = 1; //for if() blocks below
 						}else{
 							touch->passed |= TOUCHCLAIMANT_SENSOR;
-							printf("xy=%d %d hyper %d ",x,yup,tg->RenderFuncs.hypersensitive);
-							printf("pass %d\n",touch->ID);
+							//printf("xy=%d %d hyper %d ",x,yup,tg->RenderFuncs.hypersensitive);
+							//printf("pass %d\n",touch->ID);
 						}
 					}
 					//if (p->CursorOverSensitive)
@@ -4789,8 +4787,10 @@ void setup_picking(){
 
 					/* do we need to re-define cursor style? */
 					/* do we need to send an isOver event? */
+					sensornode = touch->lastPressedOver ? touch->lastPressedOver : touch->CursorOverSensitive;
+					sendDescriptionToStatusBar(sensornode);
 					if (touch->CursorOverSensitive!= NULL) {
-						setSensorCursor();
+						//setSensorCursor();
 
 						/* is this a new node that we are now over?
 							don't change the node pointer if we are clicked down */
@@ -4800,23 +4800,23 @@ void setup_picking(){
 							//sendSensorEvents(p->CursorOverSensitive,MapNotify,p->ButDown[p->currentCursor][1], TRUE);
 							sendSensorEvents(touch->CursorOverSensitive,MapNotify,touch->buttonState, TRUE);
 							 touch->oldCOS = touch->CursorOverSensitive;
-							sendDescriptionToStatusBar(touch->CursorOverSensitive);
+							// sendDescriptionToStatusBar(touch->CursorOverSensitive);
 							//ConsoleMessage("in oldCOS A\n");
 						}
 					} else {
 						/* hold off on cursor change if dragging a sensor */
-						if (touch->lastPressedOver != NULL) {
-							setSensorCursor();
-						} else {
-							setArrowCursor();
-						}
+						//if (touch->lastPressedOver != NULL) {
+						//	setSensorCursor();
+						//} else {
+						//	setArrowCursor();
+						//}
 						/* were we over a sensitive node? */
 						//if ((p->oldCOS!=NULL)  && (p->ButDown[p->currentCursor][1]==0)) {
 						//if ((touch->oldCOS != NULL)  && (touch->buttonState[LMB]==0)) {
 						if ((touch->oldCOS != NULL)  && touch->buttonState == 0) {  // touch->dragEnd) {
 							sendSensorEvents(touch->oldCOS, MapNotify, touch->buttonState, FALSE); //p->ButDown[p->currentCursor][1], FALSE);
 							/* remove any display on-screen */
-							sendDescriptionToStatusBar(NULL);
+							// sendDescriptionToStatusBar(NULL);
 							touch->oldCOS = NULL;
 							//ConsoleMessage("in oldCOS B\n");
 						}
@@ -4829,6 +4829,7 @@ void setup_picking(){
 				if(touch->dragEnd){
 					touch->dragEnd = FALSE; //handled buttonRelease above
 					touch->inUse = FALSE; //garbage collect
+					//setArrowCursor();
 				}
 			} //unclaimed or pick claimed
 		} //ktouch loop
@@ -4841,8 +4842,10 @@ void setup_picking(){
 		priorclaimants = TOUCHCLAIMANT_PEDAL;
 		kcount = 0;
 		//pick a target object to travel to
-		if(Viewer()->LookatMode < 3)
-			setLookatCursor();
+		//if(Viewer()->LookatMode == 1)
+		//	setLookatCursor();
+		//else
+		//	setArrowCursor();
 		for(ktouch=0;ktouch<p->ntouch;ktouch++){
 			touch = &p->touchlist[ktouch];
 			if(!touch->inUse) continue;
@@ -4856,9 +4859,9 @@ void setup_picking(){
 				//p->currentCursor = 0;
 				x = touch->x;
 				yup = touch->y;
-				if(setup_pickside(x,yup)){ //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
+				if(setup_pickside(x,yup)){ 
 					setup_projection();
-					setup_pickray(x,yup); //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
+					setup_pickray(x,yup); 
 					setup_viewpoint();
 					set_viewmatrix();
 					render_hier(rootNode(),VF_Sensitive  | VF_Geom);
@@ -4866,29 +4869,7 @@ void setup_picking(){
 				}
 			}
 		}
-		/*
-		printf("kcount = %d ",kcount);
-		if(Viewer()->LookatMode == 2){
-			//p->currentCursor = 0;
-			int x, yup;
-			struct Touch * touch = currentTouch();
-			if(touch->windex != windex) return;
-			if(touch->stageId != current_stageId()) return;
-			if(touch->ID < 0) return;
-			x = touch->x;
-			yup = touch->y;
-			if(setup_pickside(x,yup)){ //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor])){
-				setup_projection();
-				setup_pickray(x,yup); //tg->Mainloop.currentX[p->currentCursor],tg->Mainloop.currentY[p->currentCursor]);
-				setup_viewpoint();
-				set_viewmatrix();
-				render_hier(rootNode(),VF_Sensitive  | VF_Geom);
-				getRayHitAndSetLookatTarget();
-			}
-		}
-		*/
-		if(Viewer()->LookatMode == 0) ///> 2)
-			setArrowCursor();
+
 	}else{
 		//normal or navigation mode
 		int ktouch, priorclaimants;
@@ -4900,7 +4881,7 @@ void setup_picking(){
 			if(touch->claimant == TOUCHCLAIMANT_UNCLAIMED && touch->passed == priorclaimants)
 				touch->passed |= TOUCHCLAIMANT_SENSOR;
 		}
-		setArrowCursor();
+		//setArrowCursor();
 	}
 
 }
@@ -5369,7 +5350,6 @@ void setup_pickray(int x, int y){
 	setPickrayXY(x,y);
 	setup_pickray0();
 }
-
 /* Render the scene */
 static void render()
 {
@@ -5467,15 +5447,26 @@ static void render()
 		}
 	} /* for loop */
 	if(1){
-		//render last know mouse position as seen by the backend
-		struct Touch *touch =  currentTouch(); //&p->touchlist[0];
-		if(touch->stageId == current_stageId()){
-			//float angleDeg = fwl_getHover() ? 180.0f : 0.0f;
-			//fiducialDraw(0, touch->x, touch->y, angleDeg);
-			fiducialDrawB(CURSOR_DOWN,touch->x,touch->y);
+		//render last known mouse position as seen by the backend
+		int ktouch;
+		struct Touch *touch; // =  currentTouch(); //&p->touchlist[0];
+		for(ktouch=0;ktouch<p->ntouch;ktouch++){
+			touch = &p->touchlist[ktouch];
+			if(touch->inUse){
+				//if(touch->windex == current_windex)???
+				if(touch->stageId == current_stageId()){
+					//float angleDeg = fwl_getHover() ? 180.0f : 0.0f;
+					//fiducialDraw(0, touch->x, touch->y, angleDeg);
+					int cstyle;
+					cstyle = CURSOR_DOWN;
+					if(touch->buttonState == 0) cstyle = CURSOR_HOVER;
+					if(touch->lastOverButtonPressed || touch->CursorOverSensitive) 
+						cstyle = CURSOR_OVER; //could differentiate isOver from touching and picking
+					fiducialDrawB(cstyle,touch->x,touch->y);
+				}
+			}
 		}
 	}
-	//update_navigation();
 }
 
 
@@ -7386,29 +7377,28 @@ void ReleaseTouch(unsigned int ID){
 	p = (ppMainloop)tg->Mainloop.prv;
 	for(i=0;i<p->ntouch;i++)
 		if(p->touchlist[i].ID == ID){
-			p->touchlist[i].inUse = 1; //1= hang around for a frame
+			p->touchlist[i].inUse = 0; 
 			return;
 		}
 }
-void FreeTouches(){
-	//call a frame after touch UP
-	//cleans up released drags that hung around for a frame for setup_picking
-	int i;
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
-	for(i=0;i<p->ntouch;i++)
-		if(p->touchlist[i].inUse == 1){
-			memset(&p->touchlist[i],0,sizeof(struct Touch));
-		}
-}
+//void FreeTouches(){
+//	//call a frame after touch UP
+//	//cleans up released drags that hung around for a frame for setup_picking
+//	int i;
+//	ppMainloop p;
+//	ttglobal tg = gglobal();
+//	p = (ppMainloop)tg->Mainloop.prv;
+//	for(i=0;i<p->ntouch;i++)
+//		if(p->touchlist[i].inUse == 1){
+//			memset(&p->touchlist[i],0,sizeof(struct Touch));
+//		}
+//}
 // Definition of current touch:
 // when the event is DOWN / PRESS and there is no currentTouch, then the ID
 // of this DOWN event becomes the currentTouch until RELEASE/UP for its ID.
 // then currentTouch is free'ed up (set to 0)
 // ID is unsigned, and 0 means no touch is occuring, 1 to MAXINT (4 billion) is a valid touch ID
 void setCurrentTouchID(unsigned int ID){
-	int i;
 	ppMainloop p;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
@@ -7430,30 +7420,35 @@ void handle_pedal(int mev, int x, int y, ivec4 vport){
 	p = (ppMainloop)tg->Mainloop.prv;
 	pstate = &p->pedalstate;
 	if(mev == ButtonPress) {
-		pstate->rx = x;
-		pstate->ry = y;
-		if(FALSE && !pstate->inUse){
-			pstate->x = 0; //x;
-			pstate->y = 0; //y;
+		if(!pstate->initialized){
+			pstate->x = x;
+			pstate->y = y;
+			pstate->initialized = TRUE;
 		}
-		pstate->inUse = TRUE;
+		pstate->rx = x; //x;
+		pstate->ry = y; //y;
+		pstate->isDown = TRUE;
 	} else if (mev == MotionNotify) {
-		if(pstate->inUse){
-			pstate->x -= x - pstate->rx;
-			pstate->y -= y - pstate->ry;
+		if(pstate->isDown){
+			pstate->x += x - pstate->rx;
+			pstate->y += y - pstate->ry;
 			pstate->rx = x;
 			pstate->ry = y;
 		}
 	} else if(mev == ButtonRelease) {
-		pstate->inUse = FALSE;
-		fwl_setPedal(0); //just one pedal, then turn off automatically. User must re-click the pedal button if they want another drag to accumulate.
+		if(pstate->isDown){
+			pstate->x += x - pstate->rx;
+			pstate->y += y - pstate->ry;
+		}
+		pstate->isDown = FALSE;
 	}
+	//printf("hovpd %d %d\n",pstate->x,pstate->y);
 }
 void viewer_setNextDragChord();
 void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x, int y, unsigned int ID, int windex) {
-	int count, ibutton,i, passed, claimant;
+	int ibutton, passed, claimant;
 	float fx, fy;
-	struct Touch *touch, *curTouch;
+	struct Touch *touch;
 	Stack *vportstack;
 	ivec4 vport;
 	ppMainloop p;
@@ -7482,8 +7477,6 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 
 	vportstack = (Stack*)tg->Mainloop._vportstack;
 	vport = stack_top(ivec4,vportstack);
-	fx = (float)(x - vport.X) / (float)vport.W;
-	fy = (float)(y - vport.Y) / (float)vport.H;
 	if(0){
 		printf("multiNORMAL x %d y %d fx %f fy %f vp %d %d %d %d\n",x,y,fx,fy,vport.X,vport.W,vport.Y,vport.H);
 	}
@@ -7496,21 +7489,19 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		else if (mev == MotionNotify) ConsoleMessage("MotionNotify\n");
 		else ConsoleMessage("event %d\n", mev);
 	}
-	FreeTouches(); //call often, once per event OK, or once per frame
+	//FreeTouches(); //call often, once per event OK, or once per frame, to garbage collect isUsed = FALSE
 	// Order of new touch claimants: pedal, sensor, navigation, none/hover
 	//
 	//
-	passed = 0;
+	passed = TOUCHCLAIMANT_PEDAL;
 	claimant = TOUCHCLAIMANT_UNCLAIMED;
 	if (fwl_getPedal()) {
 		handle_pedal(mev, x, y, vport);
-		ibutton = 0;
-		passed = 0;
-		claimant = TOUCHCLAIMANT_PEDAL;
-	}else{
-		p->pedalstate.inUse = FALSE;
-		passed = TOUCHCLAIMANT_PEDAL;
-		claimant = TOUCHCLAIMANT_UNCLAIMED;
+		if(fwl_getHover()){
+			ibutton = 0;
+			passed = 0;
+			claimant = TOUCHCLAIMANT_PEDAL;
+		}
 	}
 
 	/* save the current x and y positions for picking. */
@@ -7528,7 +7519,6 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		touch->claimant = claimant; 
 		touch->passed = passed;
 		touch->dragStart = TRUE; //cleared by claimant when they've consumed the start
-		//touch->handled = 0;
 	}else{
 		touch = GetTouch(ID);
 	}
@@ -7539,8 +7529,17 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	}
 
 	//touch = &p->touchlist[ID];
-	touch->x = x + p->pedalstate.x;
-	touch->y = y + p->pedalstate.y;
+	if(fwl_getPedal()){
+		touch->x = p->pedalstate.x;
+		touch->y = p->pedalstate.y;
+		//printf("pedal %d %d\n",touch->x,touch->y);
+	}else {
+		touch->x = x;
+		touch->y = y;
+		//printf("norml %d %d\n",touch->x,touch->y);
+	}
+	fx = (float)(touch->x - vport.X) / (float)vport.W;
+	fy = (float)(touch->y - vport.Y) / (float)vport.H;
 	touch->fx = fx;
 	touch->fy = fy;
 	touch->mev = mev;
@@ -7550,6 +7549,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 		if(touch->ID == ID)
 			p->currentTouch = 0;
 		touch->dragEnd = TRUE;
+		if(touch->claimant == TOUCHCLAIMANT_PEDAL) touch->inUse = FALSE;
 	}
 	return;
 }
