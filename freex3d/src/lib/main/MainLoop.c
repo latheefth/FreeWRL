@@ -170,7 +170,8 @@ struct Touch
 	struct X3D_Node* lastPressedOver;// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 	struct X3D_Node* lastOver;// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
 	int lastOverButtonPressed;// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
-	
+	void *hypersensitive;
+	int hyperhit;
 };
 
 //#ifdef ANGLEPROJECT
@@ -4695,6 +4696,9 @@ void setup_picking(){
 					setup_pickray(x,yup);
 					//setup_viewpoint();
 					set_viewmatrix0(1);
+					gglobal()->RenderFuncs.hypersensitive = touch->hypersensitive;
+					gglobal()->RenderFuncs.hyperhit = touch->hyperhit;
+
 					render_hier(rootNode(),VF_Sensitive  | VF_Geom);
 
 					touch->CursorOverSensitive = getRayHit();
@@ -4748,6 +4752,9 @@ void setup_picking(){
 					if (p->CursorOverSensitive != NULL)
 						printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
 					#endif /* VERBOSE */
+					touch->hypersensitive = gglobal()->RenderFuncs.hypersensitive;
+					touch->hyperhit = gglobal()->RenderFuncs.hyperhit;
+
 					if(touch->claimant != TOUCHCLAIMANT_SENSOR) continue; //navigation touch
 
 					/* did we have a click of button 1? */
@@ -4821,6 +4828,8 @@ void setup_picking(){
 							//ConsoleMessage("in oldCOS B\n");
 						}
 					}
+					touch->hypersensitive = gglobal()->RenderFuncs.hypersensitive;
+					touch->hyperhit = gglobal()->RenderFuncs.hyperhit;
 
 				} //setup_pickside
 				if(touch->dragStart){
