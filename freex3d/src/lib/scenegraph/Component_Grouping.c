@@ -464,7 +464,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	//	normalChildren(node->_sortedChildren);
 	//}
 	sceneflag = ciflag_get(node->__protoFlags,2);
-	renderFirstProtoChildOnlyAsPerSpecs = FALSE;
+	renderFirstProtoChildOnlyAsPerSpecs = TRUE;  //FALSE is like flux / vivaty
 	//I don't think inline.children comes through here, just scene and protoInstance
 	if(sceneflag == 2 ){ 
 		normalChildren(node->_sortedChildren);
