@@ -5205,21 +5205,21 @@ void setup_pickray0()
 	// method: uproject 2 points along the ray, one on nearside of frustum (window z = 0) 
 	//	one on farside of frustum (window z = 1)
 	// then the first one is A, second one is B
-	// create a translation matrix to get from 0,0,0 to A T
+	// create a translation matrix T to get from 0,0,0 to A (non-zero for ortho viewpoint)
 	// create a rotation matrix R to get from A toward B
 	// pickmatrix = R * T
 	//Jan 2016 issue: with the new Layering/Layout component, all the unproject stuff changes
 	//  when traveling up/down the render_hier: viewport changes with Viewport standalone node
 	//  and viewport field of layer and layoutlayer; the projection matrix and viewpoint changes with
 	//  the push/pop of binding stacks for each Layer node; To get it working
-	//  I've had to call this at each level on the way down and up, in prep_ and fin_Viewpoint
+	//  I've had to call this at each layer on the way down and up, in prep_ and fin_Viewpoint
 	//  and likely in prep/fin of layer and layoutlayer for the projection and viewpoint changes
-	//  Therefore attempts below to optimize/avoid glu_unproject calls by capturing prepared matrices
-	//  is un-effective and un-needed (unless someone can come up with new optimizations)
+	//  Therefore attempts below to avoid glu_unproject calls by capturing prepared matrices
+	//  may need more work to fully optimize.
 	//  Generally: opengl is optimized for transforming geometry into screen space, and when
 	//  going the other way -with a pickray- glu_uproject style inversions are needed.
 	//  Perhaps the function needs to be simplified to do just glu_unprojects, perhaps
-	//   doing a single inverse, and applying to both points
+	//   doing a single inverse, and applying to both points ie glu_unproject_matrixOnly()?
 	double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
 	int viewport[4], x, y;
 	double A[3], B[3], C[3], a[3], b[3];
@@ -6208,7 +6208,7 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 	*/
 	struct currayhit * rh;
 	GLDOUBLE *modelview;
-	GLDOUBLE viewmatrix[16], viewinverse[16], justModel[16], mv[16];
+	GLDOUBLE viewmatrix[16], viewinverse[16], mv[16];
 	ttglobal tg = gglobal();
 
 	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
@@ -6217,14 +6217,8 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	fw_glGetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
 
-	if(0){
-		matinverseAFFINE(viewinverse,viewmatrix);
-		matmultiplyAFFINE(justModel,rh->modelMatrix,viewinverse);
-
-		matmultiplyAFFINE(mv,justModel,viewmatrix); //rh->justModel
-	}else{
 	matmultiplyAFFINE(mv,rh->justModel,viewmatrix); //rh->justModel
-	}
+
 	modelview = mv;
 
 	prepare_model_view_pickmatrix_inverse0(modelview, mvpi);
