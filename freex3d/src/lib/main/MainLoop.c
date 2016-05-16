@@ -170,8 +170,22 @@ struct Touch
 	struct X3D_Node* lastPressedOver;// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 	struct X3D_Node* lastOver;// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
 	int lastOverButtonPressed;// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
+	
 	void *hypersensitive;
 	int hyperhit;
+
+	//from tg.renderfuncs
+		double hitPointDist; /* distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... */
+		/* used to save rayhit and hyperhit for later use by C functions */
+		//struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
+		float hyp_save_posn[3];
+		float hyp_save_norm[3];
+		float ray_save_posn[3]; //getRayHit() > last intersection of pickray/bearing with geometry, transformed into the coordinates of the geometry
+		//void *hypersensitive;//= 0; 
+		//int hyperhit;// = 0;
+		//struct point_XYZ hp;
+		struct point_XYZ hp;
+		struct currayhit rayHit;
 };
 
 //#ifdef ANGLEPROJECT
@@ -4670,12 +4684,18 @@ void setup_picking(){
 		//p->currentCursor = 0;
 		struct X3D_Node *sensornode;
 		int x,yup,ktouch,priorclaimants;
+		int jtouch;
+		static int ndone = 0;
 		struct Touch *touch;
 		//touch = currentTouch();
 		priorclaimants = TOUCHCLAIMANT_PEDAL;
+		//ndone = 0;
 		for(ktouch=0;ktouch<p->ntouch;ktouch++){
-			touch = &p->touchlist[ktouch];
+			jtouch = p->ntouch - ktouch -1;
+			touch = &p->touchlist[jtouch];
 			if(!touch->inUse) continue;
+			ndone++;
+			//if(ndone > 2) continue;
 			//ID = touch->ID;
 			//if(ID < 0) continue; //return;
 
@@ -4696,12 +4716,32 @@ void setup_picking(){
 					setup_pickray(x,yup);
 					//setup_viewpoint();
 					set_viewmatrix0(1);
-					gglobal()->RenderFuncs.hypersensitive = touch->hypersensitive;
-					gglobal()->RenderFuncs.hyperhit = touch->hyperhit;
+					tg->RenderFuncs.hypersensitive = touch->hypersensitive;
+					tg->RenderFuncs.hyperhit = touch->hyperhit;
+					if(0){
+						tg->RenderFuncs.hitPointDist = touch->hitPointDist;
+						tg->RenderFuncs.hp = &touch->hp;
+						memcpy(tg->RenderFuncs.hyp_save_norm,touch->hyp_save_norm,3*sizeof(float));
+						memcpy(tg->RenderFuncs.hyp_save_posn,touch->hyp_save_posn,3*sizeof(float));
+						//tg->RenderFuncs.rayHit = &touch->rayHit;
+						memcpy(tg->RenderFuncs.ray_save_posn,touch->ray_save_posn,3*sizeof(float));
+					}
+					if(0) memcpy(tg->RenderFuncs.rayHit, &touch->rayHit, sizeof(struct currayhit));
+					if(0) memcpy(&((struct currayhit *)(tg->RenderFuncs.rayHit))->hitNode, &touch->rayHit.hitNode, sizeof(struct X3D_Node*));
+					if(0) memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, touch->rayHit.justModel, 16 * sizeof(double));
+					if(0) loadIdentityMatrix(((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel);
+					if(1) memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->modelMatrix, touch->rayHit.modelMatrix, 16 * sizeof(double));
+					if(0) memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->projMatrix, touch->rayHit.projMatrix, 16 * sizeof(double));
+					if(0) memcpy(tg->RenderFuncs.hp,&touch->hp,sizeof(struct point_XYZ)); 
 
-					render_hier(rootNode(),VF_Sensitive  | VF_Geom);
-
-					touch->CursorOverSensitive = getRayHit();
+					//gglobal()->RenderFuncs.hyperhit = 1; //touch->hyperhit;
+					//ConsoleMessage("before r_h touch %d\n",touch->ID);
+					if(!touch->hyperhit){
+						render_hier(rootNode(),VF_Sensitive  | VF_Geom); //sensor hit pass
+						touch->CursorOverSensitive = getRayHit();
+					}else{
+						touch->CursorOverSensitive = NULL; //hyper pass
+					}
 					//double-check navigation, which may have already started
 					//if(touch->CursorOverSensitive && touch->NavigationMode ){
 					if(touch->dragStart){
@@ -4753,7 +4793,7 @@ void setup_picking(){
 						printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
 					#endif /* VERBOSE */
 					touch->hypersensitive = gglobal()->RenderFuncs.hypersensitive;
-					touch->hyperhit = gglobal()->RenderFuncs.hyperhit;
+					//touch->hyperhit = gglobal()->RenderFuncs.hyperhit;
 
 					if(touch->claimant != TOUCHCLAIMANT_SENSOR) continue; //navigation touch
 
@@ -4828,8 +4868,21 @@ void setup_picking(){
 							//ConsoleMessage("in oldCOS B\n");
 						}
 					}
-					touch->hypersensitive = gglobal()->RenderFuncs.hypersensitive;
-					touch->hyperhit = gglobal()->RenderFuncs.hyperhit;
+					touch->hypersensitive = tg->RenderFuncs.hypersensitive;
+					touch->hyperhit = tg->RenderFuncs.hyperhit;
+					if(0){
+					//touch->hyperhit = gglobal()->RenderFuncs.hyperhit;
+					touch->hitPointDist = tg->RenderFuncs.hitPointDist;
+					memcpy(&touch->hp,tg->RenderFuncs.hp,sizeof(struct point_XYZ));
+					memcpy(touch->hyp_save_norm,tg->RenderFuncs.hyp_save_norm,3*sizeof(float));
+					memcpy(touch->hyp_save_posn,tg->RenderFuncs.hyp_save_posn,3*sizeof(float));
+					//tg->RenderFuncs.rayHit = &touch->rayHit;
+					memcpy(touch->ray_save_posn,tg->RenderFuncs.ray_save_posn,3*sizeof(float));
+					}
+					if(0) memcpy(&touch->rayHit, tg->RenderFuncs.rayHit, sizeof(struct currayhit));
+					if(1) memcpy( touch->rayHit.modelMatrix, ((struct currayhit *)(tg->RenderFuncs.rayHit))->modelMatrix, 16 * sizeof(double));
+
+					if(0) memcpy(&touch->hp,tg->RenderFuncs.hp,sizeof(struct point_XYZ)); 
 
 				} //setup_pickside
 				if(touch->dragStart){
@@ -5355,6 +5408,7 @@ void setup_pickray0()
 	}
 
 }
+void upd_ray();
 void setup_pickray(int x, int y){
 	setPickrayXY(x,y);
 	setup_pickray0();
@@ -6099,12 +6153,16 @@ struct X3D_Node* getRayHit() {
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	retnode = NULL;
+//	printf("@");
 	if(tg->RenderFuncs.hitPointDist >= 0) {
 		GLDOUBLE mvpi[16];
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 		struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-		if (rh->hitNode == NULL)
+//		printf("#");
+		if (rh->hitNode == NULL){
 			return NULL;  //this prevents unnecessary matrix inversion non-singularity
+//			printf("!");
+		}
 		prepare_model_view_pickmatrix_inverse(mvpi);
 		transform(&tp,tg->RenderFuncs.hp,mvpi);
 		x = tp.x; y = tp.y, z = tp.z;
@@ -6132,7 +6190,9 @@ struct X3D_Node* getRayHit() {
 			}
 		}
 	}
-	if(retnode != NULL){
+	//else -1
+
+	if(0) if(retnode != NULL){
 		//split modelview matrix into model + view for re-concatonation in getHyperHit
 		//assume we are at scene root, and have just done set_viewmatrix() or the equivalent render_hier(VF_VIEWPOINT) 
 		GLDOUBLE viewmatrix[16], viewinverse[16];
@@ -6143,8 +6203,10 @@ struct X3D_Node* getRayHit() {
 		fw_glGetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
 		matinverseAFFINE(viewinverse,viewmatrix);
 		matmultiplyAFFINE(rh->justModel,rh->modelMatrix,viewinverse);
+//		printf("~");
 
 	}
+//	printf("^ ");
 	return retnode;
 }
 
@@ -6218,14 +6280,14 @@ static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int sta
                         /* should we set/use hypersensitive mode? */
                         if (ev==ButtonPress) {
                                 gglobal()->RenderFuncs.hypersensitive = p->SensorEvents[count].fromnode;
-                                gglobal()->RenderFuncs.hyperhit = 0;
+                                gglobal()->RenderFuncs.hyperhit = 1; //0;
                                 if(1) get_hyperhit(); //added for touch devices which have no isOver preparation
                         } else if (ev==ButtonRelease) {
                                 gglobal()->RenderFuncs.hypersensitive = 0;
                                 gglobal()->RenderFuncs.hyperhit = 0;
 								butStatus2 = 1;
                         } else if (ev==MotionNotify) {
-                                get_hyperhit();
+							get_hyperhit();
                         }
 
 
@@ -6595,7 +6657,7 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 	*/
 	struct currayhit * rh;
 	GLDOUBLE *modelview;
-	GLDOUBLE viewmatrix[16], mv[16];
+	GLDOUBLE viewmatrix[16], viewinverse[16], justModel[16], mv[16];
 	ttglobal tg = gglobal();
 
 	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
@@ -6603,7 +6665,12 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	fw_glGetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
-	matmultiplyAFFINE(mv,rh->justModel,viewmatrix);
+
+
+		matinverseAFFINE(viewinverse,viewmatrix);
+		matmultiplyAFFINE(justModel,rh->modelMatrix,viewinverse);
+
+	matmultiplyAFFINE(mv,justModel,viewmatrix); //rh->justModel
 	modelview = mv;
 
 	prepare_model_view_pickmatrix_inverse0(modelview, mvpi);
@@ -6661,8 +6728,8 @@ void get_hyperhit() {
 		printf("get_hyperhit\n");
 
 	
-    if(0) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
-        x1,y1,z1,x2,y2,z2,x3,y3,z3); 
+    //if(0) ConsoleMessage ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
+    //    x1,y1,z1,x2,y2,z2,x3,y3,z3); 
 	
     /* and save this globally */
 	//last pickray/bearing ( (0,0,0) (0,0,1)) transformed from eye/pickray/bearing to geometry/sensor local coordinates:

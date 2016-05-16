@@ -1473,17 +1473,17 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	UNUSED(over);
 	node = (struct X3D_PlaneSensor *)ptr;
 #ifdef SENSVERBOSE
-	printf ("%lf: TS ",TickTime());
-	if (ev==ButtonPress) printf ("ButtonPress ");
-	else if (ev==ButtonRelease) printf ("ButtonRelease ");
-	else if (ev==KeyPress) printf ("KeyPress ");
-	else if (ev==KeyRelease) printf ("KeyRelease ");
-	else if (ev==MotionNotify) printf ("%lf MotionNotify ");
-	else printf ("ev %d ",ev);
+	ConsoleMessage("%lf: TS ",TickTime());
+	if (ev==ButtonPress) ConsoleMessage("ButtonPress ");
+	else if (ev==ButtonRelease) ConsoleMessage("ButtonRelease ");
+	else if (ev==KeyPress) ConsoleMessage("KeyPress ");
+	else if (ev==KeyRelease) ConsoleMessage("KeyRelease ");
+	else if (ev==MotionNotify) ConsoleMessage("MotionNotify ");
+	else ConsoleMessage("ev %d ",ev);
 	
-	if (but1) printf ("but1 TRUE "); else printf ("but1 FALSE ");
-	if (over) printf ("over TRUE "); else printf ("over FALSE ");
-	printf ("\n");
+	if (but1) ConsoleMessage("but1 TRUE "); else ConsoleMessage("but1 FALSE ");
+	if (over) ConsoleMessage("over TRUE "); else ConsoleMessage("over FALSE ");
+	ConsoleMessage ("\n");
 #endif
 
 	/* if not enabled, do nothing */
@@ -1505,6 +1505,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		float NS[3]; //plane normal, in sensor-local after axisRotation
 		//bearing (A,B) in sensor-local
 		// A=posn, B=norm - norm is a point. To get a direction vector v = (B - A)
+		//ConsoleMessage("hsp = %f %f %f \n", tg->RenderFuncs.hyp_save_posn[0], tg->RenderFuncs.hyp_save_posn[1], tg->RenderFuncs.hyp_save_posn[2]);
 		vecnormalize3f(v, vecdif3f(t1, tg->RenderFuncs.hyp_save_norm, tg->RenderFuncs.hyp_save_posn));
 		//rotate plane normal N, in plane-local to plane normal NS in sensor-local using axisRotation
 		axisangle_rotate3f(NS,N, node->axisRotation.c);
@@ -1514,6 +1515,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 			return; //looking at plane edge-on / parallel, no intersection
 		axisangle_rotate3f(trackpoint, trackpoint, node->axisRotation.c);
 	}
+
 	if ((ev==ButtonPress) && but1) {
 		/* record the current position from the saved position */
 		struct SFColor op;
@@ -1541,7 +1543,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 			nx = trackpoint[0]; ny = trackpoint[1];
 		}
 		#ifdef SEVERBOSE
-		printf ("now, mult %f nx %f ny %f op %f %f %f\n",mult,nx,ny,
+		ConsoleMessage ("now, mult %f nx %f ny %f op %f %f %f\n",mult,nx,ny,
 			node->_origPoint.c[0],node->_origPoint.c[1],
 			node->_origPoint.c[2]);
 		#endif
@@ -1606,6 +1608,7 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 			MARK_EVENT (ptr, offsetof (struct X3D_PlaneSensor, offset));
 		}
 	}
+
 }
 
 
