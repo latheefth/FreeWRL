@@ -166,7 +166,6 @@ struct Touch
 
 	struct X3D_Node* CursorOverSensitive;//=NULL;      /*  is Cursor over a Sensitive node?*/
 	struct X3D_Node* oldCOS;//=NULL;                   /*  which node was cursor over before this node?*/
-	int NavigationMode;//=FALSE;               /*  are we navigating or sensing?*/
 	struct X3D_Node* lastPressedOver;// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 	struct X3D_Node* lastOver;// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
 	int lastOverButtonPressed;// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
@@ -174,20 +173,7 @@ struct Touch
 	void *hypersensitive;
 	int hyperhit;
 	double justModel[16];
-	/*
-	//from tg.renderfuncs
-		double hitPointDist; // distance in ray: 0 = r1, 1 = r2, 2 = 2*r2-r1... 
-		// used to save rayhit and hyperhit for later use by C functions 
-		//struct SFColor hyp_save_posn, hyp_save_norm, ray_save_posn;
-		float hyp_save_posn[3];
-		float hyp_save_norm[3];
-		float ray_save_posn[3]; //getRayHit() > last intersection of pickray/bearing with geometry, transformed into the coordinates of the geometry
-		//void *hypersensitive;//= 0; 
-		//int hyperhit;// = 0;
-		//struct point_XYZ hp;
-		struct point_XYZ hp;
-		struct currayhit rayHit;
-	*/
+
 };
 
 //#ifdef ANGLEPROJECT
@@ -2993,16 +2979,6 @@ typedef struct pMainloop{
 	GLint viewPort2[10];
 	GLint viewpointScreenX[2], viewpointScreenY[2]; /*for stereo where we can adjust the viewpoint position on the screen */
 	/* screen width and height. */
-	//struct X3D_Node* CursorOverSensitive[20];//=NULL;      /*  is Cursor over a Sensitive node?*/
-	//struct X3D_Node* oldCOS[20];//=NULL;                   /*  which node was cursor over before this node?*/
-	//int NavigationMode[20];//=FALSE;               /*  are we navigating or sensing?*/
-	////int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
-
-	////int currentCursor;// = 0;
-	////int lastMouseEvent[20];// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-	//struct X3D_Node* lastPressedOver[20];// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-	//struct X3D_Node* lastOver[20];// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-	//int lastOverButtonPressed[20];// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
 
 	int maxbuffers;// = 1;                     /*  how many active indexes in bufferarray*/
 	int bufferarray[2];// = {GL_BACK,0};
@@ -3104,28 +3080,6 @@ void Mainloop_init(struct tMainloop *t){
 
 		//char* PluginFullPath;
 		p->num_SensorEvents = 0;
-
-		/* Viewport data */
-		//p->viewPort2[10];
-
-		/* screen width and height. */
-		//p->CursorOverSensitive = NULL;      /*  is Cursor over a Sensitive node?*/
-		//memset(p->CursorOverSensitive,0,20*sizeof(void*)); //=NULL;      /*  is Cursor over a Sensitive node?*/
-		////p->oldCOS=NULL;                   /*  which node was cursor over before this node?*/
-		//memset(p->oldCOS,0,sizeof(void*));
-		////p->NavigationMode=FALSE;               /*  are we navigating or sensing?*/
-		//memset(p->NavigationMode,0,20*sizeof(int));
-		////p->ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}}; nulls
-
-		////p->currentCursor = 0;
-		////p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-		////memset(p->lastMouseEvent,0,20*sizeof(int));
-		////p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-		//memset(p->lastPressedOver,0,20*sizeof(void*));
-		////p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-		//memset(p->lastOver,0,20*sizeof(void*));
-		////p->lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
-		//memset(p->lastOverButtonPressed,0,20*sizeof(int));
 
 		p->maxbuffers = 1;                     /*  how many active indexes in bufferarray*/
 		p->bufferarray[0] = FW_GL_BACK;
@@ -4680,37 +4634,20 @@ void setup_picking(){
 
 	windex = p->windex;
 	/* handle_mouse events if clicked on a sensitive node */
-	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
-	//if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 	if (tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
-		//p->currentCursor = 0;
 		struct X3D_Node *sensornode;
 		int x,yup,ktouch,priorclaimants;
-		int jtouch;
-		static int ndone = 0;
 		struct Touch *touch;
-		//touch = currentTouch();
+
 		priorclaimants = TOUCHCLAIMANT_PEDAL;
-		//ndone = 0;
 		for(ktouch=0;ktouch<p->ntouch;ktouch++){
-			//jtouch = p->ntouch - ktouch -1;
 			touch = &p->touchlist[ktouch];
 			if(!touch->inUse) continue;
-			ndone++;
-			//if(ndone > 2) continue;
-			//ID = touch->ID;
-			//if(ID < 0) continue; //return;
 
-	//	if(ID == 0) continue; //for testing e3dmouse only
 			if(touch->windex != windex) continue; //return;
 			if(touch->stageId != current_stageId()) continue;
 			x = touch->x;
 			yup = touch->y;
-			//justpressed = touch->buttonState[LMB] && touch->dragStart; //touch->mev == ButtonPress;
-			//if(justpressed)
-			//	ConsoleMessage("setup_picking justpressed mev %d x%d y%d\n",touch->mev,x,yup);
-			//ConsoleMessage("setup_picking ID %d navmode %d\n",ID,p->NavigationMode[ID]);
-		//	if(!touch->NavigationMode || justpressed) {
 			if(touch->claimant == TOUCHCLAIMANT_SENSOR || (touch->claimant == TOUCHCLAIMANT_UNCLAIMED && touch->passed == priorclaimants)) {
 				//ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
 				if(setup_pickside(x,yup)){
@@ -4720,59 +4657,24 @@ void setup_picking(){
 					set_viewmatrix0(1);
 					tg->RenderFuncs.hypersensitive = touch->hypersensitive;
 					tg->RenderFuncs.hyperhit = touch->hyperhit;
-					/*
-					if(0){
-						tg->RenderFuncs.hitPointDist = touch->hitPointDist;
-						tg->RenderFuncs.hp = &touch->hp;
-						memcpy(tg->RenderFuncs.hyp_save_norm,touch->hyp_save_norm,3*sizeof(float));
-						memcpy(tg->RenderFuncs.hyp_save_posn,touch->hyp_save_posn,3*sizeof(float));
-						//tg->RenderFuncs.rayHit = &touch->rayHit;
-						memcpy(tg->RenderFuncs.ray_save_posn,touch->ray_save_posn,3*sizeof(float));
-					}
-					if(0) memcpy(tg->RenderFuncs.rayHit, &touch->rayHit, sizeof(struct currayhit));
-					if(0) memcpy(&((struct currayhit *)(tg->RenderFuncs.rayHit))->hitNode, &touch->rayHit.hitNode, sizeof(struct X3D_Node*));
-					if(0) memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, touch->rayHit.justModel, 16 * sizeof(double));
-					if(0) loadIdentityMatrix(((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel);
-					if(0) memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->modelMatrix, touch->rayHit.modelMatrix, 16 * sizeof(double));
-					if(0) memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->projMatrix, touch->rayHit.projMatrix, 16 * sizeof(double));
-					if(0) memcpy(tg->RenderFuncs.hp,&touch->hp,sizeof(struct point_XYZ)); 
-					*/
-					//gglobal()->RenderFuncs.hyperhit = 1; //touch->hyperhit;
-					//ConsoleMessage("before r_h touch %d\n",touch->ID);
-					if(0){
-						//old unconditional render_hier
-						render_hier(rootNode(),VF_Sensitive  | VF_Geom); //sensor hit pass
+					//new shortcut way, skips render_hier on hyper pass
+					if(!touch->hyperhit){
+						//sensor pass: on ButtonPress, and isOver
+						render_hier(rootNode(),VF_Sensitive  | VF_Geom); 
 						touch->CursorOverSensitive = getRayHit();
-					} else {
-						//new shortcut way, skips render_hier on hyper pass
-						if(!touch->hyperhit){
-							//sensor pass: on ButtonPress, and isOver
-							render_hier(rootNode(),VF_Sensitive  | VF_Geom); 
-							touch->CursorOverSensitive = getRayHit();
-							memcpy( touch->justModel, ((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, 16 * sizeof(double));
-						}else{
-							//hyperhit pass: already buttondown on a dragsensor and touch or viewpoint moves
-							touch->CursorOverSensitive = NULL; //hyper pass
-							memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, touch->justModel, 16 * sizeof(double));
-						}
+						memcpy( touch->justModel, ((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, 16 * sizeof(double));
+					}else{
+						//hyperhit pass: already buttondown on a dragsensor and touch or viewpoint moves
+						touch->CursorOverSensitive = NULL; //hyper pass
+						memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, touch->justModel, 16 * sizeof(double));
 					}
+
 					//double-check navigation, which may have already started
-					//if(touch->CursorOverSensitive && touch->NavigationMode ){
 					if(touch->dragStart){
 						if(touch->CursorOverSensitive || fwl_getHover()){
-							//if(!tg->Mainloop.AllowNavDrag) 
-							touch->NavigationMode = FALSE; //rollback start of navigation
-							//touch->claimant = TOUCHCLAIMANT_SENSOR;
-							//ConsoleMessage("setup_picking rolling back startofNavigation\n");
 							touch->claimant = TOUCHCLAIMANT_SENSOR;
-							//printf("xy=%d %d hyper %d ",x,yup, tg->RenderFuncs.hypersensitive);
-							//printf("claim %d\n",touch->ID);
-							//touch->dragStart = 0;
-							//dragStart = 1; //for if() blocks below
 						}else{
 							touch->passed |= TOUCHCLAIMANT_SENSOR;
-							//printf("xy=%d %d hyper %d ",x,yup,tg->RenderFuncs.hypersensitive);
-							//printf("pass %d\n",touch->ID);
 						}
 					}
 					//if (p->CursorOverSensitive)
@@ -4806,8 +4708,6 @@ void setup_picking(){
 					if (p->CursorOverSensitive != NULL)
 						printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
 					#endif /* VERBOSE */
-				//if(0) touch->hypersensitive = gglobal()->RenderFuncs.hypersensitive;
-					//touch->hyperhit = gglobal()->RenderFuncs.hyperhit;
 
 					if(touch->claimant != TOUCHCLAIMANT_SENSOR) continue; //navigation touch
 
@@ -4884,22 +4784,6 @@ void setup_picking(){
 					}
 					touch->hypersensitive = tg->RenderFuncs.hypersensitive;
 					touch->hyperhit = tg->RenderFuncs.hyperhit;
-					/*
-					if(0){
-					//touch->hyperhit = gglobal()->RenderFuncs.hyperhit;
-					touch->hitPointDist = tg->RenderFuncs.hitPointDist;
-					memcpy(&touch->hp,tg->RenderFuncs.hp,sizeof(struct point_XYZ));
-					memcpy(touch->hyp_save_norm,tg->RenderFuncs.hyp_save_norm,3*sizeof(float));
-					memcpy(touch->hyp_save_posn,tg->RenderFuncs.hyp_save_posn,3*sizeof(float));
-					//tg->RenderFuncs.rayHit = &touch->rayHit;
-					memcpy(touch->ray_save_posn,tg->RenderFuncs.ray_save_posn,3*sizeof(float));
-					}
-					if(0) memcpy(&touch->rayHit, tg->RenderFuncs.rayHit, sizeof(struct currayhit));
-				if(0) memcpy( touch->rayHit.modelMatrix, ((struct currayhit *)(tg->RenderFuncs.rayHit))->modelMatrix, 16 * sizeof(double));
-				if(0) memcpy( touch->rayHit.justModel, ((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, 16 * sizeof(double));
-
-					if(0) memcpy(&touch->hp,tg->RenderFuncs.hp,sizeof(struct point_XYZ)); 
-					*/
 				} //setup_pickside
 				if(touch->dragStart){
 					touch->dragStart = FALSE; //handled buttonPress above
