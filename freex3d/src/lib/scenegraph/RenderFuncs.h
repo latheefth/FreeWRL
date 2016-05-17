@@ -42,6 +42,7 @@ struct currayhit {
 	GLDOUBLE projMatrix[16];
 	GLDOUBLE justModel[16]; //view taken off, so transfroms from geometry-local to World
 };
+
 void get_current_ray(struct point_XYZ* p1, struct point_XYZ* p2);
 extern struct point_XYZ r1, r2;         /* in VRMLC.pm */
 

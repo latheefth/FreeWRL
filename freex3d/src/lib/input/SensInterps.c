@@ -1466,7 +1466,7 @@ void do_LineSensor(void *ptr, int ev, int but1, int over) {
 /* void do_PlaneSensor (struct X3D_PlaneSensor *node, int ev, int over) {*/
 void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	struct X3D_PlaneSensor *node;
-	float mult, nx, ny, trackpoint[3];
+	float mult, nx, ny, trackpoint[3], *posn;
 	struct SFColor tr;
 	int tmp, imethod;
 	ttglobal tg;
@@ -1511,7 +1511,8 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 		axisangle_rotate3f(NS,N, node->axisRotation.c);
 		//a plane P dot N = d = const, for any point P on plane. Our plane is in plane-local coords, 
 		// so we could use P={0,0,0} and P dot N = d = 0
-		if (!line_intersect_planed_3f(tg->RenderFuncs.hyp_save_posn, v, NS, 0.0f, trackpoint, NULL))
+		posn = tg->RenderFuncs.hyp_save_posn;
+		if (!line_intersect_planed_3f(posn, v, NS, 0.0f, trackpoint, NULL))
 			return; //looking at plane edge-on / parallel, no intersection
 		axisangle_rotate3f(trackpoint, trackpoint, node->axisRotation.c);
 	}
@@ -1519,12 +1520,15 @@ void do_PlaneSensor ( void *ptr, int ev, int but1, int over) {
 	if ((ev==ButtonPress) && but1) {
 		/* record the current position from the saved position */
 		struct SFColor op;
+		float *posn;
+		posn = tg->RenderFuncs.hyp_save_posn;
+
 		veccopy3f(op.c, trackpoint);
 		if (imethod==1)
 			memcpy((void *)&node->_origPoint, (void *)&op,sizeof(struct SFColor));
 		if (imethod==0)
 			memcpy ((void *) &node->_origPoint,
-				(void *) &tg->RenderFuncs.ray_save_posn,sizeof(struct SFColor));
+				(void *) posn,sizeof(struct SFColor));
 
 		/* set isActive true */
 		node->isActive=TRUE;

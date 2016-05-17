@@ -173,6 +173,7 @@ struct Touch
 	void *hypersensitive;
 	int hyperhit;
 	double justModel[16];
+	struct point_XYZ hp;
 
 };
 
@@ -4646,11 +4647,18 @@ void setup_picking(){
 
 			if(touch->windex != windex) continue; //return;
 			if(touch->stageId != current_stageId()) continue;
+
 			x = touch->x;
 			yup = touch->y;
 			if(touch->claimant == TOUCHCLAIMANT_SENSOR || (touch->claimant == TOUCHCLAIMANT_UNCLAIMED && touch->passed == priorclaimants)) {
 				//ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
 				if(setup_pickside(x,yup)){
+					// There can be multiple paths to a parent transform of a sensor node:
+					// touch 1:M path M:1 transform/parent 1:M SensorEvent M:1 Sensor
+					// However, for a given touch, there is only one winning hit, 
+					// and only one winning path through the transform stack:
+					// touch 1:1 winning_path 1:1 winning-transform/parent 1:1 winning_hitpoint 1:M SensorEvent M:1 Sensor
+
 					setup_projection();
 					setup_pickray(x,yup);
 					//setup_viewpoint();
@@ -4663,10 +4671,12 @@ void setup_picking(){
 						render_hier(rootNode(),VF_Sensitive  | VF_Geom); 
 						touch->CursorOverSensitive = getRayHit();
 						memcpy( touch->justModel, ((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, 16 * sizeof(double));
+						memcpy( &touch->hp, tg->RenderFuncs.hp, sizeof(struct point_XYZ));
 					}else{
 						//hyperhit pass: already buttondown on a dragsensor and touch or viewpoint moves
 						touch->CursorOverSensitive = NULL; //hyper pass
 						memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, touch->justModel, 16 * sizeof(double));
+						memcpy(  tg->RenderFuncs.hp, &touch->hp, sizeof(struct point_XYZ));
 					}
 
 					//double-check navigation, which may have already started
@@ -6063,15 +6073,15 @@ struct X3D_Node* getRayHit() {
 			return NULL;  //this prevents unnecessary matrix inversion non-singularity
 //			printf("!");
 		}
-		if(0){
-		prepare_model_view_pickmatrix_inverse(mvpi);
-		transform(&tp,tg->RenderFuncs.hp,mvpi);
-		x = tp.x; y = tp.y, z = tp.z;
+		//if(0){
+		//prepare_model_view_pickmatrix_inverse(mvpi);
+		//transform(&tp,tg->RenderFuncs.hp,mvpi);
+		//x = tp.x; y = tp.y, z = tp.z;
 
 
-		/* and save this globally */
-		tg->RenderFuncs.ray_save_posn[0] = (float) x; tg->RenderFuncs.ray_save_posn[1] = (float) y; tg->RenderFuncs.ray_save_posn[2] = (float) z;
-		}
+		///* and save this globally */
+		//tg->RenderFuncs.ray_save_posn[0] = (float) x; tg->RenderFuncs.ray_save_posn[1] = (float) y; tg->RenderFuncs.ray_save_posn[2] = (float) z;
+		//}
 		/* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
 			if it exists */
 
@@ -6093,7 +6103,7 @@ struct X3D_Node* getRayHit() {
 	}
 	//else -1
 
-	if(1) if(retnode != NULL){
+	if(retnode != NULL){
 		//split modelview matrix into model + view for re-concatonation in getHyperHit
 		//assume we are at scene root, and have just done set_viewmatrix() or the equivalent render_hier(VF_VIEWPOINT) 
 		GLDOUBLE viewmatrix[16], viewinverse[16];
@@ -6112,91 +6122,101 @@ struct X3D_Node* getRayHit() {
 }
 
 
-/* set a node to be sensitive, and record info for this node */
+/* set a node to be sensitive, and record info for this node 
+	A transform can have multiple sensor children.
+	A sensor can be DEF/USEd under multiple parent transforms.
+	SensorEvent is like a lookup table to go between them:
+	parentNode 1:M SensorEvent   M:1 sensorNode
+	               parent/sensor
+*/
 void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
-        void (*myp)(unsigned *);
+	void (*myp)(unsigned *);
 	int i;
-		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
-        switch (datanode->_nodeType) {
-                /* sibling sensitive nodes - we have a parent node, and we use it! */
-                case NODE_TouchSensor: myp = (void *)do_TouchSensor; break;
-                case NODE_GeoTouchSensor: myp = (void *)do_GeoTouchSensor; break;
-				case NODE_LineSensor: myp = (void *)do_LineSensor; break;
-                case NODE_PlaneSensor: myp = (void *)do_PlaneSensor; break;
-                case NODE_CylinderSensor: myp = (void *)do_CylinderSensor; break;
-                case NODE_SphereSensor: myp = (void *)do_SphereSensor; break;
-                case NODE_ProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
-                case NODE_GeoProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
+	switch (datanode->_nodeType) {
+		/* sibling sensitive nodes - we have a parent node, and we use it! */
+		case NODE_TouchSensor: myp = (void *)do_TouchSensor; break;
+		case NODE_GeoTouchSensor: myp = (void *)do_GeoTouchSensor; break;
+		case NODE_LineSensor: myp = (void *)do_LineSensor; break;
+		case NODE_PlaneSensor: myp = (void *)do_PlaneSensor; break;
+		case NODE_CylinderSensor: myp = (void *)do_CylinderSensor; break;
+		case NODE_SphereSensor: myp = (void *)do_SphereSensor; break;
+		case NODE_ProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
+		case NODE_GeoProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
 
-                /* Anchor is a special case, as it has children, so this is the "parent" node. */
-                case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
-                default: return;
-        }
-        /* printf ("setSensitive parentNode %p  type %s data %p type %s\n",parentNode,
-                        stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType)); */
+		/* Anchor is a special case, as it has children, so this is the "parent" node. */
+		case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
+		default: return;
+	}
+	/* printf ("setSensitive parentNode %p  type %s data %p type %s\n",parentNode,
+					stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType)); */
 
 	/* is this node already here? */
 	/* why would it be duplicate? When we parse, we add children to a temp group, then we
-	   pass things over to a rootNode; we could possibly have this duplicated */
+		pass things over to a rootNode; we could possibly have this duplicated */
 	for (i=0; i<p->num_SensorEvents; i++) {
 		if ((p->SensorEvents[i].fromnode == parentNode) &&
-		    (p->SensorEvents[i].datanode == datanode) &&
-		    (p->SensorEvents[i].interpptr == (void *)myp)) {
+			(p->SensorEvents[i].datanode == datanode) &&
+			(p->SensorEvents[i].interpptr == (void *)myp)) {
 			/* printf ("setSensitive, duplicate, returning\n"); */
 			return;
 		}
 	}
 
-        if (datanode == 0) {
-                printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(datanode->_nodeType));
-                return;
-        }
+	if (datanode == 0) {
+		printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(datanode->_nodeType));
+		return;
+	}
 
-        /* record this sensor event for clicking purposes */
-        p->SensorEvents = REALLOC(p->SensorEvents,sizeof (struct SensStruct) * (p->num_SensorEvents+1));
+	/* record this sensor event for clicking purposes */
+	p->SensorEvents = REALLOC(p->SensorEvents,sizeof (struct SensStruct) * (p->num_SensorEvents+1));
 
-        /* now, put the function pointer and data pointer into the structure entry */
-        p->SensorEvents[p->num_SensorEvents].fromnode = parentNode;
-        p->SensorEvents[p->num_SensorEvents].datanode = datanode;
-        p->SensorEvents[p->num_SensorEvents].interpptr = (void *)myp;
+	/* now, put the function pointer and data pointer into the structure entry */
+	p->SensorEvents[p->num_SensorEvents].fromnode = parentNode;
+	p->SensorEvents[p->num_SensorEvents].datanode = datanode;
+	p->SensorEvents[p->num_SensorEvents].interpptr = (void *)myp;
 
-        /* printf ("saved it in num_SensorEvents %d\n",p->num_SensorEvents);  */
-        p->num_SensorEvents++;
+	/* printf ("saved it in num_SensorEvents %d\n",p->num_SensorEvents);  */
+	p->num_SensorEvents++;
 }
 
 /* we have a sensor event changed, look up event and do it */
 /* note, (Geo)ProximitySensor events are handled during tick, as they are time-sensitive only */
 static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
-        int count;
-		int butStatus2;
-		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	//COS - cursorOverSensitive - a parent transform node / hitPoint node
+	int count;
+	int butStatus2;
+	ttglobal tg;
+	ppMainloop p;
+	tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
-        /* if we are not calling a valid node, dont do anything! */
-        if (COS==NULL) return;
+	/* if we are not calling a valid node, dont do anything! */
+	if (COS==NULL) return;
 
-        for (count = 0; count < p->num_SensorEvents; count++) {
-                if (p->SensorEvents[count].fromnode == COS) {
-						butStatus2 = butStatus;
-                        /* should we set/use hypersensitive mode? */
-                        if (ev==ButtonPress) {
-                                gglobal()->RenderFuncs.hypersensitive = p->SensorEvents[count].fromnode;
-                                gglobal()->RenderFuncs.hyperhit = 1; //0;
-                                if(1) get_hyperhit(); //added for touch devices which have no isOver preparation
-                        } else if (ev==ButtonRelease) {
-                                gglobal()->RenderFuncs.hypersensitive = 0;
-                                gglobal()->RenderFuncs.hyperhit = 0;
-								butStatus2 = 1;
-                        } else if (ev==MotionNotify) {
-							get_hyperhit();
-                        }
+	for (count = 0; count < p->num_SensorEvents; count++) {
+		if (p->SensorEvents[count].fromnode == COS) {
+			butStatus2 = butStatus;
+			/* should we set/use hypersensitive mode? */
+			if (ev==ButtonPress) {
+				tg->RenderFuncs.hypersensitive = p->SensorEvents[count].fromnode;
+				tg->RenderFuncs.hyperhit = 1; // 1 means we are starting a hypersensitive drag
+				get_hyperhit(); //added for touch devices which have no isOver preparation
+			} else if (ev==ButtonRelease) {
+				tg->RenderFuncs.hypersensitive = 0; 
+				tg->RenderFuncs.hyperhit = 0; //0 means we finished hypersensitive drag
+				butStatus2 = 1;
+			} else if (ev==MotionNotify) {
+				get_hyperhit();
+			}
 
 
-                        p->SensorEvents[count].interpptr(p->SensorEvents[count].datanode, ev,butStatus2, status);
-                        /* return; do not do this, incase more than 1 node uses this, eg,
-                                an Anchor with a child of TouchSensor */
-                }
-        }
+			p->SensorEvents[count].interpptr(p->SensorEvents[count].datanode, ev,butStatus2, status); //do_PlaneSensor, do_...
+			/* return; do not do this, incase more than 1 node uses this, eg,
+							an Anchor with a child of TouchSensor */
+		}
+	}
 }
 
 void prepare_model_view_pickmatrix_inverse0(GLDOUBLE *modelMatrix, GLDOUBLE *mvpi);
@@ -6205,6 +6225,7 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 		to gemoetry-local, using the modelview matrix of the pickray-scene intersection point
 		found closest to the viewer on the last render_hier(VF_SENSITIVE) pass
 		using the model matrix snapshotted/frozen at the time of the intersection, and the current view matrix
+		MVPI = inverse(pickray_frozen_model * view)
 	*/
 	struct currayhit * rh;
 	GLDOUBLE *modelview;
@@ -6212,16 +6233,16 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 	ttglobal tg = gglobal();
 
 	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-	modelview = rh->modelMatrix;
+	//modelview = rh->modelMatrix;
 
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	fw_glGetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
 
 	matmultiplyAFFINE(mv,rh->justModel,viewmatrix); //rh->justModel
 
-	modelview = mv;
+	//modelview = mv;
 
-	prepare_model_view_pickmatrix_inverse0(modelview, mvpi);
+	prepare_model_view_pickmatrix_inverse0(mv, mvpi);
 }
 
 /*	get_hyperhit()
@@ -6237,9 +6258,15 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 */
 void get_hyperhit() {
 	/* 
-		transforms the last known pickray intersection, and pickray/bearing into sensor-local coordinates of the 
-		intersected geometry
-
+		transforms the last known pickray intersection, and current frame pickray/bearing into sensor-local coordinates of the 
+		intersected geometry, using:
+		- current frame pickray view matrix (in case mouse has moved)
+		- current frame view matrix (in case its changed, ie keyboard navigation while mouse-down on a drag sensor, 
+			or HMD head mounted display/mobile motionsensor nav while button-down on a drag sensor: should drag)
+		- mouse-down-frozen model matrix between world and the sensor's parent (transform,..) node
+		sensor-local-pickray = frozen_justModel * current_view * pickray_matrix * unit_pickray 0,0,-1
+		modelviewMatrix =     |     M                 V                P       |
+		
 		variables:
 		struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
 			pick-viewport-local axes: r1- along pick-proj axis, r2 viewpoint, r3 y-up axis in case needed
