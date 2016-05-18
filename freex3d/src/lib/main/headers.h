@@ -882,6 +882,7 @@ void resetSensorEvents();
 
 /* META data, component, profile  stuff */
 void handleMetaDataStringString(struct Uni_String *val1,struct Uni_String *val2);
+void handleUnitDataStringString(struct Uni_String *val1,struct Uni_String *val2, double dval3);
 void handleProfile(int myp);
 void handleComponent(int com, int lev);
 void handleExport (char *node, char *as);

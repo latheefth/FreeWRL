@@ -836,6 +836,7 @@ our %KeywordC = map {($_=>1)} qw/
 	IMPORT
 	IS
 	META
+	UNIT
 	NULL
 	PROFILE
 	PROTO

@@ -149,6 +149,7 @@ static BOOL parser_componentStatement(struct VRMLParser*);
 static BOOL parser_exportStatement(struct VRMLParser*);
 static BOOL parser_importStatement(struct VRMLParser*);
 static BOOL parser_metaStatement(struct VRMLParser*);
+static BOOL parser_unitStatement(struct VRMLParser*);
 static BOOL parser_profileStatement(struct VRMLParser*);
 
 //static BOOL parser_protoStatement(struct VRMLParser*);
@@ -1330,6 +1331,50 @@ static BOOL parser_metaStatement(struct VRMLParser* me) {
     if (val2 != NULL) {FREE_IF_NZ(val2->strptr); FREE_IF_NZ(val2);}
     return TRUE;
 }
+static BOOL parser_unitStatement(struct VRMLParser* me) {
+    vrmlStringT val1, val2; //, val3;
+	double dval3;
+
+    ASSERT(me->lexer);
+    lexer_skip(me->lexer);
+
+    /* Is this a UNIT statement? */
+    if(!lexer_keyword(me->lexer, KW_UNIT)) return FALSE;
+
+#ifdef CPARSERVERBOSE
+    printf ("parser_unitStatement...\n");
+#endif
+
+    /* UNIT lines have 3 strings */
+
+    /* Otherwise, a real vector */
+    val1=NULL; val2 = NULL; dval3 = 0.0; //val3 = NULL;
+
+    if(!parser_sfstringValue (me, &val1)) {
+        CPARSE_ERROR_CURID("Expected a category string after a UNIT keyword")
+            }
+
+    if(!parser_sfstringValue (me, &val2)) {
+        CPARSE_ERROR_CURID("Expected a name string after a UNIT keyword")
+            }
+
+    //if(!parser_sfstringValue (me, &val3)) {
+    //    CPARSE_ERROR_CURID("Expected a conversionfactor string after a UNIT keyword")
+    //        }
+	if(!parser_sftimeValue(me,&dval3)) {
+        CPARSE_ERROR_CURID("Expected a numeric string after a UNIT keyword")
+            }
+
+
+    if ((val1 != NULL) && (val2 != NULL) && (dval3 != 0.0)) { handleUnitDataStringString(val1,val2,dval3); }
+
+    /* cleanup */
+    if (val1 != NULL) {FREE_IF_NZ(val1->strptr); FREE_IF_NZ(val1);}
+    if (val2 != NULL) {FREE_IF_NZ(val2->strptr); FREE_IF_NZ(val2);}
+    //if (val3 != NULL) {FREE_IF_NZ(val3->strptr); FREE_IF_NZ(val3);}
+    return TRUE;
+}
+
 
 static BOOL parser_profileStatement(struct VRMLParser* me) {
     int myProfile = INT_ID_UNDEFINED;

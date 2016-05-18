@@ -273,6 +273,11 @@ void handleMetaDataStringString(struct Uni_String *val1, struct Uni_String *val2
 	printf ("handleMetaDataStringString, :%s:, :%s:\n",val1->strptr, val2->strptr);
 	#endif
 }
+void handleUnitDataStringString(struct Uni_String *val1, struct Uni_String *val2, double dval3) {
+	#ifdef CAPABILITIESVERBOSE
+	printf ("handleMetaDataStringString, :%s:, :%s:\n",val1->strptr, val2->strptr);
+	#endif
+}
 
 void handleProfile (int myProfile) {
 	int *myTable = NULL;
