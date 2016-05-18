@@ -1877,15 +1877,16 @@ extern const int KEYWORDS_COUNT;
 #define KW_ROUTE	13
 #define KW_TO	14
 #define KW_TRUE	15
-#define KW_USE	16
-#define KW_eventIn	17
-#define KW_eventOut	18
-#define KW_exposedField	19
-#define KW_field	20
-#define KW_initializeOnly	21
-#define KW_inputOnly	22
-#define KW_inputOutput	23
-#define KW_outputOnly	24
+#define KW_UNIT	16
+#define KW_USE	17
+#define KW_eventIn	18
+#define KW_eventOut	19
+#define KW_exposedField	20
+#define KW_field	21
+#define KW_initializeOnly	22
+#define KW_inputOnly	23
+#define KW_inputOutput	24
+#define KW_outputOnly	25
 
 const char *stringKeywordType(int st);
 

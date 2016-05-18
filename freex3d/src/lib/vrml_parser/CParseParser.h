@@ -136,6 +136,10 @@ struct ProtoFieldDecl* protoDefinition_getField(struct ProtoDefinition*,
 	continue; \
   } \
  \
+  if (parser_unitStatement(me)) { \
+	continue; \
+  } \
+ \
   if (parser_profileStatement(me)) { \
 	continue; \
   } 
