@@ -3596,6 +3596,7 @@ void setup_stagesNORMAL(){
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}
 		{
+			//MAY 18, 2016 MULTITOUCH EMULATION DOESN'T WORK NOW after setup_picking() and onTouch() changes
 			//1. normal + multitouch emulation, scene, statusbarHud, 
 			contenttype *cmultitouch, *cscene, *csbh;
 
