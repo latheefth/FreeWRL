@@ -1447,12 +1447,14 @@ void render_node(struct X3D_Node *node) {
 		PRINT_GL_ERROR_IF_ANY("rs 6"); PRINT_NODE(node,virt);
 	}
 
+	/* May 16 2016: now we don't come into render_hier on hypersensitive
     if((p->renderstate.render_sensitive) && (tg->RenderFuncs.hypersensitive == node)) {
 		DEBUG_RENDER("rs 7\n");
 		p->hyper_r1 = p->t_r123.p1; //tg->RenderFuncs.t_r1;
 		p->hyper_r2 = p->t_r123.p2; //tg->RenderFuncs.t_r2;
 		tg->RenderFuncs.hyperhit = 1;
     }
+	*/
 
 	/* start recursive section */
     if(virt->children) { 

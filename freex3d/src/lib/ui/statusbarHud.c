@@ -1343,7 +1343,7 @@ char * keyboardShortcutHelp[] = {
 NULL,
 };
 #else
-int lenhelp = 9;
+int lenhelp = 13; 
 char * keyboardShortcutHelp[] = {
 " ",
 " ",
@@ -1354,6 +1354,9 @@ char * keyboardShortcutHelp[] = {
 "Keyboard navigation:",
 " use arrow keys.",
 " to change keychord: press SHIFT> or SHIFT<",
+"Touch cursor control:",
+" use both PEDAL % and HOVER ^ buttons to move cursor",
+" use PEDAL % button to drag cursor around",
 NULL,
 };
 #endif
@@ -1363,7 +1366,7 @@ void printKeyboardHelp(ppstatusbar p)
 {
 	int j; 
 	XY xy;
-	FXY fxy, fxy2;
+	FXY fxy, fxy2, fxy3;
 	GLfloat side_bottom_f;
 
 	if(0){
@@ -1381,14 +1384,15 @@ void printKeyboardHelp(ppstatusbar p)
 	fxy2 = screen2normalizedScreenScale((GLfloat)p->bmWH.x, (GLfloat)p->bmWH.y);
 	fxy2.y *= p->bmScale;
 	side_bottom_f = -1.0f;
-
+	fxy3 = screen2normalizedScreenScale((GLfloat)0, (GLfloat)p->buttonRows * p->buttonSize);
+	side_bottom_f += fxy3.y;
 	//draw bottom up, to explain buttons
 	j = 0;
 	while(keyboardShortcutHelp[j] != NULL)
 	{
 		//if (Viewer()->updown){
 		//	if(iside == 0) side_bottom_f = 0.0f;
-		printString2(-1.0f, side_bottom_f + (lenhelp-j+2)*fxy2.y, keyboardShortcutHelp[j]);
+		printString2(-1.0f, side_bottom_f + (lenhelp-j)*fxy2.y, keyboardShortcutHelp[j]);
 		j++;
 		if(p->show_status && j > lenhelp) break; //they can see button help on the statusbar on mouse-over button
 	}

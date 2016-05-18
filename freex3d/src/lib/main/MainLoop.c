@@ -166,11 +166,15 @@ struct Touch
 
 	struct X3D_Node* CursorOverSensitive;//=NULL;      /*  is Cursor over a Sensitive node?*/
 	struct X3D_Node* oldCOS;//=NULL;                   /*  which node was cursor over before this node?*/
-	int NavigationMode;//=FALSE;               /*  are we navigating or sensing?*/
 	struct X3D_Node* lastPressedOver;// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
 	struct X3D_Node* lastOver;// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
 	int lastOverButtonPressed;// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
 	
+	void *hypersensitive;
+	int hyperhit;
+	double justModel[16];
+	struct point_XYZ hp;
+
 };
 
 //#ifdef ANGLEPROJECT
@@ -2976,16 +2980,6 @@ typedef struct pMainloop{
 	GLint viewPort2[10];
 	GLint viewpointScreenX[2], viewpointScreenY[2]; /*for stereo where we can adjust the viewpoint position on the screen */
 	/* screen width and height. */
-	//struct X3D_Node* CursorOverSensitive[20];//=NULL;      /*  is Cursor over a Sensitive node?*/
-	//struct X3D_Node* oldCOS[20];//=NULL;                   /*  which node was cursor over before this node?*/
-	//int NavigationMode[20];//=FALSE;               /*  are we navigating or sensing?*/
-	////int ButDown[20][8];// = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}};
-
-	////int currentCursor;// = 0;
-	////int lastMouseEvent[20];// = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-	//struct X3D_Node* lastPressedOver[20];// = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-	//struct X3D_Node* lastOver[20];// = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-	//int lastOverButtonPressed[20];// = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
 
 	int maxbuffers;// = 1;                     /*  how many active indexes in bufferarray*/
 	int bufferarray[2];// = {GL_BACK,0};
@@ -3087,28 +3081,6 @@ void Mainloop_init(struct tMainloop *t){
 
 		//char* PluginFullPath;
 		p->num_SensorEvents = 0;
-
-		/* Viewport data */
-		//p->viewPort2[10];
-
-		/* screen width and height. */
-		//p->CursorOverSensitive = NULL;      /*  is Cursor over a Sensitive node?*/
-		//memset(p->CursorOverSensitive,0,20*sizeof(void*)); //=NULL;      /*  is Cursor over a Sensitive node?*/
-		////p->oldCOS=NULL;                   /*  which node was cursor over before this node?*/
-		//memset(p->oldCOS,0,sizeof(void*));
-		////p->NavigationMode=FALSE;               /*  are we navigating or sensing?*/
-		//memset(p->NavigationMode,0,20*sizeof(int));
-		////p->ButDown[20][8] = {{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}}; nulls
-
-		////p->currentCursor = 0;
-		////p->lastMouseEvent = 0/*MapNotify*/;         /*  last event a mouse did; care about Button and Motion events only.*/
-		////memset(p->lastMouseEvent,0,20*sizeof(int));
-		////p->lastPressedOver = NULL;/*  the sensitive node that the mouse was last buttonpressed over.*/
-		//memset(p->lastPressedOver,0,20*sizeof(void*));
-		////p->lastOver = NULL;       /*  the sensitive node that the mouse was last moused over.*/
-		//memset(p->lastOver,0,20*sizeof(void*));
-		////p->lastOverButtonPressed = FALSE;      /*  catch the 1 to 0 transition for button presses and isOver in TouchSensors */
-		//memset(p->lastOverButtonPressed,0,20*sizeof(int));
 
 		p->maxbuffers = 1;                     /*  how many active indexes in bufferarray*/
 		p->bufferarray[0] = FW_GL_BACK;
@@ -3624,6 +3596,7 @@ void setup_stagesNORMAL(){
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}
 		{
+			//MAY 18, 2016 MULTITOUCH EMULATION DOESN'T WORK NOW after setup_picking() and onTouch() changes
 			//1. normal + multitouch emulation, scene, statusbarHud, 
 			contenttype *cmultitouch, *cscene, *csbh;
 
@@ -4663,58 +4636,56 @@ void setup_picking(){
 
 	windex = p->windex;
 	/* handle_mouse events if clicked on a sensitive node */
-	//printf("nav mode =%d sensitive= %d\n",p->NavigationMode, tg->Mainloop.HaveSensitive);
-	//if (!p->NavigationMode && tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
 	if (tg->Mainloop.HaveSensitive && !Viewer()->LookatMode && !tg->Mainloop.SHIFT) {
-		//p->currentCursor = 0;
 		struct X3D_Node *sensornode;
 		int x,yup,ktouch,priorclaimants;
 		struct Touch *touch;
-		//touch = currentTouch();
+
 		priorclaimants = TOUCHCLAIMANT_PEDAL;
 		for(ktouch=0;ktouch<p->ntouch;ktouch++){
 			touch = &p->touchlist[ktouch];
 			if(!touch->inUse) continue;
-			//ID = touch->ID;
-			//if(ID < 0) continue; //return;
 
-	//	if(ID == 0) continue; //for testing e3dmouse only
 			if(touch->windex != windex) continue; //return;
 			if(touch->stageId != current_stageId()) continue;
+
 			x = touch->x;
 			yup = touch->y;
-			//justpressed = touch->buttonState[LMB] && touch->dragStart; //touch->mev == ButtonPress;
-			//if(justpressed)
-			//	ConsoleMessage("setup_picking justpressed mev %d x%d y%d\n",touch->mev,x,yup);
-			//ConsoleMessage("setup_picking ID %d navmode %d\n",ID,p->NavigationMode[ID]);
-		//	if(!touch->NavigationMode || justpressed) {
 			if(touch->claimant == TOUCHCLAIMANT_SENSOR || (touch->claimant == TOUCHCLAIMANT_UNCLAIMED && touch->passed == priorclaimants)) {
 				//ConsoleMessage("setup_picking x %d y %d ID %d but %d mev %d\n",touch->x,touch->y,touch->ID,touch->buttonState[LMB],touch->mev);
 				if(setup_pickside(x,yup)){
+					// There can be multiple paths to a parent transform of a sensor node:
+					// touch 1:M path M:1 transform/parent 1:M SensorEvent M:1 Sensor
+					// However, for a given touch, there is only one winning hit, 
+					// and only one winning path through the transform stack:
+					// touch 1:1 winning_path 1:1 winning-transform/parent 1:1 winning_hitpoint 1:M SensorEvent M:1 Sensor
+
 					setup_projection();
 					setup_pickray(x,yup);
 					//setup_viewpoint();
 					set_viewmatrix0(1);
-					render_hier(rootNode(),VF_Sensitive  | VF_Geom);
+					tg->RenderFuncs.hypersensitive = touch->hypersensitive;
+					tg->RenderFuncs.hyperhit = touch->hyperhit;
+					//new shortcut way, skips render_hier on hyper pass
+					if(!touch->hyperhit){
+						//sensor pass: on ButtonPress, and isOver
+						render_hier(rootNode(),VF_Sensitive  | VF_Geom); 
+						touch->CursorOverSensitive = getRayHit();
+						memcpy( touch->justModel, ((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, 16 * sizeof(double));
+						memcpy( &touch->hp, tg->RenderFuncs.hp, sizeof(struct point_XYZ));
+					}else{
+						//hyperhit pass: already buttondown on a dragsensor and touch or viewpoint moves
+						touch->CursorOverSensitive = NULL; //hyper pass
+						memcpy(((struct currayhit *)(tg->RenderFuncs.rayHit))->justModel, touch->justModel, 16 * sizeof(double));
+						memcpy(  tg->RenderFuncs.hp, &touch->hp, sizeof(struct point_XYZ));
+					}
 
-					touch->CursorOverSensitive = getRayHit();
 					//double-check navigation, which may have already started
-					//if(touch->CursorOverSensitive && touch->NavigationMode ){
 					if(touch->dragStart){
 						if(touch->CursorOverSensitive || fwl_getHover()){
-							//if(!tg->Mainloop.AllowNavDrag) 
-							touch->NavigationMode = FALSE; //rollback start of navigation
-							//touch->claimant = TOUCHCLAIMANT_SENSOR;
-							//ConsoleMessage("setup_picking rolling back startofNavigation\n");
 							touch->claimant = TOUCHCLAIMANT_SENSOR;
-							//printf("xy=%d %d hyper %d ",x,yup, tg->RenderFuncs.hypersensitive);
-							//printf("claim %d\n",touch->ID);
-							//touch->dragStart = 0;
-							//dragStart = 1; //for if() blocks below
 						}else{
 							touch->passed |= TOUCHCLAIMANT_SENSOR;
-							//printf("xy=%d %d hyper %d ",x,yup,tg->RenderFuncs.hypersensitive);
-							//printf("pass %d\n",touch->ID);
 						}
 					}
 					//if (p->CursorOverSensitive)
@@ -4748,6 +4719,7 @@ void setup_picking(){
 					if (p->CursorOverSensitive != NULL)
 						printf("COS %d (%s)\n", (unsigned int) p->CursorOverSensitive, stringNodeType(p->CursorOverSensitive->_nodeType));
 					#endif /* VERBOSE */
+
 					if(touch->claimant != TOUCHCLAIMANT_SENSOR) continue; //navigation touch
 
 					/* did we have a click of button 1? */
@@ -4821,7 +4793,8 @@ void setup_picking(){
 							//ConsoleMessage("in oldCOS B\n");
 						}
 					}
-
+					touch->hypersensitive = tg->RenderFuncs.hypersensitive;
+					touch->hyperhit = tg->RenderFuncs.hyperhit;
 				} //setup_pickside
 				if(touch->dragStart){
 					touch->dragStart = FALSE; //handled buttonPress above
@@ -5243,21 +5216,21 @@ void setup_pickray0()
 	// method: uproject 2 points along the ray, one on nearside of frustum (window z = 0) 
 	//	one on farside of frustum (window z = 1)
 	// then the first one is A, second one is B
-	// create a translation matrix to get from 0,0,0 to A T
+	// create a translation matrix T to get from 0,0,0 to A (non-zero for ortho viewpoint)
 	// create a rotation matrix R to get from A toward B
 	// pickmatrix = R * T
 	//Jan 2016 issue: with the new Layering/Layout component, all the unproject stuff changes
 	//  when traveling up/down the render_hier: viewport changes with Viewport standalone node
 	//  and viewport field of layer and layoutlayer; the projection matrix and viewpoint changes with
 	//  the push/pop of binding stacks for each Layer node; To get it working
-	//  I've had to call this at each level on the way down and up, in prep_ and fin_Viewpoint
+	//  I've had to call this at each layer on the way down and up, in prep_ and fin_Viewpoint
 	//  and likely in prep/fin of layer and layoutlayer for the projection and viewpoint changes
-	//  Therefore attempts below to optimize/avoid glu_unproject calls by capturing prepared matrices
-	//  is un-effective and un-needed (unless someone can come up with new optimizations)
+	//  Therefore attempts below to avoid glu_unproject calls by capturing prepared matrices
+	//  may need more work to fully optimize.
 	//  Generally: opengl is optimized for transforming geometry into screen space, and when
 	//  going the other way -with a pickray- glu_uproject style inversions are needed.
 	//  Perhaps the function needs to be simplified to do just glu_unprojects, perhaps
-	//   doing a single inverse, and applying to both points
+	//   doing a single inverse, and applying to both points ie glu_unproject_matrixOnly()?
 	double mvident[16], pickMatrix[16], pmi[16], proj[16], R1[16], R2[16], R3[16], T[16];
 	int viewport[4], x, y;
 	double A[3], B[3], C[3], a[3], b[3];
@@ -5346,6 +5319,7 @@ void setup_pickray0()
 	}
 
 }
+void upd_ray();
 void setup_pickray(int x, int y){
 	setPickrayXY(x,y);
 	setup_pickray0();
@@ -6090,20 +6064,25 @@ struct X3D_Node* getRayHit() {
 	p = (ppMainloop)tg->Mainloop.prv;
 
 	retnode = NULL;
+//	printf("@");
 	if(tg->RenderFuncs.hitPointDist >= 0) {
 		GLDOUBLE mvpi[16];
 		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 		struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-		if (rh->hitNode == NULL)
+//		printf("#");
+		if (rh->hitNode == NULL){
 			return NULL;  //this prevents unnecessary matrix inversion non-singularity
-		prepare_model_view_pickmatrix_inverse(mvpi);
-		transform(&tp,tg->RenderFuncs.hp,mvpi);
-		x = tp.x; y = tp.y, z = tp.z;
+//			printf("!");
+		}
+		//if(0){
+		//prepare_model_view_pickmatrix_inverse(mvpi);
+		//transform(&tp,tg->RenderFuncs.hp,mvpi);
+		//x = tp.x; y = tp.y, z = tp.z;
 
 
-		/* and save this globally */
-		tg->RenderFuncs.ray_save_posn[0] = (float) x; tg->RenderFuncs.ray_save_posn[1] = (float) y; tg->RenderFuncs.ray_save_posn[2] = (float) z;
-
+		///* and save this globally */
+		//tg->RenderFuncs.ray_save_posn[0] = (float) x; tg->RenderFuncs.ray_save_posn[1] = (float) y; tg->RenderFuncs.ray_save_posn[2] = (float) z;
+		//}
 		/* we POSSIBLY are over a sensitive node - lets go through the sensitive list, and see
 			if it exists */
 
@@ -6123,6 +6102,8 @@ struct X3D_Node* getRayHit() {
 			}
 		}
 	}
+	//else -1
+
 	if(retnode != NULL){
 		//split modelview matrix into model + view for re-concatonation in getHyperHit
 		//assume we are at scene root, and have just done set_viewmatrix() or the equivalent render_hier(VF_VIEWPOINT) 
@@ -6134,470 +6115,135 @@ struct X3D_Node* getRayHit() {
 		fw_glGetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
 		matinverseAFFINE(viewinverse,viewmatrix);
 		matmultiplyAFFINE(rh->justModel,rh->modelMatrix,viewinverse);
+//		printf("~");
 
 	}
+//	printf("^ ");
 	return retnode;
 }
 
 
-/* set a node to be sensitive, and record info for this node */
+/* set a node to be sensitive, and record info for this node 
+	A transform can have multiple sensor children.
+	A sensor can be DEF/USEd under multiple parent transforms.
+	SensorEvent is like a lookup table to go between them:
+	parentNode 1:M SensorEvent   M:1 sensorNode
+	               parent/sensor
+*/
 void setSensitive(struct X3D_Node *parentNode, struct X3D_Node *datanode) {
-        void (*myp)(unsigned *);
+	void (*myp)(unsigned *);
 	int i;
-		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
 
-        switch (datanode->_nodeType) {
-                /* sibling sensitive nodes - we have a parent node, and we use it! */
-                case NODE_TouchSensor: myp = (void *)do_TouchSensor; break;
-                case NODE_GeoTouchSensor: myp = (void *)do_GeoTouchSensor; break;
-				case NODE_LineSensor: myp = (void *)do_LineSensor; break;
-                case NODE_PlaneSensor: myp = (void *)do_PlaneSensor; break;
-                case NODE_CylinderSensor: myp = (void *)do_CylinderSensor; break;
-                case NODE_SphereSensor: myp = (void *)do_SphereSensor; break;
-                case NODE_ProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
-                case NODE_GeoProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
+	switch (datanode->_nodeType) {
+		/* sibling sensitive nodes - we have a parent node, and we use it! */
+		case NODE_TouchSensor: myp = (void *)do_TouchSensor; break;
+		case NODE_GeoTouchSensor: myp = (void *)do_GeoTouchSensor; break;
+		case NODE_LineSensor: myp = (void *)do_LineSensor; break;
+		case NODE_PlaneSensor: myp = (void *)do_PlaneSensor; break;
+		case NODE_CylinderSensor: myp = (void *)do_CylinderSensor; break;
+		case NODE_SphereSensor: myp = (void *)do_SphereSensor; break;
+		case NODE_ProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
+		case NODE_GeoProximitySensor: /* it is time sensitive only, NOT render sensitive */ return; break;
 
-                /* Anchor is a special case, as it has children, so this is the "parent" node. */
-                case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
-                default: return;
-        }
-        /* printf ("setSensitive parentNode %p  type %s data %p type %s\n",parentNode,
-                        stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType)); */
+		/* Anchor is a special case, as it has children, so this is the "parent" node. */
+		case NODE_Anchor: myp = (void *)do_Anchor; parentNode = datanode; break;
+		default: return;
+	}
+	/* printf ("setSensitive parentNode %p  type %s data %p type %s\n",parentNode,
+					stringNodeType(parentNode->_nodeType),datanode,stringNodeType (datanode->_nodeType)); */
 
 	/* is this node already here? */
 	/* why would it be duplicate? When we parse, we add children to a temp group, then we
-	   pass things over to a rootNode; we could possibly have this duplicated */
+		pass things over to a rootNode; we could possibly have this duplicated */
 	for (i=0; i<p->num_SensorEvents; i++) {
 		if ((p->SensorEvents[i].fromnode == parentNode) &&
-		    (p->SensorEvents[i].datanode == datanode) &&
-		    (p->SensorEvents[i].interpptr == (void *)myp)) {
+			(p->SensorEvents[i].datanode == datanode) &&
+			(p->SensorEvents[i].interpptr == (void *)myp)) {
 			/* printf ("setSensitive, duplicate, returning\n"); */
 			return;
 		}
 	}
 
-        if (datanode == 0) {
-                printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(datanode->_nodeType));
-                return;
-        }
+	if (datanode == 0) {
+		printf ("setSensitive: datastructure is zero for type %s\n",stringNodeType(datanode->_nodeType));
+		return;
+	}
 
-        /* record this sensor event for clicking purposes */
-        p->SensorEvents = REALLOC(p->SensorEvents,sizeof (struct SensStruct) * (p->num_SensorEvents+1));
+	/* record this sensor event for clicking purposes */
+	p->SensorEvents = REALLOC(p->SensorEvents,sizeof (struct SensStruct) * (p->num_SensorEvents+1));
 
-        /* now, put the function pointer and data pointer into the structure entry */
-        p->SensorEvents[p->num_SensorEvents].fromnode = parentNode;
-        p->SensorEvents[p->num_SensorEvents].datanode = datanode;
-        p->SensorEvents[p->num_SensorEvents].interpptr = (void *)myp;
+	/* now, put the function pointer and data pointer into the structure entry */
+	p->SensorEvents[p->num_SensorEvents].fromnode = parentNode;
+	p->SensorEvents[p->num_SensorEvents].datanode = datanode;
+	p->SensorEvents[p->num_SensorEvents].interpptr = (void *)myp;
 
-        /* printf ("saved it in num_SensorEvents %d\n",p->num_SensorEvents);  */
-        p->num_SensorEvents++;
+	/* printf ("saved it in num_SensorEvents %d\n",p->num_SensorEvents);  */
+	p->num_SensorEvents++;
 }
 
 /* we have a sensor event changed, look up event and do it */
 /* note, (Geo)ProximitySensor events are handled during tick, as they are time-sensitive only */
 static void sendSensorEvents(struct X3D_Node* COS,int ev, int butStatus, int status) {
-        int count;
-		int butStatus2;
-		ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
+	//COS - cursorOverSensitive - a parent transform node / hitPoint node
+	int count;
+	int butStatus2;
+	ttglobal tg;
+	ppMainloop p;
+	tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
 
-        /* if we are not calling a valid node, dont do anything! */
-        if (COS==NULL) return;
+	/* if we are not calling a valid node, dont do anything! */
+	if (COS==NULL) return;
 
-        for (count = 0; count < p->num_SensorEvents; count++) {
-                if (p->SensorEvents[count].fromnode == COS) {
-						butStatus2 = butStatus;
-                        /* should we set/use hypersensitive mode? */
-                        if (ev==ButtonPress) {
-                                gglobal()->RenderFuncs.hypersensitive = p->SensorEvents[count].fromnode;
-                                gglobal()->RenderFuncs.hyperhit = 0;
-                                if(1) get_hyperhit(); //added for touch devices which have no isOver preparation
-                        } else if (ev==ButtonRelease) {
-                                gglobal()->RenderFuncs.hypersensitive = 0;
-                                gglobal()->RenderFuncs.hyperhit = 0;
-								butStatus2 = 1;
-                        } else if (ev==MotionNotify) {
-                                get_hyperhit();
-                        }
+	for (count = 0; count < p->num_SensorEvents; count++) {
+		if (p->SensorEvents[count].fromnode == COS) {
+			butStatus2 = butStatus;
+			/* should we set/use hypersensitive mode? */
+			if (ev==ButtonPress) {
+				tg->RenderFuncs.hypersensitive = p->SensorEvents[count].fromnode;
+				tg->RenderFuncs.hyperhit = 1; // 1 means we are starting a hypersensitive drag
+				get_hyperhit(); //added for touch devices which have no isOver preparation
+			} else if (ev==ButtonRelease) {
+				tg->RenderFuncs.hypersensitive = 0; 
+				tg->RenderFuncs.hyperhit = 0; //0 means we finished hypersensitive drag
+				butStatus2 = 1;
+			} else if (ev==MotionNotify) {
+				get_hyperhit();
+			}
 
 
-                        p->SensorEvents[count].interpptr(p->SensorEvents[count].datanode, ev,butStatus2, status);
-                        /* return; do not do this, incase more than 1 node uses this, eg,
-                                an Anchor with a child of TouchSensor */
-                }
-        }
+			p->SensorEvents[count].interpptr(p->SensorEvents[count].datanode, ev,butStatus2, status); //do_PlaneSensor, do_...
+			/* return; do not do this, incase more than 1 node uses this, eg,
+							an Anchor with a child of TouchSensor */
+		}
+	}
 }
 
-/* POINTING DEVICE SENSOR CONMPONENT
-http://www.web3d.org/files/specifications/19775-1/V3.3/Part01/components/pointingsensor.html
-- this describes how the pointing device sensors:
- TouchSensor, DragSensors: CylinderSensor, SphereSensor, PlaneSensor, [LineSensor]
- work as seen by the user:
- - dragsensor - the parent's descendent geometry is used only to identify and activate the dragsensor node. 
-	After that it's the dragsensor's geometry (Cylinder/Sphere/Plane/Line) (not the parent's descendent geometry) 
-	that's intersected with the pointing device bearing/ray to generate trackpoint_changed 
-	and translation_ or rotation_changed events in sensor-local coordinates
-- touchsensor - generates events in touchsensor-local coordinates
-
-Terminology ([] denotes alternative design not yet implemented April 2014):
-<node>-local - coordinates relative to a given node
-modelview matrix - transforms coords from the current node-local into the current viewpoint-local
-proj matrix - projects points from viewpoint-local 3D to 2D normalized screen viewport (with Z in 0 to 1 range)
-pick-proj matrix - special projection matrix that aligns the mousexy (pickpoint) on the viewport center
-	- formed in setup_pickray(pick=TRUE,,)
-view matrix - the view part of the modelview matrix, generated during setup_viewpoint()
-model matrix - the model part of the world modelview matrix, generated during
-	traversing the scenegraph in render_node()
-world - coordinates at the root node level ie with no transforms applied
-	viewport-local -[proj] - viewpoint-local - [view] - world - [model] - node-local
-modelview matrix: combined model * view matrices
-place - position in the scenegraph transform hierarchy (with DEF/USE, a node can be in multiple places)
-geometry_model: the model part of the modelview matrix at a geometry node's place
-sensor_model: the model part of the modelview matrix at a sensor node's place
-bearing: 2 points (A,B) defining a ray in 3D space going from A in the direction of B
-	1. For 2D screen-based pointing devices	like mouse, A is the viewpoint position 0,0,0 
-		in viewpoint-local, and for B mousexy is converted in setup_pickray(pick=TRUE,,) 
-		to a special pick-proj matrix that centers the viewport on the mousexy, so B is 0,0,-1 in
-			pick-viewport-local coordinates	(glu_unproject produces pick-viewport-local)
-		[using normal projection matrix for the bearing, then B= mousex,mousey,-1 in 
-		normal viewport-local coordinates, and glu_unproject is used to get this bearing
-		into world coordinates for the remainder of PointingDeviceSensor activity]
-	[2.for a 3D pointing device, it would have its own A,B in world. And then that world bearing 
-		can be transformed into geometry-local and sensor-local and intersections with 
-		shape-geometry and sensor-geometry calculated. dug9 Sept 2, 2014: FLY keyboard is 6DOF/3D, and not in world]
-hit: an intersection between the bearing and geometry that is closer to A (supercedes previous cloest)
-
-As seen by the developer, here's how I (dug9 Apr 2014) think they should work internally, on each frame 
- 0. during parsing, when adding a parent to a node, check the node type and if a sensor type, 
-		create a SensorEvent (by calling setSensitive(node,parent)) and set the SensorEvent[i].datanode=sensor
-		and SensorEvent[i].fromNode = parent
- 1. in startofloopnodeupdates() for each sensor node, flag its immediate Group/Transform parent 
-	with VF_Sensitive [the sensor's ID]	so when traversing the scenegraph, this 'sensitivity' 
-	can be pushed onto a state stack to affect descendent geometry nodes
- 2. from the scene root, traverse to the viewpoint to get the view part of the modelview matrix
-	-Set up 2 points in viewpoint space: A=0,0,0 (the viewpoint) and B=(mouse x, mouse y, z=-1) to represent the bearing
-	-apply a special pick-projection matrix, in setup_pickray(pick=TRUE,,), so that glu_unproject 
-		is with respect to the mouse-xy bearing B point being at the center of the viewport 
-		[use normal projection, and minimize the use of glu_unproject by transforming viewport-local bearing
-		to world during setup, and use world for bearing for all subsequent PointingDeviceSensor activities
-		dug9 Sept 2014: or keep in avatar coords, and set up a avatar2pickray affine transform]
- 3. from the scene root, in in render_hier(VF_Sensitive) pass, tranverse the scenegraph looking for sensitive 
-	group/transform parent nodes, accumulating the model part of the modelview matrix as normal.
-	When we find a sensitive parent: 
-	a) save the current best-hit parent-node* to a C local variable, and set the current best node* to the 
-		current parent	[push the parent's sensor node ID onto a sensor_stack]
-	b) save the current hit modelview matrix to a C local variable, and set it to the parent's modelview matrix 
-		[snapshot the current modelview matrix, and push onto a sensor_model stack]
-	When we find descendent geometry to a sensitive (grand)parent:
-	a) use glu_unproject with the pick-proj and current modelview matrix to re-transform the bearing 
-		into geometry-local space [invert the cumulative model matrix, and use it to transform 
-		world bearing (A,B) into geometry-local]
-		-so we have a bearing (A',B') in geometry-local (this requires fewer math ops than 
-		transforming all geometry vertices into pick-viewport-local [bearing-world])
-	b) intersect the infinite line passing through A' and B' 
-		with the geometry to get a list of intersection points n,xyz[n] in geometry-local space, or for 
-		well-known geometry sphere,box,cylinder,rectangle2D... compute and test intersections one by one
-	c) for each intersection point:
-		- filter the intersection point to elliminate if in the -B direction from A (behind the viewpoint)
-		- transform using modelview and pick-proj matrix into pick-viewport-local coordinates 
-		  [transform using model into bearing-world coordinates]
-		- compare the remaining intersection point by distance from A, and choose it over 
-			the current one if closer to A (the other is 'occluded') to produce a new hit
-	d) if there was a new hit, record some details needed by the particular type of sensor node, (but don't
-		generate events yet - we have to search for even closer hits):
-		- sensor's parent (Group/Transform) node* [+ Sensor node* ]
-		- sensor's parent modelview and pick-proj matrices [sensor's parent model matrix]
-		- hit point on decendent geometry surface, in pick-viewport-local [sensor-local]
-			(the geometry node may be in descendant transform groups from the sensor's parent, so needs to be 
-			transformed up to the Sensor-local system at some point, using 
-			the sensor's modelview and pick-proj matrices [sensor_model matrix] we saved)
-		- TouchSensor: 
-			a) texture coordinates at the hitpoint
-			b) normal to surface at hitpoint [transformed into sensor-local system]
-  4. once finished searching for sensor nodes, and back in mainloop at the root level, if there 
-		was a hit, and the hit is on sensitive geometry, call a function to look up the sensor node* given
-		the parent node* in SensorEvents array, and generate events from the sensor node
-
-What's not shown above: 
-6. what happens when 2+ sensor nodes apply to the same geometry:
-	for example, parent [ sensor1, group [ sensor 2, shape ] ]
-	the specs say it's the sensor that's the nearest co-descendent (sibling or higher) to the geometry [sensor2,shape]
-	(it doesn't say what happens in a tie ie 2 different sensor nodes are siblings) [sensor1,sensor2,shape]
-	(it doesn't say what happens if you DEF a sensornode and USE it in various places)
-7. what happens on each frame during a Drag:
-	the successful dragsensor node is 'chosen' on the mouse-down
-	on mouse-move: intersections with other occluding geometry, and geometry sensitive to other sensor nodes, are ignored, 
-	- but intersection with the same dragsensor's geometry are updated for trackpoint_changed eventout
-	- but because typically you move the geometry you are dragging, it and the dragsensor are 
-		moved on each drag/mousemove, so you can't intersect the bearing with the updated sensor geometry position
-		because that would produce net zero movement. Rather you need to 'freeze' the pose of the dragsensor geometry in the scene
-		on mousdown, then on each mousemove/drag frame, intersect the new pointer bearing with 
-		the original/frozen/mousedown dragsensor geometry pose. Then on mouse-up you unfreeze so next mousedown 
-		you are starting fresh on the translated sensor geometry.
-8. where things are stored
-	The details for the hit are stored in a global hitCursor struct [struct array]
-	render_node() has some C local variables which get pushed onto the C call stack when recursing
-	[render_node() uses an explicit stack for sensor_model and sensor_parent_node* to apply to descendent geometry]
-9. any special conditions for touch devices: none [multiple bearings processed on the same pass, for multi-touch, 
-	PlaneSensor.rotation_changed, PlaneSensor.scale_changed, LineSensor.scale_changed events added to specs]
-
-More implemnetation details - these may change, a snapshot April 2014
-Keywords:
-	Sensitive - all pointingdevice sensors
-	HyperSensitive - drag sensors in the middle of a drag
-Storage types:
-struct currayhit {
-	struct X3D_Node *hitNode; // What node hit at that distance? 
-	- It's the parent Group or Transform to the Sensor node (the sensor node* gets looked up from parent node*
-		in SensorEvents[] array, later in sendSensorEvents())
-	GLDOUBLE modelMatrix[16]; // What the matrices were at that node
-	- a snapshot of modelview at the sensornode or more precisely it's immediate parent Group or Transform
-	- it's the whole modelview matrix
-	GLDOUBLE projMatrix[16]; 
-	- snapshot of the pick-projection matrix at the same spot
-	-- it will include the pick-specific projection matrix aligned to the mousexy in setup_pickray(pick=TRUE,,)
-};
-global variables:
-	struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
-		pick-viewport-local axes: r1- along pick-proj axis, r2 viewpoint, r3 y-up axis in case needed
-	hyp_save_posn, t_r2 - A - (viewpoint 0,0,0 transformed by modelviewMatrix.inverse() to geometry-local space)
-	hyp_save_norm, t_r1 - B - bearing point (viewport 0,0,-1 used with pick-proj bearing-specific projection matrix)
-		- norm is not a direction vector, its a point. To get a direction vector: v = (B - A) = (norm - posn)
-	ray_save_posn - intersection with scene geometry, in sensor-local coordinates 
-		- used in do_CyclinderSensor, do_SphereSensor for computing a radius  on mouse-down
-	t_r3 - viewport y-up in case needed
-call stacks:
-resource thread > parsing > setParent > setSensitive
-mainloop > setup_projection > glu_pick
-mainloop > render_hier(VF_Sensitive) > render_Node() > upd_ray(), (node)->rendray_<geom> > rayhit()
-mainloop > sendSensorEvent > get_hyperHit(), .interptr()={do_TouchSensor / do_<Drag>Sensor /..}
-funcion-specific variables:
-rayhit()
-	Renderfuncs.hp.xyz - current closest hit, in bearing-local system
-	RenderFuncs.hitPointDist - current distance to closest hit from viewpoint 0,0,0 to geometry intersection (in viewpoint scale)
-	rayHit - snapshot of sensor's modelview matrix to go with closest-hit-so-far
-	//rayHitHyper - "
-render_node(): - a few variables acting as a stack by using automatic/local C variables in recursive calling
-	int srg - saves current renderstate.render_geom
-	int sch - saves current count of the hits from a single geometry node before trying to to intersect another geometry
-	struct currayhit *srh - saves the current best hit rayph on the call stack
-	rayph.modelMatrix- sensor-local snapshot of modelview matrix 
-	rayph.viewMatrix - " proj "
-		-- this could have been a stack, with a push for each direct parent of a pointingdevice sensor
-SIBLING_SENSITIVE(node) - macro that checks if a node is VF_Sensitive and if so, sets up a parent vector
-	n->_renderFlags = n->_renderFlags  | VF_Sensitive; - for each parent n, sets the parent sensitive
-		(which indirectly sensitizes the siblings)
-geometry nodes have virt->rendray_<shapenodetype>() functions called unconditionally on VF_Sensitive pass
-	- ie rendray_Box, rendray_Sphere, rendray_Circle2D
-	- called whether or not they are sensitized, to find an intersection and determine if they a) occlude 
-			or b) succeed other sensitized geometry along the bearing
-upd_ray() - keeps bearing A,B transformed to geometry-local A',B' - called after a push or pop to the modelview matrix stack.
-rayhit() - accepts intersection of A',B' line with geometry in geometry-local space, 
-	- filters if behind viewpoint,
-	- sees if it's closer to A' than current, if so 
-		- transforms hit xyz from geometry-local into bearing-local (pick-viewport-local) [model] and stores as hp.xyz
-		- snapshots the sensor-local modelview and stores as .rayHit, for possible use in get_hyperhit()
-get_hyperhit() for DragSensors: transforms the current-frame bearing from bearing-local 
-		into the sensor-local coordinate system of the winning sensor, in a generic way that works 
-		for all the DragSensor types in their do_<Drag>Sensor function. 
-		- ray_save_posn, hyp_save_posn, hyp_save_norm
-sendSensorEvents(node,event,button,status) - called from mainloop if there was a any pointing sensor hits
-	- looks up the sensor node* from the parent node*
-	- calls the do_<sensortype> function ie do_PlaneSensor(,,,)
-do_TouchSensor, do_<dragSensorType>: do_CylinderSensor, do_SphereSensor, do_PlaneSensor, [do_LineSensor not in specs, fw exclusive]
-	- compute output events and update any carryover sensor state variables
-		- these are called from mainloop ie mainloop > sendSensorEvents > do_PlaneSensor
-		- because its not called from the scenegraph where the SensorNode is, and because 
-			the Sensor evenouts need to be in sensor-local coordinates, the inbound variables
-			need to already be in sensor-local coordinates ie posn,norm are in sensor-local
-
-
-What I think we could do better:
-1. world bearing coords:
-	Benefits of converting mousexy into world bearing(A,B) once per frame before sensitive pass:
-	a) 3D PointingDevices generate bearing(A,B) in world coordinates
-		dug9 Aug31, 2014: not really. FLY keyboard is 6DOF/3D, and works in current-viewpoint space, 
-			adding relative motions on each tick. If I had a 3D pointing device, I would use it the same way
-	b) separate PickingComponent (not yet fully implemented) works in world coordinates
-	- so these two can share code if PointingDevice bearing from mouse is in world
-	c) minimizes the use of glu_unproject (a compound convenience function with expensive 
-		matrix inverse)
-		dug9 Aug31, 2014: to do a ray_intersect_geometry you need to transform 2 points into local geometry
-			-and that requires a matrix inverse- or you need to transform all the geometry points into
-			a stable pickray coordinate system (like avatar collision) - requiring the transform of  lots of points
-			IDEA: when compile_transform do the inverse of the transform too - 2 matrix stacks 
-			- then for VF_Sensitive you'd matrix multiply down both stacks, use the inverse for transforming
-				pick ray points into local, and use modelview (or model if you want global) to transform
-				the near-side intersection back into stable pickray coordinates for eventual comparative 
-				distance sorting
-			- Q. would this be faster than inverting modelview (or model) at each shape (to transform 2 ray points to
-				local) or transforming all shape to viewpoint space to intersect there (like collision)? I ask because
-				I'm thinking of implementing web3d.org LOOKAT navigation type, which allows you to click on any shape
-				(and then your viewpoint transitions to EXAMINE distance near that shape). Unlike Sensitive -which
-				sensitize a few nodes- LOOKAT would allow any shape to be picked, so testing (transforming or inverting)
-				needs to be done at more shapes. For LOOKAT I'll use the collision approach (transform all shape
-				points to avatar/viewpoint space) and it already has a linesegment(A,B)_intersect_shape, 
-				with distance sorting for wall penetration detection and correction.
-	How:
-	after setup_viewpoint and before render_hier(VF_Sensitive), transform the mouse bearing (A,B) 
-	from viewpoint to world coordinates using the view matrix. 
-	dug9 Aug31, 2014: keep in mind points along the pickray need to be sorted along the pickray 
-			(all but the closest are occluded), and that might be simpler math in viewpoint coordinates (distance=z)
-			versus world coordinate (A,B) which requires a dot product distance=(C-A)dot(B-A)
-2. normal proj matrix (vs glu_pick modified proj matrix)
-	Benefits of using normal proj matrix for PointingDeviceSensor:
-	a) allows multiple bearings to be processed on the same pass for future multi-touch devices (no 
-		competition for the bearing-specific pick-proj matrix)
-	b) allows VF_Sensitive pass to be combined with other passes for optimization, if using
-		the same transform matrices
-	c) allows setup_viewpoint(), setup_pickray() and setup_projection() to be computed once for multiple passes
-	d) allows using world coordinates for the bearing because then bearing doesn't depend 
-		on a special proj matrix which only glu_project and glu_unproject can make use of,
-		and those functions transform to/from viewport space
-	How:
-	in setup_projection(pick=FALSE,,), and glu_unproject with the mousexy to get B in 
-	viewpoint-local, then use view to transform A,B from viewpoint-local to world. View is 
-	computed with setup_viewpoint()
-	
-	dug9 Aug31 2014: extent/Minimum Bounding Boxes (MBB) - if you transform the object shape MBB
-		directly into pickray-aligned coordinates in one step with pickray-aligned modelview, then exclusion can be done
-		with simple x < max type culling tests. Then once that test gets a hit you can do more expensive
-		operations. That's the benefit of pickray-aligned (modified) modelview: faster culling. Otherwise using
-		ordinary modelview or model, you have to do another matrix multiply on 8 points to get that MBB into
-		pickray-aligned space, or do a more general ray-intersect-unaligned-box which has more math.
-	dug9 Sept 2, 2014: if GLU_PROJECT, GLU_UNPROJECT are being used now to transform, then there is already
-		a matrix concatonation: modelview and projection. So substituting a pickray-aligned affine
-		matrix for the proj matrix won't add matrix multiplies, and since the combined would now be 
-		affine, further ops can also be affine, reducing FLOPs. 
-
-3. explicit sensor stack:
-	Benefits of an explicit sensor stack in render_node():
-	a) code will be easier to read (vs. current 'shuffling' on recusion)
-	b) minimizes C call stack size and minimizes memory fragmentation from malloc/free
-		by using a pre-allocaed (or infrequently realloced) heap stack
-	How: 
-	when visiting a VF_sensitive parent (Group/Transform), push parent's modelview [model] transform
-	onto a special sensor_viewmodel [sensor_model] stack that works like modelview matrix push and pop stack,
-	and push the parents node* onto a sensor_parent stack (and pop them both going back)
-3. minimize use of glu_unproject
-	glu_unproject is a compound convenience function doing an expensive 4x4 matrix inversion
-	Benefits of avoiding glu_unproject:
-	a) allows speed optimization by computing inverse once, and using it many times for a given
-		modelview [model] matrix
-	b) avoids reliance on any projection matrix
-	dug9 Sept 2, 2014: 
-	  c) without projection matrix, affine matrix ops can be used which cut FLOPs in half
-	How:
-	a) implement: 
-		FW_GL_GETDOUBLEV(GL_MODEL_MATRIX_INVERSE, modelMatrix);
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX_INVSERSE, modelviewMatrix);
-		and during modelview_push and _pop clear a state flag. Then when we call the above
-		we would test if !flag invert & set flag, else: re-use
-	b) for bearing, use world coordinates, which elliminates the dependency on pick-bearing-specific projmatrix
-		so we don't rely on glu_project/glu_unproject which are the only functions that can use the projMatrix.
-
-	we need the following transform capabilities:
-	a) bearing: transform A,B bearing from PointingDevice-local to world. If pointing device is:
-		- 2D mouse use pick-proj [normal proj] and view matrix
-		- 3D, leave in world coords, or do some uniform scale to world
-	b) sensor hits: 
-		- transform bearing from bearing-local (pick-viewport-local [world]) to geometry-local
-		- transform geometry-local hit xyz and surface normal vector to sensor-local 
-			for generating events, DragSensor: for intersecting with sensor geometry,
-				using modelview+pick-proj [using model]
-	c) DragSensor: snapshot/freeze the Sensor_model transform on mousedown 
-		for use during a drag/mousemove
-	d) Neither/Non-Sensitized geom nodes: transform geometry xyz hits to bearing-local
-		using modelview+pick-proj [model]
-	[viewport coordinates are only needed once per frame to project the mouse into bearing-world]
-
-Update May 2015 - dug9
-	- we've been using AffinePickMatrix method since fall 2014, 8 months, and with LOOKAT and EXPLORE navigation modes
-		and its been working fine.
-	- clarifications of some points above:
-		- we do our ray-geometry intersections in geometry-local coordinates. That requires us to 
-			transform (a copy of) the pick ray into geometry-local as we move down the transform stack in render_node()
-			we do that in upd_ray(), and it requires a matrix inverse. Currently we call upd_ray() during descent, and
-			also during ascent in render_node(). It could be a stack instead, pushed on the way down and popped on the way back 
-			to save an inverse. 
-		- We recompute upd_ray() on each vf_sensitive recursion into render_node. But in theory it should/could be just when 
-			we've chnaged the modelview transform by passing through a transform (or geotransform or group) node.
-			I'm not sure the best place/way to detect that. Perhaps just before ->children(node).
-					bool pushed_ray = false
-					if(node.type == transform type) pushed_ray = true
-					if(pushed_ray) upd_ray_and_push()
-					node->children(node)
-					if(pushed_ray) pop_ray()
-		- then if/when we have an intersection/hit point, we transform it back into bearing-local space for comparison
-			with the best-hit so far on the frame (which is closest/not occluded). This transform uses no inverse.
-		- One might argue whether it would be easier / somehow better to transform all geometry points 
-			into ray/bearing local space instead, requiring no inverse, and simplifying some of the intersection math.
-			For drawing, this transform is done on the gpu. I don't know which is better. 
-			OpenCL might help, transforming in parallel, analogous to drawing.
-		- Or for each transform when compile_transform the 4x4 from translation, rotation, scale, also compute its inverse and
-			store with the transform. Then when updating modelview during scengraph traversing, also multiply the inverses 
-			to get inverse(modelview). 49 FLOPS in an AFFINE inverse (ie inverting cumulative modelview at each level), 
-			vs. 36 in AFFINE matrix multiply. You save 13 FLOPS per transform level during VFSensitve pass, but need to
-			pre-compute the inverses, likely once for most, in compile_transform.
-		- we have to intersect _all_ geometry, not just sensitive. That's because non-sensitive geometry can occlude.
-			we do an extent/MBB (minimum bounding box) intersection test first, but we need the upd_ray() with inverse to do that.
-		- LOOKAT and EXPLORE use this intersecting all geometry to find the closest point of all geometry along the ray, 
-			even when no sensitive nodes in the scene. They only do it on passes where someone has indicated they 
-			want to pick a new location (for viewpoint slerping to) (versus sensitive nodes in scene which cause 
-			us to always be checking for hits)
-		- for dragsensor nodes, on mouse-down we want to save/snapshot the modelview matrix from viewpoint to sensor-local
-			- then use this sensor-local transform to place the sensor-geometry ie cylinder, sphere, plane [,line]
-				for intersecting as we move/drag with mousedown
-			- since we don't know if or which dragsensor hit will be the winner (on a frame) when visiting a sensor,
-				we save it if its the best-so-far and over-write with any subsequent better hits
-		- if there are multiple sensors in the same scengraph branch, the one closest to the hit emits the events
-			- there could/should be a stack for 'current sensor' pushed when descending, and popping on the way back
-	- An alternative to a cluttered render_node() function would be to change virt->children(node) functions
-		to accept a function pointer ie children(node,func). Same with normal_children(node,func).
-		Then use separate render_node(node), sensor_node(node), and collision_node(node) functions. 
-		They are done on separate passes now anyway.
-		On the other hand, someone may find a way to combine passes for better efficiency/reduced transform FLOPs per frame.
-	- Multitouch - there is currently nothing in the specs. But if there was, it might apply to (modfied / special) touch 
-		and drag sensors. And for us that might mean simulataneously or iterating over a list of touches.
-
-Update Dec 17, 2015 dug9:
-	I vectorized setup_picking() to allow for multi-touch, but not yet getRayHit() or
-		sendSensorEvents > get_hyperhit() > Renderfuncs.hp, .hpp, .modelmatrix etc (or SetCursor(style,touch.ID))
-	And added a contenttype_e3dmouse for emulating 3D mouse / HMD that moves 
-		the viewpoint (vs the mouse xy), on a drag motion.
-	Drag sensor doesn't work with e3dmouse.
-	Drag Sensor review:
-	
-	[WORLD]		< View matrix < .pos/.ori < stereo < pickmatrix < xy=0,0      (remember the pickmatrix aligns Z axis to pickray)
-	[COORDS]	> Model matrix > DragSensor
-
-	It's the Model matrix that should be frozen on mouse-down for dragsensors
-	- the pickmatrix is updated on each frame or each mouse event
-	x currently we are freezing the [View + pos,ori + stereo] with the Model as one modelview matrix
-	+ we should be re-concatonating the ViewMatrix to the frozen ModelMatrix on each frame/mouse event
-		- that would allow updates to the ViewMatrix on each frame, for 3D mice and HMD IMUs (Head Mounted Display Inertial Measuring Units)
-
-*/
 void prepare_model_view_pickmatrix_inverse0(GLDOUBLE *modelMatrix, GLDOUBLE *mvpi);
 void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 	/*prepares a matrix to transform points from eye/pickray/bearing 
 		to gemoetry-local, using the modelview matrix of the pickray-scene intersection point
 		found closest to the viewer on the last render_hier(VF_SENSITIVE) pass
 		using the model matrix snapshotted/frozen at the time of the intersection, and the current view matrix
+		MVPI = inverse(pickray_frozen_model * view)
 	*/
 	struct currayhit * rh;
 	GLDOUBLE *modelview;
-	GLDOUBLE viewmatrix[16], mv[16];
+	GLDOUBLE viewmatrix[16], viewinverse[16], mv[16];
 	ttglobal tg = gglobal();
 
 	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
-	modelview = rh->modelMatrix;
+	//modelview = rh->modelMatrix;
 
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	fw_glGetDoublev(GL_MODELVIEW_MATRIX, viewmatrix);
-	matmultiplyAFFINE(mv,rh->justModel,viewmatrix);
-	modelview = mv;
 
-	prepare_model_view_pickmatrix_inverse0(modelview, mvpi);
+	matmultiplyAFFINE(mv,rh->justModel,viewmatrix); //rh->justModel
+
+	//modelview = mv;
+
+	prepare_model_view_pickmatrix_inverse0(mv, mvpi);
 }
 
 /*	get_hyperhit()
@@ -6613,9 +6259,15 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 */
 void get_hyperhit() {
 	/* 
-		transforms the last known pickray intersection, and pickray/bearing into sensor-local coordinates of the 
-		intersected geometry
-
+		transforms the last known pickray intersection, and current frame pickray/bearing into sensor-local coordinates of the 
+		intersected geometry, using:
+		- current frame pickray view matrix (in case mouse has moved)
+		- current frame view matrix (in case its changed, ie keyboard navigation while mouse-down on a drag sensor, 
+			or HMD head mounted display/mobile motionsensor nav while button-down on a drag sensor: should drag)
+		- mouse-down-frozen model matrix between world and the sensor's parent (transform,..) node
+		sensor-local-pickray = frozen_justModel * current_view * pickray_matrix * unit_pickray 0,0,-1
+		modelviewMatrix =     |     M                 V                P       |
+		
 		variables:
 		struct point_XYZ r1 = {0,0,-1},r2 = {0,0,0},r3 = {0,1,0}; 
 			pick-viewport-local axes: r1- along pick-proj axis, r2 viewpoint, r3 y-up axis in case needed
@@ -6652,8 +6304,8 @@ void get_hyperhit() {
 		printf("get_hyperhit\n");
 
 	
-    if(0) printf ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
-        x1,y1,z1,x2,y2,z2,x3,y3,z3); 
+    //if(0) ConsoleMessage ("get_hyper %f %f %f, %f %f %f, %f %f %f\n",
+    //    x1,y1,z1,x2,y2,z2,x3,y3,z3); 
 	
     /* and save this globally */
 	//last pickray/bearing ( (0,0,0) (0,0,1)) transformed from eye/pickray/bearing to geometry/sensor local coordinates:

@@ -362,6 +362,7 @@ bool fwl_initialize_GL(void);
 int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int windex);
 int fwl_handle_mouse(int mev, int button, int x, int y, int windex);
+int fwl_handle_touch(int mev, unsigned int ID, int x, int y, int windex);
 
 /* JAS - moving OSX front end into 2011 code workings - these may change. */
 void fwl_replaceWorldNeeded(char* str);
