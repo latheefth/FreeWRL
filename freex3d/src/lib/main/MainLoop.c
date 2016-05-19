@@ -3578,7 +3578,7 @@ void setup_stagesNORMAL(){
 		cstage->t1.contents = cswitch;
 		last = &cswitch->t1.contents;
 		//contenttype_switch_set_which(cswitch,2); //set in big render loop below, based on hyper_case
-		p->hyper_case[i] = 1; //8; //which block below 0 - 9
+		p->hyper_case[i] = 8; //which block below 0 - 9
 
 		p->EMULATE_MULTITOUCH =	FALSE;
 		// these prepared ways of using freewrl are put into the switch contenttype cswitch above 
@@ -7018,7 +7018,7 @@ struct Touch * GetTouch(unsigned int ID){
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 	for(i=0;i<p->ntouch;i++)
-		if(p->touchlist[i].ID == ID){
+		if(p->touchlist[i].ID == ID && (p->touchlist[i].inUse || ID == 0) ){
 			return &p->touchlist[i];
 		}
 	return NULL;
@@ -7031,7 +7031,7 @@ void ReleaseTouch(unsigned int ID){
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 	for(i=0;i<p->ntouch;i++)
-		if(p->touchlist[i].ID == ID){
+		if(p->touchlist[i].ID == ID ){
 			p->touchlist[i].inUse = 0; 
 			return;
 		}
@@ -7113,7 +7113,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	//ID = 0; //good way to enforce single-touch for testing
 	/* save this one... This allows Sensors to get mouse movements if required. */
 	//p->lastMouseEvent[ID] = mev;
-
+	//ConsoleMessage("m %d b %d i %d x %d y %d\n",mev,button,ID,x,y);
 	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
 	//make winRT the same as the others:
 	if(button == RMB){
@@ -7162,18 +7162,25 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	/* save the current x and y positions for picking. */
 	if(mev == ButtonPress){
 		//welcome, a new touch / start of drag
-		touch = AllocTouch(ID);
-		if(currentTouch()->ID == 0) {
-			//there is no other current touch that we are in the middle of,
-			//so this becomes the current touch
-			setCurrentTouchID(ID);
+		//android multi_touch can send in two mev=4 and two mev=5 for the first touch when doing 2+ touches
+		// H: one is regular, and one POINTER
+		// if 2, then keep using the first one
+		touch = GetTouch(ID);
+		if(!touch){
+			//if(touch) touch->inUse = FALSE;
+			touch = AllocTouch(ID);
+			if(currentTouch()->ID == 0) {
+				//there is no other current touch that we are in the middle of,
+				//so this becomes the current touch
+				setCurrentTouchID(ID);
+			}
+			touch->windex = windex;
+			touch->stageId = current_stageId();
+			touch->buttonState = ibutton ? 1 : 0; //mev == ButtonPress; 0=hover/isOver/up-drag mode, 1=normal down-drag, stays constant for whole drag
+			touch->claimant = claimant; 
+			touch->passed = passed;
+			touch->dragStart = TRUE; //cleared by claimant when they've consumed the start
 		}
-		touch->windex = windex;
-		touch->stageId = current_stageId();
-		touch->buttonState = ibutton ? 1 : 0; //mev == ButtonPress; 0=hover/isOver/up-drag mode, 1=normal down-drag, stays constant for whole drag
-		touch->claimant = claimant; 
-		touch->passed = passed;
-		touch->dragStart = TRUE; //cleared by claimant when they've consumed the start
 	}else{
 		touch = GetTouch(ID);
 	}
