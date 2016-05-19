@@ -1303,7 +1303,7 @@ contenttype *new_contenttype_layer(){
 int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *lastbut, int *mev, unsigned int *button, int x, int y, int *ID, int windex);
 void record_multitouch(struct Touch *touchlist, int mev, int butnum, int mouseX, int mouseY, int ID, int windex, int ihandle);
 int fwl_get_emulate_multitouch();
-void render_multitouch();
+//void render_multitouch();
 void render_multitouch2(struct Touch* touchlist, int ntouch);
 
 typedef struct contenttype_multitouch {
@@ -1328,7 +1328,7 @@ void multitouch_render(void *_self){
 		c = c->t1.next;
 	}
 	//render self last
-	render_multitouch2(self->touchlist,self->ntouch);
+	// not needed - backend fiducialDraw works better //render_multitouch2(self->touchlist,self->ntouch);
 	popnset_viewport();
 }
 int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsigned int ID, int windex){
@@ -1372,7 +1372,8 @@ contenttype *new_contenttype_multitouch(){
 	self->t1.render = multitouch_render;
 	self->t1.pick = multitouch_pick;
 	self->ntouch = 20;
-	for(i=0;i<self->ntouch;i++) self->touchlist[i].ID = -1;
+	//for(i=0;i<self->ntouch;i++) self->touchlist[i].ID = -1;
+	memset(self->touchlist,0,20*sizeof(struct Touch));
 	self->IDD = -1;
 	self->lastbut = 0;
 	return (contenttype*)self;
@@ -3609,6 +3610,7 @@ void setup_stagesNORMAL(){
 
 			*last = cmultitouch; //paste into previous blocks top-level (just below switch) next
 			last = &cmultitouch->t1.next;
+			p->EMULATE_MULTITOUCH =	TRUE;
 
 			//tg->Mainloop.AllowNavDrag = TRUE; //experimental approach to allow both navigation and dragging at the same time, with 2 separate touches
 		}
@@ -4063,24 +4065,24 @@ void emulate_multitouch(int mev, unsigned int button, int x, int ydown, int wind
 		}
 	}
 }
-void render_multitouch(){
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
-
-	if(p->EMULATE_MULTITOUCH) {
-		int i;
-		for(i=0;i<p->ntouch;i++){
-			if(p->touchlist[i].ID > -1)
-				if(p->touchlist[i].windex == p->windex)
-				{
-					struct Touch *touch;
-					touch = &p->touchlist[i];
-					cursorDraw(touch->ID,touch->rx,touch->ry,touch->angle);
-				}
-		}
-    }
-}
+//void render_multitouch(){
+//	ppMainloop p;
+//	ttglobal tg = gglobal();
+//	p = (ppMainloop)tg->Mainloop.prv;
+//
+//	if(p->EMULATE_MULTITOUCH) {
+//		int i;
+//		for(i=0;i<p->ntouch;i++){
+//			if(p->touchlist[i].ID > -1)
+//				if(p->touchlist[i].windex == p->windex)
+//				{
+//					struct Touch *touch;
+//					touch = &p->touchlist[i];
+//					cursorDraw(touch->ID,touch->rx,touch->ry,touch->angle);
+//				}
+//		}
+//    }
+//}
 void render_multitouch2(struct Touch *touchlist, int ntouch){
 	ppMainloop p;
 	ttglobal tg = gglobal();
@@ -4149,7 +4151,7 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 		*lastbut = *button;
 		for(i=0;i<ntouch;i++){
 			touch = &touchlist[i];
-			if(touch->ID > -1){
+			if(touch->inUse){
 				if(touch->windex == windex ) //&& touch->stageId == current_stageId())
 				if((abs(x - touch->rx) < 10) && (abs(y - touch->ry) < 10)){
 					*IDD = i;
@@ -4194,9 +4196,9 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 			//else create
 			if(*IDD == -1){
 				//create!
-				for(i=0;i<p->ntouch;i++){
+				for(i=1;i<p->ntouch;i++){
 					touch = &touchlist[i];
-					if(touch->ID < 0) {
+					if(touch->inUse == FALSE) {
 						//fwl_handle_mouse_multi_yup(mev, LMB, x, y, i,windex);
 						*button = LMB;
 						*ID = i;
@@ -4204,6 +4206,7 @@ int emulate_multitouch2(struct Touch *touchlist, int ntouch, int *IDD, int *last
 						ihandle = -1;
 						touch->rx = x;
 						touch->ry = y;
+						touch->inUse = TRUE;
 						printf("create ID=%d windex=%d\n",i,windex);
 						break;
 					}
@@ -7015,7 +7018,7 @@ struct Touch * GetTouch(unsigned int ID){
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 	for(i=0;i<p->ntouch;i++)
-		if(p->touchlist[i].ID == ID){
+		if(p->touchlist[i].ID == ID && (p->touchlist[i].inUse || ID == 0) ){
 			return &p->touchlist[i];
 		}
 	return NULL;
@@ -7028,7 +7031,7 @@ void ReleaseTouch(unsigned int ID){
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 	for(i=0;i<p->ntouch;i++)
-		if(p->touchlist[i].ID == ID){
+		if(p->touchlist[i].ID == ID ){
 			p->touchlist[i].inUse = 0; 
 			return;
 		}
@@ -7110,7 +7113,7 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	//ID = 0; //good way to enforce single-touch for testing
 	/* save this one... This allows Sensors to get mouse movements if required. */
 	//p->lastMouseEvent[ID] = mev;
-
+	//ConsoleMessage("m %d b %d i %d x %d y %d\n",mev,button,ID,x,y);
 	//winRT but =1 when mev = motion, others but = 0 when mev = motion. 
 	//make winRT the same as the others:
 	if(button == RMB){
@@ -7159,18 +7162,25 @@ void fwl_handle_aqua_multiNORMAL(const int mev, const unsigned int button, int x
 	/* save the current x and y positions for picking. */
 	if(mev == ButtonPress){
 		//welcome, a new touch / start of drag
-		touch = AllocTouch(ID);
-		if(currentTouch()->ID == 0) {
-			//there is no other current touch that we are in the middle of,
-			//so this becomes the current touch
-			setCurrentTouchID(ID);
+		//android multi_touch can send in two mev=4 and two mev=5 for the first touch when doing 2+ touches
+		// H: one is regular, and one POINTER
+		// if 2, then keep using the first one
+		touch = GetTouch(ID);
+		if(!touch){
+			//if(touch) touch->inUse = FALSE;
+			touch = AllocTouch(ID);
+			if(currentTouch()->ID == 0) {
+				//there is no other current touch that we are in the middle of,
+				//so this becomes the current touch
+				setCurrentTouchID(ID);
+			}
+			touch->windex = windex;
+			touch->stageId = current_stageId();
+			touch->buttonState = ibutton ? 1 : 0; //mev == ButtonPress; 0=hover/isOver/up-drag mode, 1=normal down-drag, stays constant for whole drag
+			touch->claimant = claimant; 
+			touch->passed = passed;
+			touch->dragStart = TRUE; //cleared by claimant when they've consumed the start
 		}
-		touch->windex = windex;
-		touch->stageId = current_stageId();
-		touch->buttonState = ibutton ? 1 : 0; //mev == ButtonPress; 0=hover/isOver/up-drag mode, 1=normal down-drag, stays constant for whole drag
-		touch->claimant = claimant; 
-		touch->passed = passed;
-		touch->dragStart = TRUE; //cleared by claimant when they've consumed the start
 	}else{
 		touch = GetTouch(ID);
 	}
