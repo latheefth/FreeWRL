@@ -1332,8 +1332,11 @@ static BOOL parser_metaStatement(struct VRMLParser* me) {
     return TRUE;
 }
 static BOOL parser_unitStatement(struct VRMLParser* me) {
-    vrmlStringT val1, val2; //, val3;
-	double dval3;
+   // vrmlStringT val1, val2; //, val3;
+	double conversionfactor;
+    char *categoryname = NULL;
+    char *unitname = NULL; 
+
 
     ASSERT(me->lexer);
     lexer_skip(me->lexer);
@@ -1345,33 +1348,34 @@ static BOOL parser_unitStatement(struct VRMLParser* me) {
     printf ("parser_unitStatement...\n");
 #endif
 
-    /* UNIT lines have 3 strings */
+    /* UNIT lines have 2 IDs and a double */
 
     /* Otherwise, a real vector */
-    val1=NULL; val2 = NULL; dval3 = 0.0; //val3 = NULL;
+    categoryname=NULL; unitname = NULL; conversionfactor = 0.0; //val3 = NULL;
 
-    if(!parser_sfstringValue (me, &val1)) {
-        CPARSE_ERROR_CURID("Expected a category string after a UNIT keyword")
-            }
+    if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is a UNIT statement...*/
+    ASSERT(me->lexer->curID);
 
-    if(!parser_sfstringValue (me, &val2)) {
-        CPARSE_ERROR_CURID("Expected a name string after a UNIT keyword")
-            }
+    categoryname = STRDUP(me->lexer->curID);
+    FREE_IF_NZ(me->lexer->curID);
 
-    //if(!parser_sfstringValue (me, &val3)) {
-    //    CPARSE_ERROR_CURID("Expected a conversionfactor string after a UNIT keyword")
-    //        }
-	if(!parser_sftimeValue(me,&dval3)) {
+    if(!lexer_setCurID(me->lexer)) return TRUE; /* true, because this Is a UNIT statement...*/
+    ASSERT(me->lexer->curID);
+
+    unitname = STRDUP(me->lexer->curID);
+    FREE_IF_NZ(me->lexer->curID);
+
+	if(!parser_sftimeValue(me,&conversionfactor)) {
         CPARSE_ERROR_CURID("Expected a numeric string after a UNIT keyword")
-            }
+    }
 
-
-    if ((val1 != NULL) && (val2 != NULL) && (dval3 != 0.0)) { handleUnitDataStringString(val1,val2,dval3); }
+    if ((categoryname != NULL) && (unitname != NULL) && (conversionfactor != 0.0)) { 
+	  handleUnitDataStringString(categoryname,unitname,conversionfactor); 
+	}
 
     /* cleanup */
-    if (val1 != NULL) {FREE_IF_NZ(val1->strptr); FREE_IF_NZ(val1);}
-    if (val2 != NULL) {FREE_IF_NZ(val2->strptr); FREE_IF_NZ(val2);}
-    //if (val3 != NULL) {FREE_IF_NZ(val3->strptr); FREE_IF_NZ(val3);}
+    if (categoryname != NULL) FREE_IF_NZ(categoryname); 
+    if (unitname != NULL) FREE_IF_NZ(unitname);
     return TRUE;
 }
 
