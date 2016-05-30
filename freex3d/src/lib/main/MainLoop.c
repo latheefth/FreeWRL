@@ -5444,9 +5444,6 @@ static void render()
 				}
 			}
 		}
-		scap = getMyShader(ONE_TEX_APPEARANCE_SHADER); // on uwp, scene window blacks out if I don't refresh the shader here
-		enableGlobalShader(scap);
-		//restoreGlobalShader();
 	}
 
 }

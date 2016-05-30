@@ -227,6 +227,7 @@ void render_Box (struct X3D_Box *node) {
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	sendArraysToGPU (GL_TRIANGLES, 0, 36);
+
 	textureDraw_end();
 	gglobal()->Mainloop.trisThisLoop += 24;
 }

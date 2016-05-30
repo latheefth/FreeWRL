@@ -1485,9 +1485,25 @@ int SFColor_setHSV(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, F
 	return 0;
 }
 
+int SFColor_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFColor *ptr = (struct SFColor *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.3g %.3g %.3g",
+			ptr->c[0], ptr->c[1], ptr->c[2]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
 FWFunctionSpec (SFColor_Functions)[] = {
 	{"getHSV", SFColor_getHSV, 'W',{0,0,0,NULL}},
 	{"setHSV", SFColor_setHSV, 0,{3,-1,'T',"DDD"}},
+	{"toString", SFColor_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
