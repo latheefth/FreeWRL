@@ -1162,6 +1162,22 @@ static void parseFieldValue_B(void *ud, char **atts) {
 		pnode = X3D_PROTO(node);
 		pstruct = (struct ProtoDefinition*) pnode->__protoDef;
 		pfield = vector_get(struct ProtoFieldDecl*,pstruct->iface,iifield);
+		//is there a function for zeroing a fieldValue of anytype? Need it here.
+		//in xml the MFNode in particular will get 'added to' ie mf.n++ later, so need to clear that
+		// see tests/protos/questionforexperts_mod.x3d
+		if(pfield->type == FIELDTYPE_MFNode){
+			struct Multi_Node* mfn = &pfield->defaultVal.mfnode;
+			if(mfn->n)
+				AddRemoveChildren(node,mfn,mfn->p,mfn->n,2,__FILE__,__LINE__);
+			pfield->defaultVal.mfnode.n = 0;
+			pfield->defaultVal.mfnode.p = NULL;
+		}
+		if(pfield->type == FIELDTYPE_SFNode){
+			struct X3D_Node **sfn = &pfield->defaultVal.sfnode;
+			if(*sfn)
+				AddRemoveSFNodeFieldChild(node,sfn,*sfn,2,__FILE__,__LINE__);
+			pfield->defaultVal.sfnode = NULL;
+		}
 		pfield->alreadySet = TRUE;
 	}
 

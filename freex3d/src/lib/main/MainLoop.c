@@ -5426,6 +5426,7 @@ static void render()
 	if(1){
 		//render last known mouse position as seen by the backend
 		int ktouch;
+		s_shader_capabilities_t *scap;
 		struct Touch *touch; // =  currentTouch(); //&p->touchlist[0];
 		for(ktouch=0;ktouch<p->ntouch;ktouch++){
 			touch = &p->touchlist[ktouch];
@@ -5444,6 +5445,7 @@ static void render()
 			}
 		}
 	}
+
 }
 
 

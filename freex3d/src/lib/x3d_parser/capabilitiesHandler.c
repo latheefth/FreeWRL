@@ -273,7 +273,35 @@ void handleMetaDataStringString(struct Uni_String *val1, struct Uni_String *val2
 	printf ("handleMetaDataStringString, :%s:, :%s:\n",val1->strptr, val2->strptr);
 	#endif
 }
-void handleUnitDataStringString(struct Uni_String *val1, struct Uni_String *val2, double dval3) {
+
+// UNIT category unitname conversionfactor
+// UNIT length micro 0.000001
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/core.html#UNITStatement
+// http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html#General
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/concepts.html#t-Standardunits
+char * unitcategories [] = {
+	"angle",
+	"force",
+	"length",
+	"mass",
+	"acceleration",
+	"angular_rate",
+	"area",
+	"speed",
+	"volume",
+};
+#define UNITCATEGORIES_COUNT 9
+char * unitnames [] = {
+	"radian",
+	"newton",
+	"metre",
+	"kilogram",
+};
+#define UNITNAMES_COUNT 4
+void handleUnitDataStringString(char *categoryname, char *unitname, double conversionfactor) {
+	int i1, i2;
+	i1 = findFieldInARR(categoryname,unitcategories,UNITCATEGORIES_COUNT);
+	i2 = findFieldInARR(unitname,unitnames,UNITNAMES_COUNT);
 	#ifdef CAPABILITIESVERBOSE
 	printf ("handleMetaDataStringString, :%s:, :%s:\n",val1->strptr, val2->strptr);
 	#endif
