@@ -1307,6 +1307,10 @@ int	fwl_resitem_getType(void *resp){
 	resource_item_t *res = (resource_item_t *)resp;
 	return res->type;
 }
+int	fwl_resitem_getMediaType(void *resp){
+	resource_item_t *res = (resource_item_t *)resp;
+	return res->media_type;
+}
 void fwl_resitem_setDownloadThread(void *resp, void *thread){
 	resource_item_t *res = (resource_item_t *)resp;
 	res->_loadThread = (pthread_t*)thread;

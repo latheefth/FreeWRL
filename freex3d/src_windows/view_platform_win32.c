@@ -108,3 +108,24 @@ DWORD pid = GetCurrentProcessId();
 initConsoleH(pid);
 swDebugf("after fwl_initFreeWRL\n");
 #endif
+
+void startNewHTMLWindow(char *url){
+	//HTML or other media, launch in web browser
+	//PROBLEM: very platform > config specific, running as plugin, old win32 or uwp, .net or C front end, 
+	// commercial setting security concerns or hobbiest computer, android/ios/ ...
+	//IDEAS: 
+	//  1. call a platform-specific injected callback here
+	//  2. set a backend variable that can be polled by the frontend on each frame through a function call
+	//     and let frontend decide what to do, its more aware of platform, configuration, plugin etc
+	//user32.dll https://msdn.microsoft.com/en-us/library/windows/desktop/bb762153(v=vs.85).aspx
+	ShellExecute( NULL, NULL, url, NULL, NULL, SW_SHOWNORMAL );
+	
+	
+	//https://msdn.microsoft.com/en-us/library/277bwbdz.aspx
+	// problems using system:
+	// 1) it can be a bit more malicious / dangerous
+	// 2) an http url needs spaces converted to %20 etc
+	// 3) you need to know your handler - we don't in windows anymore
+	//char command[1024];
+	//system(command); 
+}

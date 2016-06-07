@@ -82,7 +82,8 @@ typedef enum resource_media_type {
 	resm_pshader,
 	resm_fshader,
 	resm_audio,
-	resm_x3z
+	resm_x3z,
+	resm_external, //June 2016 html > frontend anchoring
 } resource_media_type_t;
 
 typedef enum resource_actions {

@@ -7,7 +7,6 @@ void usleep(int us){
 void sleep(int ms){
 	Sleep(ms);
 }
-
 double Time1970sec()
 {
 	// /* the windows getlocaltime has a granularity of 1ms at best. 

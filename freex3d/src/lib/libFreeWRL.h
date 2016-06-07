@@ -427,6 +427,7 @@ char* fwl_resitem_getTempDir(void *res);
 void fwl_resitem_setActualFile(void *res, char *fname);
 int	fwl_resitem_getStatus(void *res);
 int	fwl_resitem_getType(void *res);
+int	fwl_resitem_getMediaType(void *res);
 void fwl_resitem_enqueuNextMulti(void *res);
 void fwl_resitem_setLocalPath(void *res, char* path);
 void fwl_resitem_enqueue(void *res);
