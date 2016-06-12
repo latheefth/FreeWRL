@@ -134,7 +134,7 @@ void goToViewpoint(char *vp) {
 	/* printf ("goToViewpoint - failed to match local Viewpoint\n"); */
 }
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(ANDROIDNDK)
 void startNewHTMLWindow(char *url) {
 	const char *browser;
 #define LINELEN 4000
