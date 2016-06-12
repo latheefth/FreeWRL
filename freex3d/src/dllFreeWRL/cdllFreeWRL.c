@@ -22,6 +22,7 @@ void *fwl_frontenditem_dequeue();
 char* fwl_resitem_getURL(void *res);
 int	fwl_resitem_getStatus(void *res);
 int	fwl_resitem_getType(void *res);
+int	fwl_resitem_getMediaType(void *res);
 void fwl_resitem_enqueuNextMulti(void *res);
 void fwl_resitem_setLocalPath(void *res, char* path);
 void fwl_resitem_enqueue(void *res);
@@ -279,6 +280,15 @@ DLLFREEWRL_API int dllFreeWRL_resitem_getType(void *fwctx, void *res){
 	fwl_clearCurrentHandle();
 	return status;
 }
+DLLFREEWRL_API int dllFreeWRL_resitem_getMediaType(void *fwctx, void *res) {
+	int status;
+	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)) {
+		status = fwl_resitem_getMediaType(res);
+	}
+	fwl_clearCurrentHandle();
+	return status;
+}
+
 DLLFREEWRL_API void dllFreeWRL_resitem_enqueuNextMulti(void *fwctx, void *res){
 	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)){
 		fwl_resitem_enqueuNextMulti(res);

@@ -44,7 +44,19 @@ public:
 		ress_parsed,      /* parser succeeded */
 		ress_not_parsed   /* parser failed */
 	};
-
+	enum resource_media_type {
+		resm_unknown,
+		resm_vrml,
+		resm_x3d,
+		resm_image,
+		resm_movie,
+		resm_script,
+		resm_pshader,
+		resm_fshader,
+		resm_audio,
+		resm_x3z,
+		resm_external, //June 2016 html > frontend anchoring
+	};
 
 	void setDensityFactor(float density_factor);
 	void onInit(int width, int height, void* windowhandle=0, bool bEai = false, bool frontend_handles_display_thread = false);
@@ -64,6 +76,7 @@ public:
 	int resitem_getStatus(void *res);
 	void resitem_setStatus(void *res, int status);
 	int resitem_getType(void *res);
+	int resitem_getMediaType(void *res);
 	void resitem_enqueuNextMulti(void *res);
 	void resitem_setLocalPath(void *res, char* path);
 	void resitem_enqueue(void *res);

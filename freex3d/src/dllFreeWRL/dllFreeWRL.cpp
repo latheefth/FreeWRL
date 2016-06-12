@@ -138,6 +138,11 @@ int CdllFreeWRL::resitem_getType(void *res)
 {
 	return dllFreeWRL_resitem_getType(this->globalcontexthandle, res);
 }
+int CdllFreeWRL::resitem_getMediaType(void *res)
+{
+	return dllFreeWRL_resitem_getMediaType(this->globalcontexthandle, res);
+}
+
 void CdllFreeWRL::resitem_enqueuNextMulti(void *res){
 	dllFreeWRL_resitem_enqueuNextMulti(this->globalcontexthandle, res);
 }
