@@ -363,6 +363,10 @@ int fwl_handle_aqua(const int mev, const unsigned int button, int x, int y);
 int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int y, int windex);
 int fwl_handle_mouse(int mev, int button, int x, int y, int windex);
 int fwl_handle_touch(int mev, unsigned int ID, int x, int y, int windex);
+void fwl_handle_gyro(float rx, float ry, float rz);
+void fwl_handle_accelerometer(float ax, float ay, float az);
+void fwl_handle_magnetic(float azimuth, float pitch, float roll);
+
 
 /* JAS - moving OSX front end into 2011 code workings - these may change. */
 void fwl_replaceWorldNeeded(char* str);
