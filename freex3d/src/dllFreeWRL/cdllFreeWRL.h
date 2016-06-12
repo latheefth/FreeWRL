@@ -42,6 +42,9 @@ DLLFREEWRL_API void dllFreeWRL_onLoad(void *fwctx, char* scene_url);
 DLLFREEWRL_API void dllFreeWRL_onResize(void *fwctx, int width, int height);
 DLLFREEWRL_API int dllFreeWRL_onMouse(void *fwctx, int mouseAction,int mouseButton,int x, int y);
 DLLFREEWRL_API int dllFreeWRL_onTouch(void *fwctx, int touchAction, unsigned int ID, int x, int y);
+DLLFREEWRL_API void dllFreeWRL_onGyro(void *fwctx, float rx, float ry, float rz);
+DLLFREEWRL_API void dllFreeWRL_onAccelerometer(void *fwctx, float ax, float ay, float az);
+DLLFREEWRL_API void dllFreeWRL_onMagnetic(void *fwctx, float azimuth, float pitch, float roll);
 DLLFREEWRL_API void dllFreeWRL_onKey(void *fwctx, int keyAction,int keyValue);
 DLLFREEWRL_API void dllFreeWRL_onDraw(void *fwctx); //use when FRONTEND_HANDLES_DISPLAY_THREAD
 DLLFREEWRL_API void dllFreeWRL_onClose(void *fwctx);

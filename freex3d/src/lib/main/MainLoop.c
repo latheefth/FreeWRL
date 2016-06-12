@@ -4297,7 +4297,18 @@ int fwl_handle_touch(int mev, unsigned int ID, int mouseX, int mouseY, int winde
 	cstyle = fwl_handle_mouse_multi(mev, ibut, mouseX, mouseY, ID, windex);
 	return cstyle;
 }
-
+// mobile devices with accelerometer or gyro pass the raw data in here
+// assumed axes: z pointing up from face, x to right on face, y pointing up on face
+// method of use: relative drags
+void fwl_handle_gyro(float rx, float ry, float rz){
+	//ConsoleMessage("hi from handle_gyro %f %f %f\n", rx, ry, rz);
+}
+void fwl_handle_accelerometer(float ax, float ay, float az){
+	//ConsoleMessage("hi from handle_accelerometer %f %f %f\n", ax, ay, az);
+}
+void fwl_handle_magnetic(float azimuth, float pitch, float roll) {
+	ConsoleMessage("hi from handle_magnetic %f %f %f\n", azimuth, pitch, roll);
+}
 
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
 //#else //MULTI_WINDOW

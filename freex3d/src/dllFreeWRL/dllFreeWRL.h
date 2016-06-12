@@ -64,6 +64,9 @@ public:
     void onResize(int width, int height);
     int onMouse(int mouseAction,int mouseButton,int x, int y);
 	int onTouch(int touchAction, unsigned int ID, int x, int y);
+	void onGyro(float rx, float ry, float rz);
+	void onAccelerometer(float ax, float ay, float az);
+	void onMagnetic(float azimuth, float pitch, float roll);
 	void onKey(int keyAction,int keyValue);
 	void onDraw(); //use when FRONTEND_HANDLES_DISPLAY_THREAD
 	void onClose();
