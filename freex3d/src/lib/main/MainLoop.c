@@ -4317,8 +4317,8 @@ void fwl_handle_gyro(float rx, float ry, float rz){
 		static int initialized = 0;
 
 		rxyz[0] = (double)rx;
-		rxyz[1] = (double)ry;
-		rxyz[2] = (double)rz;
+		rxyz[2] = -(double)ry;
+		rxyz[1] = -(double)rz;
 		if (!initialized) {
 			veccopyd(hxyz,rxyz);
 			veccopyd(lxyz,rxyz);
@@ -4339,12 +4339,20 @@ void fwl_handle_gyro(float rx, float ry, float rz){
 		//add on some effects from gyro
 		//vecdifd(dxyz,rxyz,lxyz);
 		//vecscaled(dxyz,dxyz,.5*dt*dt*PI);
-		if (abs(rxyz[0]) < .0001) rxyz[0] = 0.0;
-		if (abs(rxyz[1]) < .0001) rxyz[1] = 0.0;
-		if (abs(rxyz[2]) < .0001) rxyz[2] = 0.0;
+		if (fabs(rxyz[0]) < .005) rxyz[0] = 0.0;
+		if (fabs(rxyz[1]) < .005) rxyz[1] = 0.0;
+		if (fabs(rxyz[2]) < .005) rxyz[2] = 0.0;
+		//if (fabs(rxyz[0]) > 1.) rxyz[0] = 0.0;
+		//if (fabs(rxyz[1]) > 1.) rxyz[1] = 0.0;
+		//if (fabs(rxyz[2]) > 1.) rxyz[2] = 0.0;
+
 		vecscaled(v1xyz, rxyz, dt);
 
 		vecaddd(vxyz,vxyz,v1xyz);
+		if (fabs(vxyz[0]) < .01) vxyz[0] = 0.0;
+		if (fabs(vxyz[1]) < .01) vxyz[1] = 0.0;
+		if (fabs(vxyz[2]) < .01) vxyz[2] = 0.0;
+
 		vecscaled(dxyz,vxyz,dt);
 
 		euler2quat(&qq2, dxyz[0], dxyz[1], dxyz[2]);
