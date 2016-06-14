@@ -4308,49 +4308,99 @@ static int using_magnetic = 0;
 static int using_gyro = 1;
 static int using_accelerometer = 0;
 void fwl_handle_gyro(float rx, float ry, float rz) {
-	double axyz[3], dd[3], Axyz[3], quat4[4], vec3[3], ypr[3];
-	static double dt, lasttime, curtime;
-	Quaternion qq0, q1, qq2, qq;
-	static int initialized = 0;
+	if(using_sensors_for_navigation &&  using_gyro){
+		double axyz[3], dd[3], Axyz[3], quat4[4], vec3[3], ypr[3];
+		static double dt, lasttime, curtime;
+		Quaternion qq0, q1, qq2, qq;
+		static int initialized = 0;
 
-	if (!initialized) {
-		lasttime = Time1970sec();
-		initialized = 1;
+		if (!initialized) {
+			lasttime = Time1970sec();
+			initialized = 1;
+		}
+
+		curtime = Time1970sec();
+		dt = curtime - lasttime;
+		lasttime = curtime;
+
+		viewer_getpose(quat4, vec3);
+		double2quat(&qq0, quat4);
+		quaternion_normalize(&qq0);
+
+		axyz[0] = (double)rx;
+		axyz[2] = -(double)ry;
+		axyz[1] = -(double)rz;
+
+		//and take out driftie small accelerations
+		if (fabs(axyz[0]) < .01) axyz[0] = 0.0;
+		if (fabs(axyz[1]) < .01) axyz[1] = 0.0;
+		if (fabs(axyz[2]) < .01) axyz[2] = 0.0;
+		vecscaled(dd, axyz, dt); //funny this is working best
+		//vecscaled(dd, axyz, .01); //under-rotates - see it with roll
+		//vecscaled(dd,axyz,PI/180.0); //over-rotates .01745, so .015?
+
+		euler2quat(&qq2, dd[0], dd[1], dd[2]);
+		quaternion_multiply(&qq, &qq2, &qq0); //cumquat should be in world2vp sense like view
+		quaternion_normalize(&qq);
+
+		quat2double(quat4, &qq);
+		viewer_setpose(quat4, vec3);
 	}
-
-	curtime = Time1970sec();
-	dt = curtime - lasttime;
-	lasttime = curtime;
-
-	viewer_getpose(quat4, vec3);
-	double2quat(&qq0, quat4);
-	quaternion_normalize(&qq0);
-
-	axyz[0] = (double)rx;
-	axyz[2] = -(double)ry;
-	axyz[1] = -(double)rz;
-
-	//and take out driftie small accelerations
-	if (fabs(axyz[0]) < .01) axyz[0] = 0.0;
-	if (fabs(axyz[1]) < .01) axyz[1] = 0.0;
-	if (fabs(axyz[2]) < .01) axyz[2] = 0.0;
-	vecscaled(dd, axyz, dt); //funny this is working best
-	//vecscaled(dd, axyz, .01); //under-rotates - see it with roll
-	//vecscaled(dd,axyz,PI/180.0); //over-rotates .01745, so .015?
-
-	euler2quat(&qq2, dd[0], dd[1], dd[2]);
-	quaternion_multiply(&qq, &qq2, &qq0); //cumquat should be in world2vp sense like view
-	quaternion_normalize(&qq);
-
-	quat2double(quat4, &qq);
-	viewer_setpose(quat4, vec3);
-
 }
 
 void fwl_handle_accelerometer(float ax, float ay, float az){
 	//ConsoleMessage("hi from handle_accelerometer %f %f %f\n", ax, ay, az);
 }
+
 void fwl_handle_magnetic(float azimuth, float pitch, float roll) {
+	if (using_sensors_for_navigation &&  using_magnetic) {
+		//doesn't work, but the idea is to use magnetic bearing differences from startup pose
+		//to rotate the scene. (H: would be better to use sensor fusion, perhaps via bayes or
+		// kalman filtering or least squares updates)
+		double rxyz[3], dd[3], Rxyz[3], quat4[4], vec3[3], ypr[3];
+		static double ddlast[3];
+		Quaternion qq0, q1, qq2, qq, qqlast;
+		static int initialized = 0;
+
+		if (!initialized) {
+			initialized = 1;
+			Rxyz[0] = (double)azimuth;
+			Rxyz[2] = -(double)roll;
+			Rxyz[1] = -(double)pitch;
+			vecscaled(ddlast,ddlast,0.0);
+		}
+
+
+		viewer_getpose(quat4, vec3);
+		double2quat(&qq0, quat4);
+		quaternion_normalize(&qq0);
+
+		rxyz[0] = (double)azimuth;
+		rxyz[2] = -(double)roll;
+		rxyz[1] = -(double)pitch;
+
+		vecdifd(dd,rxyz,Rxyz);
+		vecscaled(dd, dd, .05); 
+		//take off magnetic from last event
+		euler2quat(&qqlast,ddlast[0],ddlast[1],ddlast[2]);
+		quaternion_normalize(&qqlast);
+		quaternion_inverse(&qqlast,&qqlast);
+		quaternion_normalize(&qqlast);
+		quaternion_multiply(&qq0,&qqlast,&qq0);
+		quaternion_normalize(&qq0);
+
+		//add magnetic from this event
+		euler2quat(&qq2, dd[0], dd[1], dd[2]);
+		quaternion_multiply(&qq, &qq2, &qq0); //cumquat should be in world2vp sense like view
+		quaternion_normalize(&qq);
+
+		quat2double(quat4, &qq);
+		viewer_setpose(quat4, vec3);
+		veccopyd(ddlast,dd);
+	}
+}
+
+void fwl_handle_magnetic_old(float azimuth, float pitch, float roll) {
 	ConsoleMessage("hi from handle_magnetic %f %f %f\n", azimuth, pitch, roll);
 	if(using_sensors_for_navigation && using_magnetic){
 		static int initialized = 0;
