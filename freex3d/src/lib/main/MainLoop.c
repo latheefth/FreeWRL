@@ -4307,155 +4307,46 @@ static int using_sensors_for_navigation = 1; //in theory we could use for other 
 static int using_magnetic = 0;
 static int using_gyro = 1;
 static int using_accelerometer = 0;
-void fwl_handle_gyro(float rx, float ry, float rz){
-	//ConsoleMessage("hi from handle_gyro %f %f %f\n", rx, ry, rz);
-	if (using_sensors_for_navigation && using_gyro) {
-		static double rxyz[3], lxyz[3], dxyz[3], hxyz[3], v1xyz[3], v0xyz[3], vxyz[3], Dxyz[3], dd[3];
-		double quat4[4], vec3[3], ypr[3];
-		static double dt,lasttime,curtime;
-		Quaternion qq0, q1, qq2,qq;
-		static int initialized = 0;
+void fwl_handle_gyro(float rx, float ry, float rz) {
+	double axyz[3], dd[3], Axyz[3], quat4[4], vec3[3], ypr[3];
+	static double dt, lasttime, curtime;
+	Quaternion qq0, q1, qq2, qq;
+	static int initialized = 0;
 
-		rxyz[0] = (double)rx;
-		rxyz[2] = -(double)ry;
-		rxyz[1] = -(double)rz;
-		if (!initialized) {
-			veccopyd(hxyz,rxyz);
-			veccopyd(lxyz,rxyz);
-			vecscaled(vxyz,vxyz,0.0); //zero the veloocity
-			lasttime = Time1970sec();
-			initialized = 1;
-			vecscaled(Dxyz,Dxyz,0.0);
-		}
-		curtime = Time1970sec();
-		dt = curtime - lasttime;
-		lasttime = curtime;
-
-		viewer_getpose(quat4, vec3);
-		double2quat(&qq0, quat4);
-		quaternion_normalize(&qq0);
-		//quat2yawpitch(ypr,&qq0);
-		quat2euler(ypr, 0, &qq0);
-
-		//add on some effects from gyro
-		//vecdifd(dxyz,rxyz,lxyz);
-		//vecscaled(dxyz,dxyz,.5*dt*dt*PI);
-		//attempt to integrate accelerations into velocity, and velocity into distance
-		// works initially, turn left and the model goes to the right
-		// problem: you want to return your head to the middle. But the accells
-		// then integrate the other way, negating your initial move, and introducing drift
-		if (fabs(rxyz[0]) < .005) rxyz[0] = 0.0;
-		if (fabs(rxyz[1]) < .005) rxyz[1] = 0.0;
-		if (fabs(rxyz[2]) < .005) rxyz[2] = 0.0;
-		if(0){
-			//Method A. after filtering noise from accel, integrate into distance
-			//if (fabs(rxyz[0]) > 1.) rxyz[0] = 0.0;
-			//if (fabs(rxyz[1]) > 1.) rxyz[1] = 0.0;
-			//if (fabs(rxyz[2]) > 1.) rxyz[2] = 0.0;
-
-			vecscaled(v1xyz, rxyz, dt);
-
-			vecaddd(vxyz,vxyz,v1xyz);
-			if (fabs(vxyz[0]) < .01) vxyz[0] = 0.0;
-			if (fabs(vxyz[1]) < .01) vxyz[1] = 0.0;
-			if (fabs(vxyz[2]) < .01) vxyz[2] = 0.0;
-			vecscaled(dxyz, vxyz, dt);
-			veccopyd(dd,dxyz);
-			if(1){
-				//attempt to use integrated distance like a mouse drag
-				//problem: it starts stalled and as drift accumulates it suddenly starts moving big
-				double ddd[3];
-				vecsignd(dd,dxyz);
-				vecsetd(ddd, .1, .1, .1);
-				vecmuld(dd,dd,ddd);
-				if(0){
-					//double accumulator
-					vecaddd(Dxyz, Dxyz, dxyz);
-					if (fabs(Dxyz[0]) < .5) dd[0] = 0.0;
-					if (fabs(Dxyz[1]) < .5) dd[1] = 0.0;
-					if (fabs(Dxyz[2]) < .5) dd[2] = 0.0;
-				}
-				else {
-					//single accumulator
-					if (fabs(dxyz[0]) < .5) dd[0] = 0.0;
-					if (fabs(dxyz[1]) < .5) dd[1] = 0.0;
-					if (fabs(dxyz[2]) < .5) dd[2] = 0.0;
-				}
-				veccopyd(dxyz,dd);
-			}
-		}else if(0) {
-			//Method B. after filtering accel noise, use sign of accel and step velocity.
-			static double Vxyz[3];
-			double dvxyz[3];
-			if (fabs(rxyz[0]) < 1.) rxyz[0] = 0.0;
-			if (fabs(rxyz[1]) < 1.) rxyz[1] = 0.0;
-			if (fabs(rxyz[2]) < 1.) rxyz[2] = 0.0;
-
-			vecsetd(vxyz,.01,.01,.01);
-			vecsignd(dd,rxyz);
-			vecmuld(dd,vxyz,dd);
-			if(1){
-				if(0){
-					vecscaled(dvxyz,dd,dt);
-					vecaddd(Vxyz,Vxyz,dvxyz);
-					veccopyd(dd, Vxyz);
-				}else if(0){
-					//slow, but still drift
-					vecaddd(Vxyz,Vxyz,dd);
-					if (fabs(Vxyz[0]) < .01) Vxyz[0] = 0.0;
-					if (fabs(Vxyz[1]) < .01) Vxyz[1] = 0.0;
-					if (fabs(Vxyz[2]) < .01) Vxyz[2] = 0.0;
-					vecscaled(dd,Vxyz,dt);
-				}else if(1){
-					static double axyz[3]; //we'll accumulate acceleration steps
-					vecaddd(axyz,axyz,dd);
-					//and take out driftie small accelerations
-					if (fabs(axyz[0]) < .005) axyz[0] = 0.0;
-					if (fabs(axyz[1]) < .005) axyz[1] = 0.0;
-					if (fabs(axyz[2]) < .005) axyz[2] = 0.0;
-					//then use step acceperation like velocity
-					vecscaled(dd,axyz,dt);
-				}
-			}
-		} else {
-			//different filtering on original accel
-			// HEY THIS IS GREAT - no drift, and you rotate where you look!
-			double axyz[3], fxyz[3];
-			static double V;
-			axyz[0] = (double)rx;
-			axyz[2] = -(double)ry;
-			axyz[1] = -(double)rz;
-			double Axyz[3]; //we'll accumulate acceleration steps
-			if (0) {
-				veccopyd(fxyz,axyz);
-				if (fabs(fxyz[0]) < .05) fxyz[0] = 0.0;
-				if (fabs(fxyz[1]) < .05) fxyz[1] = 0.0;
-				if (fabs(fxyz[2]) < .05) fxyz[2] = 0.0;
-
-				vecsetd(vxyz, .01, .01, .01);
-				vecsignd(dd, fxyz);
-				vecmuld(dd, vxyz, dd);
-				vecaddd(Axyz, axyz, dd);  
-			}else{
-				veccopyd(Axyz,axyz);
-			}
-
-			//and take out driftie small accelerations
-			if (fabs(Axyz[0]) < .01) Axyz[0] = 0.0;
-			if (fabs(Axyz[1]) < .01) Axyz[1] = 0.0;
-			if (fabs(Axyz[2]) < .01) Axyz[2] = 0.0;
-			//then use step acceperation like velocity
-			vecscaled(dd, Axyz, dt);
-		}
-		euler2quat(&qq2, dd[0], dd[1], dd[2]);
-		quaternion_multiply(&qq, &qq2, &qq0); //cumquat should be in world2vp sense like view
-		quaternion_normalize(&qq);
-
-		quat2double(quat4, &qq);
-		viewer_setpose(quat4, vec3);
-		veccopyd(lxyz,rxyz);
+	if (!initialized) {
+		lasttime = Time1970sec();
+		initialized = 1;
 	}
+
+	curtime = Time1970sec();
+	dt = curtime - lasttime;
+	lasttime = curtime;
+
+	viewer_getpose(quat4, vec3);
+	double2quat(&qq0, quat4);
+	quaternion_normalize(&qq0);
+
+	axyz[0] = (double)rx;
+	axyz[2] = -(double)ry;
+	axyz[1] = -(double)rz;
+
+	//and take out driftie small accelerations
+	if (fabs(axyz[0]) < .01) axyz[0] = 0.0;
+	if (fabs(axyz[1]) < .01) axyz[1] = 0.0;
+	if (fabs(axyz[2]) < .01) axyz[2] = 0.0;
+	vecscaled(dd, axyz, dt); //funny this is working best
+	//vecscaled(dd, axyz, .01); //under-rotates - see it with roll
+	//vecscaled(dd,axyz,PI/180.0); //over-rotates .01745, so .015?
+
+	euler2quat(&qq2, dd[0], dd[1], dd[2]);
+	quaternion_multiply(&qq, &qq2, &qq0); //cumquat should be in world2vp sense like view
+	quaternion_normalize(&qq);
+
+	quat2double(quat4, &qq);
+	viewer_setpose(quat4, vec3);
+
 }
+
 void fwl_handle_accelerometer(float ax, float ay, float az){
 	//ConsoleMessage("hi from handle_accelerometer %f %f %f\n", ax, ay, az);
 }
