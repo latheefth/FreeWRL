@@ -209,10 +209,11 @@ void *fwctx = NULL;
 int runFW(char *url){
 	if(run_fw){
 		fwctx = dllFreeWRL_dllFreeWRL();
-		dllFreeWRL_commandline(fwctx,"pin,FF");
 		dllFreeWRL_commandline(fwctx,"set_keyval,SSR,true");
-		dllFreeWRL_onInit(fwctx,400,300,NULL,FALSE,FALSE);
+		//dllFreeWRL_onInit(fwctx,400,300,NULL,FALSE,FALSE);
+		dllFreeWRL_onInit(fwctx,640,480,NULL,FALSE,FALSE);
 		dllFreeWRL_onLoad(fwctx,url); 
+		dllFreeWRL_commandline(fwctx,"pin,FF");
 	}
 	return 0;
 }

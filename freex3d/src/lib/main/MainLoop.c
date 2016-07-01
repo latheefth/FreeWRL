@@ -6123,6 +6123,7 @@ void fwl_do_keyPress(char kp, int type) {
 	// with per-platform platform2web3dActionKeyLINUX and WIN32 functions
 	int actionKey=0;
 	int key = (int) kp;
+	ConsoleMessage("key pressed decimal = %d\n",key);
 	if (type != KEYPRESS) //May 2014 added this if (I think just the raw keys would need virtual key lookup, I have a problem with '.')
 		actionKey = platform2web3dActionKey(key);
 	if(actionKey)

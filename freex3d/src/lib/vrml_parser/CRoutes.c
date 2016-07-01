@@ -2889,6 +2889,7 @@ void propagate_events_B() {
 	/* now, go through and clean up all of the scripts */
 	for (counter =0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
 		struct CRscriptStruct *sc = getScriptControlIndex(counter);
+		if(sc)
 		if (sc->scr_act){ //p->scr_act[counter]) {
 			sc->scr_act = FALSE; //p->scr_act[counter] = FALSE;
 			js_cleanup_script_context(counter);

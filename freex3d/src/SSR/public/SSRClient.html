@@ -78,7 +78,7 @@
 	function initScene() {
 		gl.clearColor(0.0, 0.0, 0.0, 1.0); //black background (change alpha to 0 to see page behind canvas)
 		var fovy = 45.0 * Math.PI / 180.0;
-		var aspect = 400.0/300.0;
+		var aspect = 640.0/480.0;
 		var near = .1;
 		var far = 100000.0;
 		mat4.perspective(pMatrix, fovy, aspect, near, far);
@@ -153,7 +153,7 @@
 	}
  	function generateGridLines()
 	{
-		var z = 0.0; //-10.75;
+		var z = -.02; //-10.75;
 		var d = .1;
 		var k = 0;
 		var sscale = 1.0;
@@ -299,7 +299,7 @@
 	var lastTime = null;
 	function onMouseDown(event) {
 		//console.log("mousexy="+event.clientX+" "+event.clientY);
-		if(event.clientX > 0 && event.clientX < 400 && event.clientY > 0 && event.clientY < 300)
+		if(event.clientX > 0 && event.clientX < 640 && event.clientY > 0 && event.clientY < 480)
 		{
 		mouseDown = true;
 		quat2yawpitch();
@@ -731,15 +731,15 @@
 	#scenediv {
 		padding:0;
 		margin:0;	
-		width: 400px;
-		height: 300px;
+		width: 640px;
+		height: 480px;
 		top: 0px;
 	}
 	#huddiv {
 		padding:0;
 		margin:0;	
-		width: 400px;
-		top: 300px;
+		width: 640px;
+		top: 480px;
 	}
 	</style>
 </head>
@@ -747,10 +747,10 @@
 
 <div id='scenediv'>
 <span id='photo'>
-	<img id='pimg' width="400" height="300" left="0" top="0" src="DragHere.jpg"></img>
+	<img id='pimg' width="640" height="480" left="0" top="0" src="DragHere.jpg"></img>
 </span>
 <span id='grid' >
-	<canvas width="400" height="300" left="0" top="0"></canvas>
+	<canvas width="640" height="480" left="0" top="0"></canvas>
 </span>
 </div>
 <div id='huddiv'>

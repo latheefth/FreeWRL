@@ -470,7 +470,7 @@ static bool script_initCodeFromBLOB(struct Shader_Script* me, const char* uri, c
 		/* Is this a "data:text/plain," uri? JAS*/
 		if((!*v && *u==',') || (!*v && *u==':')) {
 			if (me != NULL) {
-				ConsoleMessage ("calling script_initCode");
+				//ConsoleMessage ("calling script_initCode");
 
 				return script_initCode(me, u+1); /* a script */
 			} else {

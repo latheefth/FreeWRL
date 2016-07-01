@@ -4370,7 +4370,9 @@ void zeroVisibilityFlag(void) {
 				((struct X3D_##thistype *)node)->thisfield.n = ((struct X3D_##thistype *)node)->set_##thisfield.n; \
 				((struct X3D_##thistype *)node)->set_##thisfield.n = 0; \
 				((struct X3D_##thistype *)node)->set_##thisfield.p = NULL; \
+				node->_change++; \
 			}
+			//above - polyrep needs to compile after set_coordIndex is copied to coordIndex
 
 /* just tell the parent (a grouping node) that there is a locally scoped light as a child */
 /* do NOT send this up the scenegraph! */

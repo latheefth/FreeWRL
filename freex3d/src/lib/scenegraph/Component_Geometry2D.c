@@ -547,7 +547,12 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 }
 
 /***********************************************************************************/
-
+//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/geometry2D.html#ArcClose2D
+// "the angle starts at +x and goes toward +y"
+// y^
+//  |  /
+//  | / ) angle
+//  |_____> x
 static void *createLines (float start, float end, float radius, int closed, int *size, float *_extent) {
 	int i;
 	int isCircle;
@@ -600,25 +605,25 @@ static void *createLines (float start, float end, float radius, int closed, int 
 	fp = points;
 
 	for (i=0; i<arcpoints; i++) {
-		*fp = -radius * sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
-		fp++;
 		*fp = radius * cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
+		fp++;
+		*fp = radius * sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 	}
 
 	/* do we have to draw any pies, cords, etc, etc? */
 	if (closed == CHORD) {
 		/* loop back to origin */
-		*fp = -radius * sinf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
-		fp++;
 		*fp = radius * cosf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
+		fp++;
+		*fp = radius * sinf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 	} else if (closed == PIE) {
 		/* go to origin */
 		*fp = 0.0f; fp++; *fp=0.0f; fp++; 
-		*fp = -radius * sinf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
-		fp++;
 		*fp = radius * cosf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
+		fp++;
+		*fp = radius * sinf(0.0f/((float)SEGMENTS_PER_CIRCLE));	
 		fp++;
 	}
 
