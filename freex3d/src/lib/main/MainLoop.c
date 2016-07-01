@@ -73,6 +73,7 @@
 #include "../io_files.h"
 
 #include "ProdCon.h"
+#include "../scenegraph/quaternion.h"
 
 ivec2 ivec2_init(int x, int y);
 ivec4 ivec4_init(int x, int y, int w, int h);
@@ -4297,7 +4298,201 @@ int fwl_handle_touch(int mev, unsigned int ID, int mouseX, int mouseY, int winde
 	cstyle = fwl_handle_mouse_multi(mev, ibut, mouseX, mouseY, ID, windex);
 	return cstyle;
 }
+// mobile devices with accelerometer or gyro pass the raw data in here
+// assumed axes: z pointing up from face, x to right on face, y pointing up on face
+// method of use: relative drags
+void viewer_getpose(double *quat4, double *vec3);
+void viewer_setpose(double *quat4, double *vec3);
+static int using_sensors_for_navigation = 1; //in theory we could use for other things, or turn off
+static int using_magnetic = 0;
+static int using_gyro = 1;
+static int using_accelerometer = 0;
+void fwl_handle_gyro(float rx, float ry, float rz) {
+	if(using_sensors_for_navigation &&  using_gyro){
+		double axyz[3], dd[3], Axyz[3], quat4[4], vec3[3], ypr[3];
+		static double dt, lasttime, curtime;
+		Quaternion qq0, q1, qq2, qq;
+		static int initialized = 0;
 
+		if (!initialized) {
+			lasttime = Time1970sec();
+			initialized = 1;
+		}
+
+		curtime = Time1970sec();
+		dt = curtime - lasttime;
+		lasttime = curtime;
+
+		viewer_getpose(quat4, vec3);
+		double2quat(&qq0, quat4);
+		quaternion_normalize(&qq0);
+
+		axyz[0] = (double)rx;
+		axyz[2] = -(double)ry;
+		axyz[1] = -(double)rz;
+
+		//and take out driftie small accelerations
+		if (fabs(axyz[0]) < .01) axyz[0] = 0.0;
+		if (fabs(axyz[1]) < .01) axyz[1] = 0.0;
+		if (fabs(axyz[2]) < .01) axyz[2] = 0.0;
+		vecscaled(dd, axyz, dt); //funny this is working best
+		//vecscaled(dd, axyz, .01); //under-rotates - see it with roll
+		//vecscaled(dd,axyz,PI/180.0); //over-rotates .01745, so .015?
+
+		euler2quat(&qq2, dd[0], dd[1], dd[2]);
+		quaternion_multiply(&qq, &qq2, &qq0); //cumquat should be in world2vp sense like view
+		quaternion_normalize(&qq);
+
+		quat2double(quat4, &qq);
+		viewer_setpose(quat4, vec3);
+	}
+}
+
+void fwl_handle_accelerometer(float ax, float ay, float az){
+	//ConsoleMessage("hi from handle_accelerometer %f %f %f\n", ax, ay, az);
+}
+
+void fwl_handle_magnetic(float azimuth, float pitch, float roll) {
+	if (using_sensors_for_navigation &&  using_magnetic) {
+		//doesn't work, but the idea is to use magnetic bearing differences from startup pose
+		//to rotate the scene. (H: would be better to use sensor fusion, perhaps via bayes or
+		// kalman filtering or least squares updates)
+		double rxyz[3], dd[3], Rxyz[3], quat4[4], vec3[3], ypr[3];
+		static double ddlast[3];
+		Quaternion qq0, q1, qq2, qq, qqlast;
+		static int initialized = 0;
+
+		if (!initialized) {
+			initialized = 1;
+			Rxyz[0] = (double)azimuth;
+			Rxyz[2] = -(double)roll;
+			Rxyz[1] = -(double)pitch;
+			vecscaled(ddlast,ddlast,0.0);
+		}
+
+
+		viewer_getpose(quat4, vec3);
+		double2quat(&qq0, quat4);
+		quaternion_normalize(&qq0);
+
+		rxyz[0] = (double)azimuth;
+		rxyz[2] = -(double)roll;
+		rxyz[1] = -(double)pitch;
+
+		vecdifd(dd,rxyz,Rxyz);
+		vecscaled(dd, dd, .05); 
+		//take off magnetic from last event
+		euler2quat(&qqlast,ddlast[0],ddlast[1],ddlast[2]);
+		quaternion_normalize(&qqlast);
+		quaternion_inverse(&qqlast,&qqlast);
+		quaternion_normalize(&qqlast);
+		quaternion_multiply(&qq0,&qqlast,&qq0);
+		quaternion_normalize(&qq0);
+
+		//add magnetic from this event
+		euler2quat(&qq2, dd[0], dd[1], dd[2]);
+		quaternion_multiply(&qq, &qq2, &qq0); //cumquat should be in world2vp sense like view
+		quaternion_normalize(&qq);
+
+		quat2double(quat4, &qq);
+		viewer_setpose(quat4, vec3);
+		veccopyd(ddlast,dd);
+	}
+}
+
+void fwl_handle_magnetic_old(float azimuth, float pitch, float roll) {
+	ConsoleMessage("hi from handle_magnetic %f %f %f\n", azimuth, pitch, roll);
+	if(using_sensors_for_navigation && using_magnetic){
+		static int initialized = 0;
+		static float home_azimuth = 0.0f, home_pitch = 0.0f, home_roll = 0.0f;
+		static double lasttime, curtime, dt;
+		Quaternion qq, qq2;
+		static Quaternion qq0;
+		float dazimuth,ddazimuth, dpitch,ddpitch, droll,ddroll;
+		double quat4[4], vec3[3], rxyz[3];
+		static double ypr[3];
+		static float lazimuth, lpitch, lroll;
+		//we'll use use azimuth relative * time, and pitch absolute
+		//assume startup azimuth is home azimuth
+		// x the axes are mixed up
+		// x seems to depend on orientation
+		// x my quat2yawpitch isn't comprehensive enought, need roll to understand
+		if(!initialized){
+			home_azimuth = azimuth;
+			home_pitch = pitch;
+			home_roll = roll;
+			lazimuth = azimuth;
+			lpitch = pitch;
+			lroll = roll;
+			lasttime = Time1970sec();
+			initialized = 1;
+			if(0){
+			viewer_getpose(quat4, vec3);
+			double2quat(&qq0, quat4);
+			quaternion_normalize(&qq0);
+			//quat2yawpitch(ypr, &qq0); 
+			quat2euler(ypr,0,&qq0);
+			//in thoery euler rotations can be extracted sequentially from quaternions:
+			// qy = quat2yaw(q0) // gets yaw
+			// q1 = qy.inverse()*q0 //gets pitch+roll
+			// qp = quat2pitch(q1) // gets pitch
+			// qr = qp.inverse()*q1 //gets roll 
+			// yaw = qy.toEuler()
+			// pitch = qp.toEuler()
+			// roll = qr.toEuler()
+			// and you would get different value depending on the sequence, 
+			// but when multiplied back together in reverse sequence you would/should get original q0
+			}
+
+		}
+		curtime = Time1970sec();
+		dt = curtime - lasttime;
+		lasttime = curtime;
+
+		if(1){
+		viewer_getpose(quat4, vec3);
+		double2quat(&qq0,quat4);
+		quaternion_normalize(&qq0);
+		//quat2yawpitch(ypr,&qq0);
+		quat2euler(ypr,0,&qq0);
+		}
+		//quat2euler(rxyz,0,&qq);
+		dazimuth = (azimuth - home_azimuth);// * dt; // * .1;
+		ddazimuth = dazimuth - lazimuth;
+		lazimuth = dazimuth;
+		if (fabs(ddazimuth) < .7f)
+			dazimuth = 0.0;
+		if(fabs(ddazimuth) < 2.0f)
+			dazimuth = .01f * dazimuth;
+		if(fabs(ddazimuth) < 10.0f)
+			dazimuth = .1f * dazimuth;
+
+		dpitch = (pitch - home_pitch);
+		droll = (roll - home_roll);
+		//time based azimuth is doing nothing
+		//roll throws it off, pitch crazy.
+		// I don't have the right formula and not sure tinkering will help
+		rxyz[2] = dazimuth*PI/180.0;
+		rxyz[1] = (50.0 - droll )*PI/50.0*dt; //180.0;
+		//rxyz[2] = 0.0;
+		rxyz[0] = 0.0;
+		rxyz[1] = 0.0;
+		//rxyz[1] = droll; // dpitch;
+		//rxyz[2] = dpitch;
+		//rxyz[1] = roll*PI/180.0;
+		//rxyz[0] = azimuth*PI/180.0;
+		euler2quat(&qq2,rxyz[0],rxyz[1],-rxyz[2]);
+		quaternion_multiply(&qq,&qq2,&qq0); //cumquat should be in world2vp sense like view
+		quaternion_normalize(&qq);
+
+		quat2double(quat4,&qq);
+		viewer_setpose(quat4,vec3);
+		//home_azimuth = azimuth;
+		home_pitch = pitch;
+		//home_roll = roll;
+
+	}
+}
 
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
 //#else //MULTI_WINDOW
@@ -5928,6 +6123,7 @@ void fwl_do_keyPress(char kp, int type) {
 	// with per-platform platform2web3dActionKeyLINUX and WIN32 functions
 	int actionKey=0;
 	int key = (int) kp;
+	ConsoleMessage("key pressed decimal = %d\n",key);
 	if (type != KEYPRESS) //May 2014 added this if (I think just the raw keys would need virtual key lookup, I have a problem with '.')
 		actionKey = platform2web3dActionKey(key);
 	if(actionKey)

@@ -39,7 +39,24 @@
 #include "LinearAlgebra.h"
 
 #define DJ_KEEP_COMPILER_WARNING 0
-
+double signd(double val){
+	return val < 0.0 ? -1.0 : val > 0.0 ? 1.0 : 0;
+}
+double * vecsignd(double *b, double *a){
+	int i;
+	for (i = 0; i<3; i++) b[i] = signd(a[i]);
+	return b;
+}
+double * vecmuld(double *c, double *a, double *b){
+	int i;
+	for(i=0;i<3;i++)
+		c[i] = a[i]*b[i];
+	return c;
+}
+double * vecsetd(double *b, double x, double y, double z){
+	b[0] = x, b[1] = y; b[2] = z;
+	return b;
+}
 float *double2float(float *b, double *a, int n){
 	int i;
 	for(i=0;i<n;i++) b[i] = (float)a[i];

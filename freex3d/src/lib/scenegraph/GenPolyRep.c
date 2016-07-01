@@ -736,6 +736,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, metadata));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, normal));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, texCoord));
+
 			break;
 		case NODE_ElevationGrid:
 			orig_coordIndex= &X3D_ELEVATIONGRID(node)->_coordIndex;

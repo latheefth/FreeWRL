@@ -170,7 +170,8 @@ function mappings - like a "shift" key */
 #define KEYUP	3
 
 #endif
-///* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
+///* from 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/keyboard.html
 //section 21.4.1 
 //Key Value
 //Home 13

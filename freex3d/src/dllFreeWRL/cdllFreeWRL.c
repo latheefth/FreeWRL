@@ -173,6 +173,30 @@ DLLFREEWRL_API int dllFreeWRL_onTouch(void *fwctx, int touchAction, unsigned int
 	fwl_clearCurrentHandle();
 	return cursorStyle;
 }
+DLLFREEWRL_API void dllFreeWRL_onGyro(void *fwctx, float rx, float ry, float rz) {
+
+	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)) {
+		fwl_handle_gyro(rx, ry, rz);
+	}
+	fwl_clearCurrentHandle();
+	return ;
+}
+DLLFREEWRL_API void dllFreeWRL_onAccelerometer(void *fwctx, float ax, float ay, float az) {
+
+	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)) {
+		fwl_handle_accelerometer(ax, ay, az);
+	}
+	fwl_clearCurrentHandle();
+	return;
+}
+DLLFREEWRL_API void dllFreeWRL_onMagnetic(void *fwctx, float azimuth, float pitch, float roll) {
+
+	if (fwl_setCurrentHandle(fwctx, __FILE__, __LINE__)) {
+		fwl_handle_magnetic(azimuth, pitch, roll);
+	}
+	fwl_clearCurrentHandle();
+	return;
+}
 DLLFREEWRL_API void dllFreeWRL_onKey(void *fwctx, int keyAction,int keyValue){
 	int kp = keyValue;
 	int ka = keyAction;

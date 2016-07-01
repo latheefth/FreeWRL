@@ -1134,13 +1134,13 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 
 	/* now, put the generic internal structure into OpenGL arrays for faster rendering */
 	/* if there were errors, then rep->ntri should be 0 */
-	if (polyrep->ntri != 0)
+	if (polyrep->ntri != 0) {
 		stream_polyrep(node, coord, color, normal, texCoord);
-
-
-
-	/* and, tell the rendering process that this shape is now compiled */
+		/* and, tell the rendering process that this shape is now compiled */
+	}
+	//else wait for set_coordIndex to be converted to coordIndex
 	polyrep->irep_change = node->_change;
+
 }
 
 void delete_polyrep(struct X3D_Node *node){

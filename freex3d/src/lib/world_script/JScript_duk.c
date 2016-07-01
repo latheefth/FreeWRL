@@ -1618,7 +1618,7 @@ void JSCreateScriptContext(int num) {
 		scriptnode = duk_to_pointer(ctx,-1);
 		duk_pop(ctx);
 		snode = (struct X3D_Node *)scriptnode;
-		printf("script node = %p",scriptnode);
+		//printf("script node = %p",scriptnode);
 	}
 	if(0){
 		duk_eval_string(ctx,"print(Object.keys(Browser));"); //invokes ownKeys
@@ -1963,7 +1963,7 @@ void InitScriptField2(struct CRscriptStruct *scriptcontrol, int itype, const cha
 	*/
 	duk_context *ctx;
 	//int iglobal;
-	printf("in InitScriptField\n");
+	//printf("in InitScriptField\n");
 
 	// create twin property
 	ctx = scriptcontrol->cx;
@@ -1989,7 +1989,7 @@ void JSInitializeScriptAndFields (int num) {
 
 	/* run through fields in order of entry in the X3D file */
 	script = scriptcontrol->script;
-	printf("adding fields from script %p\n",script);
+	//printf("adding fields from script %p\n",script);
 	nfields = Shader_Script_getScriptFieldCount(script);
 	for(i=0;i<nfields;i++){
 		field = Shader_Script_getScriptField(script,i);
@@ -2021,7 +2021,7 @@ int jsActualrunScript(int num, char *script){
 	duk_context *ctx;
 	int iglobal;
 	struct CRscriptStruct *ScriptControl; // = getScriptControl();
-	printf("in jsActualrunScript\n");
+	//printf("in jsActualrunScript\n");
 
 	ScriptControl = getScriptControlIndex(num);
 	/* get context and global object for this script */
@@ -2079,20 +2079,22 @@ void process_eventsProcessed(){
 	p = (ppJScript)tg->JScript.prv;
 	for (counter = 0; counter <= tg->CRoutes.max_script_found_and_initialized; counter++) {
 		scriptcontrol = getScriptControlIndex(counter);
-		//if (scriptcontrol->eventsProcessed == NULL) {
-		//	//compile function - duktape doesn't have this
-		//	scriptcontrol->eventsProcessed = ???
-		//}
-		ctx = scriptcontrol->cx;
-		if(scriptcontrol->thisScriptType != NOSCRIPT && ctx){
-			duk_eval_string(ctx,"eventsProcessed"); //gets the evenin function on the stack
-			//push double TickTime(); as arg
-			duk_push_number(ctx,TickTime());
-			rc = duk_pcall(ctx, 1);
-			if (rc != DUK_EXEC_SUCCESS) {
-			  printf("error: '%s' happened in js function %s called from process_eventsProcessed\n", duk_to_string(ctx, -1),"eventsProcessed");
+		if(scriptcontrol){
+			//if (scriptcontrol->eventsProcessed == NULL) {
+			//	//compile function - duktape doesn't have this
+			//	scriptcontrol->eventsProcessed = ???
+			//}
+			ctx = scriptcontrol->cx;
+			if(scriptcontrol->thisScriptType != NOSCRIPT && ctx){
+				duk_eval_string(ctx,"eventsProcessed"); //gets the evenin function on the stack
+				//push double TickTime(); as arg
+				duk_push_number(ctx,TickTime());
+				rc = duk_pcall(ctx, 1);
+				if (rc != DUK_EXEC_SUCCESS) {
+				  printf("error: '%s' happened in js function %s called from process_eventsProcessed\n", duk_to_string(ctx, -1),"eventsProcessed");
+				}
+				duk_pop(ctx); //pop undefined that results from void myfunc(){}
 			}
-			duk_pop(ctx); //pop undefined that results from void myfunc(){}
 		}
 	}
 
@@ -2434,35 +2436,38 @@ int runQueuedDirectOutputs()
 	moreAction = FALSE;
 	for(num=0;num< tg->CRoutes.max_script_found_and_initialized;num++){
 		scriptcontrol = getScriptControlIndex(num); //&ScriptControlArray[num];
-		script = scriptcontrol->script;
-		if(scriptcontrol->thisScriptType != NOSCRIPT && script){
-			if(isScriptControlInitialized(script->num) && isScriptControlOK(script->num)){
-				int nfields = Shader_Script_getScriptFieldCount(script);
-				for(i=0;i<nfields;i++){
-					field = Shader_Script_getScriptField(script,i);
-					fieldname = ScriptFieldDecl_getName(field);
-					kind = ScriptFieldDecl_getMode(field);
-					itype = ScriptFieldDecl_getType(field);
-					if(field->eventInSet){
-						if( (kind == PKW_inputOnly || kind == PKW_inputOutput)){
-							int isMF, sftype, len, isize;
-							int JSparamNameIndex = field->fieldDecl->JSparamNameIndex;
-							mark_script(script->num);
-							//run script eventIn function with field->value and tickTime
-							isMF = itype % 2; //WRONG - use a function to lookup
-							sftype = itype - isMF;
-							//from EAI_C_CommonFunctions.c
-							isize = returnElementLength(sftype) * returnElementRowSize(sftype);
-							if(isMF) len = sizeof(int) + sizeof(void*);
-							else len = isize;
+		if(scriptcontrol)
+		{
+			script = scriptcontrol->script;
+			if(scriptcontrol->thisScriptType != NOSCRIPT && script){
+				if(isScriptControlInitialized(script->num) && isScriptControlOK(script->num)){
+					int nfields = Shader_Script_getScriptFieldCount(script);
+					for(i=0;i<nfields;i++){
+						field = Shader_Script_getScriptField(script,i);
+						fieldname = ScriptFieldDecl_getName(field);
+						kind = ScriptFieldDecl_getMode(field);
+						itype = ScriptFieldDecl_getType(field);
+						if(field->eventInSet){
+							if( (kind == PKW_inputOnly || kind == PKW_inputOutput)){
+								int isMF, sftype, len, isize;
+								int JSparamNameIndex = field->fieldDecl->JSparamNameIndex;
+								mark_script(script->num);
+								//run script eventIn function with field->value and tickTime
+								isMF = itype % 2; //WRONG - use a function to lookup
+								sftype = itype - isMF;
+								//from EAI_C_CommonFunctions.c
+								isize = returnElementLength(sftype) * returnElementRowSize(sftype);
+								if(isMF) len = sizeof(int) + sizeof(void*);
+								else len = isize;
 
-							field->eventInSet = FALSE;
-							getField_ToJavascript_B(script->num, JSparamNameIndex, itype, &field->value, len);
-							//printf("+eventInSet and input kind=%d value=%f\n",kind,field->value.sffloat);
-							moreAction = TRUE;
-						}else{
-							//printf("-eventInSet but not input kind=%d value=%f\n",kind,field->value.sffloat);
-							field->eventInSet = FALSE;
+								field->eventInSet = FALSE;
+								getField_ToJavascript_B(script->num, JSparamNameIndex, itype, &field->value, len);
+								//printf("+eventInSet and input kind=%d value=%f\n",kind,field->value.sffloat);
+								moreAction = TRUE;
+							}else{
+								//printf("-eventInSet but not input kind=%d value=%f\n",kind,field->value.sffloat);
+								field->eventInSet = FALSE;
+							}
 						}
 					}
 				}

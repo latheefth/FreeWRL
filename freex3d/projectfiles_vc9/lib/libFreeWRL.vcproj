@@ -755,6 +755,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src_windows\view_platform_win32.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\scenegraph\Viewer.c"
 				>
 			</File>

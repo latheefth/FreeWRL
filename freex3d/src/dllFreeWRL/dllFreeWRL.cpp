@@ -97,6 +97,16 @@ int CdllFreeWRL::onTouch(int touchAction, unsigned int ID, int x, int y)
 {
 	return dllFreeWRL_onTouch(this->globalcontexthandle, touchAction, ID, x, y);
 }
+void CdllFreeWRL::onAccelerometer(float ax, float ay, float az){
+	return dllFreeWRL_onAccelerometer(this->globalcontexthandle, ax, ay, az);
+}
+void CdllFreeWRL::onGyro(float rx, float ry, float rz) {
+	return dllFreeWRL_onGyro(this->globalcontexthandle, rx, ry, rz);
+}
+void CdllFreeWRL::onMagnetic(float azimuth, float pitch, float roll) {
+	return dllFreeWRL_onMagnetic(this->globalcontexthandle, azimuth,pitch,roll);
+}
+
 void CdllFreeWRL::onKey(int keyAction,int keyValue)
 {
 	dllFreeWRL_onKey(this->globalcontexthandle, keyAction, keyValue);

@@ -152,8 +152,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(LIBWIN)\pthread4w\Pre-built.2\lib\x64;$(LIBWIN)\libmicrohttpd\lib\x64;$(Outdir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libmicrohttpd-dll.lib;pthreadVC2.lib;dllFreeWRL.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(LIBWIN)\pthread4w\Pre-built.2\lib\x64;$(LIBWIN)\libxml2\x64\lib;$(LIBWIN)\libmicrohttpd\lib\x64;$(Outdir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmicrohttpd-dll.lib;pthreadVC2.lib;dllFreeWRL.lib;libxml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -28,7 +28,6 @@ Linear algebra.
 #ifndef __FREEWRL_LINEAR_ALGEBRA_H__
 #define __FREEWRL_LINEAR_ALGEBRA_H__
 
-
 #define VECSQ(a) VECPT(a,a)
 #define VECPT(a,b) ((a).x*(b).x + (a).y*(b).y + (a).z*(b).z)
 #define VECDIFF(a,b,c) {(c).x = (a).x-(b).x;(c).y = (a).y-(b).y;(c).z = (a).z-(b).z;}
@@ -166,7 +165,10 @@ double vecangle(struct point_XYZ* V1, struct point_XYZ* V2);
 
 void veccross(struct point_XYZ *c , struct point_XYZ a, struct point_XYZ b);
 
-
+double signd(double val);
+double * vecsignd(double *b, double *a);
+double *vecsetd(double *b, double x, double y, double z);
+double * vecmuld(double *c, double *a, double *b);
 double * vecaddd(double *c, double *a, double *b);
 double *vecdifd(double *c, double* a, double *b);
 double * veccrossd(double *c, double *a, double *b);
