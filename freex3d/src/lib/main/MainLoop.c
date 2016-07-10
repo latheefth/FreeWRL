@@ -5590,8 +5590,10 @@ static void render()
 		/*  Other lights*/
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
 
-		render_hier(rootNode(), VF_globalLight);
+		render_hier(rootNode(), VF_globalLight );
 		PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
+		render_hier(rootNode(), VF_Other );
+
 
 		/*  4. Nodes (not the blended ones)*/
 		profile_start("hier_geom");

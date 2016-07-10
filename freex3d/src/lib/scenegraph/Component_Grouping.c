@@ -195,8 +195,8 @@ void child_Switch (struct X3D_Switch *node) {
 	int wc = node->whichChoice;
 
 	/* is this VRML, or X3D?? */
-	if (node->__isX3D) {
-		if(wc >= 0 && wc < ((node->children).n)) {
+	if (node->__isX3D ||  (node->children).n) {
+		if(wc >= 0 && wc < (node->children).n) {
 			void *p = ((node->children).p[wc]);
 			render_node(p);
 		}
@@ -464,7 +464,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	//	normalChildren(node->_sortedChildren);
 	//}
 	sceneflag = ciflag_get(node->__protoFlags,2);
-	renderFirstProtoChildOnlyAsPerSpecs = TRUE;  //FALSE is like flux / vivaty
+	renderFirstProtoChildOnlyAsPerSpecs = FALSE;  //FALSE is like flux / vivaty
 	//I don't think inline.children comes through here, just scene and protoInstance
 	if(sceneflag == 2 ){ 
 		normalChildren(node->_sortedChildren);

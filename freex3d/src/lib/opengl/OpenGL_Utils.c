@@ -4903,6 +4903,7 @@ void startOfLoopNodeUpdates(void) {
 
 				/* VisibilitySensor needs its own flag sent up the chain */
 				BEGIN_NODE (VisibilitySensor)
+				#ifdef OCCLUSION_STUFF
 					/* send along a "look at me" flag if we are visible, or we should look again */
 					if ((X3D_VISIBILITYSENSOR(node)->__occludeCheckCount <=0) ||
 							(X3D_VISIBILITYSENSOR(node)->__visible)) {
@@ -4914,6 +4915,11 @@ void startOfLoopNodeUpdates(void) {
 					/* VisibilitySensors have a transparent bounding box we have to render */
 
 					update_renderFlag(pnode,VF_Blend & VF_shouldSortChildren);
+				#else //simple AABB
+					//pnode->_renderFlags = VF_Other;
+					//X3D_VISIBILITYSENSOR(node)->__Samples = 0; //cleared at end of do_visibilitysensor
+					update_renderFlag(pnode,VF_Other);
+				#endif
 				END_NODE
 
 				/* ProximitySensor needs its own flag sent up the chain */
@@ -6205,7 +6211,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	PRINT_GL_ERROR_IF_ANY("END sendMaterialsToShader");
 }
 
-static void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],
+void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],
                       GLDOUBLE out[4])
 {
     int i;
@@ -6275,7 +6281,7 @@ static void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],
 ** Invert 4x4 matrix.
 ** Contributed by David Moore (See Mesa bug #6748)
 */
-static int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16])
+int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16])
 {
     GLDOUBLE inv[16], det;
     int i;

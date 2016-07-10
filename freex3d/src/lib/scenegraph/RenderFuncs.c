@@ -1352,34 +1352,35 @@ void render_node(struct X3D_Node *node) {
  //        	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 	//printf("change %d ichange %d \n",node->_change, node->_ichange);
 #endif
-
-        /* if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here */ 
-        //if (renderstate()->render_vp == VF_Viewpoint) { 
-        if (p->renderstate.render_vp == VF_Viewpoint) { 
-				//if(tg->Bindable.activeLayer == 0)  //no Layerset nodes
-                if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
-#ifdef RENDERVERBOSE
-                        printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
+	// leaf-node filtering (we still do the transform-children stack)
+	// if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here *
+	//if (renderstate()->render_vp == VF_Viewpoint) { 
+	if (p->renderstate.render_vp == VF_Viewpoint) { 
+		//if(tg->Bindable.activeLayer == 0)  //no Layerset nodes
+		if ((node->_renderFlags & VF_Viewpoint) != VF_Viewpoint) { 
+			#ifdef RENDERVERBOSE
+			printf ("doing Viewpoint, but this  node is not for us - just returning\n"); 
 			p->renderLevel--;
-#endif
-                        return; 
-                } 
-        }
+			#endif
+			return; 
+		} 
+	}
 
 	/* are we working through global PointLights, DirectionalLights or SpotLights, but none exist from here on down? */
-        if (p->renderstate.render_light == VF_globalLight) { 
-                if ((node->_renderFlags & VF_globalLight) != VF_globalLight) { 
-#ifdef RENDERVERBOSE
-                        printf ("doing globalLight, but this  node is not for us - just returning\n"); 
+	if (p->renderstate.render_light ) { 
+		if((node->_renderFlags & VF_globalLight) != VF_globalLight) { 
+	#ifdef RENDERVERBOSE
+			printf ("doing globalLight, but this  node is not for us - just returning\n"); 
 			p->renderLevel--;
-#endif
-                        return; 
-                }
-        }
+	#endif
+			return; 
+		}
+	}
 	justGeom = p->renderstate.render_geom && !p->renderstate.render_sensitive && !p->renderstate.render_blend;
 	pushed_ray = FALSE;
 	pushed_render_geom = FALSE;
 	pushed_sensor = FALSE;
+
 	if(virt->prep) {
 		//transform types will pushmatrix and multiply in their translation.rotation,scale here (and popmatrix in virt->fin)
 		DEBUG_RENDER("rs 2\n");
@@ -1428,6 +1429,7 @@ void render_node(struct X3D_Node *node) {
 		virt->other(node); //other() is responsible for push_renderingState(VF_inPickableGroup);
 		PRINT_GL_ERROR_IF_ANY("render_other"); PRINT_NODE(node,virt);
 #endif
+		virt->other(node);
 	} //other
 
 	if(p->renderstate.render_sensitive && ((node->_renderFlags & VF_Sensitive)|| Viewer()->LookatMode ==2)) {

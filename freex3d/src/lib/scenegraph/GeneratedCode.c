@@ -2905,7 +2905,7 @@ void fin_Viewport(struct X3D_Viewport *);
 struct X3D_Virt virt_Viewport = { (void *)prep_Viewport,NULL,(void *)child_Viewport,(void *)fin_Viewport,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void child_VisibilitySensor(struct X3D_VisibilitySensor *);
-struct X3D_Virt virt_VisibilitySensor = { NULL,NULL,(void *)child_VisibilitySensor,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_VisibilitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)child_VisibilitySensor,NULL,NULL};
 
 struct X3D_Virt virt_VolumePickSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
