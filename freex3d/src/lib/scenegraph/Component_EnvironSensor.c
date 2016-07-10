@@ -178,7 +178,7 @@ int frustumHitsMBB(float *extent){
 	}
 	return isIn;
 }
-void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
+void other_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#VisibilitySensor
 	ttrenderstate rs;
 	ttglobal tg = gglobal();
