@@ -1227,14 +1227,20 @@ int fast_ycylinder_box_intersect(double y1, double y2, double r,struct point_XYZ
 }
 
 
+double *transformFULL4d(double *r4, double *a4, double *mat);
+void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4], GLDOUBLE out[4]);
 
-void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax)
+int transformMBB4d(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax, int isAffine)
 {
-	/* transform axes aligned minimum bounding box MBB via octo box - will expand as necessary to cover original volume */
+	/* transform axes aligned minimum bounding box MBB via octo box / cuboid - will expand as necessary to cover original volume 
+		return value:
+			1 - success
+			0 - divide by 0, usually with projecting a point that's at 90 degrees to camera axis ie to the right, left, up, doown
+	*/
 	struct point_XYZ abox[8];
-	int i,j,k,m;
+	int i,j,k,m, iret;
 	GLDOUBLE p[3],rx,ry,rz;
-
+	iret = 1;
 	/* generate an 8 corner box in shape space to represent the shape collision volume */
 	m = 0;
 	for(i=0;i<2;i++)
@@ -1255,23 +1261,49 @@ void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, 
 	}
 
 	/* transform the corners of the octo box  */
-	for(m=0;m<8;m++)
-       transform(&abox[m],&abox[m],matTransform);
-
-	/*find the MBB of the transformed octo box */
-	memcpy(rMBBmin,&abox[0],3*sizeof(GLDOUBLE)); //sizeof(struct point_XYZ)); 
-	memcpy(rMBBmax,&abox[0],3*sizeof(GLDOUBLE));
-	for(m=1;m<8;m++)
-	{
-		memcpy(p,&abox[m],3*sizeof(GLDOUBLE));
-		for(i=0;i<3;i++)
-		{
-			rMBBmin[i] = DOUBLE_MIN(rMBBmin[i],p[i]);
-			rMBBmax[i] = DOUBLE_MAX(rMBBmax[i],p[i]);
+	if(isAffine) {
+		for(m=0;m<8;m++)
+			transform(&abox[m],&abox[m],matTransform);
+	}else{
+		GLDOUBLE in[4];
+		GLDOUBLE out[4];
+		for(m=0;m<8;m++){
+			pointxyz2double(in,&abox[m]);
+			in[3]=1.0;
+			__gluMultMatrixVecd(matTransform, in, out);
+			//transformFULL4d(out,in, matTransform);
+			if(0) if (fabs(out[3]) < .0001) {
+				iret = 0; 
+				return iret;
+			}
+			vecscaled(out,out,1.0/out[3]);
+			double2pointxyz(&abox[m],out);
 		}
 	}
+	if(iret){
+		/*find the MBB of the transformed octo box */
+		//memcpy(rMBBmin,&abox[0],3*sizeof(GLDOUBLE)); //sizeof(struct point_XYZ)); 
+		//memcpy(rMBBmax,&abox[0],3*sizeof(GLDOUBLE));
+		pointxyz2double(rMBBmin,&abox[0]); //something to initialize them
+		pointxyz2double(rMBBmax,&abox[0]);
+		for(m=1;m<8;m++)
+		{
+			//memcpy(p,&abox[m],3*sizeof(GLDOUBLE));
+			pointxyz2double(p,&abox[m]);
+			for(i=0;i<3;i++)
+			{
+				rMBBmin[i] = DOUBLE_MIN(rMBBmin[i],p[i]);
+				rMBBmax[i] = DOUBLE_MAX(rMBBmax[i],p[i]);
+			}
+		}
+	}
+	return iret;
 }
-
+void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax){
+	//AFFINE version, assumes matTransform is not projection / has no projection matrix
+	int isAffine = 1, iret;
+	iret = transformMBB4d(rMBBmin, rMBBmax, matTransform, inMBBmin, inMBBmax,isAffine);
+}
 
 
 

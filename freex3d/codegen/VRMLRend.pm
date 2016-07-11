@@ -510,7 +510,6 @@ our %ChildC = map {($_=>1)} qw/
 	Collision
 	Appearance
 	Shape
-	VisibilitySensor
 	Viewport
 	LayoutGroup
 	ScreenGroup
@@ -658,6 +657,7 @@ our %OtherC = map {($_=>1)} qw/
 	PointPickSensor
 	PickableGroup
 	Sphere
+	VisibilitySensor
 /;
 
 

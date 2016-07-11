@@ -81,28 +81,195 @@ PROXIMITYSENSOR(ProximitySensor,center,,);
 /* VisibilitySensors - mimic what Shape does to display the box. */
 
 
-void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
+
+
+
+void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax);
+int transformMBB4d(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax, int isAffine);
+int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16]);
+void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4], GLDOUBLE out[4]);
+
+void twoPoints2RayMatrix(double *ptnear, double* ptfar, double* rayMatrix){
+	double R1[16], R2[16], R3[16], T[16], rayMatrixInverse[16];
+	double *A, *B, C[3];
+	double yaw, pitch;
+
+	A = ptnear;
+	B = ptfar;
+	//nearside point
+	mattranslate(T,A[0],A[1],A[2]);
+	vecdifd(C,B,A);
+	vecnormald(C,C);
+	if(0) printf("Cdif %f %f %f\n",C[0],C[1],C[2]);
+	yaw = atan2(C[0],-C[2]);
+	matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
+	transformAFFINEd(C,C,R1);
+	if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
+	pitch = atan2(C[1],-C[2]);
+	if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
+	pitch = -pitch;
+	if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
+
+	matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
+	if(0) printmatrix2(R1,"pure R1");
+	matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
+	if(0) printmatrix2(R2,"pure R2");
+	matmultiplyAFFINE(R3,R1,R2);
+	if(0) printmatrix2(R3,"R3=R1*R2");
+	matmultiplyAFFINE(rayMatrixInverse,R3, T); 
+	matinverseAFFINE(rayMatrix,rayMatrixInverse);
+
+}
+
+int frustumHitsMBB(float *extent){
+	//goal say if an extent is maybe inside (err toward inside) of the view frustum
+	//http://cgvr.informatik.uni-bremen.de/teaching/cg_literatur/lighthouse3d_view_frustum_culling/index.html
+	// overlap tests: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+	// cuboid space: frustum is a -1 to 1 cube
+	GLDOUBLE modelMatrix[16], projectionMatrix[16];
+	int i, j, isIn, iret;
+	GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
+	int retval;
+	retval = FALSE;
+
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectionMatrix);
+
+	/* generate mins and maxes for avatar cylinder in avatar space to represent the avatar collision volume */
+	for(i=0;i<3;i++)
+	{
+		shapeMBBmin[i] = extent[i*2 + 1];
+		shapeMBBmax[i] = extent[i*2];
+	}
+	//check view space is it behind the frontplane / viewpoint
+	transformMBB(smin,smax,modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into view space
+	isIn = TRUE;
+	isIn = smin[2] < 0.0; //-z is in front of viewpoint
+	if(isIn){
+		//plane check: rotate so lower left corner of screen is in center and do xy comparison
+		// repeat for upper-right
+		/*
+		frustum-plane aligned method 
+		- in view space (apply modelview, but not projection)
+		- plus a translation and rotation so looking straight down a side of frustum
+		- then can do simple X or Y test if something is out
+		- to reduce flops, can rotate so looking down corner-edge (2 planes intersect) and do X,Y 
+		- then only need 2 runs to check 4 planes
+		How: - (similar to pickray-style matrix method - see mainloop.c setup_pickray0() about line 5409 july 2016)
+		1. generate near+far frustum corner points:
+			- unproject a couple of cuboid points along a corner of the frustom: x-1,y-1, near (z=1) and far (z=-1 or vice versa)
+		2. from the 2 points compute a yaw, and a pitch, using atan2 etc 
+		3. make a rotation matrix from yaw and pitch
+		4. from the near point make a Translation
+		5. multiply the rotation and translation
+		6. maybe inverse, depending on which way you're going.
+		7. then you could concatonate that matrix with your modelview
+		8. transform your geom node extent using this concatonated matrix
+		9. check transformed shape MBB/AABB against x=0 and y=0 planes: if to the left, then out, if above then out.
+		10. repeat for diagonal edge/corner of frustum x=1,y=1 in cuboid space
+		11. check near and far planes if you want to, although near is done by cone planes except a little near-cone, and far: who cares.
+		*/
+		int k;
+		double rayMatrix[16], modelMatrixPlus[16], projInverse[16], nearplane, farplane;
+		double A[4], B[4], a[4], b[4];
+
+		//we are working in something close to view space, so 
+		//-transform frustum cuboid to view via projection inverse, to set up 'plus' 
+		//-transform node extent to view via modelview matrix, 'plus' a bit to align with frustum
+
+		iret = __gluInvertMatrixd( projectionMatrix, projInverse);
+
+		//k: from lower-left corner of frustum to upper-right corner...
+		for(k=-1;k<=1;k+=2) 
+		{
+			double xy;
+			xy = 1.0*k; //use -1,-1 for lower-left, 1,1 for upper-right
+			a[0] = a[1] = b[0] = b[1] = xy;
+			a[3] = b[3] = 1.0; //homogenous .w for full 4x4
+
+			//nearside point
+			a[2] = -1.0;
+			__gluMultMatrixVecd(projInverse, a, A);
+			vecscaled(A,A,1.0/A[3]); //divide by homogenous .w
+			nearplane = A[2]; //near and far set elsewhere: ie .1 - 21000, here we recover nearplane, could use for testing
+			
+			//farside point
+			b[2] = 1.0; 
+			__gluMultMatrixVecd(projInverse, b, B);
+			vecscaled(B,B,1.0/B[3]);
+			farplane = B[2];
+
+			twoPoints2RayMatrix(A,B,rayMatrix); //compute 'plus' part
+
+			matmultiplyAFFINE(modelMatrixPlus,modelMatrix,rayMatrix);
+
+			//transform shape's MBB into frustum-plane (frustum corner) aligned space
+			transformMBB(smin,smax,modelMatrixPlus,shapeMBBmin,shapeMBBmax); 
+			//now fustum corner is at xy 0,0, so its a simple xy test against 0
+			for(i=0;i<2;i++){
+				if(k==-1)
+					isIn = isIn && smax[i] > 0.0;
+				if(k==1)
+					isIn = isIn && smin[i] < 0.0;
+			}
+			//isIn = isIn && smax[2] > nearplane; doesn't work right H: sign wrong? and don't seem to need nearplane -its a tiny cone we miss
+			//isIn = isIn && smin[2] < farplane; who cares about farplane
+		}
+	}
+
+	return isIn;
+}
+void other_VisibilitySensor (struct X3D_VisibilitySensor *node) {
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#VisibilitySensor
 	ttrenderstate rs;
 	ttglobal tg = gglobal();
 	/* if not enabled, do nothing */
 	if (!node) return;
-	if (!node->enabled) return;
+	if (!node->enabled) 
+		return;
 	{
 		ppComponent_EnvironSensor p = (ppComponent_EnvironSensor)tg->Component_EnvironSensor.prv;
 		if (!p->candoVisibility) return;
+		//aabb method
 		/* first time through, if we have a visibility sensor, but do not have the OpenGL ability to
 		   use it, we print up a console message */
+		//1. transform local axix-aligned bounding box AABB from local to cuboid
+		//   cuboid_aabb = projection * modelview * local_aabb
+		//2. intersect cuboid_aabb with cuboid which is -1 to 1 in 3 dimensions
+		//3. if they don't intersect, not visible, else maybe visible
+		{
+			//update extent in case size or center changed
+			int i, ihit;
+			float emin[3], emax[3];
+			vecadd3f(emax, node->center.c, node->size.c);
+			vecdif3f(emin, node->center.c, node->size.c);
+			for(i=0;i<3;i++)
+			{
+				node->_extent[i*2 + 1] = emin[i];
+				node->_extent[i*2]     = emax[i];
+			}
+			ihit = frustumHitsMBB(node->_extent);
+			if(ihit){
+				node->__Samples++; //initialized to 0 once each frame elsewhere
+				//can come in here multiple times per frame: once per each viewport (stereo 2, quad 4) x once per each DEF/USE
+				//if any DEF/USE or viewport visible, then __visible = TRUE:
+				//if visibility was different on last frame, then send events
+
+			}
+		}
+
+#ifdef VISIBILITYOCCLUSION
+		//occlusion method
 		if (tg->Frustum.OccFailed) {
 			p->candoVisibility = FALSE;
 			ConsoleMessage("VisibilitySensor: OpenGL on this machine does not support GL_ARB_occlusion_query");
 			return;
 		}
-	}
-	rs = renderstate();
+
+		rs = renderstate();
 		RECORD_DISTANCE
 
 		if (rs->render_blend) { 
-                        #ifdef VISIBILITYOCCLUSION
 
 			//BEGINOCCLUSIONQUERY
 			beginOcclusionQuery(node,renderstate()->render_geom);
@@ -116,9 +283,9 @@ void child_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 			
 			//ENDOCCLUSIONQUERY
 			endOcclusionQuery(node,renderstate()->render_geom);
-                        #endif
 		}
-
+#endif
+	}
 }
 
 #ifdef VISIBILITYOCCLUSION
@@ -210,29 +377,27 @@ void do_VisibilitySensorTick (void *ptr) {
 	#endif
 	
 	if (node->__Samples > 0) {
-		/* we are here... */
-                if (!node->isActive) {
-                        #ifdef SEVERBOSE
-                        printf ("visibilitysensor - now active\n");
-                        #endif
+		if (!node->isActive) {
+			#ifdef SEVERBOSE
+			printf ("visibilitysensor - now active\n");
+			#endif
 
-                        node->isActive = 1;
-                        node->enterTime = TickTime();
-                        MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
-                        MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, enterTime));
-
-                }
+			node->isActive = 1;
+			node->enterTime = TickTime();
+			MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
+			MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, enterTime));
+		}
 	} else {
-		/* we are here... */
 		if (node->isActive) {
-                        #ifdef SEVERBOSE
-                        printf ("visibilitysensor - going inactive\n");
-                        #endif
+			#ifdef SEVERBOSE
+			printf ("visibilitysensor - going inactive\n");
+			#endif
 
-                        node->isActive = 0;
-                        node->exitTime = TickTime();
-                        MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
-                        MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, exitTime));
+			node->isActive = 0;
+			node->exitTime = TickTime();
+			MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, isActive));
+			MARK_EVENT (ptr, offsetof(struct X3D_VisibilitySensor, exitTime));
 		}
 	}
+	node->__Samples = 0; //clear for next frame count
 }

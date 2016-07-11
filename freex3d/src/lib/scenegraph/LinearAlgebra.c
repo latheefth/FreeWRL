@@ -409,7 +409,18 @@ double *transformAFFINEd(double *r, double *a, const GLDOUBLE* mat){
 	pointxyz2double(r,&pr);
 	return r;
 }
-
+double *transformFULL4d(double *r, double *a, double *mat){
+	//same as __gluMultMatrixVecd elsewhere
+	int i;
+    for (i=0; i<4; i++) {
+        r[i] =
+            a[0] * mat[0*4+i] +
+            a[1] * mat[1*4+i] +
+            a[2] * mat[2*4+i] +
+            a[3] * mat[3*4+i];
+	}
+	return r;
+}
 float* transformf(float* r, const float* a, const GLDOUBLE* b)
 {
 	//r = a x b
@@ -753,6 +764,9 @@ float* mattranspose3f(float* res, float* mm)
 GLDOUBLE* matinverse98(GLDOUBLE* res, GLDOUBLE* mm)
 {
 	/*FLOPs 98 double: det3 9, 1/det 1, adj3x3 9x4=36, inv*T 13x4=52 */
+	//July 2016 THIS IS WRONG DON'T USE 
+	//see the glu equivalent elsewhere
+	//you can check with A*A-1 = I and this function doesn't give I
     double Deta;
     GLDOUBLE mcpy[16];
 	GLDOUBLE *m;
@@ -764,6 +778,8 @@ GLDOUBLE* matinverse98(GLDOUBLE* res, GLDOUBLE* mm)
     }
 
     Deta = det3x3(m);
+	if(APPROX(Deta,0.0))
+		printf("deta 0\n");
 	Deta = 1.0 / Deta;
 
     res[0] = (-m[9]*m[6] +m[5]*m[10])*Deta;

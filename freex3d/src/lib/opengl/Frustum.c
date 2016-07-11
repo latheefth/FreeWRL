@@ -965,6 +965,7 @@ void OcclusionStartofRenderSceneUpdateScene() {
 }
 
 void OcclusionCulling ()  {
+//non-occlusion visibilitysensor method: __Samples = 0 in startofloopnodeupdates
 #ifdef OCCLUSION /* do we have hardware for occlusion culling? */
 	int i;
 	struct X3D_Shape *shapePtr;

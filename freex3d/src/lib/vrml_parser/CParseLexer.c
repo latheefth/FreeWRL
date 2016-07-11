@@ -354,7 +354,7 @@ BOOL lexer_setCurID(struct VRMLLexer* me)
   if(!IS_ID_REST(c))
       goto breakIdLoop;
  }
- parseError("ID buffer length hit!");
+ parseError("ID buffer length hit! File must end with \n");
 breakIdLoop:
  LEXER_UNGETINPUT(c)
  ASSERT(cur<=buf+MAX_IDLEN);
