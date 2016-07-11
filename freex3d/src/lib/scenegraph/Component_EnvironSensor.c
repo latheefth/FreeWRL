@@ -80,13 +80,53 @@ PROXIMITYSENSOR(ProximitySensor,center,,);
 
 /* VisibilitySensors - mimic what Shape does to display the box. */
 
+
+
+
+
 void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax);
 int transformMBB4d(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax, int isAffine);
 int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16]);
+void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4], GLDOUBLE out[4]);
+
+void twoPoints2RayMatrix(double *ptnear, double* ptfar, double* rayMatrix){
+	double R1[16], R2[16], R3[16], T[16], rayMatrixInverse[16];
+	double *A, *B, C[3];
+	double yaw, pitch;
+
+	A = ptnear;
+	B = ptfar;
+	//nearside point
+	mattranslate(T,A[0],A[1],A[2]);
+	vecdifd(C,B,A);
+	vecnormald(C,C);
+	if(0) printf("Cdif %f %f %f\n",C[0],C[1],C[2]);
+	yaw = atan2(C[0],-C[2]);
+	matrixFromAxisAngle4d(R1, -yaw, 0.0, 1.0, 0.0);
+	transformAFFINEd(C,C,R1);
+	if(0) printf("Yawed Cdif %f %f %f\n",C[0],C[1],C[2]);
+	pitch = atan2(C[1],-C[2]);
+	if(0) printf("atan2 yaw=%f pitch=%f\n",yaw,pitch);
+	pitch = -pitch;
+	if(0) printf("[yaw=%f pitch=%f\n",yaw,pitch);
+
+	matrixFromAxisAngle4d(R1, pitch, 1.0, 0.0, 0.0);
+	if(0) printmatrix2(R1,"pure R1");
+	matrixFromAxisAngle4d(R2, yaw, 0.0, 1.0, 0.0);
+	if(0) printmatrix2(R2,"pure R2");
+	matmultiplyAFFINE(R3,R1,R2);
+	if(0) printmatrix2(R3,"R3=R1*R2");
+	matmultiplyAFFINE(rayMatrixInverse,R3, T); 
+	matinverseAFFINE(rayMatrix,rayMatrixInverse);
+
+}
+
 int frustumHitsMBB(float *extent){
 	//goal say if an extent is maybe inside (err toward inside) of the view frustum
 	//http://cgvr.informatik.uni-bremen.de/teaching/cg_literatur/lighthouse3d_view_frustum_culling/index.html
 	// - doesn't show the cuboid space method, but shows view space method
+	// cuboid space: apply the modelview + projection transforms except for projection don't do the division that projects
+	// - then frustum is a -1 to 1 cube
 	GLDOUBLE modelMatrix[16], projectionMatrix[16], mvp[16];
 	int i, j, isIn, iret;
 	//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
@@ -109,21 +149,24 @@ int frustumHitsMBB(float *extent){
 		shapeMBBmax[i] = extent[i*2];
 	}
 	//check view space is it behind the frontplane / viewpoint
-	transformMBB(smin,smax,modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into view cuboid space
+	transformMBB(smin,smax,modelMatrix,shapeMBBmin,shapeMBBmax); //transform shape's MBB into view space
 	isIn = TRUE;
 	isIn = smin[2] < 0.0; //-z is in front of viewpoint
+
 	//printf("smin2=%lf\n",smin[2]);
-	//check cuboid space
-	iret = transformMBB4d(smin,smax,mvp,shapeMBBmin,shapeMBBmax,0);
-	isIn = isIn && iret;
-	if(isIn){
-		// test for overlap with view cuboid -1 to 1 on each axis
-		// overlap tests: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
-		//
-		for(i=0;i<3;i++)
-			isIn = isIn && (smin[i] <= 1.0 && smax[i] >= -1.0);
+	if(0) if(isIn){
+		//check cuboid space
+		iret = transformMBB4d(smin,smax,mvp,shapeMBBmin,shapeMBBmax,0); //is this dividing by perspective? if so are we still in cuboid space?
+		isIn = isIn && iret;
+		if(isIn){
+			// test for overlap with view cuboid -1 to 1 on each axis
+			// overlap tests: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
+			//
+			for(i=0;i<3;i++)
+				isIn = isIn && (smin[i] <= 1.0 && smax[i] >= -1.0);
+		}
 	}
-	if(isIn){
+	if(0) if(isIn){
 		double mvpi[16], cmin[3],cmax[3], umin[3],umax[3];
 		//check frustum in localspace
 		//similar to glu-unproject
@@ -138,7 +181,7 @@ int frustumHitsMBB(float *extent){
 					printf("%lf ",identity[i*4 + j]);
 				printf("\n");
 			}
-
+			printf("\n");
 		}
 		iret = 1;
 		isIn = isIn && iret;
@@ -147,7 +190,7 @@ int frustumHitsMBB(float *extent){
 				cmin[i] = -1.0;
 				cmax[i] = 1.0;
 			}
-			iret = transformMBB4d(umin,umax,mvpi,cmin,cmax,0);
+			iret = transformMBB4d(umin,umax,mvpi,cmin,cmax,0); //is this dividing by perspective? if so are we still in cuboid space?
 			isIn = isIn && iret;
 			//printf("%lf\r",umin[0]);
 			if(isIn){
@@ -156,26 +199,77 @@ int frustumHitsMBB(float *extent){
 				}
 			}
 		}
-		if(isIn){
-			//could do a more detailed plane check ie rotate so upper let corner of screen is in center and do xy comparison
-			// and lwer left and do comparison.
-			/*
-			pickray-style matrix method.
-			1. unproject a couple of cuboid points along a corner of the frustom: near (z=1) and far (z=-1 or vice versa)
-			2. from the 2 points compute a yaw, and a pitch, using atan2 etc see mainloop.c setup_pickray0() about line 5409 july 2016
-			3. make a rotation matrix from yaw and pitch
-			4. from the near point make a Translation
-			5. multiply the rotation and translation
-			6. maybe inverse, depending on which way you're going.
-			7. then you could concatonate that matrix with your modelview
-			8. transform your geom node extent using this concatonated matrix
-			9. check transformed shape MBB/AABB against x=0 and y=0 planes: if to the left, then out, if above then out.
-			10. repeat for diagonal edge/corner of frustum
-			11. check near and far planes if you haven't already
-			*/
+	}
+	if(isIn){
+		//could do a more detailed plane check ie rotate so upper let corner of screen is in center and do xy comparison
+		// and lwer left and do comparison.
+		/*
+		frustum-plane aligned method 
+		- in view space (apply modelview, but not projection)
+		- plus a translation and rotation so looking straight down a side of frustum
+		- then can do simple X or Y test if something is out
+		- to reduce flops, can rotate so looking down corner-edge (2 planes intersect) and do X,Y 
+		- then only need 2 runs to check 4 planes
+		How: - (similar to pickray-style matrix method - see mainloop.c setup_pickray0() about line 5409 july 2016)
+		1. generate near+far frustum corner points:
+			- unproject a couple of cuboid points along a corner of the frustom: x-1,y-1, near (z=1) and far (z=-1 or vice versa)
+		2. from the 2 points compute a yaw, and a pitch, using atan2 etc 
+		3. make a rotation matrix from yaw and pitch
+		4. from the near point make a Translation
+		5. multiply the rotation and translation
+		6. maybe inverse, depending on which way you're going.
+		7. then you could concatonate that matrix with your modelview
+		8. transform your geom node extent using this concatonated matrix
+		9. check transformed shape MBB/AABB against x=0 and y=0 planes: if to the left, then out, if above then out.
+		10. repeat for diagonal edge/corner of frustum x=1,y=1 in cuboid space
+		11. check near and far planes if you want to, although near is done by cone planes except a little near-cone, and far: who cares.
+		*/
+		int k;
+		double rayMatrix[16], modelMatrixPlus[16], projInverse[16], nearplane, farplane;
+		double A[4], B[4], a[4], b[4];
 
+		//we are working in something close to view space, so 
+		//-transform frustum cuboid to view via projection inverse, to set up 'plus' 
+		//-transform node extent to view via modelview matrix, 'plus' a bit to align with frustum
+
+		iret = __gluInvertMatrixd( projectionMatrix, projInverse);
+
+		//from lower-left corner of frustum to upper-right corner...
+		for(k=-1;k<=1;k+=2) 
+		{
+			double xy;
+			//nearside point
+			xy = 1.0*k; //use -1,-1 for lower-left, 1,1 for upper-right
+			a[0] = a[1] = b[0] = b[1] = xy;
+			a[3] = b[3] = 1.0; //homogenous .w for full 4x4
+			a[2] = -1.0;
+			__gluMultMatrixVecd(projInverse, a, A);
+			vecscaled(A,A,1.0/A[3]); //divide by homogenous .w
+			nearplane = A[2]; //near and far set elsewhere: ie .1 - 21000, here we recover nearplane, could use for testing
+			
+			//farside point
+				b[2] = 1.0; 
+			__gluMultMatrixVecd(projInverse, b, B);
+			vecscaled(B,B,1.0/B[3]);
+			farplane = B[2];
+
+			twoPoints2RayMatrix(A,B,rayMatrix); //compute 'plus' part
+
+			matmultiplyAFFINE(modelMatrixPlus,modelMatrix,rayMatrix);
+
+			//transform shape's MBB into frustum-plane (frustum corner) aligned space
+			transformMBB(smin,smax,modelMatrixPlus,shapeMBBmin,shapeMBBmax); 
+			for(i=0;i<2;i++){
+				if(k==-1)
+					isIn = isIn && smax[i] > 0.0;
+				if(k==1)
+					isIn = isIn && smin[i] < 0.0;
+			}
+			//isIn = isIn && smax[2] > nearplane; doesn't work right H: sign wrong? and don't seem to need?
+			//isIn = isIn && smin[2] < farplane;
 		}
 	}
+
 	return isIn;
 }
 void other_VisibilitySensor (struct X3D_VisibilitySensor *node) {
