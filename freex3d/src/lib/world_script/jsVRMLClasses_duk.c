@@ -428,6 +428,7 @@ FWTYPE MFFloatType = {
 
 
 // http://www.web3d.org/files/specifications/19777-1/V3.0/Part1/functions.html#SFRotation
+// http://www.web3d.org/documents/specifications/14772/V2.0/part1/javascript.html#SFRotation
 /* SFRotation
 constructors
 SFRotation (numeric x,  numeric y,  numeric z,  numeric angle) x, y, and z are the axis of the rotation. angle is the angle of the rotation (in radians). Missing values default to 0.0, except y, which defaults to 1.0. 

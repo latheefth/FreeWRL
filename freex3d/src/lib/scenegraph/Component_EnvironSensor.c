@@ -212,8 +212,12 @@ int frustumHitsMBB(float *extent){
 				if(k==1)
 					isIn = isIn && smin[i] < 0.0;
 			}
-			//isIn = isIn && smax[2] > nearplane; doesn't work right H: sign wrong? and don't seem to need nearplane -its a tiny cone we miss
-			//isIn = isIn && smin[2] < farplane; who cares about farplane
+		}
+		if(isIn){
+			//check near and far planes
+			transformMBB(smin,smax,modelMatrix,shapeMBBmin,shapeMBBmax); 
+			isIn = isIn && smin[2] < nearplane; //these are -ve numbers - z is positive backwards
+			isIn = isIn && smax[2] > farplane; 
 		}
 	}
 
