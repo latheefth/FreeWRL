@@ -348,20 +348,21 @@ typedef int indexT;
 #define NODE_TimeTrigger	237
 #define NODE_TouchSensor	238
 #define NODE_Transform	239
-#define NODE_TransmitterPdu	240
-#define NODE_TriangleFanSet	241
-#define NODE_TriangleSet	242
-#define NODE_TriangleSet2D	243
-#define NODE_TriangleStripSet	244
-#define NODE_TwoSidedMaterial	245
-#define NODE_UniversalJoint	246
-#define NODE_Viewpoint	247
-#define NODE_ViewpointGroup	248
-#define NODE_Viewport	249
-#define NODE_VisibilitySensor	250
-#define NODE_VolumePickSensor	251
-#define NODE_WindPhysicsModel	252
-#define NODE_WorldInfo	253
+#define NODE_TransformSensor	240
+#define NODE_TransmitterPdu	241
+#define NODE_TriangleFanSet	242
+#define NODE_TriangleSet	243
+#define NODE_TriangleSet2D	244
+#define NODE_TriangleStripSet	245
+#define NODE_TwoSidedMaterial	246
+#define NODE_UniversalJoint	247
+#define NODE_Viewpoint	248
+#define NODE_ViewpointGroup	249
+#define NODE_Viewport	250
+#define NODE_VisibilitySensor	251
+#define NODE_VolumePickSensor	252
+#define NODE_WindPhysicsModel	253
+#define NODE_WorldInfo	254
 
 
 /* Table of built-in fieldIds */
@@ -1103,93 +1104,94 @@ extern const int FIELDNAMES_COUNT;
 #define FIELDNAMES_suspensionErrorCorrection	733
 #define FIELDNAMES_suspensionForce	734
 #define FIELDNAMES_talksTo	735
-#define FIELDNAMES_tau	736
-#define FIELDNAMES_tdlType	737
-#define FIELDNAMES_tessellation	738
-#define FIELDNAMES_tessellationScale	739
-#define FIELDNAMES_texCoord	740
-#define FIELDNAMES_texCoordIndex	741
-#define FIELDNAMES_texCoordKey	742
-#define FIELDNAMES_texCoordRamp	743
-#define FIELDNAMES_textBounds	744
-#define FIELDNAMES_texture	745
-#define FIELDNAMES_textureCompression	746
-#define FIELDNAMES_texturePriority	747
-#define FIELDNAMES_textureProperties	748
-#define FIELDNAMES_textureTransform	749
-#define FIELDNAMES_tickTime	750
-#define FIELDNAMES_time	751
-#define FIELDNAMES_timeOut	752
-#define FIELDNAMES_timestamp	753
-#define FIELDNAMES_title	754
-#define FIELDNAMES_toggle	755
-#define FIELDNAMES_tolerance	756
-#define FIELDNAMES_top	757
-#define FIELDNAMES_topTexture	758
-#define FIELDNAMES_topToBottom	759
-#define FIELDNAMES_topUrl	760
-#define FIELDNAMES_torques	761
-#define FIELDNAMES_touchTime	762
-#define FIELDNAMES_trackPoint_changed	763
-#define FIELDNAMES_trajectoryCurve	764
-#define FIELDNAMES_transitionComplete	765
-#define FIELDNAMES_transitionTime	766
-#define FIELDNAMES_transitionType	767
-#define FIELDNAMES_translation	768
-#define FIELDNAMES_translation_changed	769
-#define FIELDNAMES_transmitFrequencyBandwidth	770
-#define FIELDNAMES_transmitState	771
-#define FIELDNAMES_transmitterApplicationID	772
-#define FIELDNAMES_transmitterEntityID	773
-#define FIELDNAMES_transmitterRadioID	774
-#define FIELDNAMES_transmitterSiteID	775
-#define FIELDNAMES_transparency	776
-#define FIELDNAMES_triggerTime	777
-#define FIELDNAMES_triggerTrue	778
-#define FIELDNAMES_triggerValue	779
-#define FIELDNAMES_trimmingContour	780
-#define FIELDNAMES_turbulence	781
-#define FIELDNAMES_type	782
-#define FIELDNAMES_uClosed	783
-#define FIELDNAMES_uDimension	784
-#define FIELDNAMES_uKnot	785
-#define FIELDNAMES_uOrder	786
-#define FIELDNAMES_uTessellation	787
-#define FIELDNAMES_ulimit	788
-#define FIELDNAMES_update	789
-#define FIELDNAMES_url	790
-#define FIELDNAMES_useFiniteRotation	791
-#define FIELDNAMES_useGeometry	792
-#define FIELDNAMES_useGlobalGravity	793
-#define FIELDNAMES_vClosed	794
-#define FIELDNAMES_vDimension	795
-#define FIELDNAMES_vKnot	796
-#define FIELDNAMES_vOrder	797
-#define FIELDNAMES_vTessellation	798
-#define FIELDNAMES_value	799
-#define FIELDNAMES_valueChanged	800
-#define FIELDNAMES_value_changed	801
-#define FIELDNAMES_variation	802
-#define FIELDNAMES_vector	803
-#define FIELDNAMES_version	804
-#define FIELDNAMES_vertexCount	805
-#define FIELDNAMES_vertices	806
-#define FIELDNAMES_viewpoints	807
-#define FIELDNAMES_viewport	808
-#define FIELDNAMES_visibilityLimit	809
-#define FIELDNAMES_visibilityRange	810
-#define FIELDNAMES_visible	811
-#define FIELDNAMES_warhead	812
-#define FIELDNAMES_watchList	813
-#define FIELDNAMES_weight	814
-#define FIELDNAMES_whichChoice	815
-#define FIELDNAMES_whichGeometry	816
-#define FIELDNAMES_writeInterval	817
-#define FIELDNAMES_xDimension	818
-#define FIELDNAMES_xSpacing	819
-#define FIELDNAMES_yScale	820
-#define FIELDNAMES_zDimension	821
-#define FIELDNAMES_zSpacing	822
+#define FIELDNAMES_targetObject	736
+#define FIELDNAMES_tau	737
+#define FIELDNAMES_tdlType	738
+#define FIELDNAMES_tessellation	739
+#define FIELDNAMES_tessellationScale	740
+#define FIELDNAMES_texCoord	741
+#define FIELDNAMES_texCoordIndex	742
+#define FIELDNAMES_texCoordKey	743
+#define FIELDNAMES_texCoordRamp	744
+#define FIELDNAMES_textBounds	745
+#define FIELDNAMES_texture	746
+#define FIELDNAMES_textureCompression	747
+#define FIELDNAMES_texturePriority	748
+#define FIELDNAMES_textureProperties	749
+#define FIELDNAMES_textureTransform	750
+#define FIELDNAMES_tickTime	751
+#define FIELDNAMES_time	752
+#define FIELDNAMES_timeOut	753
+#define FIELDNAMES_timestamp	754
+#define FIELDNAMES_title	755
+#define FIELDNAMES_toggle	756
+#define FIELDNAMES_tolerance	757
+#define FIELDNAMES_top	758
+#define FIELDNAMES_topTexture	759
+#define FIELDNAMES_topToBottom	760
+#define FIELDNAMES_topUrl	761
+#define FIELDNAMES_torques	762
+#define FIELDNAMES_touchTime	763
+#define FIELDNAMES_trackPoint_changed	764
+#define FIELDNAMES_trajectoryCurve	765
+#define FIELDNAMES_transitionComplete	766
+#define FIELDNAMES_transitionTime	767
+#define FIELDNAMES_transitionType	768
+#define FIELDNAMES_translation	769
+#define FIELDNAMES_translation_changed	770
+#define FIELDNAMES_transmitFrequencyBandwidth	771
+#define FIELDNAMES_transmitState	772
+#define FIELDNAMES_transmitterApplicationID	773
+#define FIELDNAMES_transmitterEntityID	774
+#define FIELDNAMES_transmitterRadioID	775
+#define FIELDNAMES_transmitterSiteID	776
+#define FIELDNAMES_transparency	777
+#define FIELDNAMES_triggerTime	778
+#define FIELDNAMES_triggerTrue	779
+#define FIELDNAMES_triggerValue	780
+#define FIELDNAMES_trimmingContour	781
+#define FIELDNAMES_turbulence	782
+#define FIELDNAMES_type	783
+#define FIELDNAMES_uClosed	784
+#define FIELDNAMES_uDimension	785
+#define FIELDNAMES_uKnot	786
+#define FIELDNAMES_uOrder	787
+#define FIELDNAMES_uTessellation	788
+#define FIELDNAMES_ulimit	789
+#define FIELDNAMES_update	790
+#define FIELDNAMES_url	791
+#define FIELDNAMES_useFiniteRotation	792
+#define FIELDNAMES_useGeometry	793
+#define FIELDNAMES_useGlobalGravity	794
+#define FIELDNAMES_vClosed	795
+#define FIELDNAMES_vDimension	796
+#define FIELDNAMES_vKnot	797
+#define FIELDNAMES_vOrder	798
+#define FIELDNAMES_vTessellation	799
+#define FIELDNAMES_value	800
+#define FIELDNAMES_valueChanged	801
+#define FIELDNAMES_value_changed	802
+#define FIELDNAMES_variation	803
+#define FIELDNAMES_vector	804
+#define FIELDNAMES_version	805
+#define FIELDNAMES_vertexCount	806
+#define FIELDNAMES_vertices	807
+#define FIELDNAMES_viewpoints	808
+#define FIELDNAMES_viewport	809
+#define FIELDNAMES_visibilityLimit	810
+#define FIELDNAMES_visibilityRange	811
+#define FIELDNAMES_visible	812
+#define FIELDNAMES_warhead	813
+#define FIELDNAMES_watchList	814
+#define FIELDNAMES_weight	815
+#define FIELDNAMES_whichChoice	816
+#define FIELDNAMES_whichGeometry	817
+#define FIELDNAMES_writeInterval	818
+#define FIELDNAMES_xDimension	819
+#define FIELDNAMES_xSpacing	820
+#define FIELDNAMES_yScale	821
+#define FIELDNAMES_zDimension	822
+#define FIELDNAMES_zSpacing	823
 
 const char *stringFieldType(int st);
 
@@ -1696,64 +1698,65 @@ extern const int EXPOSED_FIELD_COUNT;
 #define EXPOSED_FIELD_suspensionErrorCorrection	343
 #define EXPOSED_FIELD_suspensionForce	344
 #define EXPOSED_FIELD_talksTo	345
-#define EXPOSED_FIELD_tau	346
-#define EXPOSED_FIELD_tdlType	347
-#define EXPOSED_FIELD_tessellation	348
-#define EXPOSED_FIELD_tessellationScale	349
-#define EXPOSED_FIELD_texCoord	350
-#define EXPOSED_FIELD_texture	351
-#define EXPOSED_FIELD_textureCompression	352
-#define EXPOSED_FIELD_texturePriority	353
-#define EXPOSED_FIELD_textureTransform	354
-#define EXPOSED_FIELD_timeOut	355
-#define EXPOSED_FIELD_tolerance	356
-#define EXPOSED_FIELD_top	357
-#define EXPOSED_FIELD_topTexture	358
-#define EXPOSED_FIELD_topUrl	359
-#define EXPOSED_FIELD_torques	360
-#define EXPOSED_FIELD_trajectoryCurve	361
-#define EXPOSED_FIELD_transitionTime	362
-#define EXPOSED_FIELD_transitionType	363
-#define EXPOSED_FIELD_translation	364
-#define EXPOSED_FIELD_transmitFrequencyBandwidth	365
-#define EXPOSED_FIELD_transmitState	366
-#define EXPOSED_FIELD_transmitterApplicationID	367
-#define EXPOSED_FIELD_transmitterEntityID	368
-#define EXPOSED_FIELD_transmitterRadioID	369
-#define EXPOSED_FIELD_transmitterSiteID	370
-#define EXPOSED_FIELD_transparency	371
-#define EXPOSED_FIELD_trimmingContour	372
-#define EXPOSED_FIELD_turbulence	373
-#define EXPOSED_FIELD_type	374
-#define EXPOSED_FIELD_uDimension	375
-#define EXPOSED_FIELD_uOrder	376
-#define EXPOSED_FIELD_uTessellation	377
-#define EXPOSED_FIELD_ulimit	378
-#define EXPOSED_FIELD_update	379
-#define EXPOSED_FIELD_url	380
-#define EXPOSED_FIELD_useFiniteRotation	381
-#define EXPOSED_FIELD_useGeometry	382
-#define EXPOSED_FIELD_useGlobalGravity	383
-#define EXPOSED_FIELD_vDimension	384
-#define EXPOSED_FIELD_vOrder	385
-#define EXPOSED_FIELD_vTessellation	386
-#define EXPOSED_FIELD_value	387
-#define EXPOSED_FIELD_variation	388
-#define EXPOSED_FIELD_vector	389
-#define EXPOSED_FIELD_version	390
-#define EXPOSED_FIELD_vertexCount	391
-#define EXPOSED_FIELD_vertices	392
-#define EXPOSED_FIELD_viewpoints	393
-#define EXPOSED_FIELD_viewport	394
-#define EXPOSED_FIELD_visibilityLimit	395
-#define EXPOSED_FIELD_visibilityRange	396
-#define EXPOSED_FIELD_visible	397
-#define EXPOSED_FIELD_warhead	398
-#define EXPOSED_FIELD_watchList	399
-#define EXPOSED_FIELD_weight	400
-#define EXPOSED_FIELD_whichChoice	401
-#define EXPOSED_FIELD_whichGeometry	402
-#define EXPOSED_FIELD_writeInterval	403
+#define EXPOSED_FIELD_targetObject	346
+#define EXPOSED_FIELD_tau	347
+#define EXPOSED_FIELD_tdlType	348
+#define EXPOSED_FIELD_tessellation	349
+#define EXPOSED_FIELD_tessellationScale	350
+#define EXPOSED_FIELD_texCoord	351
+#define EXPOSED_FIELD_texture	352
+#define EXPOSED_FIELD_textureCompression	353
+#define EXPOSED_FIELD_texturePriority	354
+#define EXPOSED_FIELD_textureTransform	355
+#define EXPOSED_FIELD_timeOut	356
+#define EXPOSED_FIELD_tolerance	357
+#define EXPOSED_FIELD_top	358
+#define EXPOSED_FIELD_topTexture	359
+#define EXPOSED_FIELD_topUrl	360
+#define EXPOSED_FIELD_torques	361
+#define EXPOSED_FIELD_trajectoryCurve	362
+#define EXPOSED_FIELD_transitionTime	363
+#define EXPOSED_FIELD_transitionType	364
+#define EXPOSED_FIELD_translation	365
+#define EXPOSED_FIELD_transmitFrequencyBandwidth	366
+#define EXPOSED_FIELD_transmitState	367
+#define EXPOSED_FIELD_transmitterApplicationID	368
+#define EXPOSED_FIELD_transmitterEntityID	369
+#define EXPOSED_FIELD_transmitterRadioID	370
+#define EXPOSED_FIELD_transmitterSiteID	371
+#define EXPOSED_FIELD_transparency	372
+#define EXPOSED_FIELD_trimmingContour	373
+#define EXPOSED_FIELD_turbulence	374
+#define EXPOSED_FIELD_type	375
+#define EXPOSED_FIELD_uDimension	376
+#define EXPOSED_FIELD_uOrder	377
+#define EXPOSED_FIELD_uTessellation	378
+#define EXPOSED_FIELD_ulimit	379
+#define EXPOSED_FIELD_update	380
+#define EXPOSED_FIELD_url	381
+#define EXPOSED_FIELD_useFiniteRotation	382
+#define EXPOSED_FIELD_useGeometry	383
+#define EXPOSED_FIELD_useGlobalGravity	384
+#define EXPOSED_FIELD_vDimension	385
+#define EXPOSED_FIELD_vOrder	386
+#define EXPOSED_FIELD_vTessellation	387
+#define EXPOSED_FIELD_value	388
+#define EXPOSED_FIELD_variation	389
+#define EXPOSED_FIELD_vector	390
+#define EXPOSED_FIELD_version	391
+#define EXPOSED_FIELD_vertexCount	392
+#define EXPOSED_FIELD_vertices	393
+#define EXPOSED_FIELD_viewpoints	394
+#define EXPOSED_FIELD_viewport	395
+#define EXPOSED_FIELD_visibilityLimit	396
+#define EXPOSED_FIELD_visibilityRange	397
+#define EXPOSED_FIELD_visible	398
+#define EXPOSED_FIELD_warhead	399
+#define EXPOSED_FIELD_watchList	400
+#define EXPOSED_FIELD_weight	401
+#define EXPOSED_FIELD_whichChoice	402
+#define EXPOSED_FIELD_whichGeometry	403
+#define EXPOSED_FIELD_writeInterval	404
 
 
 /* Table of built-in fieldIds */
@@ -2271,7 +2274,7 @@ extern const int NODES_COUNT;
 /* and now the structs for the nodetypes */ 
 const char *stringNodeType(int st);
 
-/* First, a generic struct, contains only the common elements */
+/* First, a generic struct, contains only the common elements - nicknames for convenience */
 struct X3D_Node {
        int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
@@ -9042,6 +9045,38 @@ struct X3D_Transform {
 	struct Multi_Node _sortedChildren;
 };
 extern struct X3D_Virt virt_Transform;
+/***********************/
+struct X3D_TransformSensor {
+       int _nodeType; /* unique integer for each type */ 
+       int _renderFlags; /*sensitive, etc */ 
+       int _hit; 
+       int _change; 
+       int _ichange; 
+       struct Vector* _parentVector; 
+       double _dist; /*sorting for blending */ 
+       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
+       struct X3D_PolyRep *_intern; 
+       int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
+       int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
+ 	/*** node specific data: *****/
+	struct SFVec3f center;
+	struct SFVec3f size;
+	int enabled;
+	int isActive;
+	struct SFVec3f position_changed;
+	struct SFRotation orientation_changed;
+	double enterTime;
+	double exitTime;
+	struct X3D_Node *targetObject;
+	struct X3D_Node *metadata;
+	int __hit;
+	struct SFVec3f __t1;
+	struct SFRotation __t2;
+	int __oldEnabled;
+};
+extern struct X3D_Virt virt_TransformSensor;
 /***********************/
 struct X3D_TransmitterPdu {
        int _nodeType; /* unique integer for each type */ 

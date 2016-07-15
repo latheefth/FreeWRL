@@ -1390,7 +1390,27 @@ our %Nodes = (
 			__t1 => ["SFVec3f", [10000000, 0, 0], "inputOutput", 0],
 			__t2 => ["SFRotation", [0, 1, 0, 0], "inputOutput", 0],
 			__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
-					   ],"X3DEnvironmentalSensorNode"),
+	],"X3DEnvironmentalSensorNode"),
+					   
+	"TransformSensor" => new VRML::NodeType("TransformSensor", [
+			center => ["SFVec3f", [0, 0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			size => ["SFVec3f", [0, 0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			enabled => ["SFBool", "TRUE", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			isActive => ["SFBool", "FALSE", "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			position_changed => ["SFVec3f", [0, 0, 0], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			orientation_changed => ["SFRotation", [0, 0, 1, 0], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			enterTime => ["SFTime", -1, "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			exitTime => ["SFTime", -1, "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			targetObject => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+
+			# These fields are used for the info.
+			__hit => ["SFInt32", 0, "inputOutput", 0],
+			__t1 => ["SFVec3f", [10000000, 0, 0], "inputOutput", 0],
+			__t2 => ["SFRotation", [0, 1, 0, 0], "inputOutput", 0],
+			__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
+	],"X3DEnvironmentalSensorNode"),
+					   
 
 	"VisibilitySensor" => new VRML::NodeType("VisibilitySensor", [
 			center => ["SFVec3f", [0, 0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -1405,7 +1425,7 @@ our %Nodes = (
 			__points  =>["MFVec3f",[],"initializeOnly", 0],	# for Occlude Box.
 			__Samples =>["SFInt32",0,"initializeOnly", 0],		# Occlude samples from last pass
 			__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
-					   ],"X3DEnvironmentalSensorNode"),
+	],"X3DEnvironmentalSensorNode"),
 
 
 

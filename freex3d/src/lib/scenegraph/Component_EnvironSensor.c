@@ -223,6 +223,8 @@ int frustumHitsMBB(float *extent){
 
 	return isIn;
 }
+
+
 void other_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#VisibilitySensor
 	ttrenderstate rs;
@@ -291,6 +293,7 @@ void other_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 #endif
 	}
 }
+
 
 #ifdef VISIBILITYOCCLUSION
 
@@ -405,3 +408,82 @@ void do_VisibilitySensorTick (void *ptr) {
 	}
 	node->__Samples = 0; //clear for next frame count
 }
+
+void other_TransformSensor (struct X3D_TransformSensor *node) {
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#TransformSensor
+	// - added in 3.2 and puzzling: a targetNode can be USEd in multiple places, each place with a different modelview matrix state
+	// - so how implement on the node end? This is similar/analogous to the problem with the picksensor component:
+	//    freewrl is great at viewer / node interactions, but not node/node. we seem to be missing something. But what?
+	/* if not enabled, do nothing */
+	if (!node) return;
+	if (!node->enabled) 
+		return;
+/*  not implemented yet - help yourself
+	{
+		//aabb method
+		//1. transform local axix-aligned bounding box AABB from local to cuboid
+		//   cuboid_aabb = projection * modelview * local_aabb
+		//2. intersect cuboid_aabb with cuboid which is -1 to 1 in 3 dimensions
+		//3. if they don't intersect, not visible, else maybe visible
+		{
+			//update extent in case size or center changed
+			int i, ihit;
+			float emin[3], emax[3];
+			vecadd3f(emax, node->center.c, node->size.c);
+			vecdif3f(emin, node->center.c, node->size.c);
+			for(i=0;i<3;i++)
+			{
+				node->_extent[i*2 + 1] = emin[i];
+				node->_extent[i*2]     = emax[i];
+			}
+			//ihit = frustumHitsMBB(node->_extent);
+			if(ihit){
+			}
+		}
+	}
+*/
+}
+
+/* 
+// dont know if we need a tick or can we do it all in other_transformsensor and startofloopnodeupdes
+// ticks are a good place to summarize activites from various places around the scenegraph
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#TransformSensor
+// "Instanced (DEF/USE) TransformSensor nodes use the union of all the boxes to check for enter and exit."
+void do_TransformSensorTick (void *ptr) {
+	struct X3D_TransformSensor *node = (struct X3D_TransformSensor *) ptr;
+
+	// if not enabled, do nothing 
+	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_TransformSensor, enabled));
+	}
+	if (!node->enabled) return;
+	// are we enabled? 
+
+	#ifdef SEVERBOSE
+	printf ("do_TransformSensorTick, samples %d\n",node->__samples);
+	#endif
+	
+	if (!node->isActive) {
+		#ifdef SEVERBOSE
+		printf ("transformensor - now active\n");
+		#endif
+
+		node->isActive = 1;
+		node->enterTime = TickTime();
+		MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, isActive));
+		MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, enterTime));
+	}
+	else if (node->isActive) {
+		#ifdef SEVERBOSE
+		printf ("transformsensor - going inactive\n");
+		#endif
+
+		node->isActive = 0;
+		node->exitTime = TickTime();
+		MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, isActive));
+		MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, exitTime));
+	}
+}
+*/

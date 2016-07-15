@@ -2900,6 +2900,20 @@ EXPOSED_FIELD(Transform,scaleOrientation,sfrotation,scaleOrientation,FIELDTYPE_S
 EXPOSED_FIELD(Transform,translation,sfvec3f,translation,FIELDTYPE_SFVec3f)
 END_NODE(Transform)
 
+/* TransformSensor node */
+BEGIN_NODE(TransformSensor)
+EXPOSED_FIELD(TransformSensor,center,sfvec3f,center,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(TransformSensor,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EVENT_OUT(TransformSensor,enterTime,sftime,enterTime,FIELDTYPE_SFTime)
+EVENT_OUT(TransformSensor,exitTime,sftime,exitTime,FIELDTYPE_SFTime)
+EVENT_OUT(TransformSensor,isActive,sfbool,isActive,FIELDTYPE_SFBool)
+EXPOSED_FIELD(TransformSensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_OUT(TransformSensor,orientation_changed,sfrotation,orientation_changed,FIELDTYPE_SFRotation)
+EVENT_OUT(TransformSensor,position_changed,sfvec3f,position_changed,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(TransformSensor,size,sfvec3f,size,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(TransformSensor,targetObject,sfnode,targetObject,FIELDTYPE_SFNode)
+END_NODE(TransformSensor)
+
 /* TransmitterPdu node */
 BEGIN_NODE(TransmitterPdu)
 EXPOSED_FIELD(TransmitterPdu,address,sfstring,address,FIELDTYPE_SFString)
