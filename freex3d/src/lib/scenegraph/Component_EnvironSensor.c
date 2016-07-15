@@ -411,9 +411,18 @@ void do_VisibilitySensorTick (void *ptr) {
 
 void other_TransformSensor (struct X3D_TransformSensor *node) {
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#TransformSensor
-	// - added in 3.2 and puzzling: a targetNode can be USEd in multiple places, each place with a different modelview matrix state
+	// - added in specs v3.2 and puzzling: a targetNode can be USEd in multiple places, each place with a different modelview matrix state
 	// - so how implement on the node end? This is similar/analogous to the problem with the picksensor component:
 	//    freewrl is great at viewer / node interactions, but not node/node. we seem to be missing something. But what?
+	// one idea is to have a _renderflag-per-targetObject node ie VF_TransformSensor, 
+	// so when visiting in render_hier on a pass, you would check the flag and if set, you
+	// would do some extra activity: 
+	// a) check a (transformsensor,targetobject) table to get any transformsensor,
+	// and run a transformsensor function like do_transformsensor except instead of tick it would be 'submit_transformsensor' 
+	// b) OR snapshot modelview- or model-transformed AABB/MBB (bounding box) and queue (node*,AABB) for do_TransformSensor processing
+	// c) OR a more general node/node interaction table for picksensors, transformsensors and any other node-node interaction
+
+
 	/* if not enabled, do nothing */
 	if (!node) return;
 	if (!node->enabled) 
