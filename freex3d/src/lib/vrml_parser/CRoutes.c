@@ -753,6 +753,7 @@ void add_first(struct X3D_Node * node) {
 		case NODE_MovieTexture:			myp = do_MovieTextureTick;		break;
 		case NODE_AudioClip:			myp = do_AudioTick;				break;
 		case NODE_VisibilitySensor:		myp = do_VisibilitySensorTick;	break;
+		case NODE_TransformSensor:		myp = do_TransformSensorTick;	break;
 		case NODE_GeoProximitySensor:	myp = do_GeoProximitySensorTick;break;
 		case NODE_ColorChaser:			myp = do_ColorChaserTick;		break;
 		case NODE_ColorDamper:			myp = do_ColorDamperTick;		break;
@@ -2981,12 +2982,14 @@ void do_first() {
 	}
 
 	if(1){
+		//all the do_ functions are called here
 		ne = p->num_ClockEvents;
 		for (counter =0; counter < ne; counter ++) {
 			ce = p->ClockEvents[counter]; 
 			if (ce.tonode)
 				ce.interpptr(ce.tonode);
 		}
+		usehit_clear();
 		//for (counter = 0; counter < p->num_ClockEvents; counter++) {
 		//	if (p->ClockEvents[counter].tonode)
 		//		p->ClockEvents[counter].interpptr(p->ClockEvents[counter].tonode);

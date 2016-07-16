@@ -60,6 +60,11 @@ void vector_ensureSpace_(int, struct Vector*, char *fi, int line);
 #define vector_get(type, me, ind) \
  ((type*)((struct Vector*)me)->data)[ind]
 
+/* pointer to element retrieval */
+#define vector_get_ptr(type, me, ind) \
+ &((type*)((struct Vector*)me)->data)[ind]
+
+
 /* Element set. */
 #define vector_set(type,me,element,value) \
         ((type*)((struct Vector *)  (me))->data)[element]=value

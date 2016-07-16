@@ -886,6 +886,8 @@ c) look at atts containerField, and if not null and not children, use it.
 	if(parent->_nodeType == NODE_Proto){
 		if(mode == PARSING_PROTOBODY) isRootNode = TRUE;
 	}
+	//if(parent->_nodeType == NODE_TransformSensor)
+	//	printf("adding a node to transformsensor\n");
 	if(isRootNode){
 		//if we are adding a rootnode to scene or protobody, it should be added to
 		// the scene/protobody's private __children field
@@ -963,6 +965,7 @@ c) look at atts containerField, and if not null and not children, use it.
 			}
 		}else{
 			printf("no where to put node in parent\n");
+
 		}
 	}
 

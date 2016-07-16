@@ -75,12 +75,216 @@ void Component_EnvironSensor_init(struct tComponent_EnvironSensor *t){
 static void rendVisibilityBox (struct X3D_VisibilitySensor *node);
 #endif
 
-PROXIMITYSENSOR(ProximitySensor,center,,);
+//PROXIMITYSENSOR(ProximitySensor,center,,);
+
+/* ProximitySensor and GeoProximitySensor are same "code" at this stage of the game */
+//#define PROXIMITYSENSOR(type,center,initializer1,initializer2) 
+void proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
+	/* Viewer pos = t_r2 */
+	double cx,cy,cz;
+	double len;
+	struct point_XYZ dr1r2;
+	struct point_XYZ dr2r3;
+	struct point_XYZ nor1,nor2;
+	struct point_XYZ ins;
+	static const struct point_XYZ yvec = {0,0.05,0};
+	static const struct point_XYZ zvec = {0,0,-0.05};
+	static const struct point_XYZ zpvec = {0,0,0.05};
+	static const struct point_XYZ orig = {0,0,0};
+	struct point_XYZ t_zvec, t_yvec, t_orig, t_center;
+	GLDOUBLE modelMatrix[16];
+	GLDOUBLE projMatrix[16];
+	GLDOUBLE view2prox[16];
+ 
+	if(!((node->enabled))) return;
+	//initializer1
+	//initializer2
+ 
+	/* printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/ 
+	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/ 
+ 
+	/* transforms viewers coordinate space into sensors coordinate space. 
+	 * this gives the orientation of the viewer relative to the sensor. 
+	 */ 
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix); 
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix); 
+	FW_GLU_UNPROJECT(orig.x,orig.y,orig.z,modelMatrix,projMatrix,viewport,
+		&t_orig.x,&t_orig.y,&t_orig.z);
+	FW_GLU_UNPROJECT(zvec.x,zvec.y,zvec.z,modelMatrix,projMatrix,viewport,
+		&t_zvec.x,&t_zvec.y,&t_zvec.z);
+	FW_GLU_UNPROJECT(yvec.x,yvec.y,yvec.z,modelMatrix,projMatrix,viewport,
+		&t_yvec.x,&t_yvec.y,&t_yvec.z);
+	matinverse(view2prox,modelMatrix);
+    transform(&t_center,&orig, view2prox);
+ 
+ 
+	/*printf ("\n"); 
+	printf ("unprojected, t_orig (0,0,0) %lf %lf %lf\n",t_orig.x, t_orig.y, t_orig.z); 
+	printf ("unprojected, t_yvec (0,0.05,0) %lf %lf %lf\n",t_yvec.x, t_yvec.y, t_yvec.z); 
+	printf ("unprojected, t_zvec (0,0,-0.05) %lf %lf %lf\n",t_zvec.x, t_zvec.y, t_zvec.z); 
+	*/ 
+	cx = t_center.x - ((node->center ).c[0]); 
+	cy = t_center.y - ((node->center ).c[1]); 
+	cz = t_center.z - ((node->center ).c[2]); 
+ 
+	if(((node->size).c[0]) == 0 || ((node->size).c[1]) == 0 || ((node->size).c[2]) == 0) return; 
+ 
+	if(fabs(cx) > ((node->size).c[0])/2 || 
+	   fabs(cy) > ((node->size).c[1])/2 || 
+	   fabs(cz) > ((node->size).c[2])/2) return; 
+	/* printf ("within (Geo)ProximitySensor\n"); */ 
+ 
+	/* Ok, we now have to compute... */ 
+	(node->__hit) /*cget*/ = 1; 
+ 
+	/* Position */ 
+	((node->__t1).c[0]) = (float)t_center.x; 
+	((node->__t1).c[1]) = (float)t_center.y; 
+	((node->__t1).c[2]) = (float)t_center.z; 
+ 
+	VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */ 
+	VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */ 
+ 
+	/* printf ("      dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z); 
+	printf ("      dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z); 
+	*/ 
+ 
+	len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len); 
+	len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len); 
+ 
+	/* printf ("scaled dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z); 
+	printf ("scaled dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z); 
+	*/ 
+ 
+	/* 
+	printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n", 
+		t_orig.x, t_orig.y, t_orig.z, 
+		t_zvec.x, t_zvec.y, t_zvec.z, 
+		t_yvec.x, t_yvec.y, t_yvec.z, 
+		dr1r2.x, dr1r2.y, dr1r2.z, 
+		dr2r3.x, dr2r3.y, dr2r3.z 
+		); 
+	*/ 
+ 
+	if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) { 
+		printf ("Sorry, can't handle unevenly scaled ProximitySensors yet :(" 
+		  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3), 
+		  	dr1r2.x,dr1r2.y,dr1r2.z, 
+		  	dr2r3.x,dr2r3.y,dr2r3.z 
+			); 
+		return; 
+	} 
+ 
+ 
+	if(APPROX(dr1r2.z,1.0)) { 
+		/* rotation */ 
+		((node->__t2).c[0]) = (float) 0; 
+		((node->__t2).c[1]) = (float) 0; 
+		((node->__t2).c[2]) = (float) 1; 
+		((node->__t2).c[3]) = (float) atan2(-dr2r3.x,dr2r3.y); 
+	} else if(APPROX(dr2r3.y,1.0)) { 
+		/* rotation */ 
+		((node->__t2).c[0]) = (float) 0; 
+		((node->__t2).c[1]) = (float) 1; 
+		((node->__t2).c[2]) = (float) 0; 
+		((node->__t2).c[3]) = (float) atan2(dr1r2.x,dr1r2.z); 
+	} else { 
+		/* Get the normal vectors of the possible rotation planes */ 
+		nor1 = dr1r2; 
+		nor1.z -= 1.0; 
+		nor2 = dr2r3; 
+		nor2.y -= 1.0; 
+ 
+		/* Now, the intersection of the planes, obviously cp */ 
+		VECCP(nor1,nor2,ins); 
+ 
+		len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len); 
+ 
+		/* the angle */ 
+		VECCP(dr1r2,ins, nor1); 
+		VECCP(zpvec, ins, nor2); 
+		len = sqrt(VECSQ(nor1)); VECSCALE(nor1,1/len); 
+		len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len); 
+		VECCP(nor1,nor2,ins); 
+ 
+		((node->__t2).c[3]) = (float) -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2)); 
+ 
+		/* rotation  - should normalize sometime... */ 
+		((node->__t2).c[0]) = (float) ins.x; 
+		((node->__t2).c[1]) = (float) ins.y; 
+		((node->__t2).c[2]) = (float) ins.z; 
+	} 
+	/* 
+	printf("NORS: (%f %f %f) (%f %f %f) (%f %f %f)\n", 
+		nor1.x, nor1.y, nor1.z, 
+		nor2.x, nor2.y, nor2.z, 
+		ins.x, ins.y, ins.z 
+	); 
+	*/ 
+} 
 
 
-/* VisibilitySensors - mimic what Shape does to display the box. */
 
 
+/* ProximitySensor code for ClockTick */
+void do_ProximitySensorTick( void *ptr) {
+	struct X3D_ProximitySensor *node = (struct X3D_ProximitySensor *)ptr;
+
+	/* if not enabled, do nothing */
+	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_ProximitySensor, enabled));
+	}
+	if (!node->enabled) return;
+
+	/* did we get a signal? */
+	if (node->__hit) {
+		if (!node->isActive) {
+			#ifdef SEVERBOSE
+			printf ("PROX - initial defaults\n");
+			#endif
+
+			node->isActive = TRUE;
+			node->enterTime = TickTime();
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, enterTime));
+		}
+
+		/* now, has anything changed? */
+		if (memcmp ((void *) &node->position_changed,(void *) &node->__t1,sizeof(struct SFColor))) {
+			#ifdef SEVERBOSE
+			printf ("PROX - position changed!!! \n");
+			#endif
+
+			memcpy ((void *) &node->position_changed,
+				(void *) &node->__t1,sizeof(struct SFColor));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, position_changed));
+		}
+		if (memcmp ((void *) &node->orientation_changed, (void *) &node->__t2,sizeof(struct SFRotation))) {
+			#ifdef SEVERBOSE
+			printf  ("PROX - orientation changed!!!\n ");
+			#endif
+
+			memcpy ((void *) &node->orientation_changed,
+				(void *) &node->__t2,sizeof(struct SFRotation));
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, orientation_changed));
+		}
+	} else {
+		if (node->isActive) {
+			#ifdef SEVERBOSE
+			printf ("PROX - stopping\n");
+			#endif
+
+			node->isActive = FALSE;
+			node->exitTime = TickTime();
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
+
+			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, exitTime));
+		}
+	}
+	node->__hit=FALSE;
+}
 
 
 
@@ -120,7 +324,6 @@ void twoPoints2RayMatrix(double *ptnear, double* ptfar, double* rayMatrix){
 	matinverseAFFINE(rayMatrix,rayMatrixInverse);
 
 }
-
 int frustumHitsMBB(float *extent){
 	//goal say if an extent is maybe inside (err toward inside) of the view frustum
 	//http://cgvr.informatik.uni-bremen.de/teaching/cg_literatur/lighthouse3d_view_frustum_culling/index.html
@@ -421,13 +624,21 @@ void other_TransformSensor (struct X3D_TransformSensor *node) {
 	// and run a transformsensor function like do_transformsensor except instead of tick it would be 'submit_transformsensor' 
 	// b) OR snapshot modelview- or model-transformed AABB/MBB (bounding box) and queue (node*,AABB) for do_TransformSensor processing
 	// c) OR a more general node/node interaction table for picksensors, transformsensors and any other node-node interaction
-
+	//
+	// decision: Method c) general USE-USE system
+	// how: 
+	// 1) renderfuncs struct USEHIT { node *node; modelviewMatrix mvm; int requestflag; }
+	//		functions: usehit_add(node*,mvm,flag), USEHIT = usehit_next(node*); usehit_clear();
+	// 2) (sensornode*,do_sensorfunc) tuple registered, sensornode knows target node and 
+	//     a) flags target and self on one pass with VF_USE, 
+	//     b) then searches on next pass for self and other in double loop and does all USE_USE combinations
+	//     c) end of do_first() calls usehit_clear() for fresh transforms on next pass
 
 	/* if not enabled, do nothing */
 	if (!node) return;
 	if (!node->enabled) 
 		return;
-/*  not implemented yet - help yourself
+
 	{
 		//aabb method
 		//1. transform local axix-aligned bounding box AABB from local to cuboid
@@ -445,20 +656,23 @@ void other_TransformSensor (struct X3D_TransformSensor *node) {
 				node->_extent[i*2 + 1] = emin[i];
 				node->_extent[i*2]     = emax[i];
 			}
-			//ihit = frustumHitsMBB(node->_extent);
-			if(ihit){
-			}
+			////ihit = frustumHitsMBB(node->_extent);
+			//if(ihit){
+			//}
 		}
 	}
-*/
 }
 
-/* 
-// dont know if we need a tick or can we do it all in other_transformsensor and startofloopnodeupdes
+ int overlapMBBs(GLDOUBLE *MBBmin1, GLDOUBLE *MBBmax1, GLDOUBLE *MBBmin2, GLDOUBLE* MBBmax2);
+
 // ticks are a good place to summarize activites from various places around the scenegraph
+// do_tick is called once per frame, from outside of render_hier, so there's no modelview matrix on stack
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#TransformSensor
 // "Instanced (DEF/USE) TransformSensor nodes use the union of all the boxes to check for enter and exit."
 void do_TransformSensorTick (void *ptr) {
+	int ishit,i;
+	usehit *mehit, *uhit;
+	struct X3D_Node *unode,*menode;
 	struct X3D_TransformSensor *node = (struct X3D_TransformSensor *) ptr;
 
 	// if not enabled, do nothing 
@@ -467,32 +681,220 @@ void do_TransformSensorTick (void *ptr) {
 		node->__oldEnabled = node->enabled;
 		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_TransformSensor, enabled));
 	}
-	if (!node->enabled) return;
 	// are we enabled? 
+	if (!node->enabled) return;
+	//if the sensor has zero size its equivalent to not-enabled - can't send events accroding to specs
+	if(((node->size).c[0]) <= 0.0f || ((node->size).c[1]) <= 0.0f || ((node->size).c[2]) <= 0.0f) return; 
 
 	#ifdef SEVERBOSE
-	printf ("do_TransformSensorTick, samples %d\n",node->__samples);
+	printf ("do_TransformSensorTick enabled\n");
 	#endif
-	
-	if (!node->isActive) {
-		#ifdef SEVERBOSE
-		printf ("transformensor - now active\n");
-		#endif
 
-		node->isActive = 1;
-		node->enterTime = TickTime();
-		MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, isActive));
-		MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, enterTime));
-	}
-	else if (node->isActive) {
-		#ifdef SEVERBOSE
-		printf ("transformsensor - going inactive\n");
-		#endif
+	//temp clear hit flag
+	ishit = 0;
+	mehit = NULL;
+	unode = node->targetObject;
+	menode = (struct X3D_Node*)node; //upcaste
+	if(unode){
+		//check all USE-USE combinations of this node and targetObject
+		//find next this
+		while(mehit = usehit_next(menode,mehit)){
+			int iret;
+			double meinv[16],memin[3],memax[3];
+			float emin[3], emax[3], halfsize[3];
 
-		node->isActive = 0;
-		node->exitTime = TickTime();
-		MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, isActive));
-		MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, exitTime));
+			matinverseAFFINE(meinv,mehit->mvm);
+			//iret = __gluInvertMatrixd( mehit->mvm, meinv);
+
+			if(0){
+				//check inverse
+				double ident[16];
+				int j;
+				matmultiplyAFFINE(ident,meinv,mehit->mvm);
+
+				printf("inverse check do_TransformSensor\n");
+				for(i=0;i<4;i++){
+					for(j=0;j<4;j++) printf("%lf ",ident[i*3+j]);
+					printf("\n");
+				}
+				printf("\n");
+			}
+			//update extent on me, in case center or size has changed
+			vecscale3f(halfsize,node->size.c,.5f);
+			vecadd3f(emax, node->center.c, halfsize);
+			vecdif3f(emin, node->center.c, halfsize);
+			for(i=0;i<3;i++)
+			{
+				node->_extent[i*2 + 1] = emin[i];
+				node->_extent[i*2]     = emax[i];
+			}
+			for(i=0;i<3;i++)
+			{
+				memin[i] = node->_extent[i*2 + 1];
+				memax[i] = node->_extent[i*2];
+			}
+
+			//find next target
+			uhit = NULL;
+			while(uhit = usehit_next(unode,uhit)){
+				//see if they intersect, if so do something about it
+				//-prepare matrixTarget2this
+				double u2me[16], umin[3],umax[3],uumin[3],uumax[3];
+				matmultiplyAFFINE(u2me,uhit->mvm,meinv);
+				//-transform target AABB/MBB from target space to this space
+				for(i=0;i<3;i++)
+				{
+					umin[i] = unode->_extent[i*2 + 1];
+					umax[i] = unode->_extent[i*2];
+				}
+				transformMBB(uumin,uumax,u2me,umin,umax); 
+				//-see if AABB intersect
+				if( overlapMBBs(memin, memax, uumin, uumax) ){
+					//-if so take action
+					static const struct point_XYZ yvec = {0,0.05,0};
+					static const struct point_XYZ zvec = {0,0,-0.05};
+					static const struct point_XYZ zpvec = {0,0,0.05};
+					static const struct point_XYZ orig = {0,0,0};
+					struct point_XYZ t_zvec, t_yvec, t_orig, t_center;
+					struct point_XYZ nor1,nor2;
+					struct point_XYZ ins;
+					double len;
+					struct point_XYZ dr1r2;
+					struct point_XYZ dr2r3;
+					double t1u[3], t1me[3];
+
+					ishit++;
+					if (!node->isActive) {
+						#ifdef SEVERBOSE
+						printf ("transformensor - now active\n");
+						#endif
+
+						node->isActive = 1;
+						node->enterTime = TickTime();
+						MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, isActive));
+						MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, enterTime));
+					}
+					// has target position or orientation changed wrt transform sensor? 
+					// if so send position_changed / orientation_changed events
+					//transform position
+					for(i=0;i<3;i++) t1u[i] = (umin[i] + umax[i])*.5;
+					transformAFFINEd(t1me,t1u,u2me);
+					for(i=0;i<3;i++) node->__t1.c[i] = t1me[i] - node->center.c[i];
+					if (memcmp ((void *) &node->position_changed,(void *) &node->__t1,sizeof(struct SFColor))) {
+						#ifdef SEVERBOSE
+						printf ("PROX - position changed!!! \n");
+						#endif
+
+						memcpy ((void *) &node->position_changed,
+							(void *) &node->__t1,sizeof(struct SFColor));
+						MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, position_changed));
+					}
+					//transform orientation
+					transformAFFINE(&t_yvec,&yvec,u2me);
+					transformAFFINE(&t_zvec,&zvec,u2me);
+					transformAFFINE(&t_orig,&orig,u2me);
+					VECDIFF(t_zvec,t_orig,dr1r2);  /* Z axis */ 
+					VECDIFF(t_yvec,t_orig,dr2r3);  /* Y axis */ 
+ 
+					/* printf ("      dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z); 
+					printf ("      dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z); 
+					*/ 
+ 
+					len = sqrt(VECSQ(dr1r2)); VECSCALE(dr1r2,1/len); 
+					len = sqrt(VECSQ(dr2r3)); VECSCALE(dr2r3,1/len); 
+ 
+					/* printf ("scaled dr1r2 %lf %lf %lf\n",dr1r2.x, dr1r2.y, dr1r2.z); 
+					printf ("scaled dr2r3 %lf %lf %lf\n",dr2r3.x, dr2r3.y, dr2r3.z); 
+					*/ 
+ 
+					/* 
+					printf("PROX_INT: (%f %f %f) (%f %f %f) (%f %f %f)\n (%f %f %f) (%f %f %f)\n", 
+						t_orig.x, t_orig.y, t_orig.z, 
+						t_zvec.x, t_zvec.y, t_zvec.z, 
+						t_yvec.x, t_yvec.y, t_yvec.z, 
+						dr1r2.x, dr1r2.y, dr1r2.z, 
+						dr2r3.x, dr2r3.y, dr2r3.z 
+						); 
+					*/ 
+ 
+					if(fabs(VECPT(dr1r2, dr2r3)) > 0.001) { 
+						printf ("Sorry, can't handle unevenly scaled ProximitySensors yet :(" 
+						  "dp: %f v: (%f %f %f) (%f %f %f)\n", VECPT(dr1r2, dr2r3), 
+		  					dr1r2.x,dr1r2.y,dr1r2.z, 
+		  					dr2r3.x,dr2r3.y,dr2r3.z 
+							); 
+						return; 
+					} 
+ 
+ 
+					if(APPROX(dr1r2.z,1.0)) { 
+						/* rotation */ 
+						((node->__t2).c[0]) = (float) 0; 
+						((node->__t2).c[1]) = (float) 0; 
+						((node->__t2).c[2]) = (float) 1; 
+						((node->__t2).c[3]) = (float) atan2(-dr2r3.x,dr2r3.y); 
+					} else if(APPROX(dr2r3.y,1.0)) { 
+						/* rotation */ 
+						((node->__t2).c[0]) = (float) 0; 
+						((node->__t2).c[1]) = (float) 1; 
+						((node->__t2).c[2]) = (float) 0; 
+						((node->__t2).c[3]) = (float) atan2(dr1r2.x,dr1r2.z); 
+					} else { 
+						/* Get the normal vectors of the possible rotation planes */ 
+						nor1 = dr1r2; 
+						nor1.z -= 1.0; 
+						nor2 = dr2r3; 
+						nor2.y -= 1.0; 
+ 
+						/* Now, the intersection of the planes, obviously cp */ 
+						VECCP(nor1,nor2,ins); 
+ 
+						len = sqrt(VECSQ(ins)); VECSCALE(ins,1/len); 
+ 
+						/* the angle */ 
+						VECCP(dr1r2,ins, nor1); 
+						VECCP(zpvec, ins, nor2); 
+						len = sqrt(VECSQ(nor1)); VECSCALE(nor1,1/len); 
+						len = sqrt(VECSQ(nor2)); VECSCALE(nor2,1/len); 
+						VECCP(nor1,nor2,ins); 
+ 
+						((node->__t2).c[3]) = (float) -atan2(sqrt(VECSQ(ins)), VECPT(nor1,nor2)); 
+ 
+						/* rotation  - should normalize sometime... */ 
+						((node->__t2).c[0]) = (float) ins.x; 
+						((node->__t2).c[1]) = (float) ins.y; 
+						((node->__t2).c[2]) = (float) ins.z; 
+					} 
+
+					if (memcmp ((void *) &node->orientation_changed, (void *) &node->__t2,sizeof(struct SFRotation))) {
+						#ifdef SEVERBOSE
+						printf  ("PROX - orientation changed!!!\n ");
+						#endif
+
+						memcpy ((void *) &node->orientation_changed,
+							(void *) &node->__t2,sizeof(struct SFRotation));
+						MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, orientation_changed));
+					}
+				}
+			}
+		}
+
+		if(!ishit){
+			if (node->isActive) {
+				#ifdef SEVERBOSE
+				printf ("transformsensor - going inactive\n");
+				#endif
+
+				node->isActive = 0;
+				node->exitTime = TickTime();
+				MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, isActive));
+				MARK_EVENT (ptr, offsetof(struct X3D_TransformSensor, exitTime));
+			}
+		}
+
+		//ask this node and target node to both save their modelviewmatrix for each USE, when visited, on the upcoming frame (do_ called from do_first())
+		node->targetObject->_renderFlags |= VF_USE;
 	}
+	node->_renderFlags |= VF_USE;
+
 }
-*/

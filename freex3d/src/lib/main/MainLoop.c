@@ -3160,7 +3160,12 @@ void Mainloop_clear(struct tMainloop *t){
 
 //call hwnd_to_windex in frontend window creation and event handling,
 //to convert to more convenient int index.
-
+int getWindex(){
+	ppMainloop p;
+	ttglobal tg = gglobal();
+	p = (ppMainloop)tg->Mainloop.prv;
+	return p->windex;
+}
 int fwl_hwnd_to_windex(void *hWnd){
 	int i;
 	targetwindow *targets;
