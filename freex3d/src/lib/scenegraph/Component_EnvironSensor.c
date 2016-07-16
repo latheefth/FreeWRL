@@ -611,30 +611,9 @@ void do_VisibilitySensorTick (void *ptr) {
 	}
 	node->__Samples = 0; //clear for next frame count
 }
-
+/* don't need - all done in do_TransformSensor
 void other_TransformSensor (struct X3D_TransformSensor *node) {
-	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#TransformSensor
-	// - added in specs v3.2 and puzzling: a targetNode can be USEd in multiple places, each place with a different modelview matrix state
-	// - so how implement on the node end? This is similar/analogous to the problem with the picksensor component:
-	//    freewrl is great at viewer / node interactions, but not node/node. we seem to be missing something. But what?
-	// one idea is to have a _renderflag-per-targetObject node ie VF_TransformSensor, 
-	// so when visiting in render_hier on a pass, you would check the flag and if set, you
-	// would do some extra activity: 
-	// a) check a (transformsensor,targetobject) table to get any transformsensor,
-	// and run a transformsensor function like do_transformsensor except instead of tick it would be 'submit_transformsensor' 
-	// b) OR snapshot modelview- or model-transformed AABB/MBB (bounding box) and queue (node*,AABB) for do_TransformSensor processing
-	// c) OR a more general node/node interaction table for picksensors, transformsensors and any other node-node interaction
-	//
-	// decision: Method c) general USE-USE system
-	// how: 
-	// 1) renderfuncs struct USEHIT { node *node; modelviewMatrix mvm; int requestflag; }
-	//		functions: usehit_add(node*,mvm,flag), USEHIT = usehit_next(node*); usehit_clear();
-	// 2) (sensornode*,do_sensorfunc) tuple registered, sensornode knows target node and 
-	//     a) flags target and self on one pass with VF_USE, 
-	//     b) then searches on next pass for self and other in double loop and does all USE_USE combinations
-	//     c) end of do_first() calls usehit_clear() for fresh transforms on next pass
-
-	/* if not enabled, do nothing */
+	// if not enabled, do nothing 
 	if (!node) return;
 	if (!node->enabled) 
 		return;
@@ -662,8 +641,27 @@ void other_TransformSensor (struct X3D_TransformSensor *node) {
 		}
 	}
 }
-
+*/
  int overlapMBBs(GLDOUBLE *MBBmin1, GLDOUBLE *MBBmax1, GLDOUBLE *MBBmin2, GLDOUBLE* MBBmax2);
+
+/*
+TransformSensor
+ http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#TransformSensor
+ - added in specs v3.2
+ - a targetObject (Node) can be USEd in multiple places, each place with a different modelview matrix state
+ - so how implement on the node end? This is similar/analogous to the problem with the picksensor component:
+    freewrl is great at viewer / node interactions, but not node/node. we seem to be missing something. But what?
+ - a more general node/node interaction table for picksensors, transformsensors and any other node-node interaction
+ General USE-USE system
+ how: 
+ 1) renderfuncs struct USEHIT { node *node; modelviewMatrix mvm; }
+		functions: usehit_add(node*,mvm,flag), USEHIT = usehit_next(node*); usehit_clear();
+ 2) (sensornode*,do_sensorfunc) tuple registered, sensornode knows target node and 
+     a) flags target and self on one pass with VF_USE, 
+     b) then searches on next pass for self and other in double loop and does all USE_USE combinations
+     c) end of do_first() calls usehit_clear() for fresh transforms on next pass
+*/
+
 
 // ticks are a good place to summarize activites from various places around the scenegraph
 // do_tick is called once per frame, from outside of render_hier, so there's no modelview matrix on stack

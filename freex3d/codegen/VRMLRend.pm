@@ -659,7 +659,6 @@ our %OtherC = map {($_=>1)} qw/
 	PickableGroup
 	Sphere
 	VisibilitySensor
-	TransformSensor
 /;
 
 

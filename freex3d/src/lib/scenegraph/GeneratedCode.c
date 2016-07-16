@@ -2873,8 +2873,7 @@ void fin_Transform(struct X3D_Transform *);
 void compile_Transform(struct X3D_Transform *);
 struct X3D_Virt virt_Transform = { (void *)prep_Transform,NULL,(void *)child_Transform,(void *)fin_Transform,NULL,NULL,NULL,NULL,NULL,(void *)compile_Transform};
 
-void other_TransformSensor(struct X3D_TransformSensor *);
-struct X3D_Virt virt_TransformSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)other_TransformSensor,NULL,NULL};
+struct X3D_Virt virt_TransformSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_TransmitterPdu = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
