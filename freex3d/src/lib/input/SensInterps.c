@@ -1056,67 +1056,6 @@ void do_AudioTick(void *ptr) {
 }
 
 
-
-/* ProximitySensor code for ClockTick */
-void do_ProximitySensorTick( void *ptr) {
-	struct X3D_ProximitySensor *node = (struct X3D_ProximitySensor *)ptr;
-
-	/* if not enabled, do nothing */
-	if (!node) return;
-	if (node->__oldEnabled != node->enabled) {
-		node->__oldEnabled = node->enabled;
-		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_ProximitySensor, enabled));
-	}
-	if (!node->enabled) return;
-
-	/* did we get a signal? */
-	if (node->__hit) {
-		if (!node->isActive) {
-			#ifdef SEVERBOSE
-			printf ("PROX - initial defaults\n");
-			#endif
-
-			node->isActive = TRUE;
-			node->enterTime = TickTime();
-			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
-			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, enterTime));
-		}
-
-		/* now, has anything changed? */
-		if (memcmp ((void *) &node->position_changed,(void *) &node->__t1,sizeof(struct SFColor))) {
-			#ifdef SEVERBOSE
-			printf ("PROX - position changed!!! \n");
-			#endif
-
-			memcpy ((void *) &node->position_changed,
-				(void *) &node->__t1,sizeof(struct SFColor));
-			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, position_changed));
-		}
-		if (memcmp ((void *) &node->orientation_changed, (void *) &node->__t2,sizeof(struct SFRotation))) {
-			#ifdef SEVERBOSE
-			printf  ("PROX - orientation changed!!!\n ");
-			#endif
-
-			memcpy ((void *) &node->orientation_changed,
-				(void *) &node->__t2,sizeof(struct SFRotation));
-			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, orientation_changed));
-		}
-	} else {
-		if (node->isActive) {
-			#ifdef SEVERBOSE
-			printf ("PROX - stopping\n");
-			#endif
-
-			node->isActive = FALSE;
-			node->exitTime = TickTime();
-			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, isActive));
-
-			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, exitTime));
-		}
-	}
-	node->__hit=FALSE;
-}
-
 /* Audio MovieTexture code */
 /* void do_MovieTextureTick(struct X3D_MovieTexture *node) {*/
 void do_MovieTextureTick( void *ptr) {

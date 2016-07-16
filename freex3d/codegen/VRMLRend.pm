@@ -163,6 +163,7 @@ our %defaultContainerType = (
 	TimeSensor 		=>"children",
 	TouchSensor 		=>"children",
 	Transform 		=>"children",
+	TransformSensor		=>"children",
 	TriangleFanSet 		=>"geometry",
 	TriangleSet 		=>"geometry",
 	TriangleStripSet 	=>"geometry",

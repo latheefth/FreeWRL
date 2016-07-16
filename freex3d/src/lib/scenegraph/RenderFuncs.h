@@ -80,4 +80,12 @@ void popviewport(Stack *vpstack);
 void setcurrentviewport(Stack *_vpstack);
 int currentviewportvisible(Stack *vpstack);
 
+typedef struct usehit {
+	struct X3D_Node *node;
+	double mvm[16];
+} usehit;
+void usehit_add(struct X3D_Node *node, double *modelviewmatrix);
+usehit * usehit_next(struct X3D_Node *node, usehit* lasthit);
+void usehit_clear();
+
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

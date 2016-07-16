@@ -102,7 +102,7 @@ extern char *BrowserFullPath;
 #endif
 #define VF_HideLeft                  0x2000 /*stereo don't draw on left side, used for stereovision experiments*/
 #define VF_HideRight                 0x4000 /*stereo don't draw on right side*/
-//#define VF_Visibility				0x8000 dont need, using VF_Other
+#define VF_USE						 0x8000 /*for 2-node scenarios like pickingsensor and transform sensor, signals a node_USE to save its modelview matrix for do_handling*/
 /* for z depth buffer calculations */
 #define DEFAULT_NEARPLANE 0.1
 #define DEFAULT_FARPLANE 21000.0

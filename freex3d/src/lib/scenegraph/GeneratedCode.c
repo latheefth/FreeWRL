@@ -804,6 +804,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"suspensionErrorCorrection",
 	"suspensionForce",
 	"talksTo",
+	"targetObject",
 	"tau",
 	"tdlType",
 	"tessellation",
@@ -1399,6 +1400,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"suspensionErrorCorrection",
 	"suspensionForce",
 	"talksTo",
+	"targetObject",
 	"tau",
 	"tdlType",
 	"tessellation",
@@ -2134,6 +2136,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"TimeTrigger",
 	"TouchSensor",
 	"Transform",
+	"TransformSensor",
 	"TransmitterPdu",
 	"TriangleFanSet",
 	"TriangleSet",
@@ -2870,6 +2873,8 @@ void fin_Transform(struct X3D_Transform *);
 void compile_Transform(struct X3D_Transform *);
 struct X3D_Virt virt_Transform = { (void *)prep_Transform,NULL,(void *)child_Transform,(void *)fin_Transform,NULL,NULL,NULL,NULL,NULL,(void *)compile_Transform};
 
+struct X3D_Virt virt_TransformSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 struct X3D_Virt virt_TransmitterPdu = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_TriangleFanSet(struct X3D_TriangleFanSet *);
@@ -3155,6 +3160,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_TimeTrigger,
 	 &virt_TouchSensor,
 	 &virt_Transform,
+	 &virt_TransformSensor,
 	 &virt_TransmitterPdu,
 	 &virt_TriangleFanSet,
 	 &virt_TriangleSet,
@@ -6243,6 +6249,23 @@ const int OFFSETS_Transform[] = {
 	(int) FIELDNAMES_translation, (int) offsetof (struct X3D_Transform, translation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_TransformSensor[] = {
+	(int) FIELDNAMES___hit, (int) offsetof (struct X3D_TransformSensor, __hit),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_TransformSensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___t1, (int) offsetof (struct X3D_TransformSensor, __t1),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___t2, (int) offsetof (struct X3D_TransformSensor, __t2),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES_center, (int) offsetof (struct X3D_TransformSensor, center),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_TransformSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_enterTime, (int) offsetof (struct X3D_TransformSensor, enterTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_exitTime, (int) offsetof (struct X3D_TransformSensor, exitTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_TransformSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TransformSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_orientation_changed, (int) offsetof (struct X3D_TransformSensor, orientation_changed),  (int) FIELDTYPE_SFRotation, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_position_changed, (int) offsetof (struct X3D_TransformSensor, position_changed),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_size, (int) offsetof (struct X3D_TransformSensor, size),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_targetObject, (int) offsetof (struct X3D_TransformSensor, targetObject),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_TransmitterPdu[] = {
 	(int) FIELDNAMES_address, (int) offsetof (struct X3D_TransmitterPdu, address),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_antennaLocation, (int) offsetof (struct X3D_TransmitterPdu, antennaLocation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6701,6 +6724,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_TimeTrigger,
 	OFFSETS_TouchSensor,
 	OFFSETS_Transform,
+	OFFSETS_TransformSensor,
 	OFFSETS_TransmitterPdu,
 	OFFSETS_TriangleFanSet,
 	OFFSETS_TriangleSet,
@@ -7207,6 +7231,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TimeTrigger : {tmp = MALLOC (struct X3D_TimeTrigger *, sizeof (struct X3D_TimeTrigger)); break;}
 		case NODE_TouchSensor : {tmp = MALLOC (struct X3D_TouchSensor *, sizeof (struct X3D_TouchSensor)); break;}
 		case NODE_Transform : {tmp = MALLOC (struct X3D_Transform *, sizeof (struct X3D_Transform)); break;}
+		case NODE_TransformSensor : {tmp = MALLOC (struct X3D_TransformSensor *, sizeof (struct X3D_TransformSensor)); break;}
 		case NODE_TransmitterPdu : {tmp = MALLOC (struct X3D_TransmitterPdu *, sizeof (struct X3D_TransmitterPdu)); break;}
 		case NODE_TriangleFanSet : {tmp = MALLOC (struct X3D_TriangleFanSet *, sizeof (struct X3D_TriangleFanSet)); break;}
 		case NODE_TriangleSet : {tmp = MALLOC (struct X3D_TriangleSet *, sizeof (struct X3D_TriangleSet)); break;}
@@ -11193,6 +11218,26 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
 			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_TransformSensor : {
+			struct X3D_TransformSensor * tmp2;
+			tmp2 = (struct X3D_TransformSensor *) tmp;
+			tmp2->__hit = 0;
+			tmp2->__oldEnabled = TRUE;
+			tmp2->__t1.c[0] = 10000000.0f;tmp2->__t1.c[1] = 0.0f;tmp2->__t1.c[2] = 0.0f;
+			tmp2->__t2.c[0] = 0;tmp2->__t2.c[1] = 1;tmp2->__t2.c[2] = 0;tmp2->__t2.c[3] = 0;;
+			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
+			tmp2->enabled = TRUE;
+			tmp2->enterTime = -1;
+			tmp2->exitTime = -1;
+			tmp2->isActive = FALSE;
+			tmp2->metadata = NULL;
+			tmp2->orientation_changed.c[0] = 0;tmp2->orientation_changed.c[1] = 0;tmp2->orientation_changed.c[2] = 1;tmp2->orientation_changed.c[3] = 0;;
+			tmp2->position_changed.c[0] = 0.0f;tmp2->position_changed.c[1] = 0.0f;tmp2->position_changed.c[2] = 0.0f;
+			tmp2->size.c[0] = 0.0f;tmp2->size.c[1] = 0.0f;tmp2->size.c[2] = 0.0f;
+			tmp2->targetObject = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -15292,6 +15337,39 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			fprintf (fp,"\n");
 		    break;
 		}
+		case NODE_TransformSensor : {
+			struct X3D_TransformSensor *tmp;
+			tmp = (struct X3D_TransformSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __hit (SFInt32) \t%d\n",tmp->__hit);
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," __t1 (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__t1.c[i]); }
+			fprintf (fp,"\n");
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," __t2 (SFRotation): \t");
+			for (i=0; i<4; i++) { fprintf (fp,"%4.3f  ",tmp->__t2.c[i]); }
+			fprintf (fp,"\n");
+		    }
+			spacer fprintf (fp," center (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
+			fprintf (fp,"\n");
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," size (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->size.c[i]); }
+			fprintf (fp,"\n");
+			spacer fprintf (fp," targetObject (SFNode):\n"); dump_scene(fp,level+1,tmp->targetObject); 
+		    break;
+		}
 		case NODE_TransmitterPdu : {
 			struct X3D_TransmitterPdu *tmp;
 			tmp = (struct X3D_TransmitterPdu *) node;
@@ -15826,6 +15904,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_TimeTrigger: return X3DTriggerNode; break;
 	case NODE_TouchSensor: return X3DPointingDeviceSensorNode; break;
 	case NODE_Transform: return X3DGroupingNode; break;
+	case NODE_TransformSensor: return X3DEnvironmentalSensorNode; break;
 	case NODE_TransmitterPdu: return X3DChildNode; break;
 	case NODE_TriangleFanSet: return X3DGeometryNode; break;
 	case NODE_TriangleSet: return X3DGeometryNode; break;

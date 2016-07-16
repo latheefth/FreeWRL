@@ -115,7 +115,7 @@ typedef struct pRenderFuncs{
 	//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
 	struct point_XYZ3 t_r123;
 	struct point_XYZ hp;
-
+	Stack *usehits_stack;
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
 	void *v = MALLOCV(sizeof(struct pRenderFuncs));
@@ -162,12 +162,66 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->render_geom_stack = newStack(int);
 		p->sensor_stack = newStack(struct currayhit);
 		p->ray_stack = newStack(struct point_XYZ3);
+		p->usehits_stack = newStack(usehit);
 		//t->t_r123 = (void *)&p->t_r123;
 		t->hp = (void *)&p->hp;
 	}
 
 	//setLightType(HEADLIGHT_LIGHT,2); // ensure that this is a DirectionalLight.
 }
+//the following usehit functions are for node-node scenarios such as picksensor and transformsensor
+//more precisely for node_USE-node_USE aka USE_USE scenarios 
+//when a node is 'rendered' if its VF_USE flag is set, then we call usehit_add(self,modelviewmatrix)
+//then in do_first() > do_activity() the use-use combinations are each applied.
+//at least one in the use-use pair needs to hold a pointer to the other node to use as a lookup 
+void usehit_add(struct X3D_Node * node, double *modelviewmatrix){
+	//called from render_hier when/each-use-time a VF_USE node is hit
+	usehit uhit;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	uhit.node = node;
+	memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
+	vector_pushBack(usehit,p->usehits_stack,uhit);  //fat elements do another deep copy
+}
+usehit * usehit_next(struct X3D_Node *node, usehit *lasthit){
+	//called from do_first() > do_activity() when one of the use-use pair is searching for another of its mates
+	//call with lasthit = NULL the first time, and otherwise the previous hit to continue searching
+	int i, istart;
+	usehit *ret, *item;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	ret = NULL;
+	if(vectorSize(p->usehits_stack)>0){
+		//find lasthit
+		istart = 0;
+		if(lasthit) {
+			//size_t size;
+			//ptrdiff_t delta;
+			//void *start;
+			//size = sizeof(usehit);
+			//start = (char*)vector_get_ptr(usehit,p->usehits_stack,0);
+			//delta = (char*)lasthit - (char*)start;
+			//istart = delta/size + 1;
+			istart = ((char*)lasthit - (char*)vector_get_ptr(usehit,p->usehits_stack,0))/sizeof(usehit) + 1;
+		}
+		//search starting at lasthit+1
+		for(i=istart;i<p->usehits_stack->n;i++){
+			item = vector_get_ptr(usehit,p->usehits_stack,i);
+			if(item->node == node){
+				ret = item;
+				break;
+			}
+		}
+	}
+	return ret; //returing pointer to p->usehits fat element
+}
+void usehit_clear(){
+	//called at the end of do_first (once per frame, after USE_USE pairing and action, and before rendering) 
+	//to clear all the USE hits from last frame
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	p->usehits_stack->n = 0;
+}
+
+
+
 void unload_libraryscenes();
 int gc_broto_instance(struct X3D_Proto* node);
 void RenderFuncs_clear(struct tRenderFuncs *t){
@@ -177,6 +231,7 @@ void RenderFuncs_clear(struct tRenderFuncs *t){
 	deleteVector(int,p->render_geom_stack);
 	deleteVector(struct currayhit,p->sensor_stack);
 	deleteVector(struct point_XYZ3,p->ray_stack);
+	deleteVector(usehit,p->usehits_stack);
 }
 void unload_libraryscenes(){
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -1291,6 +1346,7 @@ void pop_sensor(){
 	pop_render_geom();
 
 }
+int getWindex();
 void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *virt;
 
@@ -1352,6 +1408,9 @@ void render_node(struct X3D_Node *node) {
  //        	render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); 
 	//printf("change %d ichange %d \n",node->_change, node->_ichange);
 #endif
+
+
+
 	// leaf-node filtering (we still do the transform-children stack)
 	// if we are doing Viewpoints, and we don't have a Viewpoint, don't bother doing anything here *
 	//if (renderstate()->render_vp == VF_Viewpoint) { 
@@ -1404,6 +1463,23 @@ void render_node(struct X3D_Node *node) {
 		profile_end("proximity");
 		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,virt);
 	}
+	if(p->renderstate.render_geom && ((node->_renderFlags & VF_USE) == VF_USE)){
+		//picking sensor, transform sensor and generally any USE_NODE-USE_NODE scenario
+		//ideally we would come in here once per scenegraph USE per frame, even when stereo or quad views
+		//because we want to work in world coordinates (not view coordinates) so by the time
+		//we strip off the view matrix we would have duplicate entries with stereo
+		if(getWindex() == 0){
+			//just on first window of stereo or quad
+			//we don't do this in VF_Proximity because that pass doesn't go all the way to all geom nodes
+			//we could give it its own pass, but doing just the first window is a simple hack.
+			double modelviewMatrix[16];
+			//IF VIEW == 0
+			//GL_GET_MODELVIEWMATRIX
+			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+			//strip viewmatrix - will happen when we invert one of the USEUSE pair, and multiply
+			usehit_add(node,modelviewMatrix);
+		}
+	}
 	
 	if(p->renderstate.render_collision && virt->collision) {
 		DEBUG_RENDER("rs 2b\n");
@@ -1421,7 +1497,6 @@ void render_node(struct X3D_Node *node) {
 		profile_end("rend");
 		PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,virt);
 	}
-
 	if(p->renderstate.render_other && virt->other )
 	{
 #ifdef DJTRACK_PICKSENSORS
