@@ -1635,7 +1635,7 @@ const char *COMPONENTS[] = {
 	"Navigation",
 	"Networking",
 	"ParticleSystems",
-	"PickingSensor",
+	"Picking",
 	"PointDeviceSensor",
 	"Rendering",
 	"RigidBodyPhysics",
@@ -4577,6 +4577,7 @@ const int OFFSETS_LayoutLayer[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_LinePickSensor[] = {
+	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_LinePickSensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_LinePickSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intersectionType, (int) offsetof (struct X3D_LinePickSensor, intersectionType),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_LinePickSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5426,6 +5427,7 @@ const int OFFSETS_PointLight[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PointPickSensor[] = {
+	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_PointPickSensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES__bboxCenter, (int) offsetof (struct X3D_PointPickSensor, _bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__bboxSize, (int) offsetof (struct X3D_PointPickSensor, _bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__oldisActive, (int) offsetof (struct X3D_PointPickSensor, _oldisActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5574,6 +5576,7 @@ const int OFFSETS_PositionInterpolator2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PrimitivePickSensor[] = {
+	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_PrimitivePickSensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_PrimitivePickSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intersectionType, (int) offsetof (struct X3D_PrimitivePickSensor, intersectionType),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_PrimitivePickSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6457,6 +6460,7 @@ const int OFFSETS_VisibilitySensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VolumePickSensor[] = {
+	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_VolumePickSensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_VolumePickSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intersectionType, (int) offsetof (struct X3D_VolumePickSensor, intersectionType),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_VolumePickSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9066,6 +9070,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LinePickSensor : {
 			struct X3D_LinePickSensor * tmp2;
 			tmp2 = (struct X3D_LinePickSensor *) tmp;
+			tmp2->__oldEnabled = TRUE;
 			tmp2->enabled = FALSE;
 			tmp2->intersectionType = newASCIIString("BOUNDS");
 			tmp2->isActive = FALSE;
@@ -10203,6 +10208,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PointPickSensor : {
 			struct X3D_PointPickSensor * tmp2;
 			tmp2 = (struct X3D_PointPickSensor *) tmp;
+			tmp2->__oldEnabled = TRUE;
 			tmp2->_bboxCenter.c[0] = 0.0f;tmp2->_bboxCenter.c[1] = 0.0f;tmp2->_bboxCenter.c[2] = 0.0f;
 			tmp2->_bboxSize.c[0] = -1.0f;tmp2->_bboxSize.c[1] = -1.0f;tmp2->_bboxSize.c[2] = -1.0f;
 			tmp2->_oldisActive = FALSE;
@@ -10386,6 +10392,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PrimitivePickSensor : {
 			struct X3D_PrimitivePickSensor * tmp2;
 			tmp2 = (struct X3D_PrimitivePickSensor *) tmp;
+			tmp2->__oldEnabled = TRUE;
 			tmp2->enabled = FALSE;
 			tmp2->intersectionType = newASCIIString("BOUNDS");
 			tmp2->isActive = FALSE;
@@ -11505,6 +11512,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_VolumePickSensor : {
 			struct X3D_VolumePickSensor * tmp2;
 			tmp2 = (struct X3D_VolumePickSensor *) tmp;
+			tmp2->__oldEnabled = TRUE;
 			tmp2->enabled = FALSE;
 			tmp2->intersectionType = newASCIIString("BOUNDS");
 			tmp2->isActive = FALSE;
@@ -13351,6 +13359,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_LinePickSensor *tmp;
 			tmp = (struct X3D_LinePickSensor *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+		    }
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -14410,6 +14421,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," _nparents (int) %d\n",vectorSize(tmp->_parentVector)); /* DJTRACK_PICKSENSORS */
 			for (i=0; i<vectorSize(tmp->_parentVector); i++) { spacer fprintf (fp,"    %d: %p\n",i, vector_get(struct X3D_Node *, tmp->_parentVector,i)); }
 		    if(allFields) {
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," _oldpickTarget (MFNode):\n");
 			for (i=0; i<tmp->_oldpickTarget.n; i++) { dump_scene(fp,level+1,tmp->_oldpickTarget.p[i]); }
 		    }
@@ -14550,6 +14564,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_PrimitivePickSensor *tmp;
 			tmp = (struct X3D_PrimitivePickSensor *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+		    }
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
@@ -15619,6 +15636,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_VolumePickSensor *tmp;
 			tmp = (struct X3D_VolumePickSensor *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
+		    }
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 

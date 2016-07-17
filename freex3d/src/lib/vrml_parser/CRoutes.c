@@ -769,6 +769,10 @@ void add_first(struct X3D_Node * node) {
 		case NODE_ScalarDamper:			myp = do_ScalarDamperTick;		break;
 		case NODE_TexCoordChaser2D:		myp = do_TexCoordChaser2DTick;	break;
 		case NODE_TexCoordDamper2D:		myp = do_TexCoordDamper2DTick;	break;
+		case NODE_LinePickSensor:		myp = do_PickSensorTick;		break;
+		case NODE_PointPickSensor:		myp = do_PickSensorTick;		break;
+		case NODE_PrimitivePickSensor:	myp = do_PickSensorTick;		break;
+		case NODE_VolumePickSensor:		myp = do_PickSensorTick;		break;
 		default:
 			// printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype));
 			return; //not a clocktype node

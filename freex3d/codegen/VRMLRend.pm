@@ -887,7 +887,7 @@ our %ComponentC = map {($_=>1)} qw/
 	Networking
 	NURBS
 	ParticleSystems
-	PickingSensor
+	Picking
 	PointDeviceSensor
 	Shaders
 	Rendering

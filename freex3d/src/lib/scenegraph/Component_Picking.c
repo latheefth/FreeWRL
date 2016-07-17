@@ -50,6 +50,7 @@ X3D Picking Component
 #include "LinearAlgebra.h"
 #include "Component_Picking.h"
 #include "Children.h"
+#include "RenderFuncs.h"
 #ifdef DJTRACK_PICKSENSORS
 
 /* see specifications section 38. Picking Sensor Component */
@@ -576,3 +577,191 @@ void add_picksensor(struct X3D_Node * node) {}
 void remove_picksensor(struct X3D_Node * node) {}
 
 #endif // DJTRACK_PICKSENSORS
+
+int overlapMBBs(GLDOUBLE *MBBmin1, GLDOUBLE *MBBmax1, GLDOUBLE *MBBmin2, GLDOUBLE* MBBmax2);
+/*
+A. Q. Should we even bother to implement Picking component? Few others are:
+	http://www.web3d.org/wiki/index.php/Player_support_for_X3D_components
+	- Xj3D and Flux/Vivaty listed as supporting picking component
+	x problems running xj3d on win10 - doesn't run for dug9
+	x neither vivaty studio nor vivatyplayer have it, just something called PickGroup with enable field
+	x cobweb not listed, but on their site they don't mention Picking component
+	* dune has the nodes, 
+		x but doesn't seem to generate proper parent-child at design-time: 
+		- picksensor.pickingGeometry should be a geometry node
+		* but does load a scene designed elsewhere ie by hand in text editor
+
+B. New theory of operation for PickSensors (July 2016, dug9):
+1. like the new do_TransformSensor - all you need is do_PickSensorTick and VF_USE and usehit_ functions.
+	- picksensor and target nodes are flagged here with VF_USE
+	- then on next frame/tick the picksensor and targets are recovered here with usehit_ functions, including their modelview transform
+	- and all the work is done here in do_PickSensorTick
+2. we'll simplify assumptions:
+	- if target is geom, then can do BOUNDS or GEOMETRY intersection
+	- if target is 'chunk of scenegraph' ie Group, Transform or PickableGroup, then 
+		for now july 2016: we do only BOUNDS, 
+			- taking only the _extent of the (topmost) target node, 
+			- not delving/probing into children/descendants
+		future: do a special setup of render_node(node) and children recursion for picking that examines each descendant
+			- and/or over-ride rayhit (mouse picking) functions
+			- push and pop X3DPickable state according to X3DPickableGroup in the transform hierarchy
+	- ^^the pickingGeometry SFNode is not a USE reference, it has only this node as parent (or we'll ignore any other USE modelview matrix)
+3. what 'space' to work in, given 3 parts: PickSensor, pickingGeometry, pickTarget:
+	- transformsensor did its work in transformsensor node space (where the transformsensor was in scenegraph)
+		- so any evenouts were in transformsensor space
+	- in theory for picksensors we could do our work in 
+			a) world space (by taking view off modelview matrix, and doing one-way transforms local2world for all 3 parts), or 
+			b) pickTarget space (as we do with mouse picking, transforming the pickray on each transform stack push), or 
+			c) pickingGeometry space (we'll assume^^ this is the same space as d) picksensor)
+			d) pickSensor space (like transformSensor)
+		-each option would/could affect function design
+	- for now we'll do work in d) picksensor space, so 'closest' is easy to sort relative to 0,0,0
+		and that means transforming pickTarget to picksensor space 
+		and assuming^^ pickingGeometry is already in picksensor space
+*/
+void do_PickSensorTick(void *ptr){
+	//heavy borrowing from do_TransformSensor
+	int ishit,i,j;
+	usehit *mehit, *uhit;
+	struct X3D_Node *unode,*menode, *pnode;
+	struct Multi_Node *unodes;
+	//we'll use PrimitivePickSensor for the generic picksensor type 
+	// -the order of field definitions for all picksensors must be the same in Perl code generator VRMLNodes.pm
+	//  up to the point of per-type differences
+	struct X3D_PrimitivePickSensor *node = (struct X3D_PrimitivePickSensor *) ptr;
+	switch(node->_nodeType){
+		case NODE_LinePickSensor:
+		case NODE_PointPickSensor:
+		case NODE_PrimitivePickSensor:
+		case NODE_VolumePickSensor:
+		break;
+		default:
+			return; //not for me
+	}
+
+	// if not enabled, do nothing 
+	if (!node) return;
+	if (node->__oldEnabled != node->enabled) {
+		node->__oldEnabled = node->enabled;
+		MARK_EVENT(X3D_NODE(node),offsetof (struct X3D_PrimitivePickSensor, enabled));
+	}
+	// are we enabled? 
+	if (!node->enabled) return;
+
+	#ifdef SEVERBOSE
+	printf ("do_TransformSensorTick enabled\n");
+	#endif
+
+	//temp clear hit flag
+	ishit = 0;
+	mehit = NULL;
+	unodes = &node->pickTarget;
+	menode = (struct X3D_Node*)node; //upcaste
+	pnode = node->pickingGeometry;
+	if(unodes->n && pnode){
+		//check all USE-USE combinations of this node and pickTargets
+		//find next this
+		while(mehit = usehit_next(menode,mehit)){
+			int iret;
+			double meinv[16],memin[3],memax[3];
+			float emin[3], emax[3], halfsize[3];
+
+			matinverseAFFINE(meinv,mehit->mvm);
+			//iret = __gluInvertMatrixd( mehit->mvm, meinv);
+
+			if(0){
+				//check inverse
+				double ident[16];
+				int j;
+				matmultiplyAFFINE(ident,meinv,mehit->mvm);
+
+				printf("inverse check do_TransformSensor\n");
+				for(i=0;i<4;i++){
+					for(j=0;j<4;j++) printf("%lf ",ident[i*3+j]);
+					printf("\n");
+				}
+				printf("\n");
+			}
+			//update extent on me, in case center or size has changed
+			for(i=0;i<3;i++)
+			{
+				emin[i] = pnode->_extent[i*2 + 1];
+				emax[i] = pnode->_extent[i*2];
+			}
+			for(i=0;i<3;i++)
+			{
+				node->_extent[i*2 + 1] = emin[i];
+				node->_extent[i*2]     = emax[i];
+			}
+			for(i=0;i<3;i++)
+			{
+				memin[i] = node->_extent[i*2 + 1];
+				memax[i] = node->_extent[i*2];
+			}
+
+			//find next target
+			uhit = NULL;
+			for(j=0;j<unodes->n;j++){
+				unode = unodes->p[j];
+				while(uhit = usehit_next(unode,uhit)){
+					//see if they intersect, if so do something about it
+					//-prepare matrixTarget2this
+					double u2me[16], umin[3],umax[3],uumin[3],uumax[3];
+					matmultiplyAFFINE(u2me,uhit->mvm,meinv);
+					//-transform target AABB/MBB from target space to this space
+					for(i=0;i<3;i++)
+					{
+						umin[i] = unode->_extent[i*2 + 1];
+						umax[i] = unode->_extent[i*2];
+					}
+					transformMBB(uumin,uumax,u2me,umin,umax); 
+					//-see if AABB intersect
+					if( overlapMBBs(memin, memax, uumin, uumax) ){
+						
+						//-if so take further action:
+						//(not implemented july 17, 2016 - end of day, no time left, 
+						// ..but it does get in here, showing the above plumbing is working)
+						//picknode-specific intersections with various targetnode types
+						// - accumulate list of pickedGeometry (all picksensor types)
+						// - accumulate list of pickpoints (line and point)
+						// - accumulate list of normal (line)
+						// - accumulate list of texturecoord (line)
+						//if further testing shows they intersect, then ishit++:
+						ishit++;
+					} //if overlap
+				}  //while uhit
+			} //for unodes
+		} //while mehit
+		if(ishit){
+			if (!node->isActive) {
+				#ifdef SEVERBOSE
+				printf ("transformensor - now active\n");
+				#endif
+
+				node->isActive = 1;
+				MARK_EVENT (ptr, offsetof(struct X3D_PrimitivePickSensor, isActive));
+			}
+			//sort by sortOrder
+			//MARK_EVENT - pickedGeometry (all)
+			//MARK_EVENT - pickedPoint (line and point)
+			//MARK_EVENT - pickedNormal (line)
+			//MARK_EVENT - pickedTextureCoordinate (line)
+		}
+		if(!ishit){
+			if (node->isActive) {
+				#ifdef SEVERBOSE
+				printf ("transformsensor - going inactive\n");
+				#endif
+
+				node->isActive = 0;
+				MARK_EVENT (ptr, offsetof(struct X3D_PrimitivePickSensor, isActive));
+			}
+		}
+
+		//ask this node, and target nodes to save their modelviewmatrix for each USE, 
+		//..when visited, on the upcoming frame
+		for(i=0;i<unodes->n;i++)
+			unodes->p[i]->_renderFlags |= VF_USE;
+	} //if targets
+	node->_renderFlags |= VF_USE;
+}
