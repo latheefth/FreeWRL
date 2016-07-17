@@ -611,7 +611,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	   segment The LENGTH of each segment (good question) comes from the
 	   vertexCount parameter of the LineSet node */
 	FREE_IF_NZ (node->__vertIndx);
-	node->__vertIndx = MALLOC (ushort **, sizeof(ushort)*(nvertexc));
+	node->__vertIndx = MALLOC (ushort **, sizeof(ushort*)*(nvertexc));
 	c = 0;
 	pt = (GLushort *)node->__vertArr;
 	vpt = (ushort**) node->__vertIndx;

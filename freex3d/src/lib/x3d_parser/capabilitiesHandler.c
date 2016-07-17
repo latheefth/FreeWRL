@@ -42,7 +42,7 @@
 static const int capabilities[] = {
 	COM_Geometry2D,	2, 		/* May 12, 2009 */
 	COM_Rendering,	4, 		/* May 12, 2009 */
-	COM_PickingSensor,	0, 	/* May 12, 2009 */
+	COM_Picking,	0, 	/* May 12, 2009 */
 	COM_DIS,	0, 		/* May 12, 2009 */
 	COM_EnvironmentalSensor,	3, /* May 12, 2009 */
 	COM_Text,	1, 		/* May 12, 2009 */
@@ -133,7 +133,7 @@ static const int FullProfile[] = {
 	COM_Layering,			1,
 	COM_Layout,			2,
 	COM_RigidBodyPhysics,		2,
-	COM_PickingSensor,		3,
+	COM_Picking,			3,
 	COM_Followers,			1,
 	COM_ParticleSystems,		3,
 	INT_ID_UNDEFINED, 			INT_ID_UNDEFINED};

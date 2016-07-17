@@ -3060,17 +3060,22 @@ our %Nodes = (
 		pickTarget => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isActive  => ["SFBool", "FALSE","outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		pickedGeometry => ["MFNode", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		pickedPoint => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		set_intersectionType => ["SFString", undef, "inputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		intersectionType => ["SFString","BOUNDS","initializeOnly", "(SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		set_sortOrder => ["SFString", undef, "inputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		sortOrder => ["SFString","CLOSEST","initializeOnly", "(SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# These fields are used for the info.
+		__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
+		pickedPoint => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		
+		#DJTRACK
 		_oldisActive  => ["SFBool", "FALSE","outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_oldpickTarget => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_oldpickedGeometry => ["MFNode", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_oldpickedPoint => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		set_intersectionType => ["SFString", undef, "inputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		set_sortOrder => ["SFString", undef, "inputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		
 	],"X3DSensorNode"),
 
 	"LinePickSensor" => new VRML::NodeType("LinePickSensor", [
@@ -3081,11 +3086,13 @@ our %Nodes = (
 		pickTarget => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isActive  => ["SFBool", "FALSE","outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		pickedGeometry => ["MFNode", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		pickedNormal => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		pickedPoint => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		pickedTextureCoordinate => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		intersectionType => ["SFString","BOUNDS","initializeOnly", "(SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		sortOrder => ["SFString","CLOSEST","initializeOnly", "(SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# These fields are used for the info.
+		__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
+		pickedPoint => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		pickedNormal => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		pickedTextureCoordinate => ["MFVec3f", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	],"X3DSensorNode"),
 	
 	#38.4.4 PrimitivePickSensor
@@ -3099,6 +3106,8 @@ our %Nodes = (
 		pickedGeometry => ["MFNode", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		intersectionType => ["SFString","BOUNDS","initializeOnly", "(SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		sortOrder => ["SFString","CLOSEST","initializeOnly", "(SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# These fields are used for the info.
+		__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
 	],"X3DSensorNode"),
 	
 	
@@ -3113,6 +3122,8 @@ our %Nodes = (
 		pickedGeometry => ["MFNode", [], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		intersectionType => ["SFString","BOUNDS","initializeOnly", "(SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		sortOrder => ["SFString","CLOSEST","initializeOnly", "(SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		# These fields are used for the info.
+		__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
 	],"X3DSensorNode"),
 	
 	###################################################################################

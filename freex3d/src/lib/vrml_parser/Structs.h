@@ -1931,7 +1931,7 @@ extern const int COMPONENTS_COUNT;
 #define COM_Navigation	19
 #define COM_Networking	20
 #define COM_ParticleSystems	21
-#define COM_PickingSensor	22
+#define COM_Picking	22
 #define COM_PointDeviceSensor	23
 #define COM_Rendering	24
 #define COM_RigidBodyPhysics	25
@@ -5250,11 +5250,12 @@ struct X3D_LinePickSensor {
 	struct Multi_Node pickTarget;
 	int isActive;
 	struct Multi_Node pickedGeometry;
-	struct Multi_Vec3f pickedNormal;
-	struct Multi_Vec3f pickedPoint;
-	struct Multi_Vec3f pickedTextureCoordinate;
 	struct Uni_String *intersectionType;
 	struct Uni_String *sortOrder;
+	int __oldEnabled;
+	struct Multi_Vec3f pickedPoint;
+	struct Multi_Vec3f pickedNormal;
+	struct Multi_Vec3f pickedTextureCoordinate;
 };
 extern struct X3D_Virt virt_LinePickSensor;
 /***********************/
@@ -7404,17 +7405,18 @@ struct X3D_PointPickSensor {
 	struct Multi_Node pickTarget;
 	int isActive;
 	struct Multi_Node pickedGeometry;
-	struct Multi_Vec3f pickedPoint;
-	struct Uni_String *set_intersectionType;
 	struct Uni_String *intersectionType;
-	struct Uni_String *set_sortOrder;
 	struct Uni_String *sortOrder;
+	int __oldEnabled;
+	struct Multi_Vec3f pickedPoint;
 	int _oldisActive;
 	struct Multi_Node _oldpickTarget;
 	struct Multi_Node _oldpickedGeometry;
 	struct Multi_Vec3f _oldpickedPoint;
 	struct SFVec3f _bboxCenter;
 	struct SFVec3f _bboxSize;
+	struct Uni_String *set_intersectionType;
+	struct Uni_String *set_sortOrder;
 };
 extern struct X3D_Virt virt_PointPickSensor;
 /***********************/
@@ -7719,6 +7721,7 @@ struct X3D_PrimitivePickSensor {
 	struct Multi_Node pickedGeometry;
 	struct Uni_String *intersectionType;
 	struct Uni_String *sortOrder;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_PrimitivePickSensor;
 /***********************/
@@ -9457,6 +9460,7 @@ struct X3D_VolumePickSensor {
 	struct Multi_Node pickedGeometry;
 	struct Uni_String *intersectionType;
 	struct Uni_String *sortOrder;
+	int __oldEnabled;
 };
 extern struct X3D_Virt virt_VolumePickSensor;
 /***********************/
