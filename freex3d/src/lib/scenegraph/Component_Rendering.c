@@ -625,3 +625,58 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	node->__segCount = nvertexc;
 }
 
+/* ClipPlane
+	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#ClipPlanes
+	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#ClipPlane
+	GLES2 supports only frustum clipplane. For user clipplanes:
+	https://www.khronos.org/registry/gles/specs/2.0/es_cm_spec_2.0.25.pdf
+	"Userclipping planes can be emulated by dot product clipping plane and vertex, and threshold result in shader"
+	http://mrkaktus.org/opengl-clip-planes-explained/
+	- shows different gl versions and different support technique / mechanism, desktop different than ES2 different than ES3
+	A few links here to clipping in shader es 2:
+	http://stackoverflow.com/questions/7408855/clipping-planes-in-opengl-es-2-0
+	https://www.opengl.org/discussion_boards/showthread.php/171914-How-to-activate-clip-planes-via-shader
+
+	Implementation Suggestions:
+	A. render_hier plubming
+	11.2.4.4 > scoping of clipplanes > 
+	- their transform siblings are affected and children below
+		- (dug9: maybe it could/should have been a grouping node, with its own children, like collision?)
+		- to implement, you would use a stack, and push going down, pop coming back
+		- need to flag parent like other sibling-affectors - see OpenGL_UTils.c VF_Sensitive
+		- in render_node(node) on render_geom pass (doesn't make sense on any other pass?)
+			-on prep-side of children, test for VF_ClipPlane on parent, go through children to find ClipPlane, push clipplane
+			if node & VF_ClipPlane
+				ifound = push_child_clipplane(node);
+				if( ifound) pushed_clipplane = TRUE;
+			-on fin side of children, if pushed_clipplane pop_child_clipplane
+	B. shader plumbing
+			https://www.opengl.org/discussion_boards/showthread.php/171914-How-to-activate-clip-planes-via-shader
+			in shader:
+			uniform vec4 ClipPlane[MaxClipPlanes];
+			...
+			for ( int i=0; i<MaxClipPlanes; i++ )
+			{
+			   gl_ClipDistance[i] = dot( ClipPlane[i], vec4(MCvertex,1.0));
+			}
+*/
+
+int push_child_clipplane(struct X3D_Node *parent){
+	//search for child clipplane
+	//if found and enabled
+	//	 push on stack like push_sensor() 
+	//	somehow add to end of list of clipplanes available to shader (but how precisely?)
+	//  	https://www.opengl.org/discussion_boards/showthread.php/171914-How-to-activate-clip-planes-via-shader
+	//		m_pProgram->SetUniform("ClipPlane[0]", vect, 4, 1);  
+	//		//except construct the name string: k = clipplanestac.n-1; "ClipPlane[%1d]",k
+	//		glEnable(GL_CLIP_DISTANCE0); //except DISTANCEk ?
+	//		might need: to set a flag indicating which shader to use?
+	//  return 1
+	//else 
+	//  return 0
+}
+void pop_child_clipplane(){
+	//pop clipplane
+	//  somehow remove the last clipplane added
+	//  glDisable(GL_CLIP_DISTANCEk)
+}
