@@ -97,45 +97,29 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 		vs. a: storage is just the decompression sequence
 	d) combo of b) and c): separate thread prepares small set of raw frames, 
 		do_MovieTextureTick() picks one or asks for one and opengl-izes it
-	II. Support 
+	II. Support streaming?
 		a) Continuous Streaming video from url or 
 		b) just finite local file
 		SIMPLIFYING DECISION: b) finite local file
+	III. Separate thread for decoding / interpolating frames?
+		a) or in rendering thread (any throttling problems?)
+		b) new separate thread (but what about mipmapping and opengizing interpolated frame?)
+		c) (somehow) use texture thread which is currently parked/unused once images are mipmapped 
+			- but currently triggered during image file loading process
+			- could set a flag to an earlier state and re-submit?
+		SIMPLIFYING DECISION: depends on implementation ie what libs you get and how easy it is
 
-
-	Q1. which threads and structs should be working on MovieTexture?
+	A few facts / details:
 	input media: MPEG1 contains Audio and/or Video
 	Nodes: which we want to use to support SoundSource and/or Texture2D
 	Texture2D: shows one frame at a time in opengl
 	SoundSource: used as / like an AudioClip for Sound node. AudioClip has its own private thread
-	If using a platform library to extract frames, it would likely have its own thread
-	if using a berkley derivitive, we could add a thread
 	It doesn't make sense to load a movietexture 2x if using for both texture and sound. 
 	- you would DEF for one use, and USE for the other
 	- then when you play, you play both USEs at the same time so audio and video are synced
 	Sound is handled per-node.
 	Textures have an intermediary texturetableindexstruct
-		- why separate texturetable:
-			H0: original arbitrary perl arrays design
-			H1: easier garbage collection of opengl structs 
-			H2: easier to maintain separate mipmapping thread away from Nodes rendering thread
-			H3: .jpg/.png/.gif loaded only once even if requested multiple times in scenefile 
-				- DISCONFIRMED: in freewrl Texture 1:1 TextureTableIndexStruct 1:1 resitem 1:1 url
-	Q. if MovieTexture is loaded generically, then how does it sync up with TextureTableIndexStruct?
-		we need :
-			TextureTableEntry 1:1 Texture2D 0,1:1 MovieTexture
-			SoundSource 0,1: MovieTexture
-		so if MovieTexture is DEFd as SoundSource first, it still gets a textureTable so its ready for a USE as Texture2D
-			option: give it a texturetableindexstruct even if there's nothing to fill in
-			problem: workflow is currently request_texture -> tti -> request load -> report back to texture thread to finish tti
-			problem: once a frame is extracted, all the normal texture2D stuff applies, should be like imageTexture
-				- so it still needs mipmapping, opengl texture etc except once per rendered frame
-	Q. what about a separate thread for interpolating frames at frame rate? Options:
-		a) in rendering thread (any throttling problems?)
-		b) new separate thread (but what about mipmapping and opengizing interpolated frame?)
-		c) (somehow) use texture thread which is currently parked/unused once images are mipmapped 
-			- but currently triggered during image file loading process
-			- could set a flag to an earlier state and re-submit?
+	
 	Proposed freewrl plumbing:
 
 	1. for texture rendering, MovieTexture works like ImageTexture on each render_hier frame, with a single opengl texture number
@@ -151,6 +135,7 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 	do_MovieTextureTick()
 	loadstatus_AudioClip(struct X3D_AudioClip *node) - loadsensor can check if file loaded
 	locateAudioSource (struct X3D_AudioClip *node) - will work for MovieTexture
+	search code for MovieTexture, resm_movie to see all hits
 */
 #include <config.h>
 #include <system.h>
