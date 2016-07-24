@@ -1235,6 +1235,8 @@ int file2blob(void *resp){
 		printf("FREEWRL LOADING IMAGERY: %s", res->actual_file);
 #endif		
 		retval = imagery_load(res); //FILE2TEXBLOB
+	}else if(res->media_type == resm_movie){
+		retval = movie_load(res);
 	}else{
 		retval = resource_load(res);  //FILE2BLOB
 	}

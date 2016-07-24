@@ -238,9 +238,10 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 /* rewrite MovieTexture loading - for now, just do a blank texture. See:
 	HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 define */
-static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
-{
-}
+//static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
+//{
+//	printf("in texture_load_from_MovieTexture\n");
+//}
 
 #if defined(_ANDROID) || defined(ANDROIDNDK)
 // sometimes (usually?) we have to flip an image vertically. 
@@ -1266,6 +1267,7 @@ ConsoleMessage(me);}
 static bool texture_process_entry(textureTableIndexStruct_s *entry)
 {
 	resource_item_t *res;
+	resource_type_t restype;
 	struct Multi_String *url;
 	resource_item_t *parentPath = NULL;
 
@@ -1297,21 +1299,27 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	case NODE_ImageTexture:
 		url = & (((struct X3D_ImageTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_ImageTexture *)entry->scenegraphNode)->_parentResource);
+		restype = resm_image;
 		break;
 
 	case NODE_MovieTexture:
-		texture_load_from_MovieTexture(entry);
-		entry->status = TEX_NOTFOUND; //NOT_IMPLEMENTED
-		return TRUE;
 #ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_MovieTexture *)entry->scenegraphNode)->_parentResource);
+		entry->status = TEX_NEEDSBINDING; //as with pixeltexture, just do the move_to_opengl part, we load from file elsewhere
+		restype = resm_movie;
+		return TRUE;  //like pixeltexture - assume the pixels are delivered magically, not from file, so just return
 		break;
+#else  // HAVE_TO_REIMPLEMENT_MOVIETEXTURES
+		//texture_load_from_MovieTexture(entry);
+		entry->status = TEX_NOTFOUND; //NOT_IMPLEMENTED
+		return TRUE;
 #endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 
 	case NODE_ImageCubeMapTexture:
 		url = & (((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->_parentResource);
+		restype = resm_image;
 		break;
 
 	default: 
@@ -1325,7 +1333,7 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 	//TEX_LOADING
 	res = resource_create_multi(url);
 	res->type=rest_multi;
-	res->media_type = resm_image; /* quick hack */
+	res->media_type = restype; //resm_image; /* quick hack */
 	resource_identify(parentPath, res);
 	res->whereToPlaceData = entry;
 	res->textureNumber = entry->textureNumber;

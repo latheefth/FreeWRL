@@ -363,6 +363,9 @@
     <ClCompile Include="..\..\src\lib\ui\freewrl_wingding_ttf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\mpeg\berkleybrown\MPEG_Utils_berkleybrown.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h">

@@ -248,5 +248,6 @@ void pushInputResource(resource_item_t *url);
 resource_item_t *getInputResource();
 
 bool imagery_load(resource_item_t *res);
+bool movie_load(resource_item_t *res);
 
 #endif /* __LIBFREEWRL_RESOURCES_H__ */

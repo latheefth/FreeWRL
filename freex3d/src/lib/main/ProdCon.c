@@ -1368,11 +1368,19 @@ static bool parser_process_res(s_list_t *item)
 			}
 			break;
 		case resm_image:
-		case resm_movie:
 			/* Texture file has been loaded into memory
 				the node could be updated ... i.e. texture created */
 			res->complete = TRUE; /* small hack */
 			process_res_texitem(res);
+			break;
+		case resm_movie:
+			res->complete = TRUE;
+			if(process_res_movie(res)){
+				res->status = ress_parsed;
+			}else{
+				retval = FALSE;
+				res->status = ress_failed;
+			}
 			break;
 		case resm_audio:
 			res->complete = TRUE;
