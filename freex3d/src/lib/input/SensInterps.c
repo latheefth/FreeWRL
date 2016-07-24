@@ -1056,19 +1056,22 @@ void do_AudioTick(void *ptr) {
 }
 
 
-/* Audio MovieTexture code */
-/* void do_MovieTextureTick(struct X3D_MovieTexture *node) {*/
+
+/* Similar to AudioClip, this is the Play, Pause, Stop, Resume code
+*/
 void do_MovieTextureTick( void *ptr) {
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_MovieTexture *node = (struct X3D_MovieTexture *)ptr;
+	struct X3D_AudioClip *anode;
 	int 	oldstatus;
 	float 	frac;		/* which texture to display */
-	int 	highest,lowest;	/* selector variables		*/
+	//int 	highest,lowest;	/* selector variables		*/
 	double myTime;
 	double 	speed;
 	double	duration;
-
 	int tmpTrunc; 		/* used for timing for textures */
+
+	anode = (struct X3D_AudioClip *)node;
+	do_AudioTick(ptr);  //does play, pause, active, inactive part
 
 	/* can we possibly have started yet? */
 	if (!node) return;
@@ -1076,29 +1079,19 @@ void do_MovieTextureTick( void *ptr) {
 		return;
 	}
 
-	oldstatus = node->isActive;
-	getMovieTextureOpenGLFrames(&highest,&lowest,node->__textureTableIndex);
-	duration = (highest - lowest)/30.0;
+//	duration = (highest - lowest)/30.0;
+	//highest = node->__highest;
+	//lowest = node->__lowest;
+	duration = return_Duration(anode);
 	speed = node->speed;
 
-
-	/* call common time sensor routine */
-	do_active_inactive (
-		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,duration,speed);
-
-
-	/* what we do now depends on whether we are active or not */
-	if (oldstatus != node->isActive) {
-		MARK_EVENT (ptr, offsetof(struct X3D_MovieTexture, isActive));
-	}
 
 	if(node->isActive) {
 		frac = node->__ctex;
 
 		/* sanity check - avoids divide by zero problems below */
-		if (lowest >= highest) {
-			lowest = highest-1;
+		if (node->__lowest >= node->__highest) {
+			node->__lowest = node->__highest-1;
 		}
 		/* calculate what fraction we should be */
  		myTime = (TickTime() - node->startTime) * speed/duration;
@@ -1116,25 +1109,31 @@ void do_MovieTextureTick( void *ptr) {
 
 		/* frac will tell us what texture frame we should apply... */
 		/* code changed by Alberto Dubuc to compile on Solaris 8 */
-		tmpTrunc = (int) (frac*(highest-lowest+1)+lowest);
+		tmpTrunc = (int) (frac*(node->__highest - node->__lowest+1)+node->__lowest);
 		frac = (float) tmpTrunc;
 
 		/* verify parameters */
-		if (frac < lowest){
-			frac = lowest;
+		if (frac < node->__lowest){
+			frac = node->__lowest;
 		}
-		if (frac > highest){
-			frac = highest;
+		if (frac > node->__highest){
+			frac = node->__highest;
 		}
 
 		/* if (node->__ctex != frac) */
 		if (! APPROX(node->__ctex, frac)) {
 			node->__ctex = (int)frac;
 			/* force a change to re-render this node */
-			update_node(X3D_NODE(node));
+			//update_node(X3D_NODE(node));
+			//dug9 july 2016: 
+			//  perhaps a function that will take the raw frame and 
+			//  just update the mipmap and opengl texture here, or tell separate mpeg thread to do it,
+			//  without making a new opengl texture
+			//  so that the rendering pass just sees it as a stable texture
+			//  If worried about mpeg thread racing with rendering thread when replacing texture,
+			//  perhaps can use 2 textures and mpeg thread can toggle texture number with atomic op after update
 		}
 	}
-#endif /*HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 }
 
 

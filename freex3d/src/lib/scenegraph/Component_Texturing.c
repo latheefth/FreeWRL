@@ -56,21 +56,12 @@ void render_ImageTexture (struct X3D_ImageTexture *node) {
 void render_MultiTexture (struct X3D_MultiTexture *node) {
 	loadMultiTexture(node);
 }
-
+void render_AudioClip(struct X3D_AudioClip * node);
 void render_MovieTexture (struct X3D_MovieTexture *node) {
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-	/* really simple, the texture number is calculated, then simply sent here.
-	   The boundTextureStack field is sent, and, made current */
-
-	/*  if this is attached to a Sound node, tell it...*/
-	sound_from_audioclip = FALSE;
-
+	//july 2016 movietexture fields put in same order as audioclip, so can up-caste and delegate
+	struct X3D_AudioClip *anode = (struct X3D_AudioClip*)node;
+	render_AudioClip(anode); //just checks if loaded, schedules if not
 	loadTextureNode(X3D_NODE(node),NULL);
-	gglobal()->RenderFuncs.boundTextureStack[gglobal()->RenderFuncs.textureStackTop] = node->__ctex;
-	/* not multitexture, should have saved to boundTextureStack[0] */
-#else /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
-	loadTextureNode(X3D_NODE(node),NULL);
-#endif
-	
-	gglobal()->RenderFuncs.textureStackTop=1;
+	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+
 }

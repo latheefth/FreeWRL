@@ -382,6 +382,7 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_ParticleSystems.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_RigidBodyPhysics.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\VeraMono_ttf.c" />
+    <ClCompile Include="..\..\..\..\mpeg\berkleybrown\MPEG_Utils_berkleybrown.c" />
     <ClCompile Include="..\..\src\lib\ui\freewrl_wingding_ttf.c" />
   </ItemGroup>
   <ItemGroup>

@@ -432,7 +432,8 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
         struct X3D_Node *tex;
         
         POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->texture,tex);
-        if ((tex->_nodeType == NODE_ImageTexture) ||
+        if ((tex->_nodeType == NODE_ImageTexture) || 
+			(tex->_nodeType == NODE_MovieTexture) || 
             (tex->_nodeType == NODE_PixelTexture)){
 			retval |= ONE_TEX_APPEARANCE_SHADER;
 		} else if (tex->_nodeType == NODE_MultiTexture) {

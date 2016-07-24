@@ -1735,6 +1735,11 @@ void *returnInterpolatorPointer (int nodeType) {
 		case NODE_PositionInterpolator: do_interp = do_PositionInterpolator; break;
 		case NODE_CoordinateInterpolator: do_interp = do_OintCoord; break;
 		case NODE_NormalInterpolator: do_interp = do_OintNormal; break;
+		case NODE_EaseInEaseOut: do_interp = do_EaseInEaseOut; break;
+		case NODE_SplinePositionInterpolator: do_interp = do_SplinePositionInterpolator; break;
+		case NODE_SplinePositionInterpolator2D: do_interp = do_SplinePositionInterpolator2D; break;
+		case NODE_SplineScalarInterpolator: do_interp = do_SplineScalarInterpolator; break;
+		case NODE_SquadOrientationInterpolator: do_SquadOrientationInterpolator; break;
 		case NODE_GeoPositionInterpolator: do_interp = do_GeoPositionInterpolator; break;
 		case NODE_NurbsPositionInterpolator: do_interp = do_NurbsPositionInterpolator; break;
 		case NODE_NurbsOrientationInterpolator: do_interp = do_NurbsPositionInterpolator; break;

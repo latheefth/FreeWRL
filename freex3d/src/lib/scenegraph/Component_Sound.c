@@ -438,7 +438,10 @@ void locateAudioSource (struct X3D_AudioClip *node) {
 			break;
 		} else {
 			res = resource_create_multi(&(node->url));
-			res->media_type = resm_audio;
+			if(node->_nodeType == NODE_MovieTexture)
+				res->media_type = resm_movie;
+			else //if(node->_nodeType == NODE_AudioClip)
+				res->media_type = resm_audio;
 			node->__loadstatus = LOAD_REQUEST_RESOURCE;
 			node->__loadResource = res;
 		}
@@ -582,7 +585,9 @@ void render_Sound (struct X3D_Sound *node) {
 		acp = (struct X3D_AudioClip *) tmpN;
 		sound_from_audioclip = TRUE;
 	}else if (tmpN->_nodeType == NODE_MovieTexture){
-		mcp = (struct X3D_MovieTexture *) tmpN;
+		//mcp = (struct X3D_MovieTexture *) tmpN;
+		//july 2016 ordered fields in MovieTexture to mach AudioClip, can up-caste
+		acp = (struct X3D_AudioClip *) tmpN;
 	} else {
 		ConsoleMessage ("Sound node- source type of %s invalid",stringNodeType(tmpN->_nodeType));
 		node->source = NULL; /* stop messages from scrolling forever */

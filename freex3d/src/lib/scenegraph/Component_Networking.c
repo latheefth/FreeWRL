@@ -299,9 +299,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	int nowLoading;
 	int nowFinished;
 	struct X3D_Node *cnode;
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_MovieTexture *mnode;
-#endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 	
 	/* if not enabled, do nothing */
 	if (!node) return;
@@ -355,23 +353,6 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 				}
 			}
 			break;
-
-		case NODE_MovieTexture:
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-			{
-				mnode = (struct X3D_MovieTexture *) cnode; /* change type to MovieTexture */
-				/* printf ("opengl tex is %d\n",mnode->__texture0_); */
-				/* is this texture thought of yet? */
-				if (mnode->__texture0_ > 0) {
-					nowLoading++;
-					/* is it finished loading? */
-					if (fwl_isTextureLoaded(mnode->__texture0_)) nowFinished ++;
-				}
-			}
-#endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
-				
-			break;
-
 		case NODE_Inline:
 			{
 				struct X3D_Inline *inode;
@@ -411,6 +392,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 			}
 
 			break;
+		case NODE_MovieTexture: //july 2016 - ordered fields in movietexture to match audioclip
 		case NODE_AudioClip:
 			{
 				int istate;

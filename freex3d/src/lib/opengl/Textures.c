@@ -778,16 +778,20 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	switch (node->_nodeType) {
 
 		case NODE_MovieTexture: {
-	    		releaseTexture(node); 
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-	    		mym = (struct X3D_MovieTexture *)node;
-	    		/*  did the URL's change? we can't test for _change here, because
-				movie running will change it, so we look at the urls. */
-			    if ((mym->url.p) != (mym->__oldurl.p)) {
-				releaseTexture(node); 
-				mym->__oldurl.p = mym->url.p;
-			    }
-#endif
+	    	releaseTexture(node); 
+//#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
+//			{
+//				
+//	    		struct X3D_MovieTexture *mym = (struct X3D_MovieTexture *)node;
+//	    		// did the URL's change? we can't test for _change here, because
+//				// movie running will change it, so we look at the urls. 
+//				//if ((mym->url.p) != (mym->__oldurl.p)) {
+//				//	releaseTexture(node); 
+//				//	mym->__oldurl.p = mym->url.p;
+//				//}
+//				
+//			}
+//#endif
 		}
 		break;
 
@@ -1500,28 +1504,16 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 
 //printf ("last_texture_type = TEXTURE_NO_ALPHA now\n"); last_texture_type=TEXTURE_NO_ALPHA;
 	
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-			if (myTableIndex->nodeType != NODE_MovieTexture) {
-#endif
-				if (myTableIndex->OpenGLTexture == TEXTURE_INVALID) {
+			if (myTableIndex->OpenGLTexture == TEXTURE_INVALID) {
 	
-					DEBUG_TEX("no openGLtexture here status %s\n", texst(myTableIndex->status));
-					return;
-				}
-	
-				tg->RenderFuncs.boundTextureStack[tg->RenderFuncs.textureStackTop] = myTableIndex->OpenGLTexture;
-                //printf ("new_bind, boundTextureStack[%d] set to %d\n",tg->RenderFuncs.textureStackTop,myTableIndex->OpenGLTexture);
-                
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-			} else {
-				boundTextureStack[textureStackTop] = 
-					((struct X3D_MovieTexture *)myTableIndex->scenegraphNode)->__ctex;
-                note that scenegraphNode might be killed; should checkNode for it.
-                    
-                    
+				DEBUG_TEX("no openGLtexture here status %s\n", texst(myTableIndex->status));
+				return;
 			}
-#endif
 	
+			tg->RenderFuncs.boundTextureStack[tg->RenderFuncs.textureStackTop] = myTableIndex->OpenGLTexture;
+            //printf ("new_bind, boundTextureStack[%d] set to %d\n",tg->RenderFuncs.textureStackTop,myTableIndex->OpenGLTexture);
+                
+
 			/* save the texture params for when we go through the MultiTexture stack. Non
 			   MultiTextures should have this textureStackTop as 0 */
 			 
@@ -1540,51 +1532,4 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	}
 }
 
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-/* FIXME: removed old "really load functions" ... needs to implement loading
-          of movie textures.
-*/
-static void __reallyloadMovieTexture () {
 
-        int x,y,depth,frameCount;
-        void *ptr;
-
-        ptr=NULL;
-
-        mpg_main(loadThisTexture->filename, &x,&y,&depth,&frameCount,&ptr);
-
-	#ifdef TEXVERBOSE
-	printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
-	#endif
-
-	/* store_tex_info(loadThisTexture, depth, x, y, ptr,depth==4); */
-
-	/* and, manually put the frameCount in. */
-	loadThisTexture->frames = frameCount;
-}
-
-void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
-        textureTableIndexStruct_s *ti;
-
-/*        if (myIndex  == 0) {
-		printf ("getMovieTextureOpenGLFrames, myIndex is ZERL\n");
-		*highest=0; *lowest=0;
-	} else {
-*/
-	*highest=0; *lowest=0;
-	
-	#ifdef TEXVERBOSE
-	printf ("in getMovieTextureOpenGLFrames, calling getTableIndex\n");
-	#endif
-
-       	ti = getTableIndex(myIndex);
-
-/* 	if (ti->frames>0) { */
-		if (ti->OpenGLTexture != TEXTURE_INVALID) {
-			*lowest = ti->OpenGLTexture;
-			*highest = 0;
-/* 			*highest = ti->OpenGLTexture[(ti->frames) -1]; */
-		}
-/* 	} */
-}
-#endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */

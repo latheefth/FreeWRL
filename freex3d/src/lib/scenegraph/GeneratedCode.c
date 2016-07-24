@@ -94,6 +94,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__colours",
 	"__coneTriangles",
 	"__coneVBO",
+	"__ctex",
 	"__ctflag",
 	"__cylinderTriangles",
 	"__cylinderVBO",
@@ -107,6 +108,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__finishedloading",
 	"__frontTexture",
 	"__geoSystem",
+	"__highest",
 	"__hit",
 	"__inRange",
 	"__inittime",
@@ -118,8 +120,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__loadResource",
 	"__loading",
 	"__loadstatus",
-	"__localFileName",
 	"__localOrient",
+	"__lowest",
 	"__movedCoords",
 	"__movedOrientation",
 	"__movedPosition",
@@ -3225,7 +3227,6 @@ const int OFFSETS_AudioClip[] = {
 	(int) FIELDNAMES___inittime, (int) offsetof (struct X3D_AudioClip, __inittime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_AudioClip, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_AudioClip, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES___localFileName, (int) offsetof (struct X3D_AudioClip, __localFileName),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___sourceNumber, (int) offsetof (struct X3D_AudioClip, __sourceNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_AudioClip, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_AudioClip, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5036,6 +5037,13 @@ const int OFFSETS_MotorJoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_MovieTexture[] = {
+	(int) FIELDNAMES___ctex, (int) offsetof (struct X3D_MovieTexture, __ctex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___highest, (int) offsetof (struct X3D_MovieTexture, __highest),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___inittime, (int) offsetof (struct X3D_MovieTexture, __inittime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_MovieTexture, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_MovieTexture, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___lowest, (int) offsetof (struct X3D_MovieTexture, __lowest),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sourceNumber, (int) offsetof (struct X3D_MovieTexture, __sourceNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_MovieTexture, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_MovieTexture, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_MovieTexture, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5046,6 +5054,7 @@ const int OFFSETS_MovieTexture[] = {
 	(int) FIELDNAMES_loop, (int) offsetof (struct X3D_MovieTexture, loop),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_MovieTexture, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_pauseTime, (int) offsetof (struct X3D_MovieTexture, pauseTime),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_pitch, (int) offsetof (struct X3D_MovieTexture, pitch),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatS, (int) offsetof (struct X3D_MovieTexture, repeatS),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatT, (int) offsetof (struct X3D_MovieTexture, repeatT),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_resumeTime, (int) offsetof (struct X3D_MovieTexture, resumeTime),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7333,7 +7342,6 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__inittime = 0;
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;
-			tmp2->__localFileName = 0;
 			tmp2->__sourceNumber = -1;
 			tmp2->_parentResource = getInputResource();
 			tmp2->description = newASCIIString("");
@@ -9718,6 +9726,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MovieTexture : {
 			struct X3D_MovieTexture * tmp2;
 			tmp2 = (struct X3D_MovieTexture *) tmp;
+			tmp2->__ctex = 0;
+			tmp2->__highest = 0;
+			tmp2->__inittime = 0;
+			tmp2->__loadResource = 0;
+			tmp2->__loadstatus = 0;
+			tmp2->__lowest = 0;
+			tmp2->__sourceNumber = -1;
 			tmp2->__textureTableIndex = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->description = newASCIIString("");
@@ -9728,6 +9743,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->loop = FALSE;
 			tmp2->metadata = NULL;
 			tmp2->pauseTime = 0;
+			tmp2->pitch = 1.0f;
 			tmp2->repeatS = TRUE;
 			tmp2->repeatT = TRUE;
 			tmp2->resumeTime = 0;
@@ -13940,6 +13956,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 			spacer fprintf (fp," pauseTime (SFTime) \t%4.3f\n",tmp->pauseTime);
+			spacer fprintf (fp," pitch (SFFloat) \t%4.3f\n",tmp->pitch);
 			spacer fprintf (fp," resumeTime (SFTime) \t%4.3f\n",tmp->resumeTime);
 			spacer fprintf (fp," speed (SFFloat) \t%4.3f\n",tmp->speed);
 			spacer fprintf (fp," startTime (SFTime) \t%4.3f\n",tmp->startTime);

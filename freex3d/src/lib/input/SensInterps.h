@@ -58,9 +58,14 @@ void do_OintPos2D(void *node);
 void do_PositionInterpolator(void *node);
 void do_ColorInterpolator(void *node);
 void do_GeoPositionInterpolator(void *node);
+void do_Oint4(void *node);
+void do_EaseInEaseOut(void *node);
+void do_SplinePositionInterpolator(void *node);
+void do_SplinePositionInterpolator2D(void *node);
+void do_SplineScalarInterpolator(void *node);
+void do_SquadOrientationInterpolator(void *node);
 
-void
-do_Oint4(void *node);
+
 
 void do_CollisionTick(void *ptr);
 void do_AudioTick(void *ptr);
