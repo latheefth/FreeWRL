@@ -306,6 +306,17 @@ our %defaultContainerType = (
 	ReceiverPdu		=>"children",
 	SignalPdu		=>"children",
 	TransmitterPdu		=>"children",
+	
+	ComposedTexture3D	=>"texture",
+	ImageTexture3D		=>"texture",
+	PixelTexture3D		=>"texture",
+	TextureCoordinate3D	=>"texCoord",
+	TextureCoordinate4D	=>"texCoord",
+	TextureTransformMatrix3D =>"textureTransform",
+	TextureTransform3D	=>"textureTransform",
+
+	OpacityMapVolumeStyle	=>"renderStyle",
+	VolumeData		=>"children",
 );
 
 
