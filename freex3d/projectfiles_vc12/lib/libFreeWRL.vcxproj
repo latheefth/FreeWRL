@@ -292,7 +292,9 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_Sound.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_Text.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_Texturing.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_Texturing3D.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_Time.c" />
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_VolumeRendering.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_VRML1.c" />
     <ClCompile Include="$(SRC)\lib\main\ConsoleMessage.c" />
     <ClCompile Include="$(SRC)\lib\input\convert1To2.c" />
@@ -382,7 +384,6 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_ParticleSystems.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\Component_RigidBodyPhysics.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\VeraMono_ttf.c" />
-    <ClCompile Include="..\..\..\..\mpeg\berkleybrown\MPEG_Utils_berkleybrown.c" />
     <ClCompile Include="..\..\src\lib\ui\freewrl_wingding_ttf.c" />
   </ItemGroup>
   <ItemGroup>

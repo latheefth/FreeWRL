@@ -451,7 +451,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\scenegraph\Component_Texturing3D.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\scenegraph\Component_Time.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lib\scenegraph\Component_VolumeRendering.c"
 				>
 			</File>
 			<File

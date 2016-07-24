@@ -387,6 +387,16 @@ EXPOSED_FIELD(ComposedShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(ComposedShader,parts,mfnode,parts,FIELDTYPE_MFNode)
 END_NODE(ComposedShader)
 
+/* ComposedTexture3D node */
+BEGIN_NODE(ComposedTexture3D)
+EXPOSED_FIELD(ComposedTexture3D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(ComposedTexture3D,repeatR,sfbool,repeatR,FIELDTYPE_SFBool)
+FIELD(ComposedTexture3D,repeatS,sfbool,repeatS,FIELDTYPE_SFBool)
+FIELD(ComposedTexture3D,repeatT,sfbool,repeatT,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ComposedTexture3D,texture,mfnode,texture,FIELDTYPE_MFNode)
+FIELD(ComposedTexture3D,textureProperties,sfnode,textureProperties,FIELDTYPE_SFNode)
+END_NODE(ComposedTexture3D)
+
 /* Cone node */
 BEGIN_NODE(Cone)
 EXPOSED_FIELD(Cone,bottom,sfbool,bottom,FIELDTYPE_SFBool)
@@ -1083,6 +1093,16 @@ FIELD(ImageTexture,repeatT,sfbool,repeatT,FIELDTYPE_SFBool)
 FIELD(ImageTexture,textureProperties,sfnode,textureProperties,FIELDTYPE_SFNode)
 EXPOSED_FIELD(ImageTexture,url,mfstring,url,FIELDTYPE_MFString)
 END_NODE(ImageTexture)
+
+/* ImageTexture3D node */
+BEGIN_NODE(ImageTexture3D)
+EXPOSED_FIELD(ImageTexture3D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(ImageTexture3D,repeatR,sfbool,repeatR,FIELDTYPE_SFBool)
+FIELD(ImageTexture3D,repeatS,sfbool,repeatS,FIELDTYPE_SFBool)
+FIELD(ImageTexture3D,repeatT,sfbool,repeatT,FIELDTYPE_SFBool)
+FIELD(ImageTexture3D,textureProperties,sfnode,textureProperties,FIELDTYPE_SFNode)
+EXPOSED_FIELD(ImageTexture3D,url,mfstring,url,FIELDTYPE_MFString)
+END_NODE(ImageTexture3D)
 
 /* IndexedFaceSet node */
 BEGIN_NODE(IndexedFaceSet)
@@ -2039,6 +2059,13 @@ EXPOSED_FIELD(OSC_Sensor,stringInp,sfstring,stringInp,FIELDTYPE_SFString)
 EXPOSED_FIELD(OSC_Sensor,talksTo,mfstring,talksTo,FIELDTYPE_MFString)
 END_NODE(OSC_Sensor)
 
+/* OpacityMapVolumeStyle node */
+BEGIN_NODE(OpacityMapVolumeStyle)
+EXPOSED_FIELD(OpacityMapVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(OpacityMapVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(OpacityMapVolumeStyle,transferFunction,sfnode,transferFunction,FIELDTYPE_SFNode)
+END_NODE(OpacityMapVolumeStyle)
+
 /* OrientationChaser node */
 BEGIN_NODE(OrientationChaser)
 FIELD(OrientationChaser,duration,sftime,duration,FIELDTYPE_SFTime)
@@ -2142,6 +2169,16 @@ FIELD(PixelTexture,repeatS,sfbool,repeatS,FIELDTYPE_SFBool)
 FIELD(PixelTexture,repeatT,sfbool,repeatT,FIELDTYPE_SFBool)
 FIELD(PixelTexture,textureProperties,sfnode,textureProperties,FIELDTYPE_SFNode)
 END_NODE(PixelTexture)
+
+/* PixelTexture3D node */
+BEGIN_NODE(PixelTexture3D)
+EXPOSED_FIELD(PixelTexture3D,image,sfimage,image,FIELDTYPE_SFImage)
+EXPOSED_FIELD(PixelTexture3D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(PixelTexture3D,repeatR,sfbool,repeatR,FIELDTYPE_SFBool)
+FIELD(PixelTexture3D,repeatS,sfbool,repeatS,FIELDTYPE_SFBool)
+FIELD(PixelTexture3D,repeatT,sfbool,repeatT,FIELDTYPE_SFBool)
+FIELD(PixelTexture3D,textureProperties,sfnode,textureProperties,FIELDTYPE_SFNode)
+END_NODE(PixelTexture3D)
 
 /* PlaneSensor node */
 BEGIN_NODE(PlaneSensor)
@@ -2816,6 +2853,18 @@ EXPOSED_FIELD(TextureCoordinate,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(TextureCoordinate,point,mfvec2f,point,FIELDTYPE_MFVec2f)
 END_NODE(TextureCoordinate)
 
+/* TextureCoordinate3D node */
+BEGIN_NODE(TextureCoordinate3D)
+EXPOSED_FIELD(TextureCoordinate3D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(TextureCoordinate3D,point,mfvec3f,point,FIELDTYPE_MFVec3f)
+END_NODE(TextureCoordinate3D)
+
+/* TextureCoordinate4D node */
+BEGIN_NODE(TextureCoordinate4D)
+EXPOSED_FIELD(TextureCoordinate4D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(TextureCoordinate4D,point,mfvec4f,point,FIELDTYPE_MFVec4f)
+END_NODE(TextureCoordinate4D)
+
 /* TextureCoordinateGenerator node */
 BEGIN_NODE(TextureCoordinateGenerator)
 EXPOSED_FIELD(TextureCoordinateGenerator,metadata,sfnode,metadata,FIELDTYPE_SFNode)
@@ -2847,6 +2896,21 @@ EXPOSED_FIELD(TextureTransform,rotation,sffloat,rotation,FIELDTYPE_SFFloat)
 EXPOSED_FIELD(TextureTransform,scale,sfvec2f,scale,FIELDTYPE_SFVec2f)
 EXPOSED_FIELD(TextureTransform,translation,sfvec2f,translation,FIELDTYPE_SFVec2f)
 END_NODE(TextureTransform)
+
+/* TextureTransform3D node */
+BEGIN_NODE(TextureTransform3D)
+EXPOSED_FIELD(TextureTransform3D,center,sfvec3f,center,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(TextureTransform3D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(TextureTransform3D,rotation,sfrotation,rotation,FIELDTYPE_SFRotation)
+EXPOSED_FIELD(TextureTransform3D,scale,sfvec3f,scale,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(TextureTransform3D,translation,sfvec3f,translation,FIELDTYPE_SFVec3f)
+END_NODE(TextureTransform3D)
+
+/* TextureTransformMatrix3D node */
+BEGIN_NODE(TextureTransformMatrix3D)
+EXPOSED_FIELD(TextureTransformMatrix3D,matrix,sfmatrix4f,matrix,FIELDTYPE_SFMatrix4f)
+EXPOSED_FIELD(TextureTransformMatrix3D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+END_NODE(TextureTransformMatrix3D)
 
 /* TimeSensor node */
 BEGIN_NODE(TimeSensor)
@@ -3102,6 +3166,16 @@ EVENT_OUT(VisibilitySensor,isActive,sfbool,isActive,FIELDTYPE_SFBool)
 EXPOSED_FIELD(VisibilitySensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(VisibilitySensor,size,sfvec3f,size,FIELDTYPE_SFVec3f)
 END_NODE(VisibilitySensor)
+
+/* VolumeData node */
+BEGIN_NODE(VolumeData)
+FIELD(VolumeData,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+FIELD(VolumeData,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(VolumeData,dimensions,sfvec3f,dimensions,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(VolumeData,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(VolumeData,renderStyle,sfnode,renderStyle,FIELDTYPE_SFNode)
+EXPOSED_FIELD(VolumeData,voxels,sfnode,voxels,FIELDTYPE_SFNode)
+END_NODE(VolumeData)
 
 /* VolumePickSensor node */
 BEGIN_NODE(VolumePickSensor)

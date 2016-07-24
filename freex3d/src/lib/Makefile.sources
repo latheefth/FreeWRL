@@ -124,6 +124,7 @@ scenegraph/Component_Geometry2D.c \
 scenegraph/Vector.h \
 scenegraph/mpeg.h \
 scenegraph/Component_Texturing.c \
+scenegraph/Component_Texturing3D.c \
 scenegraph/GeneratedCode.c \
 scenegraph/Polyrep.c \
 scenegraph/Component_Lighting.c \
@@ -164,6 +165,7 @@ scenegraph/Component_Layout.c \
 scenegraph/statics.c \
 scenegraph/GenPolyRep.c \
 scenegraph/Component_VRML1.c \
+scenegraph/Component_VolumeRendering.c \
 scenegraph/VeraMono_ttf.c \
  \
 input/EAI_C_CommonFunctions.c \
