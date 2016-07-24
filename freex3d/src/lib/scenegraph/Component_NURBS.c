@@ -73,7 +73,46 @@ void Component_NURBS_init(struct tComponent_NURBS *t){
 }
 //ppComponent_NURBS p = (ppComponent_NURBS)gglobal()->Component_NURBS.prv;
 
+/*
+Specs:
+http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/nurbs.html
+Examples:
+http://www.web3d.org/x3d/content/examples/Basic/NURBS/
 
+Book: The NURBS Book
+Piegl, Les and Tiller, Wayne; The NURBS Book, 2nd Edition, Springer-Verlag (Berlin), 1997, ISBN:  3-540-61545-8.
+- about $120 new, softcover or kindle
+- some university libraries have it
+
+Nov 2014 - dug9 did some nurbs using libnurbs2, and following The Nurbs Book
+	- didn't finish the component
+	- personal notes say Nurbs Level 1 done
+July 2016
+Not sure what's done and what's not, nothing indicaded on Conformace page: 
+http://freewrl.sourceforge.net/conformance.html
+												code
+Level 1						Conformance page	review 
+CoordinateDouble			(not mentioned)		DONE
+NurbsCurve					Not Implemented		DONE
+NurbsOrientationInterpolatorNot Implemented		stub
+NurbsPatchSurface			Not Implemented		DONE
+NurbsPositionInterpolator	Not Implemented		stub
+NurbsSurfaceInterpolator	Not Implemented		stub
+NurbsTextureCoordinate		Not Implemented		-
+Level 2
+NurbsSet					Not Implemented		-
+Level 3
+NurbsCurve2D				Not Implemented		DONE
+ContourPolyline2D			Not Implemented		DONE
+NurbsSweptSurface			Not Implemented		-
+NurbsSwungSurface			Not Implemented		-
+Level 4
+Contour2D					Not Implemented		DONE
+NurbsTrimmedSurface			Not Implemented		DONE?
+
+Perl: all the above including CoordinateDouble are in perl
+
+*/
 
 
 
