@@ -43,6 +43,37 @@ X3D H-Anim Component
 
 /* #include "OpenFW_GL_Utils.h" */
 
+/*
+HAnim examples:
+http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/
+								Octaga				InstantReality
+- BoxMan.x3d					good				doesn't animate
+- AllenDutton.x3d				skin stuck			good
+- NancyStandShootRifleM24.x3d	good				anim good, skin bad
+
+Specs:
+http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/hanim.html
+These specs don't articulate the field meanings, instead point to an ISO doc:
+http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=33912
+I19774 about $80
+Here's some free online docs:
+http://www.h-anim.org/
+http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/
+http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/ObjectInterfaces.html
+- Humanoid
+- Joint
+- Segment
+- Site
+- Displacer
+All the fields are discussed.
+
+July 2016 
+- where we left off years ago?
+- define HANIMHANIM below to compile - lots of errors
+
+*/
+
+//#define HANIMHANIM 1
 
 /* last HAnimHumanoid skinCoord and skinNormals */
 //void *HANimSkinCoord = 0;
@@ -69,7 +100,6 @@ void Component_HAnim_init(struct tComponent_HAnim *t){
 	}
 }
 //ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
-
 
 
 void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
