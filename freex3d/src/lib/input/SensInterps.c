@@ -1060,7 +1060,6 @@ void do_AudioTick(void *ptr) {
 /* Similar to AudioClip, this is the Play, Pause, Stop, Resume code
 */
 void do_MovieTextureTick( void *ptr) {
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 	struct X3D_MovieTexture *node = (struct X3D_MovieTexture *)ptr;
 	struct X3D_AudioClip *anode;
 	int 	oldstatus;
@@ -1135,7 +1134,6 @@ void do_MovieTextureTick( void *ptr) {
 			//  perhaps can use 2 textures and mpeg thread can toggle texture number with atomic op after update
 		}
 	}
-#endif /*HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
 }
 
 

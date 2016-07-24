@@ -233,16 +233,6 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 	}
 }
 
-
-
-/* rewrite MovieTexture loading - for now, just do a blank texture. See:
-	HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-define */
-//static void texture_load_from_MovieTexture (textureTableIndexStruct_s* this_tex)
-//{
-//	printf("in texture_load_from_MovieTexture\n");
-//}
-
 #if defined(_ANDROID) || defined(ANDROIDNDK)
 // sometimes (usually?) we have to flip an image vertically. 
 static unsigned char *flipImageVerticallyB(unsigned char *input, int height, int width, int bpp) {
@@ -1303,19 +1293,12 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		break;
 
 	case NODE_MovieTexture:
-#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_MovieTexture *)entry->scenegraphNode)->_parentResource);
 		entry->status = TEX_NEEDSBINDING; //as with pixeltexture, just do the move_to_opengl part, we load from file elsewhere
 		restype = resm_movie;
 		return TRUE;  //like pixeltexture - assume the pixels are delivered magically, not from file, so just return
 		break;
-#else  // HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-		//texture_load_from_MovieTexture(entry);
-		entry->status = TEX_NOTFOUND; //NOT_IMPLEMENTED
-		return TRUE;
-#endif /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
-
 	case NODE_ImageCubeMapTexture:
 		url = & (((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_ImageCubeMapTexture *)entry->scenegraphNode)->_parentResource);

@@ -284,3 +284,51 @@ bool  process_res_movie(resource_item_t *res){
 	return FALSE;
 }
 
+/* FIXME: removed old "really load functions" ... needs to implement loading
+          of movie textures.
+
+static void __reallyloadMovieTexture () {
+
+        int x,y,depth,frameCount;
+        void *ptr;
+
+        ptr=NULL;
+
+        mpg_main(loadThisTexture->filename, &x,&y,&depth,&frameCount,&ptr);
+
+	#ifdef TEXVERBOSE
+	printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
+	#endif
+
+	// store_tex_info(loadThisTexture, depth, x, y, ptr,depth==4); 
+
+	// and, manually put the frameCount in. 
+	loadThisTexture->frames = frameCount;
+}
+*/
+
+// - still needed ? don't know depends on implementation
+void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
+        textureTableIndexStruct_s *ti;
+
+/*        if (myIndex  == 0) {
+		printf ("getMovieTextureOpenGLFrames, myIndex is ZERL\n");
+		*highest=0; *lowest=0;
+	} else {
+*/
+	*highest=0; *lowest=0;
+	
+	#ifdef TEXVERBOSE
+	printf ("in getMovieTextureOpenGLFrames, calling getTableIndex\n");
+	#endif
+
+       	ti = getTableIndex(myIndex);
+
+/* 	if (ti->frames>0) { */
+		if (ti->OpenGLTexture != TEXTURE_INVALID) {
+			*lowest = ti->OpenGLTexture;
+			*highest = 0;
+/* 			*highest = ti->OpenGLTexture[(ti->frames) -1]; */
+		}
+/* 	} */
+}

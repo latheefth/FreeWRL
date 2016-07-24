@@ -64,20 +64,4 @@ void render_MovieTexture (struct X3D_MovieTexture *node) {
 	loadTextureNode(X3D_NODE(node),NULL);
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 
-
-//#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-//	/* really simple, the texture number is calculated, then simply sent here.
-//	   The boundTextureStack field is sent, and, made current */
-//
-//	/*  if this is attached to a Sound node, tell it...*/
-//	//sound_from_audioclip = FALSE;
-//
-//	loadTextureNode(X3D_NODE(node),NULL);
-//	gglobal()->RenderFuncs.boundTextureStack[gglobal()->RenderFuncs.textureStackTop] = node->__ctex;
-//	/* not multitexture, should have saved to boundTextureStack[0] */
-//#else /* HAVE_TO_REIMPLEMENT_MOVIETEXTURES */
-//	loadTextureNode(X3D_NODE(node),NULL);
-//#endif
-//	
-//	gglobal()->RenderFuncs.textureStackTop=1;
 }
