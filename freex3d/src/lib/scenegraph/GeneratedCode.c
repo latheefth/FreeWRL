@@ -170,6 +170,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__t1",
 	"__t2",
 	"__texCoords",
+	"__texture",
 	"__textureTableIndex",
 	"__textureright",
 	"__topTexture",
@@ -298,6 +299,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"articulationParameterValue5_changed",
 	"articulationParameterValue6_changed",
 	"articulationParameterValue7_changed",
+	"aspectRatio",
 	"attenuation",
 	"attrib",
 	"autoCalc",
@@ -460,6 +462,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"firingRate",
 	"fixed",
 	"floatInp",
+	"focalPoint",
 	"fogCoord",
 	"fogType",
 	"fontStyle",
@@ -468,6 +471,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"forceOutput",
 	"forceTransitions",
 	"forces",
+	"fovMode",
 	"fraction_changed",
 	"frequency",
 	"frictionCoefficients",
@@ -537,6 +541,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"isOver",
 	"isPaused",
 	"isPickable",
+	"isPositionAvailable",
+	"isRotationAvailable",
 	"isRtpHeaderHeard",
 	"isSelected",
 	"isStandAlone",
@@ -920,6 +926,7 @@ const int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 	"articulationParameterValue5_changed",
 	"articulationParameterValue6_changed",
 	"articulationParameterValue7_changed",
+	"aspectRatio",
 	"bindTime",
 	"body1AnchorPoint",
 	"body1Axis",
@@ -937,8 +944,11 @@ const int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 	"enterTime",
 	"enteredText",
 	"exitTime",
+	"fieldOfView",
 	"finalText",
 	"firedTime",
+	"focalPoint",
+	"fovMode",
 	"fraction_changed",
 	"geoCoord_changed",
 	"geovalue_changed",
@@ -950,6 +960,7 @@ const int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 	"hitNormal_changed",
 	"hitPoint_changed",
 	"hitTexCoord_changed",
+	"image",
 	"inputFalse",
 	"inputNegate",
 	"inputTrue",
@@ -963,6 +974,8 @@ const int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 	"isNetworkWriter",
 	"isOver",
 	"isPaused",
+	"isPositionAvailable",
+	"isRotationAvailable",
 	"isRtpHeaderHeard",
 	"isSelected",
 	"isStandAlone",
@@ -990,9 +1003,11 @@ const int FIELDNAMES_COUNT = ARR_SIZE(FIELDNAMES);
 	"pickedNormal",
 	"pickedPoint",
 	"pickedTextureCoordinate",
+	"position",
 	"position_changed",
 	"progress",
 	"removedEntities",
+	"rotation",
 	"rotation_changed",
 	"separation",
 	"separationRate",
@@ -1915,6 +1930,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"Arc2D",
 	"ArcClose2D",
 	"AudioClip",
+	"BackdropBackground",
 	"Background",
 	"BallJoint",
 	"Billboard",
@@ -1928,6 +1944,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"CADFace",
 	"CADLayer",
 	"CADPart",
+	"CalibratedCameraSensor",
 	"Circle2D",
 	"ClipPlane",
 	"CollidableOffset",
@@ -1990,6 +2007,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"HAnimJoint",
 	"HAnimSegment",
 	"HAnimSite",
+	"ImageBackdropBackground",
 	"ImageCubeMapTexture",
 	"ImageTexture",
 	"ImageTexture3D",
@@ -2157,6 +2175,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"TimeSensor",
 	"TimeTrigger",
 	"TouchSensor",
+	"TrackingSensor",
 	"Transform",
 	"TransformSensor",
 	"TransmitterPdu",
@@ -2195,6 +2214,8 @@ struct X3D_Virt virt_ArcClose2D = { NULL,(void *)render_ArcClose2D,NULL,NULL,NUL
 
 void render_AudioClip(struct X3D_AudioClip *);
 struct X3D_Virt virt_AudioClip = { NULL,(void *)render_AudioClip,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_BackdropBackground = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_Background(struct X3D_Background *);
 struct X3D_Virt virt_Background = { NULL,(void *)render_Background,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -2239,6 +2260,8 @@ void child_CADPart(struct X3D_CADPart *);
 void fin_CADPart(struct X3D_CADPart *);
 void compile_CADPart(struct X3D_CADPart *);
 struct X3D_Virt virt_CADPart = { (void *)prep_CADPart,NULL,(void *)child_CADPart,(void *)fin_CADPart,NULL,NULL,NULL,NULL,NULL,(void *)compile_CADPart};
+
+struct X3D_Virt virt_CalibratedCameraSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_Circle2D(struct X3D_Circle2D *);
 void compile_Circle2D(struct X3D_Circle2D *);
@@ -2432,6 +2455,8 @@ void prep_HAnimSite(struct X3D_HAnimSite *);
 void child_HAnimSite(struct X3D_HAnimSite *);
 void fin_HAnimSite(struct X3D_HAnimSite *);
 struct X3D_Virt virt_HAnimSite = { (void *)prep_HAnimSite,NULL,(void *)child_HAnimSite,(void *)fin_HAnimSite,NULL,NULL,NULL,NULL,NULL,NULL};
+
+struct X3D_Virt virt_ImageBackdropBackground = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_ImageCubeMapTexture(struct X3D_ImageCubeMapTexture *);
 void compile_ImageCubeMapTexture(struct X3D_ImageCubeMapTexture *);
@@ -2906,6 +2931,8 @@ struct X3D_Virt virt_TimeTrigger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NUL
 
 struct X3D_Virt virt_TouchSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
+struct X3D_Virt virt_TrackingSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 void prep_Transform(struct X3D_Transform *);
 void child_Transform(struct X3D_Transform *);
 void fin_Transform(struct X3D_Transform *);
@@ -2966,6 +2993,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_Arc2D,
 	 &virt_ArcClose2D,
 	 &virt_AudioClip,
+	 &virt_BackdropBackground,
 	 &virt_Background,
 	 &virt_BallJoint,
 	 &virt_Billboard,
@@ -2979,6 +3007,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_CADFace,
 	 &virt_CADLayer,
 	 &virt_CADPart,
+	 &virt_CalibratedCameraSensor,
 	 &virt_Circle2D,
 	 &virt_ClipPlane,
 	 &virt_CollidableOffset,
@@ -3041,6 +3070,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_HAnimJoint,
 	 &virt_HAnimSegment,
 	 &virt_HAnimSite,
+	 &virt_ImageBackdropBackground,
 	 &virt_ImageCubeMapTexture,
 	 &virt_ImageTexture,
 	 &virt_ImageTexture3D,
@@ -3208,6 +3238,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_TimeSensor,
 	 &virt_TimeTrigger,
 	 &virt_TouchSensor,
+	 &virt_TrackingSensor,
 	 &virt_Transform,
 	 &virt_TransformSensor,
 	 &virt_TransmitterPdu,
@@ -3290,6 +3321,18 @@ const int OFFSETS_AudioClip[] = {
 	(int) FIELDNAMES_startTime, (int) offsetof (struct X3D_AudioClip, startTime),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_stopTime, (int) offsetof (struct X3D_AudioClip, stopTime),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_url, (int) offsetof (struct X3D_AudioClip, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_BackdropBackground[] = {
+	(int) FIELDNAMES___VBO, (int) offsetof (struct X3D_BackdropBackground, __VBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___texture, (int) offsetof (struct X3D_BackdropBackground, __texture),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_BackdropBackground, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_color, (int) offsetof (struct X3D_BackdropBackground, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isBound, (int) offsetof (struct X3D_BackdropBackground, isBound),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_BackdropBackground, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_set_bind, (int) offsetof (struct X3D_BackdropBackground, set_bind),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_transparency, (int) offsetof (struct X3D_BackdropBackground, transparency),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_url, (int) offsetof (struct X3D_BackdropBackground, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Background[] = {
@@ -3437,6 +3480,18 @@ const int OFFSETS_CADPart[] = {
 	(int) FIELDNAMES_scale, (int) offsetof (struct X3D_CADPart, scale),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_scaleOrientation, (int) offsetof (struct X3D_CADPart, scaleOrientation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_translation, (int) offsetof (struct X3D_CADPart, translation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_CalibratedCameraSensor[] = {
+	(int) FIELDNAMES_aspectRatio, (int) offsetof (struct X3D_CalibratedCameraSensor, aspectRatio),  (int) FIELDTYPE_SFFloat, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_description, (int) offsetof (struct X3D_CalibratedCameraSensor, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_CalibratedCameraSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_fieldOfView, (int) offsetof (struct X3D_CalibratedCameraSensor, fieldOfView),  (int) FIELDTYPE_SFFloat, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_focalPoint, (int) offsetof (struct X3D_CalibratedCameraSensor, focalPoint),  (int) FIELDTYPE_SFVec2f, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_fovMode, (int) offsetof (struct X3D_CalibratedCameraSensor, fovMode),  (int) FIELDTYPE_SFString, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_image, (int) offsetof (struct X3D_CalibratedCameraSensor, image),  (int) FIELDTYPE_SFImage, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_CalibratedCameraSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CalibratedCameraSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Circle2D[] = {
@@ -4368,6 +4423,18 @@ const int OFFSETS_HAnimSite[] = {
 	(int) FIELDNAMES_scale, (int) offsetof (struct X3D_HAnimSite, scale),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_scaleOrientation, (int) offsetof (struct X3D_HAnimSite, scaleOrientation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_translation, (int) offsetof (struct X3D_HAnimSite, translation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_ImageBackdropBackground[] = {
+	(int) FIELDNAMES___VBO, (int) offsetof (struct X3D_ImageBackdropBackground, __VBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___texture, (int) offsetof (struct X3D_ImageBackdropBackground, __texture),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_ImageBackdropBackground, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_color, (int) offsetof (struct X3D_ImageBackdropBackground, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_image, (int) offsetof (struct X3D_ImageBackdropBackground, image),  (int) FIELDTYPE_SFImage, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isBound, (int) offsetof (struct X3D_ImageBackdropBackground, isBound),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ImageBackdropBackground, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_set_bind, (int) offsetof (struct X3D_ImageBackdropBackground, set_bind),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_transparency, (int) offsetof (struct X3D_ImageBackdropBackground, transparency),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ImageCubeMapTexture[] = {
@@ -6348,6 +6415,17 @@ const int OFFSETS_TouchSensor[] = {
 	(int) FIELDNAMES_touchTime, (int) offsetof (struct X3D_TouchSensor, touchTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_TrackingSensor[] = {
+	(int) FIELDNAMES_description, (int) offsetof (struct X3D_TrackingSensor, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_TrackingSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_TrackingSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isPositionAvailable, (int) offsetof (struct X3D_TrackingSensor, isPositionAvailable),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isRotationAvailable, (int) offsetof (struct X3D_TrackingSensor, isRotationAvailable),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_TrackingSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_position, (int) offsetof (struct X3D_TrackingSensor, position),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_rotation, (int) offsetof (struct X3D_TrackingSensor, rotation),  (int) FIELDTYPE_SFRotation, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_Transform[] = {
 	(int) FIELDNAMES___do_anything, (int) offsetof (struct X3D_Transform, __do_anything),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_center, (int) offsetof (struct X3D_Transform, __do_center),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -6619,6 +6697,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_Arc2D,
 	OFFSETS_ArcClose2D,
 	OFFSETS_AudioClip,
+	OFFSETS_BackdropBackground,
 	OFFSETS_Background,
 	OFFSETS_BallJoint,
 	OFFSETS_Billboard,
@@ -6632,6 +6711,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_CADFace,
 	OFFSETS_CADLayer,
 	OFFSETS_CADPart,
+	OFFSETS_CalibratedCameraSensor,
 	OFFSETS_Circle2D,
 	OFFSETS_ClipPlane,
 	OFFSETS_CollidableOffset,
@@ -6694,6 +6774,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_HAnimJoint,
 	OFFSETS_HAnimSegment,
 	OFFSETS_HAnimSite,
+	OFFSETS_ImageBackdropBackground,
 	OFFSETS_ImageCubeMapTexture,
 	OFFSETS_ImageTexture,
 	OFFSETS_ImageTexture3D,
@@ -6861,6 +6942,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_TimeSensor,
 	OFFSETS_TimeTrigger,
 	OFFSETS_TouchSensor,
+	OFFSETS_TrackingSensor,
 	OFFSETS_Transform,
 	OFFSETS_TransformSensor,
 	OFFSETS_TransmitterPdu,
@@ -7135,6 +7217,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Arc2D : {tmp = MALLOC (struct X3D_Arc2D *, sizeof (struct X3D_Arc2D)); break;}
 		case NODE_ArcClose2D : {tmp = MALLOC (struct X3D_ArcClose2D *, sizeof (struct X3D_ArcClose2D)); break;}
 		case NODE_AudioClip : {tmp = MALLOC (struct X3D_AudioClip *, sizeof (struct X3D_AudioClip)); break;}
+		case NODE_BackdropBackground : {tmp = MALLOC (struct X3D_BackdropBackground *, sizeof (struct X3D_BackdropBackground)); break;}
 		case NODE_Background : {tmp = MALLOC (struct X3D_Background *, sizeof (struct X3D_Background)); break;}
 		case NODE_BallJoint : {tmp = MALLOC (struct X3D_BallJoint *, sizeof (struct X3D_BallJoint)); break;}
 		case NODE_Billboard : {tmp = MALLOC (struct X3D_Billboard *, sizeof (struct X3D_Billboard)); break;}
@@ -7148,6 +7231,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADFace : {tmp = MALLOC (struct X3D_CADFace *, sizeof (struct X3D_CADFace)); break;}
 		case NODE_CADLayer : {tmp = MALLOC (struct X3D_CADLayer *, sizeof (struct X3D_CADLayer)); break;}
 		case NODE_CADPart : {tmp = MALLOC (struct X3D_CADPart *, sizeof (struct X3D_CADPart)); break;}
+		case NODE_CalibratedCameraSensor : {tmp = MALLOC (struct X3D_CalibratedCameraSensor *, sizeof (struct X3D_CalibratedCameraSensor)); break;}
 		case NODE_Circle2D : {tmp = MALLOC (struct X3D_Circle2D *, sizeof (struct X3D_Circle2D)); break;}
 		case NODE_ClipPlane : {tmp = MALLOC (struct X3D_ClipPlane *, sizeof (struct X3D_ClipPlane)); break;}
 		case NODE_CollidableOffset : {tmp = MALLOC (struct X3D_CollidableOffset *, sizeof (struct X3D_CollidableOffset)); break;}
@@ -7210,6 +7294,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimJoint : {tmp = MALLOC (struct X3D_HAnimJoint *, sizeof (struct X3D_HAnimJoint)); break;}
 		case NODE_HAnimSegment : {tmp = MALLOC (struct X3D_HAnimSegment *, sizeof (struct X3D_HAnimSegment)); break;}
 		case NODE_HAnimSite : {tmp = MALLOC (struct X3D_HAnimSite *, sizeof (struct X3D_HAnimSite)); break;}
+		case NODE_ImageBackdropBackground : {tmp = MALLOC (struct X3D_ImageBackdropBackground *, sizeof (struct X3D_ImageBackdropBackground)); break;}
 		case NODE_ImageCubeMapTexture : {tmp = MALLOC (struct X3D_ImageCubeMapTexture *, sizeof (struct X3D_ImageCubeMapTexture)); break;}
 		case NODE_ImageTexture : {tmp = MALLOC (struct X3D_ImageTexture *, sizeof (struct X3D_ImageTexture)); break;}
 		case NODE_ImageTexture3D : {tmp = MALLOC (struct X3D_ImageTexture3D *, sizeof (struct X3D_ImageTexture3D)); break;}
@@ -7377,6 +7462,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_TimeSensor : {tmp = MALLOC (struct X3D_TimeSensor *, sizeof (struct X3D_TimeSensor)); break;}
 		case NODE_TimeTrigger : {tmp = MALLOC (struct X3D_TimeTrigger *, sizeof (struct X3D_TimeTrigger)); break;}
 		case NODE_TouchSensor : {tmp = MALLOC (struct X3D_TouchSensor *, sizeof (struct X3D_TouchSensor)); break;}
+		case NODE_TrackingSensor : {tmp = MALLOC (struct X3D_TrackingSensor *, sizeof (struct X3D_TrackingSensor)); break;}
 		case NODE_Transform : {tmp = MALLOC (struct X3D_Transform *, sizeof (struct X3D_Transform)); break;}
 		case NODE_TransformSensor : {tmp = MALLOC (struct X3D_TransformSensor *, sizeof (struct X3D_TransformSensor)); break;}
 		case NODE_TransmitterPdu : {tmp = MALLOC (struct X3D_TransmitterPdu *, sizeof (struct X3D_TransmitterPdu)); break;}
@@ -7493,6 +7579,21 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->stopTime = 0;
 			tmp2->url.n=0; tmp2->url.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_source;
+		break;
+		}
+		case NODE_BackdropBackground : {
+			struct X3D_BackdropBackground * tmp2;
+			tmp2 = (struct X3D_BackdropBackground *) tmp;
+			tmp2->__VBO = 0;
+			tmp2->__texture = 0;
+			tmp2->bindTime = 0;
+			tmp2->color.c[0] = 0.0f;tmp2->color.c[1] = 0.0f;tmp2->color.c[2] = 0.0f;;
+			tmp2->isBound = FALSE;
+			tmp2->metadata = NULL;
+			tmp2->set_bind = 100;
+			tmp2->transparency = 0.0f;
+			tmp2->url.n=0; tmp2->url.p=0;
+			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
 		case NODE_Background : {
@@ -7683,6 +7784,21 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->scale.c[0] = 1.0f;tmp2->scale.c[1] = 1.0f;tmp2->scale.c[2] = 1.0f;
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
 			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_CalibratedCameraSensor : {
+			struct X3D_CalibratedCameraSensor * tmp2;
+			tmp2 = (struct X3D_CalibratedCameraSensor *) tmp;
+			tmp2->aspectRatio = 0.0f;
+			tmp2->description = newASCIIString("");
+			tmp2->enabled = TRUE;
+			tmp2->fieldOfView = 0.0f;
+			tmp2->focalPoint.c[0] = 0.0f;tmp2->focalPoint.c[1] = 0.0f;;
+			tmp2->fovMode = newASCIIString("");
+			tmp2->image.n=3; tmp2->image.p=MALLOC (int *, sizeof(int)*3); tmp2->image.p[0] = 0; tmp2->image.p[1] = 0; tmp2->image.p[2] = 0;;
+			tmp2->isActive = FALSE;
+			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -8879,6 +8995,21 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->scaleOrientation.c[0] = 0;tmp2->scaleOrientation.c[1] = 0;tmp2->scaleOrientation.c[2] = 1;tmp2->scaleOrientation.c[3] = 0;;
 			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
 			tmp2->_defaultContainer = FIELDNAMES_sites;
+		break;
+		}
+		case NODE_ImageBackdropBackground : {
+			struct X3D_ImageBackdropBackground * tmp2;
+			tmp2 = (struct X3D_ImageBackdropBackground *) tmp;
+			tmp2->__VBO = 0;
+			tmp2->__texture = 0;
+			tmp2->bindTime = 0;
+			tmp2->color.c[0] = 0.0f;tmp2->color.c[1] = 0.0f;tmp2->color.c[2] = 0.0f;;
+			tmp2->image.n=3; tmp2->image.p=MALLOC (int *, sizeof(int)*3); tmp2->image.p[0] = 0; tmp2->image.p[1] = 0; tmp2->image.p[2] = 0;;
+			tmp2->isBound = FALSE;
+			tmp2->metadata = NULL;
+			tmp2->set_bind = 100;
+			tmp2->transparency = 0.0f;
+			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
 		case NODE_ImageCubeMapTexture : {
@@ -11439,6 +11570,20 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
+		case NODE_TrackingSensor : {
+			struct X3D_TrackingSensor * tmp2;
+			tmp2 = (struct X3D_TrackingSensor *) tmp;
+			tmp2->description = newASCIIString("");
+			tmp2->enabled = TRUE;
+			tmp2->isActive = FALSE;
+			tmp2->isPositionAvailable = FALSE;
+			tmp2->isRotationAvailable = FALSE;
+			tmp2->metadata = NULL;
+			tmp2->position.c[0] = 0.0f;tmp2->position.c[1] = 0.0f;tmp2->position.c[2] = 0.0f;
+			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
 		case NODE_Transform : {
 			struct X3D_Transform * tmp2;
 			tmp2 = (struct X3D_Transform *) tmp;
@@ -11914,6 +12059,24 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    break;
 		}
+		case NODE_BackdropBackground : {
+			struct X3D_BackdropBackground *tmp;
+			tmp = (struct X3D_BackdropBackground *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __texture (SFInt32) \t%d\n",tmp->__texture);
+		    }
+			spacer fprintf (fp," color (SFColor): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
+			fprintf (fp,"\n");
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," transparency (SFFloat) \t%4.3f\n",tmp->transparency);
+			spacer fprintf (fp," url (MFString): \n");
+			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
+		    break;
+		}
 		case NODE_Background : {
 			struct X3D_Background *tmp;
 			tmp = (struct X3D_Background *) node;
@@ -12130,6 +12293,17 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," translation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
+		    break;
+		}
+		case NODE_CalibratedCameraSensor : {
+			struct X3D_CalibratedCameraSensor *tmp;
+			tmp = (struct X3D_CalibratedCameraSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
 		    break;
 		}
 		case NODE_Circle2D : {
@@ -13342,6 +13516,24 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," translation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->translation.c[i]); }
 			fprintf (fp,"\n");
+		    break;
+		}
+		case NODE_ImageBackdropBackground : {
+			struct X3D_ImageBackdropBackground *tmp;
+			tmp = (struct X3D_ImageBackdropBackground *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __texture (SFInt32) \t%d\n",tmp->__texture);
+		    }
+			spacer fprintf (fp," color (SFColor): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
+			fprintf (fp,"\n");
+			spacer fprintf (fp," image (SFImage): (not dumped)\t");
+			fprintf (fp,"\n");
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," transparency (SFFloat) \t%4.3f\n",tmp->transparency);
 		    break;
 		}
 		case NODE_ImageCubeMapTexture : {
@@ -15671,6 +15863,17 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    }
 		    break;
 		}
+		case NODE_TrackingSensor : {
+			struct X3D_TrackingSensor *tmp;
+			tmp = (struct X3D_TrackingSensor *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+		    break;
+		}
 		case NODE_Transform : {
 			struct X3D_Transform *tmp;
 			tmp = (struct X3D_Transform *) node;
@@ -16050,6 +16253,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_Arc2D: return X3DGeometryNode; break;
 	case NODE_ArcClose2D: return X3DGeometryNode; break;
 	case NODE_AudioClip: return X3DSoundSourceNode; break;
+	case NODE_BackdropBackground: return X3DBackgroundNode; break;
 	case NODE_Background: return X3DBackgroundNode; break;
 	case NODE_BallJoint: return X3DRigidJointNode; break;
 	case NODE_Billboard: return X3DGroupingNode; break;
@@ -16063,6 +16267,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_CADFace: return X3DProductStructureChildNode; break;
 	case NODE_CADLayer: return X3DGroupingNode; break;
 	case NODE_CADPart: return X3DGroupingNode; break;
+	case NODE_CalibratedCameraSensor: return X3DSensorNode; break;
 	case NODE_Circle2D: return X3DGeometryNode; break;
 	case NODE_ClipPlane: return X3DChildNode; break;
 	case NODE_CollidableOffset: return X3DNBodyCollidableNode; break;
@@ -16125,6 +16330,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_HAnimJoint: return X3DChildNode; break;
 	case NODE_HAnimSegment: return X3DChildNode; break;
 	case NODE_HAnimSite: return X3DGroupingNode; break;
+	case NODE_ImageBackdropBackground: return X3DBackgroundNode; break;
 	case NODE_ImageCubeMapTexture: return X3DEnvironmentTextureNode; break;
 	case NODE_ImageTexture: return X3DTextureNode; break;
 	case NODE_ImageTexture3D: return X3DTextureNode; break;
@@ -16292,6 +16498,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_TimeSensor: return X3DSensorNode; break;
 	case NODE_TimeTrigger: return X3DTriggerNode; break;
 	case NODE_TouchSensor: return X3DPointingDeviceSensorNode; break;
+	case NODE_TrackingSensor: return X3DSensorNode; break;
 	case NODE_Transform: return X3DGroupingNode; break;
 	case NODE_TransformSensor: return X3DEnvironmentalSensorNode; break;
 	case NODE_TransmitterPdu: return X3DChildNode; break;

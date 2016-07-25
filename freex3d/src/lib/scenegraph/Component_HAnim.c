@@ -71,6 +71,22 @@ July 2016
 - where we left off years ago?
 - define HANIMHANIM below to compile - lots of errors
 
+Related Links on HAnim
+http://www.web3d.org/working-groups/humanoid-animation-h-anim
+- The tutorial
+Q if the skeleton isnt rendered, when would you traverse the skeleton
+And whats the output?
+Q isnt there some kind of ik solver that could/should be exposed to sai as a node?
+Otherwise you will need compiled/fast scrpt engine if its all in js, and
+scene authors will need to know all that stuff.
+https://en.wikipedia.org/wiki/Inverse_kinematics
+https://en.wikipedia.org/wiki/Moment_of_inertia
+dug9 july 2016: What's Weird about HAnim: 
+a) looks like there's very little animation work we have to do in our browser
+	the scene author has to do it all in js / via SAI
+b) the skeleton isn't rendered (if no geom on sites/segments?)
+	so when do you traverse the joints and what's the output?
+
 */
 
 //#define HANIMHANIM 1
