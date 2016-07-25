@@ -98,6 +98,17 @@ EXPOSED_FIELD(AudioClip,stopTime,sftime,stopTime,FIELDTYPE_SFTime)
 EXPOSED_FIELD(AudioClip,url,mfstring,url,FIELDTYPE_MFString)
 END_NODE(AudioClip)
 
+/* BackdropBackground node */
+BEGIN_NODE(BackdropBackground)
+EVENT_OUT(BackdropBackground,bindTime,sftime,bindTime,FIELDTYPE_SFTime)
+EXPOSED_FIELD(BackdropBackground,color,sfcolor,color,FIELDTYPE_SFColor)
+EVENT_OUT(BackdropBackground,isBound,sfbool,isBound,FIELDTYPE_SFBool)
+EXPOSED_FIELD(BackdropBackground,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(BackdropBackground,set_bind,sfbool,set_bind,FIELDTYPE_SFBool)
+EXPOSED_FIELD(BackdropBackground,transparency,sffloat,transparency,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(BackdropBackground,url,mfstring,url,FIELDTYPE_MFString)
+END_NODE(BackdropBackground)
+
 /* Background node */
 BEGIN_NODE(Background)
 EXPOSED_FIELD(Background,backUrl,mfstring,backUrl,FIELDTYPE_MFString)
@@ -234,6 +245,19 @@ EXPOSED_FIELD(CADPart,scale,sfvec3f,scale,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(CADPart,scaleOrientation,sfrotation,scaleOrientation,FIELDTYPE_SFRotation)
 EXPOSED_FIELD(CADPart,translation,sfvec3f,translation,FIELDTYPE_SFVec3f)
 END_NODE(CADPart)
+
+/* CalibratedCameraSensor node */
+BEGIN_NODE(CalibratedCameraSensor)
+EVENT_OUT(CalibratedCameraSensor,aspectRatio,sffloat,aspectRatio,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(CalibratedCameraSensor,description,sfstring,description,FIELDTYPE_SFString)
+EXPOSED_FIELD(CalibratedCameraSensor,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EVENT_OUT(CalibratedCameraSensor,fieldOfView,sffloat,fieldOfView,FIELDTYPE_SFFloat)
+EVENT_OUT(CalibratedCameraSensor,focalPoint,sfvec2f,focalPoint,FIELDTYPE_SFVec2f)
+EVENT_OUT(CalibratedCameraSensor,fovMode,sfstring,fovMode,FIELDTYPE_SFString)
+EVENT_OUT(CalibratedCameraSensor,image,sfimage,image,FIELDTYPE_SFImage)
+EVENT_OUT(CalibratedCameraSensor,isActive,sfbool,isActive,FIELDTYPE_SFBool)
+EXPOSED_FIELD(CalibratedCameraSensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+END_NODE(CalibratedCameraSensor)
 
 /* Circle2D node */
 BEGIN_NODE(Circle2D)
@@ -1077,6 +1101,17 @@ EXPOSED_FIELD(HAnimSite,scale,sfvec3f,scale,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(HAnimSite,scaleOrientation,sfrotation,scaleOrientation,FIELDTYPE_SFRotation)
 EXPOSED_FIELD(HAnimSite,translation,sfvec3f,translation,FIELDTYPE_SFVec3f)
 END_NODE(HAnimSite)
+
+/* ImageBackdropBackground node */
+BEGIN_NODE(ImageBackdropBackground)
+EVENT_OUT(ImageBackdropBackground,bindTime,sftime,bindTime,FIELDTYPE_SFTime)
+EXPOSED_FIELD(ImageBackdropBackground,color,sfcolor,color,FIELDTYPE_SFColor)
+EXPOSED_FIELD(ImageBackdropBackground,image,sfimage,image,FIELDTYPE_SFImage)
+EVENT_OUT(ImageBackdropBackground,isBound,sfbool,isBound,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ImageBackdropBackground,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(ImageBackdropBackground,set_bind,sfbool,set_bind,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ImageBackdropBackground,transparency,sffloat,transparency,FIELDTYPE_SFFloat)
+END_NODE(ImageBackdropBackground)
 
 /* ImageCubeMapTexture node */
 BEGIN_NODE(ImageCubeMapTexture)
@@ -2949,6 +2984,18 @@ EVENT_OUT(TouchSensor,isOver,sfbool,isOver,FIELDTYPE_SFBool)
 EXPOSED_FIELD(TouchSensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_OUT(TouchSensor,touchTime,sftime,touchTime,FIELDTYPE_SFTime)
 END_NODE(TouchSensor)
+
+/* TrackingSensor node */
+BEGIN_NODE(TrackingSensor)
+EXPOSED_FIELD(TrackingSensor,description,sfstring,description,FIELDTYPE_SFString)
+EXPOSED_FIELD(TrackingSensor,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EVENT_OUT(TrackingSensor,isActive,sfbool,isActive,FIELDTYPE_SFBool)
+EVENT_OUT(TrackingSensor,isPositionAvailable,sfbool,isPositionAvailable,FIELDTYPE_SFBool)
+EVENT_OUT(TrackingSensor,isRotationAvailable,sfbool,isRotationAvailable,FIELDTYPE_SFBool)
+EXPOSED_FIELD(TrackingSensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_OUT(TrackingSensor,position,sfvec3f,position,FIELDTYPE_SFVec3f)
+EVENT_OUT(TrackingSensor,rotation,sfrotation,rotation,FIELDTYPE_SFRotation)
+END_NODE(TrackingSensor)
 
 /* Transform node */
 BEGIN_NODE(Transform)

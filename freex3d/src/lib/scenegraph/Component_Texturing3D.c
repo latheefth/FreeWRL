@@ -55,6 +55,8 @@ http://paulbourke.net/dataformats/volumetric/
 -Simplest 3d texture file if you write your own images
 http://www.web3d.org/x3d/content/examples/Basic/VolumeRendering/
 - Volumetric Rendering Samples use nrrd format
+- http://teem.sourceforge.net/index.html
+-- Nrrd lib LGPL
 
 What is Texturing3D used for? a few links:
 https://msdn.microsoft.com/en-us/library/windows/desktop/ff476906(v=vs.85).aspx

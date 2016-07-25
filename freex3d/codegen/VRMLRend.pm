@@ -317,6 +317,11 @@ our %defaultContainerType = (
 
 	OpacityMapVolumeStyle	=>"renderStyle",
 	VolumeData		=>"children",
+	
+	BackdropBackground	=>"children",
+	ImageBackdropBackground	=>"children",
+	CalibratedCameraSensor	=>"children",
+	TrackingSensor		=>"children",
 );
 
 
