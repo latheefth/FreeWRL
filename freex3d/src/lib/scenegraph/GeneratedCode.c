@@ -1101,6 +1101,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"articulationParameterDesignatorArray",
 	"articulationParameterIdPartAttachedToAr",
 	"articulationParameterTypeArray",
+	"aspectRatio",
 	"attenuation",
 	"attrib",
 	"autoDamp",
@@ -1221,6 +1222,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"forceID",
 	"forceOutput",
 	"forces",
+	"fovMode",
 	"frequency",
 	"frictionCoefficients",
 	"frictionDirection",
@@ -6605,10 +6607,12 @@ const int OFFSETS_UniversalJoint[] = {
 
 const int OFFSETS_Viewpoint[] = {
 	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_Viewpoint, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_aspectRatio, (int) offsetof (struct X3D_Viewpoint, aspectRatio),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_Viewpoint, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_centerOfRotation, (int) offsetof (struct X3D_Viewpoint, centerOfRotation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_Viewpoint, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_fieldOfView, (int) offsetof (struct X3D_Viewpoint, fieldOfView),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_fovMode, (int) offsetof (struct X3D_Viewpoint, fovMode),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isBound, (int) offsetof (struct X3D_Viewpoint, isBound),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_jump, (int) offsetof (struct X3D_Viewpoint, jump),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Viewpoint, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11830,10 +11834,12 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_Viewpoint * tmp2;
 			tmp2 = (struct X3D_Viewpoint *) tmp;
 			tmp2->_layerId = 0;
+			tmp2->aspectRatio = 0.785398f;
 			tmp2->bindTime = -1;
 			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;
 			tmp2->description = newASCIIString("");
 			tmp2->fieldOfView = 0.785398f;
+			tmp2->fovMode = newASCIIString("");
 			tmp2->isBound = FALSE;
 			tmp2->jump = TRUE;
 			tmp2->metadata = NULL;
@@ -16109,11 +16115,13 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Viewpoint *tmp;
 			tmp = (struct X3D_Viewpoint *) node;
 			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," aspectRatio (SFFloat) \t%4.3f\n",tmp->aspectRatio);
 			spacer fprintf (fp," centerOfRotation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->centerOfRotation.c[i]); }
 			fprintf (fp,"\n");
 			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
 			spacer fprintf (fp," fieldOfView (SFFloat) \t%4.3f\n",tmp->fieldOfView);
+			spacer fprintf (fp," fovMode (SFString) \t%s\n",tmp->fovMode->strptr);
 			spacer fprintf (fp," jump (SFBool) \t%d\n",tmp->jump);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 

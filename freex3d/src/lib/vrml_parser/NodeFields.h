@@ -3168,10 +3168,12 @@ END_NODE(UniversalJoint)
 
 /* Viewpoint node */
 BEGIN_NODE(Viewpoint)
+EXPOSED_FIELD(Viewpoint,aspectRatio,sffloat,aspectRatio,FIELDTYPE_SFFloat)
 EVENT_OUT(Viewpoint,bindTime,sftime,bindTime,FIELDTYPE_SFTime)
 EXPOSED_FIELD(Viewpoint,centerOfRotation,sfvec3f,centerOfRotation,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(Viewpoint,description,sfstring,description,FIELDTYPE_SFString)
 EXPOSED_FIELD(Viewpoint,fieldOfView,sffloat,fieldOfView,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(Viewpoint,fovMode,sfstring,fovMode,FIELDTYPE_SFString)
 EVENT_OUT(Viewpoint,isBound,sfbool,isBound,FIELDTYPE_SFBool)
 EXPOSED_FIELD(Viewpoint,jump,sfbool,jump,FIELDTYPE_SFBool)
 EXPOSED_FIELD(Viewpoint,metadata,sfnode,metadata,FIELDTYPE_SFNode)

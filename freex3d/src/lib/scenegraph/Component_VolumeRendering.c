@@ -47,25 +47,37 @@ http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/vol
 
 Before starting to implement this there are a few other nodes and components that might be needed:
 - clipPlane - besides transparent voxels, you may want to slice a volumetric image with a clipplane to look inside
-- textureproperties (HAVE) to get the RST 
+- we have TextureProperties to get the RST
 - Texturing3D component > for 3D image file format reading: 
 	http://paulbourke.net/dataformats/volumetric/
 	- Simplest 3d texture file, if you are writing your own
 	http://www.web3d.org/x3d/content/examples/Basic/VolumeRendering/
 	- these examples use nrrd format, not much harder
-
-- Need reliable transparency rendering techniques 
-	some voxels will be transparent or even semi-transparent
-	http://dug9.users.sourceforge.net/web3d/tests/33.x3d
-	33.x3d sample file shows node array with transparencies, so not impossible with GLES2
-
-Implementation
-Options:
-1. little boxes each representing a voxel
-2. shader technique 
-	2a. GLES2 vertex or pixel shader
-	2b. GLES3 geometry shader
-	https://www.opengl.org/wiki/Sampler_(GLSL)
-
+Links:
+	http://http.developer.nvidia.com/GPUGems/gpugems_ch39.html
+	- GpuGems online, ideas about volume rendering
+		- Note also http://teem.sourceforge.net/ link in References
+		- same place as nrrd file format lib
+	http://castle-engine.sourceforge.net/compositing_shaders.php
+	- in the "Compositing Shaders in X3D" .pdf, page 9 mentions volume nodes
+	- the VolumeRendering Component has 10 style nodes, and Kambu is suggesting his Plug/hook method
+	http://graphicsrunner.blogspot.ca/2009/01/volume-rendering-101.html
+	- shows 'volume raycasting' method, shader (directx) and results
+	http://cs.iupui.edu/~tuceryan/research/Microscopy/vis98.pdf
+	- paper: "Image-Based Transfer Function Design for Data Exploration in Volume Visualization"
+		pain: hard to stay organized with general functions in volume data
+		solution: goal-directed composable steps ie sharpen surface, colorize via 'transfer functions'
+		1. Apply transfer functions
+			A. Gray = F(Gray) or F(F(F(F(Gray)))) ie can chain grayscale functions for each voxel processed
+				a) F() image functions - anything from 2D image processing generalized to 3D
+				b) F() spatial functions - edge sharpening ie sobel or smoothing also from image processing
+			B. Gray to RGBA - lookup table
+		2. do your raycasting on RGBA
+	https://www.slicer.org/
+	- Uses teem
+	http://teem.sourceforge.net/mite/opts.html
+	- teem > Mite - has some transfer tables
+	http://prideout.net/blog/?tag=volume-rendering
+	- shows volume raycasting shader example
 
 */

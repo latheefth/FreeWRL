@@ -70,7 +70,19 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 			instead of load_all() you would somehow say which ones to load?? see dranger tutorial about tut5
 		and if so and you limit codecs to MPEG1 with Level II audio, then
 		ffplay.c and tutorial http://dranger.com/ffmpeg/ can help, 
-		substituting freewrl's audio lib's API and openGL plumbing for SDL
+			substituting freewrl's audio lib's API, pthreads, and our openGL plumbing for SDL
+			might be able to #define some pthread for SDL thread functions in ffplay.c
+			- except don't assume freewrl's pthreads is complete: no cancel, its an emulated lib on some platforms
+		https://github.com/FFmpeg/FFmpeg
+		https://github.com/FFmpeg/FFmpeg/blob/master/ffplay.c
+			line interesting function
+			3352 event_loop() - play, pause, rewind user functions
+			3000 infinite_buffer real_time -in theory could pull from url instead of file
+			2660 forcing codec by name - if blocking patented MPEG2+ / sticking to MPEG1+LevelII audio
+			2400 audio_decode_frame - somwhere we need to get the audio PCM decompressed buffer, so we can pass to our audio API
+			1808 get_video_frame - somewhere we need to get the current frame, perhaps from do_MovieTextureTick() we would get closest-to-current frame and freeze it for opengl
+			1506 video_refresh called to display each frame
+
 
 	3. Platform supplied
 	3.1 windows > directX audio and video (I have the dx audio working in one app)

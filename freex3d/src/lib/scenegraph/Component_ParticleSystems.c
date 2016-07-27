@@ -74,3 +74,32 @@ void Component_ParticleSystems_clear(struct tComponent_ParticleSystems *t){
 
 //ppComponent_ParticleSystems p = (ppComponent_ParticleSystems)gglobal()->Component_ParticleSystems.prv;
 
+/*	Particle Systems
+	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html
+	examples:
+		Non- x3d:
+			https://stemkoski.github.io/Three.js/#particlesystem-shader
+		x3d scenes:
+
+	Fuzzy Design:
+	1. Update position of particles from a particleSystem node
+		Eval particles after events (after the do_tick) and befre RBP physics
+			see http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/concepts.html#ExecutionModel
+		positions are update wrt the local system of the particleSystme node
+		each particle has a struct { lifetime remaining, position, velocity vector, ??}
+		up to 10,000 particles (per particle node)
+		randomizing: use C srand(time) once, and rand() for each randomizing. Scale by Variation field
+		CPU design: iterate over particles, updating each one
+		GPU design ie openCL: do same thing in massive parallel
+	2. Render
+		during geom pass of render_hier, in render_particleSystem()
+		CPU design: iterate over particles like children:
+			updating transform stack with particle position
+			updating appearance f(time)
+			calling render_node(node) on each particle
+		GPU design: send arrray of particle positions/states to GPU
+			in shader iterate over positions, re-rendering for each
+		
+
+
+*/
