@@ -601,8 +601,9 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 }
 
 
+//fog: see also notes in Component_EnvironEffects.c
 void render_Fog (struct X3D_Fog *node) {
-	#ifndef GL_ES_VERSION_2_0 /* this should be handled in material shader */
+	#ifndef GL_ES_VERSION_2_0 // this should be handled in material shader
 	GLDOUBLE mod[16];
 	GLDOUBLE proj[16];
 	GLDOUBLE x,y,z;

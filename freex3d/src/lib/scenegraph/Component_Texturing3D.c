@@ -64,6 +64,19 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ff476906(v=vs.85).aspx
 http://docs.nvidia.com/gameworks/content/gameworkslibrary/graphicssamples/opengl_samples/texturearrayterrainsample.htm
 - an application for rendering terrain
 
-
+Fuzzy Design:
+- load various ways into a buffer representing contiguous voxels, with width, height, depth available
+- somewhere in geometry rendering - polyrep stuff? - give it 3D or 4D-homogenous texture coordinates 
+	instead of regular 2D
+- somewhere in sending geom to shader, send the 3D/4D texture coords (and/or Matrix?)
+- in shader, detect if its 3D texture, and use 3D texture lookup (Q. is it available in GLES2?)
+	https://www.khronos.org/opengles/sdk/docs/reference_cards/OpenGL-ES-2_0-Reference-card.pdf
+	- at bottom shows texture2D etc sampler functions
+	instead of  v3c3 texture2D(sampler2D,coord2D) 
+	it would be vec4 textureCube(samplerCube sampler, vec3 coord) ?
+Example use: if you have 3 images for terrain - white for mountain peaks, brown for mountain sides, green for valleys
+- then combine them into a nxmx3 volume image?
+- then you can use the terrain height to compute an R value ?
+- cube sampler should in theory interpolate between the 3 layers?
 
 */
