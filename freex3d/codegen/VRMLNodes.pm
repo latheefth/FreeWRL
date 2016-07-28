@@ -3645,9 +3645,9 @@ our %Nodes = (
 	"EdgeEnhancementVolumeStyle" => new VRML::NodeType("EdgeEnhancementVolumeStyle", [
 		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		surfaceNormals => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		edgeColor=>["SFColorRGBA",[0,0,0,1],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		gradientThreshold => ["SFFloat", .4,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		surfaceNormals => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	],"X3DComposableVolumeRenderStyleNode"),
 	
 	# IsoSurfaceVolumeData	All fields fully supported.
@@ -3674,7 +3674,7 @@ our %Nodes = (
 	],"X3DComposableVolumeRenderStyleNode"),
 	
 	# SegmentedVolumeData	All fields fully supported.
-	"IsoSurfaceVolumeData" => new VRML::NodeType("IsoSurfaceVolumeData", [
+	"SegmentedVolumeData" => new VRML::NodeType("SegmentedVolumeData", [
 		dimensions  => ["SFVec3f", [1,1,1],"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		renderStyle => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3686,17 +3686,72 @@ our %Nodes = (
 	],"X3DVolumeDataNode"),
 	
 	# SilhouetteEnhancementVolumeStyle	All fields fully supported.
-	# ToneMappedVolumeStyle	All fields fully supported.
+	"SilhouetteEnhancementVolumeStyle" => new VRML::NodeType("SilhouetteEnhancementVolumeStyle", [
+		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		surfaceNormals => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		silhouetteBoundaryOpacity => ["SFFloat", 0,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		silhouetteRetainedOpacity => ["SFFloat", 1,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		silhouetteSharpness => ["SFFloat", .5,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+	],"X3DComposableVolumeRenderStyleNode"),
 	
-
+	
+	# ToneMappedVolumeStyle	All fields fully supported.
+	"ToneMappedVolumeStyle" => new VRML::NodeType("ToneMappedVolumeStyle", [
+		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		surfaceNormals => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		coolColor=>["SFColorRGBA",[0,0,1,0],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		warmColor=>["SFColorRGBA",[1,1,0,1],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+	],"X3DComposableVolumeRenderStyleNode"),
+	
 	#level 3
 	# BlendedVolumeStyle	All fields fully supported.
+	"BlendedVolumeStyle" => new VRML::NodeType("BlendedVolumeStyle", [
+		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		surfaceNormals => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		renderStyle => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		voxels => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		weightConstants1 => ["SFFloat", 0.5,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		weightConstants2 => ["SFFloat", 0.5,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		weightFunctions1 => ["SFString", "CONSTANT", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		weightFunctions2 => ["SFString", "CONSTANT", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		weightTransferFunctions1 => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		weightTransferFunctions2 => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+	],"X3DComposableVolumeRenderStyleNode"),
+	
 	# CartoonVolumeStyle	All fields fully supported.
+	"CartoonVolumeStyle" => new VRML::NodeType("CartoonVolumeStyle", [
+		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		surfaceNormals => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		orthogonalColor=>["SFColorRGBA",[1,1,1,1],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		parallelColor=>["SFColorRGBA",[0,0,0,1],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		colorStepse => ["SFInt32", 4, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+	],"X3DComposableVolumeRenderStyleNode"),
+	
 	# CompositeVolumeStyle	All fields fully supported.
+	"CompositeVolumeStyle" => new VRML::NodeType("CompositeVolumeStyle", [
+		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		#the other renderStyles are SF, this one MF
+		renderStyle => ["MFNode", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+	],"X3DComposableVolumeRenderStyleNode"),
+	
 	# ShadedVolumeStyle	All fields fully supported except shadows. Shadows supported with at least Phong shading.
-
 	#level 4
 	# ShadedVolumeStyle	All fields fully supported with at least Phong shading and  Henyey-Greenstein phase function. Shadows fully supported.
+	"ShadedVolumeStyle" => new VRML::NodeType("ShadedVolumeStyle", [
+		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		lighting  => ["SFBool", "FALSE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		shadows => ["SFBool", "FALSE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		material => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		surfaceNormals => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		phaseFunction => ["SFString", "Henyey-Greenstein", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+	],"X3DComposableVolumeRenderStyleNode"),
+
 
 	###################################################################################
 
