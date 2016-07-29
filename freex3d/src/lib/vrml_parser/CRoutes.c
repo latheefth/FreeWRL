@@ -934,13 +934,15 @@ void CRoutes_RegisterSimpleB(
 	//converts from field indexes to pointer offsets
 	int fromOfs,toOfs;
 
-	fromOfs = fromIndex;
-	if(usesBuiltin(from))
-		fromOfs = NODE_OFFSETS[(from)->_nodeType][fromIndex*5 + 1]; //for builtins, convert from field index to byte offset
-	toOfs = toIndex;
-	if(usesBuiltin(to))
-		toOfs = NODE_OFFSETS[(to)->_nodeType][toIndex*5 + 1]; //for builtins, convert from field index to byte offset
-	CRoutes_RegisterSimple(from,fromOfs,to,toOfs,type);
+	if(from && to){
+		fromOfs = fromIndex;
+		if(usesBuiltin(from))
+			fromOfs = NODE_OFFSETS[(from)->_nodeType][fromIndex*5 + 1]; //for builtins, convert from field index to byte offset
+		toOfs = toIndex;
+		if(usesBuiltin(to))
+			toOfs = NODE_OFFSETS[(to)->_nodeType][toIndex*5 + 1]; //for builtins, convert from field index to byte offset
+		CRoutes_RegisterSimple(from,fromOfs,to,toOfs,type);
+	}
 }
 
 /********************************************************************

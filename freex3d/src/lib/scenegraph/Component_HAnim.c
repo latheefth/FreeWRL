@@ -391,6 +391,8 @@ return;
 }
 
 void fin_HAnimSite (struct X3D_HAnimSite * node) {
+return;
+#ifdef HANIMHANIM
         if(!renderstate()->render_vp) {
             FW_GL_POP_MATRIX();
         } else {
@@ -412,9 +414,12 @@ void fin_HAnimSite (struct X3D_HAnimSite * node) {
                 );
             }
         }
+#endif //HANIMHANIM
 }
 
 void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
+return;
+#ifdef HANIMHANIM
         if(!renderstate()->render_vp) {
             FW_GL_POP_MATRIX();
         } else {
@@ -436,5 +441,6 @@ void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
                 );
             }
         }
+#endif //HANIMHANIM
 }
 

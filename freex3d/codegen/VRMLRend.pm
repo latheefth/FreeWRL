@@ -317,11 +317,25 @@ our %defaultContainerType = (
 
 	OpacityMapVolumeStyle	=>"renderStyle",
 	VolumeData		=>"children",
+	BoundaryEnhancementVolumeStyle =>"renderStyle",
+	ComposedVolumeStyle	=>"renderStyle",
+	EdgeEnhancementVolumeStyle =>"renderStyle",
+	IsoSurfaceVolumeData	=>"children",
+	ProjectionVolumeStyle	=>"renderStyle",
+	BlendedVolumeStyle	=>"renderStyle",
+	CartoonVolumeStyle	=>"renderStyle",
+	CompositeVolumeStyle	=>"renderStyle",
+	SegmentedVolumeData	=>"children",
+	ShadedVolumeStyle	=>"renderStyle",
+	SilhouetteEnhancementVolumeStyle =>"renderStyle",
+	ToneMappedVolumeStyle	=>"renderStyle",
+	
 	
 	BackdropBackground	=>"children",
 	ImageBackdropBackground	=>"children",
 	CalibratedCameraSensor	=>"children",
 	TrackingSensor		=>"children",
+	
 );
 
 

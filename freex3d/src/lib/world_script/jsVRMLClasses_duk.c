@@ -281,6 +281,7 @@ char *sfToString(FWType fwt, void *fwn){
 				str = fwretval._string;
 				break;
 			}
+			i++;
 		}
 		break;
 	}

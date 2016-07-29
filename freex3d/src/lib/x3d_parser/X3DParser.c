@@ -1941,6 +1941,8 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 		cname = NULL;
 		//memset(&defaultValue,0,sizeof(union anyVrml));
 		bzero(&defaultValue, sizeof (union anyVrml));
+		if(type == FIELDTYPE_SFString)
+			defaultValue.sfstring = newASCIIString("");
 		valueSet = FALSE;
 		if(mp_value > -1){
 			Parser_scanStringValueToMem_B(&defaultValue, type, atts[mp_value], TRUE);

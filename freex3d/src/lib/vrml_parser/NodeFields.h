@@ -150,6 +150,21 @@ EXPOSED_FIELD(Billboard,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(Billboard,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
 END_NODE(Billboard)
 
+/* BlendedVolumeStyle node */
+BEGIN_NODE(BlendedVolumeStyle)
+EXPOSED_FIELD(BlendedVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(BlendedVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(BlendedVolumeStyle,renderStyle,sfnode,renderStyle,FIELDTYPE_SFNode)
+EXPOSED_FIELD(BlendedVolumeStyle,surfaceNormals,sfnode,surfaceNormals,FIELDTYPE_SFNode)
+EXPOSED_FIELD(BlendedVolumeStyle,voxels,sfnode,voxels,FIELDTYPE_SFNode)
+EXPOSED_FIELD(BlendedVolumeStyle,weightConstants1,sffloat,weightConstants1,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(BlendedVolumeStyle,weightConstants2,sffloat,weightConstants2,FIELDTYPE_SFFloat)
+FIELD(BlendedVolumeStyle,weightFunctions1,sfstring,weightFunctions1,FIELDTYPE_SFString)
+FIELD(BlendedVolumeStyle,weightFunctions2,sfstring,weightFunctions2,FIELDTYPE_SFString)
+EXPOSED_FIELD(BlendedVolumeStyle,weightTransferFunctions1,sfnode,weightTransferFunctions1,FIELDTYPE_SFNode)
+EXPOSED_FIELD(BlendedVolumeStyle,weightTransferFunctions2,sfnode,weightTransferFunctions2,FIELDTYPE_SFNode)
+END_NODE(BlendedVolumeStyle)
+
 /* BooleanFilter node */
 BEGIN_NODE(BooleanFilter)
 EVENT_OUT(BooleanFilter,inputFalse,sfbool,inputFalse,FIELDTYPE_SFBool)
@@ -183,6 +198,15 @@ EXPOSED_FIELD(BooleanTrigger,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(BooleanTrigger,set_triggerTime,sftime,set_triggerTime,FIELDTYPE_SFTime)
 EVENT_OUT(BooleanTrigger,triggerTrue,sfbool,triggerTrue,FIELDTYPE_SFBool)
 END_NODE(BooleanTrigger)
+
+/* BoundaryEnhancementVolumeStyle node */
+BEGIN_NODE(BoundaryEnhancementVolumeStyle)
+EXPOSED_FIELD(BoundaryEnhancementVolumeStyle,boundaryOpacity,sffloat,boundaryOpacity,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(BoundaryEnhancementVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(BoundaryEnhancementVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(BoundaryEnhancementVolumeStyle,opacityFactor,sffloat,opacityFactor,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(BoundaryEnhancementVolumeStyle,retainedOpacity,sffloat,retainedOpacity,FIELDTYPE_SFFloat)
+END_NODE(BoundaryEnhancementVolumeStyle)
 
 /* BoundedPhysicsModel node */
 BEGIN_NODE(BoundedPhysicsModel)
@@ -258,6 +282,16 @@ EVENT_OUT(CalibratedCameraSensor,image,sfimage,image,FIELDTYPE_SFImage)
 EVENT_OUT(CalibratedCameraSensor,isActive,sfbool,isActive,FIELDTYPE_SFBool)
 EXPOSED_FIELD(CalibratedCameraSensor,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 END_NODE(CalibratedCameraSensor)
+
+/* CartoonVolumeStyle node */
+BEGIN_NODE(CartoonVolumeStyle)
+EXPOSED_FIELD(CartoonVolumeStyle,colorStepse,sfint32,colorStepse,FIELDTYPE_SFInt32)
+EXPOSED_FIELD(CartoonVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(CartoonVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(CartoonVolumeStyle,orthogonalColor,sfcolorrgba,orthogonalColor,FIELDTYPE_SFColorRGBA)
+EXPOSED_FIELD(CartoonVolumeStyle,parallelColor,sfcolorrgba,parallelColor,FIELDTYPE_SFColorRGBA)
+EXPOSED_FIELD(CartoonVolumeStyle,surfaceNormals,sfnode,surfaceNormals,FIELDTYPE_SFNode)
+END_NODE(CartoonVolumeStyle)
 
 /* Circle2D node */
 BEGIN_NODE(Circle2D)
@@ -420,6 +454,20 @@ FIELD(ComposedTexture3D,repeatT,sfbool,repeatT,FIELDTYPE_SFBool)
 EXPOSED_FIELD(ComposedTexture3D,texture,mfnode,texture,FIELDTYPE_MFNode)
 FIELD(ComposedTexture3D,textureProperties,sfnode,textureProperties,FIELDTYPE_SFNode)
 END_NODE(ComposedTexture3D)
+
+/* ComposedVolumeStyle node */
+BEGIN_NODE(ComposedVolumeStyle)
+EXPOSED_FIELD(ComposedVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ComposedVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(ComposedVolumeStyle,renderStyle,mfnode,renderStyle,FIELDTYPE_MFNode)
+END_NODE(ComposedVolumeStyle)
+
+/* CompositeVolumeStyle node */
+BEGIN_NODE(CompositeVolumeStyle)
+EXPOSED_FIELD(CompositeVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(CompositeVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(CompositeVolumeStyle,renderStyle,mfnode,renderStyle,FIELDTYPE_MFNode)
+END_NODE(CompositeVolumeStyle)
 
 /* Cone node */
 BEGIN_NODE(Cone)
@@ -644,6 +692,15 @@ EXPOSED_FIELD(EaseInEaseOut,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_OUT(EaseInEaseOut,modifiedFraction_changed,sffloat,modifiedFraction_changed,FIELDTYPE_SFFloat)
 EVENT_IN(EaseInEaseOut,set_fraction,sffloat,set_fraction,FIELDTYPE_SFFloat)
 END_NODE(EaseInEaseOut)
+
+/* EdgeEnhancementVolumeStyle node */
+BEGIN_NODE(EdgeEnhancementVolumeStyle)
+EXPOSED_FIELD(EdgeEnhancementVolumeStyle,edgeColor,sfcolorrgba,edgeColor,FIELDTYPE_SFColorRGBA)
+EXPOSED_FIELD(EdgeEnhancementVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(EdgeEnhancementVolumeStyle,gradientThreshold,sffloat,gradientThreshold,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(EdgeEnhancementVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(EdgeEnhancementVolumeStyle,surfaceNormals,sfnode,surfaceNormals,FIELDTYPE_SFNode)
+END_NODE(EdgeEnhancementVolumeStyle)
 
 /* ElevationGrid node */
 BEGIN_NODE(ElevationGrid)
@@ -1275,6 +1332,20 @@ EXPOSED_FIELD(IntegerTrigger,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(IntegerTrigger,set_boolean,sfbool,set_boolean,FIELDTYPE_SFBool)
 EVENT_OUT(IntegerTrigger,triggerValue,sfint32,triggerValue,FIELDTYPE_SFInt32)
 END_NODE(IntegerTrigger)
+
+/* IsoSurfaceVolumeData node */
+BEGIN_NODE(IsoSurfaceVolumeData)
+FIELD(IsoSurfaceVolumeData,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+FIELD(IsoSurfaceVolumeData,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(IsoSurfaceVolumeData,contourStepSize,sffloat,contourStepSize,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(IsoSurfaceVolumeData,dimensions,sfvec3f,dimensions,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(IsoSurfaceVolumeData,gradients,sfnode,gradients,FIELDTYPE_SFNode)
+EXPOSED_FIELD(IsoSurfaceVolumeData,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(IsoSurfaceVolumeData,renderStyle,sfnode,renderStyle,FIELDTYPE_SFNode)
+EXPOSED_FIELD(IsoSurfaceVolumeData,surfaceTolerance,sffloat,surfaceTolerance,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(IsoSurfaceVolumeData,surfaceValues,mffloat,surfaceValues,FIELDTYPE_MFFloat)
+EXPOSED_FIELD(IsoSurfaceVolumeData,voxels,sfnode,voxels,FIELDTYPE_SFNode)
+END_NODE(IsoSurfaceVolumeData)
 
 /* KeySensor node */
 BEGIN_NODE(KeySensor)
@@ -2399,6 +2470,14 @@ EXPOSED_FIELD(ProgramShader,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(ProgramShader,programs,mfnode,programs,FIELDTYPE_MFNode)
 END_NODE(ProgramShader)
 
+/* ProjectionVolumeStyle node */
+BEGIN_NODE(ProjectionVolumeStyle)
+EXPOSED_FIELD(ProjectionVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ProjectionVolumeStyle,intensityThreshold,sffloat,intensityThreshold,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(ProjectionVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(ProjectionVolumeStyle,type,sfstring,type,FIELDTYPE_SFString)
+END_NODE(ProjectionVolumeStyle)
+
 /* Proto node */
 BEGIN_NODE(Proto)
 EVENT_IN(Proto,addChildren,mfnode,addChildren,FIELDTYPE_MFNode)
@@ -2595,6 +2674,29 @@ FIELD(Script,mustEvaluate,sfbool,mustEvaluate,FIELDTYPE_SFBool)
 EXPOSED_FIELD(Script,url,mfstring,url,FIELDTYPE_MFString)
 END_NODE(Script)
 
+/* SegmentedVolumeData node */
+BEGIN_NODE(SegmentedVolumeData)
+FIELD(SegmentedVolumeData,bboxCenter,sfvec3f,bboxCenter,FIELDTYPE_SFVec3f)
+FIELD(SegmentedVolumeData,bboxSize,sfvec3f,bboxSize,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(SegmentedVolumeData,dimensions,sfvec3f,dimensions,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(SegmentedVolumeData,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(SegmentedVolumeData,renderStyle,sfnode,renderStyle,FIELDTYPE_SFNode)
+EXPOSED_FIELD(SegmentedVolumeData,segmentEnabled,mfbool,segmentEnabled,FIELDTYPE_MFBool)
+EXPOSED_FIELD(SegmentedVolumeData,segmentIdentifiers,sfnode,segmentIdentifiers,FIELDTYPE_SFNode)
+EXPOSED_FIELD(SegmentedVolumeData,voxels,sfnode,voxels,FIELDTYPE_SFNode)
+END_NODE(SegmentedVolumeData)
+
+/* ShadedVolumeStyle node */
+BEGIN_NODE(ShadedVolumeStyle)
+EXPOSED_FIELD(ShadedVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ShadedVolumeStyle,lighting,sfbool,lighting,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ShadedVolumeStyle,material,sfnode,material,FIELDTYPE_SFNode)
+EXPOSED_FIELD(ShadedVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(ShadedVolumeStyle,phaseFunction,sfstring,phaseFunction,FIELDTYPE_SFString)
+EXPOSED_FIELD(ShadedVolumeStyle,shadows,sfbool,shadows,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ShadedVolumeStyle,surfaceNormals,sfnode,surfaceNormals,FIELDTYPE_SFNode)
+END_NODE(ShadedVolumeStyle)
+
 /* ShaderPart node */
 BEGIN_NODE(ShaderPart)
 EXPOSED_FIELD(ShaderPart,metadata,sfnode,metadata,FIELDTYPE_SFNode)
@@ -2650,6 +2752,16 @@ EVENT_OUT(SignalPdu,timestamp,sftime,timestamp,FIELDTYPE_SFTime)
 EXPOSED_FIELD(SignalPdu,whichGeometry,sfint32,whichGeometry,FIELDTYPE_SFInt32)
 EXPOSED_FIELD(SignalPdu,writeInterval,sffloat,writeInterval,FIELDTYPE_SFFloat)
 END_NODE(SignalPdu)
+
+/* SilhouetteEnhancementVolumeStyle node */
+BEGIN_NODE(SilhouetteEnhancementVolumeStyle)
+EXPOSED_FIELD(SilhouetteEnhancementVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(SilhouetteEnhancementVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(SilhouetteEnhancementVolumeStyle,silhouetteBoundaryOpacity,sffloat,silhouetteBoundaryOpacity,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(SilhouetteEnhancementVolumeStyle,silhouetteRetainedOpacity,sffloat,silhouetteRetainedOpacity,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(SilhouetteEnhancementVolumeStyle,silhouetteSharpness,sffloat,silhouetteSharpness,FIELDTYPE_SFFloat)
+EXPOSED_FIELD(SilhouetteEnhancementVolumeStyle,surfaceNormals,sfnode,surfaceNormals,FIELDTYPE_SFNode)
+END_NODE(SilhouetteEnhancementVolumeStyle)
 
 /* SingleAxisHingeJoint node */
 BEGIN_NODE(SingleAxisHingeJoint)
@@ -2971,6 +3083,15 @@ EXPOSED_FIELD(TimeTrigger,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(TimeTrigger,set_boolean,sfbool,set_boolean,FIELDTYPE_SFBool)
 EVENT_OUT(TimeTrigger,triggerTime,sftime,triggerTime,FIELDTYPE_SFTime)
 END_NODE(TimeTrigger)
+
+/* ToneMappedVolumeStyle node */
+BEGIN_NODE(ToneMappedVolumeStyle)
+EXPOSED_FIELD(ToneMappedVolumeStyle,coolColor,sfcolorrgba,coolColor,FIELDTYPE_SFColorRGBA)
+EXPOSED_FIELD(ToneMappedVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ToneMappedVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(ToneMappedVolumeStyle,surfaceNormals,sfnode,surfaceNormals,FIELDTYPE_SFNode)
+EXPOSED_FIELD(ToneMappedVolumeStyle,warmColor,sfcolorrgba,warmColor,FIELDTYPE_SFColorRGBA)
+END_NODE(ToneMappedVolumeStyle)
 
 /* TouchSensor node */
 BEGIN_NODE(TouchSensor)
