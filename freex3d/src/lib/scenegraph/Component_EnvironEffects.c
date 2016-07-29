@@ -47,7 +47,13 @@ FOG - state as of July 2016:
 	X3D fog in kelp forest example:
 		http://x3dgraphics.com/examples/X3dForWebAuthors/Chapter11-LightingEnvironmentalEffects/
 		http://x3dgraphics.com/examples/X3dForWebAuthors/Chapter11-LightingEnvironmentalEffects/Fog-KelpForestMain.x3d
-		- freewrl crashes loading scene - win32 desktop develop branch July 27, 2016
+		- freewrl various rendering issues July 29, 2016
+			x fluttery rendering
+			x hanim stubbed
+			x no foreground fog
+			x doesn't start on right viewpoint
+			x viewpoint binding complains not top of stack
+			x Text node K in Kelp renders Zinger
 		- fog (and scene) looks great in Octaga, InstantReality, Vivaty (although Octaga crashes if left running 8min)
 
 	Non-X3D links:

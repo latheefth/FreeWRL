@@ -113,7 +113,10 @@ NurbsTrimmedSurface			Not Implemented		DONE?
 Perl: all the above including CoordinateDouble are in perl
 
 Analysis 
-dug9, 2016: I find nurbs libs are always disappointing in documentation. 
+dug9, 2016: 
+freewrl doesn't use opengl glu. Chapter 12 of Redbook has lots of glu nurbs functions.
+So we're left to re-implement the hard way.
+I find nurbs libs are always disappointing in documentation. 
 I think that's because there's not a lot to nurbs: 
 - Each tesselation point Ci is computed as a weighted blend of control points: Ci = f(Pn,wn)
 - There are a few blending functions: linear, quadratic, cubic - in theory could go higher
@@ -121,22 +124,26 @@ I think that's because there's not a lot to nurbs:
 And I think I made a mistake trying to use libnurbs in 2014. It's too much lib plumbing for too little meat.
 Here's a smaller MIT .c
 https://github.com/retuxx/tinyspline
+
 Or you can just read a bit more and manually implement nurbs.
 
 Design Options:
 1. basic tesselation point spacing
-2. automatic tesselation refinement
+2. automatic tesselation refinement (chord-length/tolerence refinement as glu functions do)
 DESIGN DECISION: 1. basic. 
 
 HARD PARTS:
-1. nurbsSet - how smooth between nurbs 'tiles'? C0, C1, C2 continuity?
+1. nurbsSet:
+	Q1.how smooth between nurbs 'tiles'? C0, C1, C2 continuity?
+	Q1a. how to find matching/joining/adjacent edges from 2+ patches?
+	Q1b. how to use adjoinging patch info to modify/blend on/near/in-overalap of the join?
 	
 2. trimmed surfaces - procedure? 
-	Hint: however we triangulate font glyphs in Component_Text would be a good hint,
+	Hint: however we triangulate font glyphs in Component_Text would be a good example,
 	- might be able to borrow code from it
-	Terminology use here:
-	Tesselate: Nurbs term for interpolate/blend a given interpolation point
-	Triangulate: take cloud of points, and join them with edges to make surface triangles
+	Terminology:
+	  Tesselate: Nurbs term for interpolate/blend a given target interpolation point
+	  Triangulate: take cloud of points, and join them with edges to make surface triangles
 
 	Fuzzy guess algo:
 	a) tesselate 2D curve in uv space of surface => A2dtess
@@ -144,11 +151,11 @@ HARD PARTS:
 		[option skip points inside A2dtess here instead of c)]
 	c) use point-in-poly test to remove Btess surface tesselation points 
 		inside A2dtess tesselated curve: Btess - inside(A2dtess) => Ctess
-	d) go over A2dtess 2D curve point by point, interpolating/blending in 3D like they 
+	d) go over A2dtess 2D curve point by point, interpolating/blending/tesselating in 3D like they 
 		were surface tesselation points A2dtess => Dtess
 	e) add Dtess points to Ctess points => Etess
 	f) triangulate Etess => Etris
-	g) follow A2dtess points swapping triangles so triangle edges are along A2dtess
+	g) follow A2dtess points in Etris, swapping triangles so triangle edges are along A2dtess
 	h) do point-in-poly of Etris 2D triangle centroids, using A2dtess polygon, 
 		to remove triangles inside A2dtess => Ftris
 	Ftris should be a trimmed surface
