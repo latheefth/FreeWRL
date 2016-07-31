@@ -596,7 +596,7 @@ B. New theory of operation for PickSensors (July 2016, dug9):
 	- picksensor and target nodes are flagged here with VF_USE
 	- then on next frame/tick the picksensor and targets are recovered here with usehit_ functions, including their modelview transform
 	- and all the work is done here in do_PickSensorTick
-2. we'll simplify assumptions:
+2. we could simplify by doing BOUNDS only:
 	- if target is geom, then can do BOUNDS or GEOMETRY intersection
 	- if target is 'chunk of scenegraph' ie Group, Transform or PickableGroup, then 
 		for now july 2016: we do only BOUNDS, 
@@ -618,6 +618,16 @@ B. New theory of operation for PickSensors (July 2016, dug9):
 	- for now we'll do work in d) picksensor space, so 'closest' is easy to sort relative to 0,0,0
 		and that means transforming pickTarget to picksensor space 
 		and assuming^^ pickingGeometry is already in picksensor space
+HARD PARTS:
+	1. picking against a partial transform hierarchy of objects
+		- can use the USEUSE approach to get the starting transform stack for target node
+		- need to modify render_node() and/or normalChildren for picking partial pass
+	2. geom-geom intersections
+		- bounding box easy
+		- we do ray-geom for touchsensors
+		- we do 'avatar brush' (bunch of line segments) vs geom in collision
+		- RBP will do geom-geom collisions, but the geoms are simplifications: box, sphere
+	
 */
 void do_PickSensorTick(void *ptr){
 	//heavy borrowing from do_TransformSensor
