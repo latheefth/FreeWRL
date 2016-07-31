@@ -491,7 +491,7 @@ void FW_NewVertexPoint ()
     v2[0]=p->FW_rep_->actualCoord[p->FW_pointctr*3+0];
     v2[1]=p->FW_rep_->actualCoord[p->FW_pointctr*3+1];
     v2[2]=p->FW_rep_->actualCoord[p->FW_pointctr*3+2];
-
+	//July 2016 if you change things around here, you may want to check Tess.c Combiner callback
 	/* printf("glu s.b. rev 1.2 or newer, is: %s\n",gluGetString(GLU_VERSION)); */
     FW_GLU_TESS_VERTEX(tg->Tess.global_tessobj,v2,&p->FW_RIA[p->FW_RIA_indx]);
 
@@ -996,25 +996,41 @@ FT_Error  FW_Load_Char(unsigned int idx)
     if (!error) { p->glyphs[p->cur_glyph++] = glyph; }
     return error;
 }
-
+//typedef struct our_combiner_data {
+//	float *coords;
+//	int *counter;
+//} our_combiner_data;
 static void FW_draw_outline (FT_OutlineGlyph oglyph)
 {
     int thisptr = 0;
     int retval = 0;
 	ppComponent_Text p;
+	our_combiner_data cbdata;
 	ttglobal tg = gglobal();
 	p = (ppComponent_Text)tg->Component_Text.prv;
 
     /* gluTessBeginPolygon(global_tessobj,NULL); */
 
-    FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
+   // FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
+    //p->FW_rep_->actualCoord[p->FW_pointctr*3+0] = (float) (OUT2GLB(p->last_point.x,p->shrink_x) + p->pen_x);
+	cbdata.coords = p->FW_rep_->actualCoord;
+	cbdata.counter = &p->FW_pointctr;
+	cbdata.ria = p->FW_RIA;
+	cbdata.riaindex = &p->FW_RIA_indx;
+    //p->FW_RIA[p->FW_RIA_indx]=p->FW_pointctr;
+	//July 2016 if you change things around here, you may want to also check Tess.c Combiner callback
+
+	gluTessBeginPolygon( tg->Tess.global_tessobj, &cbdata );
+	gluTessBeginContour( tg->Tess.global_tessobj );
     p->FW_Vertex = 0;
 
     /* thisptr may possibly be null; I dont think it is use in freetype */
     retval = FT_Outline_Decompose( &oglyph->outline, &p->FW_outline_interface, &thisptr);
 
     /* gluTessEndPolygon(global_tessobj); */
-    FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
+	gluTessEndContour( tg->Tess.global_tessobj );
+	gluTessEndPolygon( tg->Tess.global_tessobj );
+    //FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
 
     if (retval != FT_Err_Ok)
         printf("FT_Outline_Decompose, error %d\n",retval);
@@ -1662,9 +1678,10 @@ p->myff = 4;
 	if(!tnode->_isScreen){
 		//vector glyph construction
 		p->FW_rep_ = rp;
-
-		p->FW_RIA_indx = 0;            /* index into FW_RIA                                  */
+		//PER TEXT NODE
+		//rep->actualCoords[FW_pointctr] cumulative XYZ points over all glyphs in Text node 
 		p->FW_pointctr=0;              /* how many points used so far? maps into rep-_coord  */
+		//rep->cindex[indx_count]  cumulative triangle vertex indexes over all glyphs in text node
 		p->indx_count=0;               /* maps intp FW_rep_->cindex                          */
 		p->contour_started = FALSE;
 
@@ -1685,8 +1702,11 @@ p->myff = 4;
 				p->pen_y = chr.y; //[m] = [m]
 				p->shrink_x = chr.sx; //[1]
 				p->shrink_y = chr.sy; //[1]
+				//PER GLYPH
+				//gobal_IFS_Coords[global_IFS_Coord_count] - Triangle vertex indexes into actualCoords
 				tg->Tess.global_IFS_Coord_count = 0;
-				p->FW_RIA_indx = 0;
+				//FW_RIA[FW_RIA_indx] - glyph outline contour point indexes into actualCoord
+				p->FW_RIA_indx = 0;    // index into FW_RIA    
 				kk = rowvec[row].chr[i].iglyph;
 				FW_draw_character (p->glyphs[kk]);
 				FT_Done_Glyph (p->glyphs[kk]);
@@ -1721,6 +1741,52 @@ p->myff = 4;
 				if (p->indx_count > (p->cindexmaxsize-400)) {
 					p->cindexmaxsize += 800; /* 800 was TESS_MAX_COORDS; */
 					p->FW_rep_->cindex=(GLuint *)REALLOC(p->FW_rep_->cindex,sizeof(*(p->FW_rep_->cindex))*p->cindexmaxsize);
+				}
+				if(0){
+					//as a test, write out a glyph to a wrl file, 
+					//then load the wrl in another instance of frewrl to see if its properly formed
+					//this can show you if you have the right idea
+					static int _once = 0;
+					int ii,jj,kk,ntris;
+					ntris = tg->Tess.global_IFS_Coord_count / 3;
+					if(!_once){
+						//_once means it will output the first character in the text string here
+						FILE *fptris = fopen("test_glyph_triangles.wrl","w+");
+						fprintf(fptris,"%s\n","#VRML V2.0 utf8");
+						fprintf(fptris,"Transform {\n children [\n  Shape {\n   appearance Appearance { material Material { diffuseColor .6 .6 .6 }}\n");
+						fprintf(fptris,"   geometry IndexedFaceSet { solid FALSE \n");
+						fprintf(fptris,"   coordIndex ");
+						//indexes
+						fprintf(fptris,"[");
+						for(ii=0;ii<ntris;ii++){
+							for(jj=0;jj<3;jj++){
+								fprintf(fptris," %d",p->FW_rep_->cindex[ii*3+jj]);
+							}
+							fprintf(fptris," -1");
+						}
+						fprintf(fptris,"]\n");
+
+						fprintf(fptris,"coord Coordinate { \n");
+						fprintf(fptris,"    point [");
+						//we use FW_RIA_indx instead of IFS_Coord_count to print out the coords:
+						//  FW_RIA_indx includes contour points dropped by tesselation Combiner, 
+						//    that are still in actualCoords, and the indexing above needs as filler 
+						//    in order for the captured indexing to still make sense
+						//  IFS_Coord_count: its 3 x number of triangles, but doesn't know how long actualCoord is
+						//     that its indexes refer to
+						for(ii=0;ii<p->FW_RIA_indx;ii++){
+							for(jj=0;jj<3;jj++){
+								fprintf(fptris," %f",p->FW_rep_->actualCoord[ii*3 + jj]);
+							}
+							fprintf(fptris,",");
+						}
+
+						fprintf(fptris," ] }}}\n");
+						fprintf(fptris," ]}");
+						fclose(fptris);
+						_once = 1;
+					}
+			
 				}
 			}
 		}

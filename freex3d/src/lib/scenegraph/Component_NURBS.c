@@ -82,7 +82,7 @@ http://www.web3d.org/x3d/content/examples/Basic/NURBS/
 Book: The NURBS Book
 Piegl, Les and Tiller, Wayne; The NURBS Book, 2nd Edition, Springer-Verlag (Berlin), 1997, ISBN:  3-540-61545-8.
 - about $120 new, softcover or kindle
-- some university libraries have it, you don't need it
+- some university libraries have it, you don't absolutely need it, the swept and swung ideas are in it
 
 Nov 2014 - dug9 did some nurbs using libnurbs2, and following The Nurbs Book
 	- didn't finish the component
@@ -114,23 +114,24 @@ Perl: all the above including CoordinateDouble are in perl
 
 Analysis 
 dug9, 2016: 
-freewrl doesn't use opengl glu. Chapter 12 of Redbook has lots of glu nurbs functions.
+Chapter 12 of Redbook has lots of glu nurbs functions.
+freewrl doesn't use opengl glu. 
+There is some source for it:
+	http://mesa3d.org/
+	ftp://ftp.freedesktop.org/pub/mesa/glu/
+	http://oss.sgi.com/projects/ogl-sample/
 So we're left to re-implement the hard way.
 I find nurbs libs are always disappointing in documentation. 
-I think that's because there's not a lot to nurbs: 
+I think that's because there's not a lot to nurbs, mostly plumbing and little meat: 
 - Each tesselation point Ci is computed as a weighted blend of control points: Ci = f(Pn,wn)
 - There are a few blending functions: linear, quadratic, cubic - in theory could go higher
 - there's a trick for doing sharp corners: knots (repeating a control point)
-And I think I made a mistake trying to use libnurbs in 2014. It's too much lib plumbing for too little meat.
+- hard part: adaptive triangulation, might need callback plumbing, libnurbs2 has some of that
+Did I make a mistake trying to use libnurbs in 2014? Is it too much lib plumbing for too little meat?
 Here's a smaller MIT .c
 https://github.com/retuxx/tinyspline
-
 Or you can just read a bit more and manually implement nurbs.
 
-Design Options:
-1. basic tesselation point spacing
-2. automatic tesselation refinement (chord-length/tolerence refinement as glu functions do)
-DESIGN DECISION: 1. basic. 
 
 HARD PARTS:
 1. nurbsSet:
@@ -159,6 +160,20 @@ HARD PARTS:
 	h) do point-in-poly of Etris 2D triangle centroids, using A2dtess polygon, 
 		to remove triangles inside A2dtess => Ftris
 	Ftris should be a trimmed surface
+	
+3. Adaptive triangulation
+	a regular grid in uv space does not transform into a uniform grid in xyz space
+	with nurbs. And so there's a lot of plumbing in glu and other libs for 
+	refining the xyz grid a) in xyz space or b) in screenspace (pixels), using some
+	measure of error and/or chordlength.
+
+	http://people.scs.carleton.ca/~c_shu/Publications/stmalo99.pdf
+	- Triangulating Trimmed NURBS Surfaces
+	http://www.saccade.com/writing/graphics/RE-PARAM.PDF
+	- Arc Length Parameterization of Spline Curves
+	- uses yet-another nurbs curve to interpolate XY space regular length chords
+
+
 */
 
 

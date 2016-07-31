@@ -123,7 +123,10 @@ void CALLBACK FW_IFS_tess_vertex(void *p) {
 			global_IFS_Coords[global_IFS_Coord_count-1];
 		*/
 	} else {
-		/*printf ("FW_IFS_tess_vertex, global_ifs_coord count %d, pointer %d\n",global_IFS_Coord_count,*dp);*/
+		//printf ("FW_IFS_tess_vertex, global_ifs_coord count %d, pointer %d\n",tg->Tess.global_IFS_Coord_count,*dp);
+		//if(*dp < 0){
+		//	printf("dp pointer = %p\n",dp);
+		//}
 		tg->Tess.global_IFS_Coords[tg->Tess.global_IFS_Coord_count++] = *dp;
 	}
 
@@ -161,7 +164,28 @@ void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], 
 		nv[2] = c[2];
 		*out = nv;
 	}else{
-		*out = c;  //Mar 7, 2016 to solve unfreed nv in 49.x3d, 48 bytes
+		int i, FW_pointctr, RAI_indx;
+		our_combiner_data *cbdata;
+		cbdata = (our_combiner_data*) polygondata;
+		//GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*6);
+		ttglobal tg = gglobal();
+
+		//OpenGL Redbook says we must malloc a new point. 
+		//but in our Component_Text system, that just means adding it to our 
+		//over-malloced list of points actualCoords[]
+		// and to a few other lists of indexes etc as we do in FW_NewVertexPoint() in Component_Text
+		FW_pointctr = *(cbdata->counter);
+		RAI_indx = *(cbdata->riaindex);
+		tg->Tess.global_IFS_Coords[RAI_indx] = FW_pointctr;
+		cbdata->coords[FW_pointctr*3+0] = c[0];
+		cbdata->coords[FW_pointctr*3+1] = c[1];
+		cbdata->coords[FW_pointctr*3+2] = c[2];
+		cbdata->ria[(*cbdata->riaindex)] = FW_pointctr;
+		*out = &cbdata->ria[(*cbdata->riaindex)]; //tell FW_IFS_tess_vertex the index of the new point
+		//printf("combiner, out pointer = %p nv pointer = %p\n",out,*out);
+		//THE SECRET TO COMBINDER SUCCESS? *out == (p) in FW_IFS_tess_vertex(void *p)
+		*(cbdata->counter) = FW_pointctr + 1;
+		(*cbdata->riaindex)++;
 	}
 }
 
@@ -222,14 +246,14 @@ void new_tessellation(void) {
 		freewrlDie("Got no memory for Tessellation Object!");
 
 	/* register the CallBackfunctions				*/
-	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_BEGIN,(_GLUfuncptr)FW_tess_begin);
-	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_EDGE_FLAG,(_GLUfuncptr)FW_tess_edgeflag);
-	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
+	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_TESS_BEGIN,(_GLUfuncptr)FW_tess_begin);
+	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_TESS_EDGE_FLAG,(_GLUfuncptr)FW_tess_edgeflag);
+	//FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
 	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_TESS_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
-	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_ERROR,(_GLUfuncptr)FW_tess_error);
-	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_END,(_GLUfuncptr)FW_tess_end);
+	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_TESS_ERROR,(_GLUfuncptr)FW_tess_error);
+	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_TESS_END,(_GLUfuncptr)FW_tess_end);
 	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_data);
-	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE,(_GLUfuncptr)FW_tess_combine);
+	//FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE,(_GLUfuncptr)FW_tess_combine);
 
 	    /* Unused right now. */
 /*
