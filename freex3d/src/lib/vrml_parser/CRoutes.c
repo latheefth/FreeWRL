@@ -972,13 +972,15 @@ void CRoutes_RemoveSimpleB(struct X3D_Node* from, int fromIndex,
 	int fromOfs, toOfs;
 	
 	fromOfs = fromIndex;
-	if(usesBuiltin(from))
-		fromOfs = NODE_OFFSETS[(from)->_nodeType][fromIndex*5 + 1]; //for builtins, convert from field index to byte offset
-	toOfs = toIndex;
-	if(usesBuiltin(to))
-		toOfs = NODE_OFFSETS[(to)->_nodeType][toIndex*5 + 1]; //for builtins, convert from field index to byte offset
+	if(from && to){
+		if(usesBuiltin(from))
+			fromOfs = NODE_OFFSETS[(from)->_nodeType][fromIndex*5 + 1]; //for builtins, convert from field index to byte offset
+		toOfs = toIndex;
+		if(usesBuiltin(to))
+			toOfs = NODE_OFFSETS[(to)->_nodeType][toIndex*5 + 1]; //for builtins, convert from field index to byte offset
 
-	CRoutes_RemoveSimple(from,fromOfs,to,toOfs,len);
+		CRoutes_RemoveSimple(from,fromOfs,to,toOfs,len);
+	}
  }
 /********************************************************************
 
