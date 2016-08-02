@@ -223,11 +223,7 @@ if test "$javascriptopt" = "sm"; then
      *)
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs187])
         AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs185])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozilla-js],[>=],[1.9])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[xulrunner-js],[>=],[1.8])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[seamonkey-js])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[firefox-js])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[firefox2-js])
+        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozilla-js],[<],[3.0])
         ;;
   esac
 
