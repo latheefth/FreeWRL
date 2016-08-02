@@ -1491,11 +1491,6 @@ static vrmlNodeT parse_KW_DEF(struct VRMLParser *me) {
 #endif
 
     /* Return a pointer to the node in the variable ret */
-	{
-		name = vector_get(char*, stack_top(struct Vector*, me->lexer->userNodeNames), ind);
-		broto_store_DEF((struct X3D_Proto*)(me->ectx),node, name);
-	}
-
 	return (vrmlNodeT) vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind);
 }
 
@@ -2615,11 +2610,14 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			isBroto = TRUE;
 			ASSERT(node);
 			if (ind != ID_UNDEFINED) {
+				char *name;
 				/* Set the top memmber of the DEFed nodes stack to this node */
 				vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
 #ifdef CPARSERVERBOSE
 				printf("parser_node: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
 #endif
+				name = vector_get(char*, stack_top(struct Vector*, me->lexer->userNodeNames), ind);
+				broto_store_DEF((struct X3D_Proto*)(me->ectx),node, name);
 			}
 		}
 	}
@@ -2650,11 +2648,16 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			some code uses it. eg: DEF xx Transform {children Script {field yy USE xx}} */
 		if (ind != ID_UNDEFINED) {
 			/* Set the top memmber of the DEFed nodes stack to this node */
+			char *name;
 			vector_get(struct X3D_Node*, stack_top(struct Vector*, me->DEFedNodes), ind)=node;
+			name = vector_get(char*, stack_top(struct Vector*, me->lexer->userNodeNames), ind);
+			broto_store_DEF((struct X3D_Proto*)(me->ectx),node, name);
+
 #ifdef CPARSERVERBOSE
 			printf("parser_node: adding DEFed node (pointer %p) to DEFedNodes vector\n", node);  
 #endif
 		}
+
 
 		/* Node specific initialization */
 		/* From what I can tell, this only does something for Script nodes.  It sets node->__scriptObj to new_Shader_Script() */
@@ -3810,12 +3813,18 @@ void broto_clear_DEF_by_node(struct X3D_Proto* proto,struct X3D_Node* node)
 	}
 }
 struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name){
-	int i;
+	int i, istart, iend;
 	struct brotoDefpair def;
-	if(context->__DEFnames)
-	for(i=0;i<vectorSize(context->__DEFnames);i++){
-		def = vector_get(struct brotoDefpair, context->__DEFnames,i);
-		if(!strcmp(def.name, name)) return def.node;
+	//in theory we should search backward. test 9.wrl has 2 TRs. If you make the first one with no children, 
+	// and the second one around the viewpoint, and you send an animation via route to TR.translation
+	// octaga, instant and viv route to the 2nd one / last TR before the ROUTE
+	if(context->__DEFnames){
+		istart = vectorSize(context->__DEFnames) -1;
+		iend = 0;
+		for(i=istart;i>=iend; i--) {
+			def = vector_get(struct brotoDefpair, context->__DEFnames,i);
+			if(!strcmp(def.name, name)) return def.node;
+		}
 	}
 	return NULL;
 }
