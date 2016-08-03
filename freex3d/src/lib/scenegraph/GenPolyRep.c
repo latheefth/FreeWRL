@@ -57,7 +57,7 @@
 extern void Elev_Tri (int vertex_ind,int this_face,int A,int D,int E,int NONORMALS,struct X3D_PolyRep *this_Elev,struct point_XYZ *facenormals,int *pointfaces,int ccw);
 extern void verify_global_IFS_Coords(int max);
 extern void Extru_check_normal(struct point_XYZ *facenormals,int this_face,int dire,struct X3D_PolyRep *rep_,int ccw);
-
+void register_Polyrep_combiner();
 /* calculate how many triangles are required for IndexedTriangleFanSet and 
 	IndexedTriangleStripSets */
 static int returnIndexedFanStripIndexSize (struct Multi_Int32 index ) {
@@ -1117,7 +1117,11 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			/*  *perVertex modes are set.					*/
 
 			/* If we have concave, tesselate! */
+			// July 2016 dug9 changed Tess.c combiner callback so it works for Text
+			// but did not fix combiner scenarios here, wich were not working right 
+			// and now bomb due to using Text-based combiner
 			if (!convex) {
+				//register_Polyrep_combiner(); //default, Component_Text resets to this after compiling its text
 				FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
 			} else {
 				initind = relative_coord++;
@@ -2214,7 +2218,7 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 
 	/* Now, lay out the spines/sections, and generate triangles */
-
+	//register_Polyrep_combiner(); //default, component_text resets to this after compiling its text
 	for(x=0; x<nsec-1; x++) {
 	  for(z=0; z<nspi-1; z++) {
 	  A=x+z*nsec;
