@@ -1005,7 +1005,7 @@ static void FW_draw_outline (FT_OutlineGlyph oglyph)
     int thisptr = 0;
     int retval = 0;
 	ppComponent_Text p;
-	our_combiner_data cbdata;
+	text_combiner_data cbdata;
 	ttglobal tg = gglobal();
 	p = (ppComponent_Text)tg->Component_Text.prv;
 
@@ -1266,7 +1266,7 @@ void prep_screentext(struct X3D_Text *tnode, int num, double screensize);
    maxextent [m]
    length[] [m]
    */
-
+void register_Text_combiner();
 void FW_rendertext(struct X3D_Text *tnode, unsigned int numrows,struct Uni_String **ptr,
 				unsigned int nl, float *length, double maxext,
 				double spacing, double mysize, unsigned int fsparam,
@@ -1677,6 +1677,7 @@ p->myff = 4;
 
 	if(!tnode->_isScreen){
 		//vector glyph construction
+		register_Text_combiner(); //Tess.c
 		p->FW_rep_ = rp;
 		//PER TEXT NODE
 		//rep->actualCoords[FW_pointctr] cumulative XYZ points over all glyphs in Text node 
@@ -1821,6 +1822,7 @@ p->myff = 4;
 				p->FW_rep_->GeneratedTexCoords[i*3+2] = p->FW_rep_->actualCoord[i*3+1]*1.66f;
 			}
 		}
+		register_Polyrep_combiner(); //Tess.c - polyrep is the default
 	} //if isScreenFont
 
 	if (p->TextVerbose) printf ("exiting FW_Render_text\n");

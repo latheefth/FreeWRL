@@ -141,7 +141,7 @@ void CALLBACK FW_tess_error(GLenum e) {
 
 
 
-void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
+void CALLBACK FW_tess_combine_text_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
 /*
 	printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
@@ -165,8 +165,9 @@ void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], 
 		*out = nv;
 	}else{
 		int i, FW_pointctr, RAI_indx;
-		our_combiner_data *cbdata;
-		cbdata = (our_combiner_data*) polygondata;
+		text_combiner_data *cbdata;
+		float *coords;
+		cbdata = (text_combiner_data*) polygondata;
 		//GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*6);
 		ttglobal tg = gglobal();
 
@@ -177,9 +178,10 @@ void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], 
 		FW_pointctr = *(cbdata->counter);
 		RAI_indx = *(cbdata->riaindex);
 		tg->Tess.global_IFS_Coords[RAI_indx] = FW_pointctr;
-		cbdata->coords[FW_pointctr*3+0] = c[0];
-		cbdata->coords[FW_pointctr*3+1] = c[1];
-		cbdata->coords[FW_pointctr*3+2] = c[2];
+		coords = (float *)cbdata->coords;
+		coords[FW_pointctr*3+0] = c[0];
+		coords[FW_pointctr*3+1] = c[1];
+		coords[FW_pointctr*3+2] = c[2];
 		cbdata->ria[(*cbdata->riaindex)] = FW_pointctr;
 		*out = &cbdata->ria[(*cbdata->riaindex)]; //tell FW_IFS_tess_vertex the index of the new point
 		//printf("combiner, out pointer = %p nv pointer = %p\n",out,*out);
@@ -189,6 +191,63 @@ void CALLBACK FW_tess_combine_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], 
 	}
 }
 
+void CALLBACK FW_tess_combine_polyrep_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
+/*
+	printf("FW_tess_combine data\n"); 
+	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
+		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); 
+	printf ("vertex 0 %lf %lf %lf, 1 %lf %lf %lf, 2 %lf %lf %lf, 3 %lf %lf %lf\n",
+		*d[0]->x,*d[0]->y,*d[0]->z,
+		*d[1]->x,*d[1]->y,*d[1]->z,
+		*d[2]->x,*d[2]->y,*d[2]->z,
+		*d[3]->x,*d[3]->y,*d[3]->z); 
+
+	printf ("d %d %d %d %d\n",d[0],d[1],d[2],d[3]);
+	printf ("d %f %f %f %f\n",*d[0],*d[1],*d[2],*d[3]);
+	printf ("new coord %d\n",nv);
+*/
+	if(1){
+		GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*3);
+
+		nv[0] = c[0];
+		nv[1] = c[1];
+		nv[2] = c[2];
+		*out = nv;
+	}else{
+		//Aug 3, 2016 this doesn't work, didn't pick through polyrep, don't use.
+		/*	
+		Current polyrep Algo: ignor opengl tips on combiner, and instead try and capture the index into 
+		the original node coord, texcoord, normal via 
+			tg->Tess.global_IFS_Coords[tg->Tess.global_IFS_Coord_count++] = *dp; 
+		in the vertex callback, as we do for Text
+		Complication: when adding a point, the result may be more triangles, for which there needs to be more 
+		    normals and texcoords etc.
+
+		Hypothesis: the node orig-to-triangle approach in genpolyrep was to save memory back in 2003. We don't need it now.
+		Proposed polyrep algo A:
+		1. copy node orig data to packed
+			a) de-index
+			b) convert to double for tess
+			c) pack ie [double xyz float rgb float norm float texcoord] for tess, in over-malloced packed array
+		2. tesselate 
+			a) add combiner generated pack-points to the bottom of packed array
+			b) out= weighted combined as redbook shows
+		3. copy tesselated to polyrep
+			a) convert to float
+			b) un-pack
+			c) copy unpacked to polyrep for shader
+		
+		Proposed polyrep algo B:
+		1. in combiner, malloc combiner points, texcoords, normals, color-per-vertex on extension arrays
+			pass index into extension arrays to *out with a -ve sentinal value, for capture by global_IFS_Coords[] in vertex callback
+		2. in make_polyrep and make_extrusion, when using global_IFS_Coords[] array, watch for -ve index and 
+			de-index from the extension arrays
+		
+
+		*/
+		polyrep_combiner_data *cbdata;
+	}
+}
 
 /* Some tesselators will give back garbage. Lets try and remove it */
 /* Text handles errors better itself, so this is just used for Extrusions and IndexedFaceSets */
@@ -252,7 +311,7 @@ void new_tessellation(void) {
 	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_TESS_VERTEX,(_GLUfuncptr)FW_IFS_tess_vertex);
 	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_TESS_ERROR,(_GLUfuncptr)FW_tess_error);
 	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj,GLU_TESS_END,(_GLUfuncptr)FW_tess_end);
-	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_data);
+	FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_polyrep_data); //default combiner, Text must reset to this after doing its own FW_tess_combine_text_data
 	//FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE,(_GLUfuncptr)FW_tess_combine);
 
 	    /* Unused right now. */
@@ -271,7 +330,22 @@ void new_tessellation(void) {
 */
 /*	    */
 }
-
+void register_Text_combiner(){
+	//called before tesselating Text in Component_Text.c
+	ttglobal tg = gglobal();
+	if(tg->Tess.global_tessobj){
+		//FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)NULL);
+		FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_text_data);
+	}
+}
+void register_Polyrep_combiner(){
+	//called after tesselating Text in Component_Text.c, so in make_polyrep and make_extrusion in GenPolyrep.c this will be the default
+	ttglobal tg = gglobal();
+	if(tg->Tess.global_tessobj){
+		//FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)NULL);
+		FW_GLU_TESS_CALLBACK(tg->Tess.global_tessobj, GLU_TESS_COMBINE_DATA,(_GLUfuncptr)FW_tess_combine_polyrep_data);
+	}
+}
 /* next function should be called once at the end, but where?	*/
 void destruct_tessellation(void) {
 	ttglobal tg = gglobal();
