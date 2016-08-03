@@ -1122,7 +1122,11 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			// and now bomb due to using Text-based combiner
 			if (!convex) {
 				//register_Polyrep_combiner(); //default, Component_Text resets to this after compiling its text
-				FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
+				//FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
+				polyrep_combiner_data cbdata;
+				//not using combinder data right now
+				gluTessBeginPolygon( tg->Tess.global_tessobj, &cbdata); // //cbdata is for combiner
+				gluTessBeginContour( tg->Tess.global_tessobj );
 			} else {
 				initind = relative_coord++;
 				lastind = relative_coord++;
@@ -1161,6 +1165,8 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 						tess_v[2] = c1->c[2];
 						tess_vs[relative_coord] = relative_coord;
 						/* printf ("vertex %f %f %f, index %d\n",tess_v[0], tess_v[1], tess_v[2], tess_vs[relative_coord]); */
+						//&p->FW_RIA[p->FW_RIA_indx]
+						//&tess_vs[relative_coord]
 						FW_GLU_TESS_VERTEX(tg->Tess.global_tessobj,tess_v,&tess_vs[relative_coord]);
 					}
 					
@@ -1182,7 +1188,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			}
 
 			if (!convex) {
-				FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
+				//FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
+				gluTessEndContour( tg->Tess.global_tessobj );
+				gluTessEndPolygon( tg->Tess.global_tessobj );
 
 				/* Tesselated faces may have a different normal than calculated previously */
 				/* bounds check, once again */
@@ -2446,7 +2454,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 		if (beginCap) {
 			tg->Tess.global_IFS_Coord_count = 0;
-			FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
+			//FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
+			gluTessBeginPolygon( tg->Tess.global_tessobj, NULL); //&cbdata );
+			gluTessBeginContour( tg->Tess.global_tessobj );
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 				/* printf ("starting tv for x %d of %d\n",x,endpoint);*/
@@ -2458,7 +2468,10 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 				tess_vs[x] = x;
 				FW_GLU_TESS_VERTEX(tg->Tess.global_tessobj,tess_v,&tess_vs[x]);
 			}
-			FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
+			//FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
+			gluTessEndContour( tg->Tess.global_tessobj );
+			gluTessEndPolygon( tg->Tess.global_tessobj );
+
 			verify_global_IFS_Coords(ntri*3);
 
 			for (x=0; x<tg->Tess.global_IFS_Coord_count; x+=3) {
@@ -2478,7 +2491,9 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 
 		if (endCap) {
 			tg->Tess.global_IFS_Coord_count = 0;
-			FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
+			//FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
+			gluTessBeginPolygon( tg->Tess.global_tessobj, NULL); //&cbdata ); //cbdata is for combiner
+			gluTessBeginContour( tg->Tess.global_tessobj );
 
 			for(x=0+ncolinear_at_begin; x<endpoint; x++) {
 	                	c1 = (struct SFVec3f *) &rep_->actualCoord[3*(x+(nspi-1)*nsec)];
@@ -2486,7 +2501,10 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 				tess_vs[x] = x+(nspi-1)*nsec;
 				FW_GLU_TESS_VERTEX(tg->Tess.global_tessobj,tess_v,&tess_vs[x]);
 			}
-			FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
+			//FW_GLU_END_POLYGON(tg->Tess.global_tessobj);
+			gluTessEndContour( tg->Tess.global_tessobj );
+			gluTessEndPolygon( tg->Tess.global_tessobj );
+
 			verify_global_IFS_Coords(ntri*3);
 
 			for (x=0; x<tg->Tess.global_IFS_Coord_count; x+=3) {

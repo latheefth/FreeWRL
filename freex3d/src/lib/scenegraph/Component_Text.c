@@ -1005,7 +1005,7 @@ static void FW_draw_outline (FT_OutlineGlyph oglyph)
     int thisptr = 0;
     int retval = 0;
 	ppComponent_Text p;
-	our_combiner_data cbdata;
+	text_combiner_data cbdata;
 	ttglobal tg = gglobal();
 	p = (ppComponent_Text)tg->Component_Text.prv;
 

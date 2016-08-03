@@ -165,8 +165,9 @@ void CALLBACK FW_tess_combine_text_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w
 		*out = nv;
 	}else{
 		int i, FW_pointctr, RAI_indx;
-		our_combiner_data *cbdata;
-		cbdata = (our_combiner_data*) polygondata;
+		text_combiner_data *cbdata;
+		float *coords;
+		cbdata = (text_combiner_data*) polygondata;
 		//GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*6);
 		ttglobal tg = gglobal();
 
@@ -177,9 +178,10 @@ void CALLBACK FW_tess_combine_text_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w
 		FW_pointctr = *(cbdata->counter);
 		RAI_indx = *(cbdata->riaindex);
 		tg->Tess.global_IFS_Coords[RAI_indx] = FW_pointctr;
-		cbdata->coords[FW_pointctr*3+0] = c[0];
-		cbdata->coords[FW_pointctr*3+1] = c[1];
-		cbdata->coords[FW_pointctr*3+2] = c[2];
+		coords = (float *)cbdata->coords;
+		coords[FW_pointctr*3+0] = c[0];
+		coords[FW_pointctr*3+1] = c[1];
+		coords[FW_pointctr*3+2] = c[2];
 		cbdata->ria[(*cbdata->riaindex)] = FW_pointctr;
 		*out = &cbdata->ria[(*cbdata->riaindex)]; //tell FW_IFS_tess_vertex the index of the new point
 		//printf("combiner, out pointer = %p nv pointer = %p\n",out,*out);
@@ -211,6 +213,39 @@ void CALLBACK FW_tess_combine_polyrep_data (GLDOUBLE c[3], GLfloat *d[4], GLfloa
 		nv[1] = c[1];
 		nv[2] = c[2];
 		*out = nv;
+	}else{
+		//Aug 3, 2016 this doesn't work, didn't pick through polyrep, don't use.
+		/*	
+		Current polyrep Algo: ignor opengl tips on combiner, and instead try and capture the index into 
+		the original node coord, texcoord, normal via 
+			tg->Tess.global_IFS_Coords[tg->Tess.global_IFS_Coord_count++] = *dp; 
+		in the vertex callback, as we do for Text
+		Complication: when adding a point, the result may be more triangles, for which there needs to be more 
+		    normals and texcoords etc.
+
+		Hypothesis: the node orig-to-triangle approach in genpolyrep was to save memory back in 2003. We don't need it now.
+		Proposed polyrep algo A:
+		1. copy node orig data to packed
+			a) de-index
+			b) convert to double for tess
+			c) pack ie [double xyz float rgb float norm float texcoord] for tess, in over-malloced packed array
+		2. tesselate 
+			a) add combiner generated pack-points to the bottom of packed array
+			b) out= weighted combined as redbook shows
+		3. copy tesselated to polyrep
+			a) convert to float
+			b) un-pack
+			c) copy unpacked to polyrep for shader
+		
+		Proposed polyrep algo B:
+		1. in combiner, malloc combiner points, texcoords, normals, color-per-vertex on extension arrays
+			pass index into extension arrays to *out with a -ve sentinal value, for capture by global_IFS_Coords[] in vertex callback
+		2. in make_polyrep and make_extrusion, when using global_IFS_Coords[] array, watch for -ve index and 
+			de-index from the extension arrays
+		
+
+		*/
+		polyrep_combiner_data *cbdata;
 	}
 }
 

@@ -927,11 +927,18 @@ struct Multi_Node *childrenField(struct X3D_Node *node);
 int offsetofChildren(struct X3D_Node *node);
 
 //for Tess.c and Component_Text - the Opengl redbook gluTessBeginPolygon(,data) tesselator combiner callback data
-typedef struct our_combiner_data {
+typedef struct text_combiner_data {
 	//so we can add the new point to our own data
 	float *coords;
 	int *counter;
 	int *ria;
 	int *riaindex;
-} our_combiner_data;
+} text_combiner_data;
+typedef struct polyrep_combiner_data {
+	//so we can add the new point to our own data
+	float *coords;
+	int *counter;
+	int *ria;
+	int *riaindex;
+} polyrep_combiner_data;
 #endif /* __FREEWRL_HEADERS_H__ */
