@@ -47,7 +47,7 @@ X3D Navigation Component
 #include "../opengl/OpenGL_Utils.h"
 
 
-
+struct X3D_Node *getActiveLayerBoundViewpoint();
 void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	double a1;
 	GLint viewPort[10];
@@ -71,52 +71,57 @@ void prep_Viewpoint (struct X3D_Viewpoint *node) {
 	   doing this test can screw us up, so DO NOT do this test!
 			if(!node->isBound) return;
 	*/
+	if((struct X3D_Node*)node == getActiveLayerBoundViewpoint() && !node->_donethispass){
+		node->_donethispass = 1; //if the vp id DEF/USED multiple places in the scengraph, 
+								 // this test takes the first one (and helps exit render_node early around virt->children)
+
+
+		/* printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr); */
 	
-	/* printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr); */
-	
 
-	/* perform Viewpoint translations */
-	if (viewer->SLERPing) {
+		/* perform Viewpoint translations */
+		if (viewer->SLERPing) {
 
-		double tickFrac;
-		Quaternion slerpedDiff;
+			double tickFrac;
+			Quaternion slerpedDiff;
 
-		struct point_XYZ antipos;
+			struct point_XYZ antipos;
 
-		/* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
-		tickFrac = (TickTime() - viewer->startSLERPtime)/viewer->transitionTime;
+			/* printf ("slerping in togl, type %s\n", VIEWER_STRING(viewer_type)); */
+			tickFrac = (TickTime() - viewer->startSLERPtime)/viewer->transitionTime;
 
-		quaternion_slerp (&slerpedDiff,&viewer->startSLERPprepVPQuat,&viewer->prepVPQuat,tickFrac);
+			quaternion_slerp (&slerpedDiff,&viewer->startSLERPprepVPQuat,&viewer->prepVPQuat,tickFrac);
 
-		quaternion_togl(&slerpedDiff);
+			quaternion_togl(&slerpedDiff);
 
-		antipos.x = viewer->AntiPos.x * tickFrac + (viewer->startSLERPAntiPos.x * (1.0 - tickFrac));
-		antipos.y = viewer->AntiPos.y * tickFrac + (viewer->startSLERPAntiPos.y * (1.0 - tickFrac));
-		antipos.z = viewer->AntiPos.z * tickFrac + (viewer->startSLERPAntiPos.z * (1.0 - tickFrac));
+			antipos.x = viewer->AntiPos.x * tickFrac + (viewer->startSLERPAntiPos.x * (1.0 - tickFrac));
+			antipos.y = viewer->AntiPos.y * tickFrac + (viewer->startSLERPAntiPos.y * (1.0 - tickFrac));
+			antipos.z = viewer->AntiPos.z * tickFrac + (viewer->startSLERPAntiPos.z * (1.0 - tickFrac));
 
-		FW_GL_TRANSLATE_D(-antipos.x, -antipos.y, -antipos.z);
+			FW_GL_TRANSLATE_D(-antipos.x, -antipos.y, -antipos.z);
 
-	} else {
+		} else {
 
-		//quaternion_togl(&viewer->prepVPQuat);
-		{
-			//dug9slerp  this fix works with a test file VP_set_orientation.x3d
-			Quaternion q3;
-			vrmlrot_to_quaternion(&q3,node->orientation.c[0],node->orientation.c[1],node->orientation.c[2],-node->orientation.c[3]);
-			quaternion_togl(&q3);
+			//quaternion_togl(&viewer->prepVPQuat);
+			{
+				//dug9slerp  this fix works with a test file VP_set_orientation.x3d
+				Quaternion q3;
+				vrmlrot_to_quaternion(&q3,node->orientation.c[0],node->orientation.c[1],node->orientation.c[2],-node->orientation.c[3]);
+				quaternion_togl(&q3);
+			}
+			FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 		}
-		FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
-	}
 
-	/* now, lets work on the Viewpoint fieldOfView */
-	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
-	if(viewPort[2] > viewPort[3]) {
-		a1=0;
-		viewer->fieldofview = node->fieldOfView/3.1415926536*180;
-	} else {
-		a1 = node->fieldOfView;
-		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		viewer->fieldofview = a1/3.1415926536*180;
+		/* now, lets work on the Viewpoint fieldOfView */
+		FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
+		if(viewPort[2] > viewPort[3]) {
+			a1=0;
+			viewer->fieldofview = node->fieldOfView/3.1415926536*180;
+		} else {
+			a1 = node->fieldOfView;
+			a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
+			viewer->fieldofview = a1/3.1415926536*180;
+		}
 	}
 	// printf ("render_Viewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); 
 }
@@ -143,22 +148,25 @@ void prep_OrthoViewpoint (struct X3D_OrthoViewpoint *node) {
 	*/
 	
 	/* printf ("Component_Nav, found VP is %d, (%s)\n",node,node->description->strptr); */
+	if((struct X3D_Node*)node == getActiveLayerBoundViewpoint() && !node->_donethispass){
+		node->_donethispass = 1; //if the vp id DEF/USED multiple places in the scengraph, 
 	
 
-	/* perform OrthoViewpoint translations */
-	FW_GL_ROTATE_RADIANS(-node->orientation.c[3],node->orientation.c[0],node->orientation.c[1],
-		node->orientation.c[2]);
-	FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
+		/* perform OrthoViewpoint translations */
+		FW_GL_ROTATE_RADIANS(-node->orientation.c[3],node->orientation.c[0],node->orientation.c[1],
+			node->orientation.c[2]);
+		FW_GL_TRANSLATE_D(-node->position.c[0],-node->position.c[1],-node->position.c[2]);
 
-	/* now, lets work on the OrthoViewpoint fieldOfView */
-	if (node->fieldOfView.n == 4) {
-		for (ind=0; ind<4; ind++) {
-				Viewer()->orthoField[ind] = (double) node->fieldOfView.p[ind];
+		/* now, lets work on the OrthoViewpoint fieldOfView */
+		if (node->fieldOfView.n == 4) {
+			for (ind=0; ind<4; ind++) {
+					Viewer()->orthoField[ind] = (double) node->fieldOfView.p[ind];
+			}
+			//Viewer()->ortho = TRUE;
 		}
-		//Viewer()->ortho = TRUE;
-	}
 
-	// printf ("render_OrthoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); 
+		// printf ("render_OrthoViewpoint, bound to %d, fieldOfView %f \n",node,node->fieldOfView); 
+	}
 }
 
 /******************************************************************************************/

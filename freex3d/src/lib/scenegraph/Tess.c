@@ -213,6 +213,19 @@ void CALLBACK FW_tess_combine_polyrep_data (GLDOUBLE c[3], GLfloat *d[4], GLfloa
 		nv[1] = c[1];
 		nv[2] = c[2];
 		*out = nv;
+		// doesn't render right: http://dug9.users.sourceforge.net/web3d/tests/CAD/test_IFS_concave_combiner.x3d
+		/*
+		geometry DEF FUNNYU IndexedFaceSet {
+		convex FALSE
+		solid FALSE
+		coordIndex [ 0 1 2 3 4 5 6 7 -1]
+		coord Coordinate {
+		#                                    x-swap-x  inner bottom u point criss crossed to force combiner
+		 point [ -2 -2 0, -2 2 0, -1 2 0, 1 -1 0, -1 -1 0, 1 2 0, 2 2 0, 2 -2 0,]
+		 }
+		}
+		 */
+
 	}else{
 		//Aug 3, 2016 this doesn't work, didn't pick through polyrep, don't use.
 		/*	
