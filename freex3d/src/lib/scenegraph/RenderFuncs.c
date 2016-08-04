@@ -1347,6 +1347,7 @@ void pop_sensor(){
 
 }
 int getWindex();
+int render_foundLayerViewpoint();
 void render_node(struct X3D_Node *node) {
 	struct X3D_Virt *virt;
 
@@ -1423,6 +1424,10 @@ void render_node(struct X3D_Node *node) {
 			#endif
 			return; 
 		} 
+		if(p->renderstate.render_vp == VF_Viewpoint && render_foundLayerViewpoint()){ 
+			//on vp pass, just find first DEF/USE of bound viewpoint
+			return;
+		}
 	}
 
 	/* are we working through global PointLights, DirectionalLights or SpotLights, but none exist from here on down? */
@@ -1536,7 +1541,13 @@ void render_node(struct X3D_Node *node) {
 	/* start recursive section */
     if(virt->children) { 
 		DEBUG_RENDER("rs 8 - has valid child node pointer\n");
-		virt->children(node);
+		//if(! (p->renderstate.render_vp == VF_Viewpoint && render_foundLayerViewpoint())){ //on vp pass, just find first DEF/USE of bound viewpoint
+			//printf("children ");
+			virt->children(node);
+		//}
+		//}else{
+		//	printf("skipping ");
+		//}
 		PRINT_GL_ERROR_IF_ANY("children"); PRINT_NODE(node,virt);
     }
 	/* end recursive section */
@@ -1739,7 +1750,7 @@ void *returnInterpolatorPointer (int nodeType) {
 		case NODE_SplinePositionInterpolator: do_interp = do_SplinePositionInterpolator; break;
 		case NODE_SplinePositionInterpolator2D: do_interp = do_SplinePositionInterpolator2D; break;
 		case NODE_SplineScalarInterpolator: do_interp = do_SplineScalarInterpolator; break;
-		case NODE_SquadOrientationInterpolator: do_SquadOrientationInterpolator; break;
+		case NODE_SquadOrientationInterpolator: do_interp =  do_SquadOrientationInterpolator; break;
 		case NODE_GeoPositionInterpolator: do_interp = do_GeoPositionInterpolator; break;
 		case NODE_NurbsPositionInterpolator: do_interp = do_NurbsPositionInterpolator; break;
 		case NODE_NurbsOrientationInterpolator: do_interp = do_NurbsPositionInterpolator; break;

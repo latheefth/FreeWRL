@@ -87,6 +87,39 @@ a) looks like there's very little animation work we have to do in our browser
 b) the skeleton isn't rendered (if no geom on sites/segments?)
 	so when do you traverse the joints and what's the output?
 
+dug9 aug 2016: would this work: 
+Just render_HAnimHumanoid
+- traverse the joints and segments privately from HanimHumanoid to call their render_ functions
+- no HanimHumanoid? then don't render any joints or segments - don't list virtual functions for them
+
+Design Options:
+1. 2-step
+a) interpolate the pose of joints and segments relative to HanimHumanoid
+	i) start with Identity transform at HanimHumanoid
+	ii) traverse down segments and joints, and sites, pushing, multiplying and saving 
+		the cumulative transform in each segment/joint/site
+b) for each segment/joint/site (done at the HanimHumanoid level)
+	i) push cumulative pose for segment/joint/site onto transform stack
+	ii) render any attached geometry via noralchildren
+2. Combined step
+a) traverse down segments pushing and multiplying pose
+b) when visiting a segment/joint/site render its children geometry
+3. ???
+Requirements:
+- single deformable mesh should be 'easy' / possible / efficient to update / interpolate 
+
+How to update single deformable mesh? 
+Please research, as its a common thing in game programming.
+Guesses:
+- do we have/could we have a system for interpolating the compiled polyrep?
+- for example if during compiling the polyrep we kept an expanded index, 
+  so a vertex index stored in a joint could find all the triangle vertices in the compiled / tesselated / triangulated mesh?
+	array[original index] [list of compiled polyrep vertex indexes]
+- or when compiling the HAnimHumanoid, would/could we break the polyrep into chunks associated with segments
+	based on 3D proximity
+- or would we transform the whole mesh for each segment, except weight the points differently,
+	so that the final mesh is a per-vertex-weighted sum of all segment meshes
+
 */
 
 //#define HANIMHANIM 1
@@ -119,11 +152,11 @@ void Component_HAnim_init(struct tComponent_HAnim *t){
 
 
 void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
-/*
+
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
-*/
-return;
+
+//return;
 #ifdef HANIMHANIM
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
@@ -135,14 +168,14 @@ return;
 		FW_GL_PUSH_MATRIX();
 
 		/* might we have had a change to a previously ignored value? */
-		if (node->_change != node->_dlchange) {
+		if (node->_change != node->_ichange) {
 			/* printf ("re-rendering for %d\n",node);*/
 			node->__do_center = verify_translate ((GLfloat *)node->center.c);
 			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
 			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
-			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
-			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
-			node->_dlchange = node->_change;
+			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
+			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.c);
+			node->_ichange = node->_change;
 		}
 
 
@@ -183,7 +216,7 @@ return;
 		if (node->__do_center)
 			FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
 
-		RECORD_DISTANCE
+		//RECORD_DISTANCE
         }
 #endif
 }
@@ -191,11 +224,11 @@ return;
 
 void prep_HAnimSite (struct X3D_HAnimSite *node) {
 
-	/*
+
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
-	*/
-return;
+
+//return;
 #ifdef HANIMHANIM
 
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
@@ -208,14 +241,14 @@ return;
 		FW_GL_PUSH_MATRIX();
 
 		/* might we have had a change to a previously ignored value? */
-		if (node->_change != node->_dlchange) {
+		if (node->_change != node->_ichange) {
 			/* printf ("re-rendering for %d\n",node);*/
 			node->__do_center = verify_translate ((GLfloat *)node->center.c);
 			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
 			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
-			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.r);
-			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.r);
-			node->_dlchange = node->_change;
+			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
+			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.c);
+			node->_ichange = node->_change;
 		}
 
 
@@ -256,7 +289,7 @@ return;
 		if (node->__do_center)
 			FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
 		
-		RECORD_DISTANCE
+		//RECORD_DISTANCE
         }
 #endif
 }
@@ -334,12 +367,12 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 void child_HAnimJoint(struct X3D_HAnimJoint *node) {
 return;
 #ifdef HANIMHANIM
-	CHILDREN_COUNT
+	//CHILDREN_COUNT
 	/* any children at all? */
-	if (nc==0) return;
+	//if (nc==0) return;
 
 	/* should we go down here? */
-	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+	//RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
 
@@ -352,16 +385,16 @@ return;
 void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 return;
 #ifdef HANIMHANIM
-	CHILDREN_COUNT
+	//CHILDREN_COUNT
 
 
-note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
+//note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
 
 	/* any children at all? */
-	if (nc==0) return;
+	//if (nc==0) return;
 
 	/* should we go down here? */
-	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+	//RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
 
@@ -374,9 +407,9 @@ note to implementer: have to POSSIBLE_PROTO_EXPANSION(node->coord, tmpN)
 void child_HAnimSite(struct X3D_HAnimSite *node) {
 return;
 #ifdef HANIMHANIM
-	CHILDREN_COUNT
+	//CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
-	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+	//RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
 

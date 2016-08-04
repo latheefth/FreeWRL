@@ -3582,7 +3582,7 @@ void bind_Viewpoint (struct X3D_Viewpoint *vp) {
 		//save for future slerps
 		p->vp2rnSaved = TRUE; //I probably don't need this flag, I always bind before prep_viewpoint()
 		//printf("S");
-		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2rootnode);
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->viewpoint2rootnode);  //we bind from the root, so this would be just pos, rot of viewpoint in matrix form?
 		//printf("S");
 
 	} else { 

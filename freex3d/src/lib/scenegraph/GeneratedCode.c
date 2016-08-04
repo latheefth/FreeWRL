@@ -198,6 +198,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_destination",
 	"_dir",
 	"_dlchange",
+	"_donethispass",
 	"_enabled",
 	"_floatInpFIFO",
 	"_floatOutFIFO",
@@ -4466,6 +4467,7 @@ const int OFFSETS_GeoViewpoint[] = {
 	(int) FIELDNAMES___oldJump, (int) offsetof (struct X3D_GeoViewpoint, __oldJump),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___oldMFString, (int) offsetof (struct X3D_GeoViewpoint, __oldMFString),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___oldSFString, (int) offsetof (struct X3D_GeoViewpoint, __oldSFString),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES__donethispass, (int) offsetof (struct X3D_GeoViewpoint, _donethispass),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_GeoViewpoint, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_GeoViewpoint, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_description, (int) offsetof (struct X3D_GeoViewpoint, description),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5636,6 +5638,7 @@ const int OFFSETS_OrientationInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_OrthoViewpoint[] = {
+	(int) FIELDNAMES__donethispass, (int) offsetof (struct X3D_OrthoViewpoint, _donethispass),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_OrthoViewpoint, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_OrthoViewpoint, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_centerOfRotation, (int) offsetof (struct X3D_OrthoViewpoint, centerOfRotation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6824,6 +6827,7 @@ const int OFFSETS_UniversalJoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Viewpoint[] = {
+	(int) FIELDNAMES__donethispass, (int) offsetof (struct X3D_Viewpoint, _donethispass),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_Viewpoint, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_aspectRatio, (int) offsetof (struct X3D_Viewpoint, aspectRatio),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_Viewpoint, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9158,6 +9162,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__oldJump = TRUE;
 			tmp2->__oldMFString.n=0; tmp2->__oldMFString.p=0;
 			tmp2->__oldSFString = newASCIIString("");
+			tmp2->_donethispass = 0;
 			tmp2->_layerId = 0;
 			tmp2->bindTime = -1;
 			tmp2->description = newASCIIString("");
@@ -10711,6 +10716,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_OrthoViewpoint : {
 			struct X3D_OrthoViewpoint * tmp2;
 			tmp2 = (struct X3D_OrthoViewpoint *) tmp;
+			tmp2->_donethispass = 0;
 			tmp2->_layerId = 0;
 			tmp2->bindTime = -1;
 			tmp2->centerOfRotation.c[0] = 0.0f;tmp2->centerOfRotation.c[1] = 0.0f;tmp2->centerOfRotation.c[2] = 0.0f;
@@ -12220,6 +12226,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Viewpoint : {
 			struct X3D_Viewpoint * tmp2;
 			tmp2 = (struct X3D_Viewpoint *) tmp;
+			tmp2->_donethispass = 0;
 			tmp2->_layerId = 0;
 			tmp2->aspectRatio = 0.785398f;
 			tmp2->bindTime = -1;

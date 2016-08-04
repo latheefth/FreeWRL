@@ -906,7 +906,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 					t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,origNavigationNodes);
 				}
 				if (vectorSize(t->viewpointNodes) > origViewpointNodes) {
-					t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,origViewpointNodes); 
+					// dont take vp from inline
+					// t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,origViewpointNodes); 
 					if (res->afterPoundCharacters)
 						fwl_gotoViewpoint(res->afterPoundCharacters);
 				}

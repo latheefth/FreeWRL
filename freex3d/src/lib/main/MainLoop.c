@@ -5750,9 +5750,42 @@ void setup_viewpoint_part1() {
 			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->posorimatrix);
 
 		FW_GL_LOAD_IDENTITY();
-
 }
-
+struct X3D_Node *getActiveLayerBoundViewpoint(){
+	struct X3D_Node *boundvp;
+	bindablestack *bstack;
+	ttglobal tg = gglobal();
+	bstack = getActiveBindableStacks(tg);
+	boundvp = NULL;
+	if(bstack){
+		if(bstack->viewpoint){
+			if( vectorSize(bstack->viewpoint) > 0){
+				boundvp = vector_back(struct X3D_Node*,bstack->viewpoint);
+			}
+		}
+	}
+	return boundvp; //should be Viewpoint, OrthoViewpoint, or GeoViewpoint
+}
+int render_foundLayerViewpoint(){
+	//on render_VP pass we want to come out of render_hier as soon as we find our VP
+	//that will save embarrassing 'adding' effect when bound VP is DEF/USED in multiple 
+	// scenegraph branches, and should also save time on average by not traversing 
+	// the entire scengraph after the vp is found
+	int iret;
+	struct X3D_Viewpoint *boundvp;
+	//there can be a weird effect if the VP is DEF/USEd in 2 branches of the scenegraph
+	//freewrl adds the 2 positions together - weird no one else does
+	//so we'll set a flag on the viewpoint node, and if its already updated, we'll skip 2nd, third etc instances.
+	boundvp = (struct X3D_Viewpoint*)getActiveLayerBoundViewpoint(); 
+	//watch it - downcasting Node to one type of Viewpoint, 
+	// .. but could be any of Viewpoint, OrthoViewpoint, GeoViewpoint 
+	// - in perl the 3 types better have _donethispass at same offset, else figure the type and switch-case
+	// - verified in perl, same offset for _donethispass
+	iret = 0;
+	if(boundvp)
+		iret = boundvp->_donethispass;
+	return iret;
+}
 void setup_viewpoint_part2() {
 /*
 	 Computes view part of modelview matrix and leaves it in modelview.
@@ -5770,12 +5803,25 @@ void setup_viewpoint_part2() {
 
 */
 	ppMainloop p;
+	struct X3D_Viewpoint *boundvp;
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
+
 	//capture view part of modelview ie scenegraph transforms between scene root and bound viewpoint
 	profile_start("vp_hier");
+	//there can be a weird effect if the VP is DEF/USEd in 2 branches of the scenegraph
+	//freewrl adds the 2 positions together - weird no one else does
+	//so we'll set a flag on the viewpoint node, and if its already updated, we'll skip 2nd, third etc instances.
+	//printf("\npart2>>>\n");
+	boundvp = getActiveLayerBoundViewpoint();
+	if(boundvp)
+		boundvp->_donethispass = 0; //used in prep_Viewpoint
 	render_hier(rootNode(), VF_Viewpoint);
+	if(boundvp)
+		boundvp->_donethispass = 0; //used in prep_Viewpoint
+	//printf("\n<<<part2\n");
+
 	profile_end("vp_hier");
 
 }
@@ -5831,9 +5877,12 @@ void setup_viewpoint_part3() {
 
 }
 void setup_viewpoint(){
+	//printf("\nsetup_viewpoint>>>>>\n");
 	setup_viewpoint_part1();
 	setup_viewpoint_part2();
 	setup_viewpoint_part3();
+	//printf("\n<<<<setup_viewpoint\n");
+
 }
 
 void set_viewmatrix0(int iplace) {

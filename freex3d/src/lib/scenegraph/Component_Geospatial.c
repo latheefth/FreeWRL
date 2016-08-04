@@ -2739,55 +2739,59 @@ void compile_GeoViewpoint (struct X3D_GeoViewpoint * node) {
 	printf ("compiled GeoViewpoint\n\n");
 	#endif
 }
-
+struct X3D_Node *getActiveLayerBoundViewpoint();
 void prep_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	double a1;
 	GLint viewPort[10];
 	if (!renderstate()->render_vp) return;
 
-	INITIALIZE_GEOSPATIAL(node)
+	if((struct X3D_Node*)node == getActiveLayerBoundViewpoint() && !node->_donethispass){
+		node->_donethispass = 1; //if the vp id DEF/USED multiple places in the scengraph, 
 
-	 /* printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
-	 printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]);
-	 */
+		INITIALIZE_GEOSPATIAL(node)
 
-	/* check the set_bind eventin to see if it is TRUE or FALSE */
-	/* code to perform binding is now in set_viewpoint. */
+			/* printf ("RVP, node %d ib %d sb %d gepvp\n",node,node->isBound,node->set_bind);
+			printf ("VP stack %d tos %d\n",viewpoint_tos, viewpoint_stack[viewpoint_tos]);
+			*/
 
-	COMPILE_IF_REQUIRED
+		/* check the set_bind eventin to see if it is TRUE or FALSE */
+		/* code to perform binding is now in set_viewpoint. */
 
-	#ifdef VERBOSE
-	printf ("prep_GeoViewpoint called\n");
-	#endif
+		COMPILE_IF_REQUIRED
 
-	/* perform GeoViewpoint translations */
-	FW_GL_ROTATE_RADIANS(-node->__movedOrientation.c[3],node->__movedOrientation.c[0],node->__movedOrientation.c[1],
-		node->__movedOrientation.c[2]); 
+		#ifdef VERBOSE
+		printf ("prep_GeoViewpoint called\n");
+		#endif
 
-	FW_GL_TRANSLATE_D(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
+		/* perform GeoViewpoint translations */
+		FW_GL_ROTATE_RADIANS(-node->__movedOrientation.c[3],node->__movedOrientation.c[0],node->__movedOrientation.c[1],
+			node->__movedOrientation.c[2]); 
 
-	/* we have  a new currentPosInModel now... */
-	/* printf ("currentPosInModel was %lf %lf %lf\n", Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
+		FW_GL_TRANSLATE_D(-node->__movedPosition.c[0],-node->__movedPosition.c[1],-node->__movedPosition.c[2]);
 
-	/* the AntiPos has been applied in the trans and rots above, so we do not need to do it here */
-	getCurrentPosInModel(FALSE); 
+		/* we have  a new currentPosInModel now... */
+		/* printf ("currentPosInModel was %lf %lf %lf\n", Viewer.currentPosInModel.x, Viewer.currentPosInModel.y, Viewer.currentPosInModel.z); */
+
+		/* the AntiPos has been applied in the trans and rots above, so we do not need to do it here */
+		getCurrentPosInModel(FALSE); 
 
 
-	/* now, lets work on the GeoViewpoint fieldOfView */
-	FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
-	if(viewPort[2] > viewPort[3]) {
-		a1=0;
-		Viewer()->fieldofview = node->fieldOfView/3.1415926536*180;
-	} else {
-		a1 = node->fieldOfView;
-		a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
-		Viewer()->fieldofview = a1/3.1415926536*180;
+		/* now, lets work on the GeoViewpoint fieldOfView */
+		FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
+		if(viewPort[2] > viewPort[3]) {
+			a1=0;
+			Viewer()->fieldofview = node->fieldOfView/3.1415926536*180;
+		} else {
+			a1 = node->fieldOfView;
+			a1 = atan2(sin(a1),viewPort[2]/((float)viewPort[3]) * cos(a1));
+			Viewer()->fieldofview = a1/3.1415926536*180;
+		}
+
+		calculateViewingSpeed();
+		#ifdef VERBOSE
+		printf ("prep_GeoViewpoint, fieldOfView %f \n",node->fieldOfView); 
+		#endif
 	}
-
-	calculateViewingSpeed();
-	#ifdef VERBOSE
-	printf ("prep_GeoViewpoint, fieldOfView %f \n",node->fieldOfView); 
-	#endif
 }
 
 /* GeoViewpoint speeds and avatar sizes are depenent on elevation above WGS_84. These are calculated here */
