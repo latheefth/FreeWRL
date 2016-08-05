@@ -45,16 +45,16 @@ texture enabling - works for single texture, for multitexture.
 #include "Material.h"
 
 
-#ifdef TEXVERBOSE
-#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) { \
-	printf ("cubeFace %d textureUnit %d texture %d at %d\n",aaa,bbb,ccc,__LINE__); \
-    glActiveTexture(GL_TEXTURE0+bbb); \
-	if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
-#else
-#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) { \
-    glActiveTexture(GL_TEXTURE0+bbb); \
-    if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
-#endif
+//#ifdef TEXVERBOSE
+//#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) { \
+//	printf ("cubeFace %d textureUnit %d texture %d at %d\n",aaa,bbb,ccc,__LINE__); \
+//    glActiveTexture(GL_TEXTURE0+bbb); \
+//	if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
+//#else
+//#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) { \
+//    glActiveTexture(GL_TEXTURE0+bbb); \
+//    if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
+//#endif
 
 typedef struct pRenderTextures{
 	struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
@@ -183,40 +183,37 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 
 	#ifdef TEXVERBOSE
 	printf ("passedInGenTex, using passed in genTex, textureStackTop %d\n",tg->RenderFuncs.textureStackTop);
-        printf ("passedInGenTex, cubeFace %d\n",getAppearanceProperties()->cubeFace);
+	printf ("passedInGenTex, cubeFace %d\n",getAppearanceProperties()->cubeFace);
 	#endif 
 
-    /* simple shapes, like Boxes and Cones and Spheres will have pre-canned arrays */
-	if (genTex->pre_canned_textureCoords != NULL) {
-       // printf ("passedInGenTex, A\n");
-		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
-            //printf ("passedInGenTex, c= %d\n",c);
-			/* are we ok with this texture yet? */
-			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
-                //printf ("passedInGenTex, B\n");
-				if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
-                    struct X3D_Node *tt = getThis_textureTransform();
-                    //printf ("passedInGenTex, C\n");
-                    if (tt!=NULL) do_textureTransform(tt,c);
-                    SET_TEXTURE_UNIT_AND_BIND(getAppearanceProperties()->cubeFace,c,tg->RenderFuncs.boundTextureStack[c]);
-                   
-                    FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->pre_canned_textureCoords);
-                }
-			}
-}
-	} else {
-        //printf ("passedInGenTex, B\n");
-		for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
-            //printf ("passedInGenTex, c=%d\n",c);
-			/* are we ok with this texture yet? */
-			if (tg->RenderFuncs.boundTextureStack[c]!=0) {
-                //printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
-				if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
-                    //printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
-                    struct X3D_Node *tt = getThis_textureTransform();
-                    if (tt!=NULL) do_textureTransform(tt,c);
-                    SET_TEXTURE_UNIT_AND_BIND(getAppearanceProperties()->cubeFace,c,tg->RenderFuncs.boundTextureStack[c]);
-                    
+
+    //printf ("passedInGenTex, B\n");
+	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+		//printf ("passedInGenTex, c=%d\n",c);
+		/* are we ok with this texture yet? */
+		if (tg->RenderFuncs.boundTextureStack[c]!=0) {
+			//printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
+			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
+				//printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
+				GLuint texture;
+				struct X3D_Node *tt = getThis_textureTransform();
+				if (tt!=NULL) 
+					do_textureTransform(tt,c);
+				texture = tg->RenderFuncs.boundTextureStack[c];
+				// SET_TEXTURE_UNIT_AND_BIND(getAppearanceProperties()->cubeFace,c,tg->RenderFuncs.boundTextureStack[c]);
+				//#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) {
+				glActiveTexture(GL_TEXTURE0+c); 
+				//printf("active texture %d texture %d c %d\n",GL_TEXTURE0+c,texture,c);
+				if (getAppearanceProperties()->cubeFace==0) {
+					glBindTexture(GL_TEXTURE_2D,texture); 
+				} else {
+					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); 
+				}
+				//#endif
+				if (genTex->pre_canned_textureCoords != NULL) {
+					/* simple shapes, like Boxes and Cones and Spheres will have pre-canned arrays */
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->pre_canned_textureCoords);
+				}else{
 					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
 						genTex->TC_type,
 						genTex->TC_stride,
@@ -224,29 +221,26 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				}
 			}
 		}
-
 	}
-    
-    /* set up the selected shader for this texture(s) config */
+
+	/* set up the selected shader for this texture(s) config */
 	if (me != NULL) {
-        //printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
-        
-        if (me->textureCount != -1) 
-        glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
-        
-        
-	    for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
-        	//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
-            glUniform1i(me->TextureUnit[i],i);
-            glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode);
-        }
+		//printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
+
+		if (me->textureCount != -1) 
+		glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
+
+		for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
+			//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
+			glUniform1i(me->TextureUnit[i],i);
+			glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode);
+		}
 	#ifdef TEXVERBOSE
 	} else {
 		printf (" NOT sending in %d i+tu+mode because currentShaderProperties is NULL\n",tg->RenderFuncs.textureStackTop);
 	#endif
 	}
 
-    
-    
+
 	PRINT_GL_ERROR_IF_ANY("");
 }

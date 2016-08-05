@@ -74,6 +74,29 @@ July 2016
 Related Links on HAnim
 http://www.web3d.org/working-groups/humanoid-animation-h-anim
 - The tutorial
+Links on character animation for real-time graphics:
+http://www.cescg.org/CESCG-2002/MPutzKHufnagl/paper.pdf
+- Character Animation for Real-time Applications
+http://apc.dcti.iscte.pt/praticas/Real-Time%20Character%20Animation%20for%20Computer%20Games.pdf
+- (Anderson) Real-Time Character Animation for Computer Games
+https://books.google.ca/books?id=O0sxtDeT5PEC&pg=PA125&lpg=PA125&dq=Animating+single+mesh+character+in+real+time&source=bl&ots=u8gETEoSM0&sig=AW7nQB25K4IxjZp_7xSlLJRxiCQ&hl=en&sa=X&ved=0ahUKEwiQ6NHdoarOAhVX2mMKHVrdDR8Q6AEIJjAB#v=onepage&q=Animating%20single%20mesh%20character%20in%20real%20time&f=false
+- book: Real-time Character Animation with Visual C++ 
+- shows additive approach to vertex blending:
+	vertex {
+		xyz original;
+		xyz world;
+		int number_of_limbs_influencing;
+	}
+	set number_of_limbs influencing vertex;
+	on each frame, 
+		zero worlds
+		Iterate over limbs, transforming originals influenced and adding/summing onto worlds.
+		divide each world by number_of_limbs
+http://www.nvidia.com/object/doc_characters.html
+- Nvidia link page for various game programming algos with gpu acceleration
+
+
+
 Q if the skeleton isnt rendered, when would you traverse the skeleton
 And whats the output?
 Q isnt there some kind of ik solver that could/should be exposed to sai as a node?

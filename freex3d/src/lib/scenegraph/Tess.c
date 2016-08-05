@@ -142,7 +142,7 @@ void CALLBACK FW_tess_error(GLenum e) {
 
 
 void CALLBACK FW_tess_combine_text_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
-/*
+/*	Component_Text Combiner
 	printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); 
@@ -192,7 +192,7 @@ void CALLBACK FW_tess_combine_text_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w
 }
 
 void CALLBACK FW_tess_combine_polyrep_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w[4], void **out,void *polygondata) {
-/*
+/*	PolyRep Combiner (not properly implemented as of Aug 5, 2016)
 	printf("FW_tess_combine data\n"); 
 	 printf("combine c:%lf %lf %lf\ndw: %f %f %f %f\n\n",
 		c[0],c[1],c[2],w[0],w[1],w[2],w[3]); 
@@ -255,7 +255,12 @@ void CALLBACK FW_tess_combine_polyrep_data (GLDOUBLE c[3], GLfloat *d[4], GLfloa
 			pass index into extension arrays to *out with a -ve sentinal value, for capture by global_IFS_Coords[] in vertex callback
 		2. in make_polyrep and make_extrusion, when using global_IFS_Coords[] array, watch for -ve index and 
 			de-index from the extension arrays
-		
+
+		Proposed polyrep algo C?
+		- when setting the vertexes, instead of giving [double xyz float rgb], give [double xyz int index] 
+		- then in here, the 4 float *d points coming in will deliver index.
+		- then (somehow) use those indexes
+	
 
 		*/
 		polyrep_combiner_data *cbdata;

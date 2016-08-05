@@ -56,9 +56,9 @@ typedef struct pComponent_Shape{
 	/* for doing shader material properties */
 	struct X3D_TwoSidedMaterial *material_twoSided;
 	struct X3D_Material *material_oneSided;
-    
-    /* Any user defined shaders here? */
-    struct X3D_Node * userShaderNode;
+
+	/* Any user defined shaders here? */
+	struct X3D_Node * userShaderNode;
     
 }* ppComponent_Shape;
 
@@ -83,79 +83,79 @@ struct matpropstruct *getAppearanceProperties(){
 // see if the Appearance node has a valid Shader node as a child.
 static int hasUserDefinedShader(struct X3D_Node *node) {
 #define NO_SHADER 99999
-    unsigned int rv = NO_SHADER;
-    
-    if (node==NULL) return 0;
-    
-    //ConsoleMessage ("hasUserDeginedShader, node ptr %p",node);
-    //ConsoleMessage ("hasUserDefinedShader, nodeType %s",stringNodeType(node->_nodeType));
-    if (node->_nodeType == NODE_Appearance) {
-        struct X3D_Appearance *ap;
-        POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, node, ap);
-        //ConsoleMessage ("appearance node shaders is %d %p",ap->shaders.n, ap->shaders.p);
-        
-        if (ap->shaders.n != 0) {
-            struct X3D_ComposedShader *cps;
-            
-            /* ok - what kind of node is here, and are there more than two? */
-            if (ap->shaders.n > 1) {
-                ConsoleMessage ("warning, Appearance->shaders has more than 1 node, using only first one");
-            }
-            
-            POSSIBLE_PROTO_EXPANSION(struct X3D_ComposedShader *, ap->shaders.p[0], cps);
-                        
-            //ConsoleMessage ("node type of shaders is :%s:",stringNodeType(cps->_nodeType));
-            if (cps->_nodeType == NODE_ComposedShader) {
-                // might be set in compile_Shader already
-                //ConsoleMessage ("cps->_initialized %d",cps->_initialized);
-                //ConsoleMessage ("cps->_retrievedURLData %d",cps->_retrievedURLData);
-                
-                if (cps->_retrievedURLData) {
-                    if (cps->_shaderUserNumber == -1) cps->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
-                    rv = cps->_shaderUserNumber;
-                }
-            } else if (cps->_nodeType == NODE_PackagedShader) {
-                // might be set in compile_Shader already
-                if (X3D_PACKAGEDSHADER(cps)->_retrievedURLData) {
-                    if (X3D_PACKAGEDSHADER(cps)->_shaderUserNumber == -1) 
-                        X3D_PACKAGEDSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
-                    rv = X3D_PACKAGEDSHADER(cps)->_shaderUserNumber;
-                }
-            } else if (cps->_nodeType == NODE_ProgramShader) {
-                // might be set in compile_Shader already
-                if (X3D_PROGRAMSHADER(cps)->_retrievedURLData) {
-                if (X3D_PROGRAMSHADER(cps)->_shaderUserNumber == -1) 
-                    X3D_PROGRAMSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+	unsigned int rv = NO_SHADER;
 
-                rv = X3D_PROGRAMSHADER(cps)->_shaderUserNumber;
-                }
-            } else {
-                ConsoleMessage ("shader field of Appearance is a %s, ignoring",stringNodeType(cps->_nodeType));
-            }
-            
-        } 
-    } 
-    
-    //ConsoleMessage ("and ste is %d",ste);
-    
-    // ok - did we find an integer between 0 and some MAX_SUPPORTED_USER_SHADERS value?
-    if (rv == NO_SHADER) rv = 0; 
-    else rv = USER_DEFINED_SHADER_START * (rv+1);
+	if (node==NULL) return 0;
 
-    //ConsoleMessage ("rv is going to be %x",rv);
-    
-    //ConsoleMessage ("hasUserDefinedShader, returning %p",*shaderTableEntry);
-    return rv;
+	//ConsoleMessage ("hasUserDeginedShader, node ptr %p",node);
+	//ConsoleMessage ("hasUserDefinedShader, nodeType %s",stringNodeType(node->_nodeType));
+	if (node->_nodeType == NODE_Appearance) {
+		struct X3D_Appearance *ap;
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, node, ap);
+		//ConsoleMessage ("appearance node shaders is %d %p",ap->shaders.n, ap->shaders.p);
+
+		if (ap->shaders.n != 0) {
+			struct X3D_ComposedShader *cps;
+
+			/* ok - what kind of node is here, and are there more than two? */
+			if (ap->shaders.n > 1) {
+				ConsoleMessage ("warning, Appearance->shaders has more than 1 node, using only first one");
+			}
+            
+			POSSIBLE_PROTO_EXPANSION(struct X3D_ComposedShader *, ap->shaders.p[0], cps);
+
+			//ConsoleMessage ("node type of shaders is :%s:",stringNodeType(cps->_nodeType));
+			if (cps->_nodeType == NODE_ComposedShader) {
+				// might be set in compile_Shader already
+				//ConsoleMessage ("cps->_initialized %d",cps->_initialized);
+				//ConsoleMessage ("cps->_retrievedURLData %d",cps->_retrievedURLData);
+
+				if (cps->_retrievedURLData) {
+					if (cps->_shaderUserNumber == -1) cps->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+					rv = cps->_shaderUserNumber;
+				}
+			} else if (cps->_nodeType == NODE_PackagedShader) {
+				// might be set in compile_Shader already
+				if (X3D_PACKAGEDSHADER(cps)->_retrievedURLData) {
+					if (X3D_PACKAGEDSHADER(cps)->_shaderUserNumber == -1) 
+						X3D_PACKAGEDSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+					rv = X3D_PACKAGEDSHADER(cps)->_shaderUserNumber;
+				}
+			} else if (cps->_nodeType == NODE_ProgramShader) {
+				// might be set in compile_Shader already
+				if (X3D_PROGRAMSHADER(cps)->_retrievedURLData) {
+				if (X3D_PROGRAMSHADER(cps)->_shaderUserNumber == -1) 
+					X3D_PROGRAMSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+
+				rv = X3D_PROGRAMSHADER(cps)->_shaderUserNumber;
+				}
+			} else {
+				ConsoleMessage ("shader field of Appearance is a %s, ignoring",stringNodeType(cps->_nodeType));
+			}
+
+		} 
+	} 
+
+	//ConsoleMessage ("and ste is %d",ste);
+
+	// ok - did we find an integer between 0 and some MAX_SUPPORTED_USER_SHADERS value?
+	if (rv == NO_SHADER) rv = 0; 
+	else rv = USER_DEFINED_SHADER_START * (rv+1);
+
+	//ConsoleMessage ("rv is going to be %x",rv);
+
+	//ConsoleMessage ("hasUserDefinedShader, returning %p",*shaderTableEntry);
+	return rv;
 }
 
 // Save the shader node from the render_*Shader so that we can send in parameters when required
 void setUserShaderNode(struct X3D_Node *me) {
-    ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
-    p->userShaderNode = me;
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+	p->userShaderNode = me;
 }
 
 struct X3D_Node *getThis_textureTransform(){
-    ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
 	return p->this_textureTransform;
 }
 
@@ -168,7 +168,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 	
 	/* Render the material node... */
 	RENDER_MATERIAL_SUBNODES(node->material);
-	    
+	
 	if (node->fillProperties) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->fillProperties,tmpN);
 		render_node(tmpN);
@@ -184,7 +184,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 		/* we have to do a glPush, then restore, later */
 		/* glPushAttrib(GL_ENABLE_BIT); */
 		
-        ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;    
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;    
 
 
 		/* is there a TextureTransform? if no texture, fugutaboutit */
@@ -192,7 +192,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 		
 		/* now, render the texture */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->texture,tmpN);
-        
+
 		render_node(tmpN);
 	}
 
@@ -213,7 +213,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 				/* render this node; if it is valid, then we call this one the selected one */
 				SET_FOUND_GOOD_SHADER(tmpN);
 				DEBUG_SHADER("running shader (%s) %d of %d\n",
-			    	 stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);
+				stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);
 				render_node(tmpN);
 			}
 		}
@@ -237,7 +237,6 @@ void compile_Material (struct X3D_Material *node) {
 	int i;
 	float trans;
 
-
 	/* verify that the numbers are within range */
 	if (node->ambientIntensity < 0.0f) node->ambientIntensity=0.0f;
 	if (node->ambientIntensity > 1.0f) node->ambientIntensity=1.0f;
@@ -255,37 +254,36 @@ void compile_Material (struct X3D_Material *node) {
 		if (node->specularColor.c[i] > 1.0f) node->specularColor.c[i]=1.0f;
 	}
 
-        /* set the transparency here for the material */
+	/* set the transparency here for the material */
 	/* Remember, VRML/X3D transparency 0.0 = solid; OpenGL 1.0 = solid, so we reverse it... */
-        trans = 1.0f - node->transparency;
-                
+	trans = 1.0f - node->transparency;
+
 	/* we now keep verified params in a structure that maps to Shaders well...
-		struct gl_MaterialParameters {
-        	        vec4 emission;
-        	        vec4 ambient;
-        	        vec4 diffuse;
-        	        vec4 specular;
-        	        float shininess;
-        	};
-	  which is stored in the _verifiedColor[17] array here.
-	  emission [0]..[3];
-	  ambient [4]..[7];
-	  diffuse [8]..[11];
-	  specular [12]..[15];
-	  shininess [16]
-	  
+	struct gl_MaterialParameters {
+		vec4 emission;
+		vec4 ambient;
+		vec4 diffuse;
+		vec4 specular;
+		float shininess;
+	};
+	which is stored in the _verifiedColor[17] array here.
+	emission [0]..[3];
+	ambient [4]..[7];
+	diffuse [8]..[11];
+	specular [12]..[15];
+	shininess [16]
 */
 	/* first, put in the transparency */
-        node->_verifiedColor.p[3] = trans;
-        node->_verifiedColor.p[7] = trans;
-        node->_verifiedColor.p[11] = trans;
-        node->_verifiedColor.p[15] = trans;
-                
+	node->_verifiedColor.p[3] = trans;
+	node->_verifiedColor.p[7] = trans;
+	node->_verifiedColor.p[11] = trans;
+	node->_verifiedColor.p[15] = trans;
+
 	/* DiffuseColor */
 	memcpy((void *)(&node->_verifiedColor.p[8]), node->diffuseColor.c, sizeof (float) * 3);
 
 	/* Ambient  - diffuseColor * ambientIntensity */
-        for(i=0; i<3; i++) { node->_verifiedColor.p[i+4] = node->_verifiedColor.p[i+8] * node->ambientIntensity; }
+	for(i=0; i<3; i++) { node->_verifiedColor.p[i+4] = node->_verifiedColor.p[i+8] * node->ambientIntensity; }
 
 	/* Specular */
 	memcpy((void *)(&node->_verifiedColor.p[12]), node->specularColor.c, sizeof (float) * 3);
@@ -294,13 +292,13 @@ void compile_Material (struct X3D_Material *node) {
 	memcpy((void *)(&node->_verifiedColor.p[0]), node->emissiveColor.c, sizeof (float) * 3);
 
 	/* Shininess */
-        node->_verifiedColor.p[16] = node->shininess * 128.0f;
+	node->_verifiedColor.p[16] = node->shininess * 128.0f;
 
 #define MAX_SHIN 128.0f
 #define MIN_SHIN 0.01f
-        if ((node->_verifiedColor.p[16] > MAX_SHIN) || (node->_verifiedColor.p[16] < MIN_SHIN)) {
-                if (node->_verifiedColor.p[16]>MAX_SHIN){node->_verifiedColor.p[16] = MAX_SHIN;}else{node->_verifiedColor.p[16]=MIN_SHIN;}
-        }
+		if ((node->_verifiedColor.p[16] > MAX_SHIN) || (node->_verifiedColor.p[16] < MIN_SHIN)) {
+			if (node->_verifiedColor.p[16]>MAX_SHIN){node->_verifiedColor.p[16] = MAX_SHIN;}else{node->_verifiedColor.p[16]=MIN_SHIN;}
+		}
 #undef MAX_SHIN
 #undef MIN_SHIN
 
@@ -321,39 +319,36 @@ static bool getIfLinePoints(struct X3D_Node *realNode) {
 	switch (realNode->_nodeType) {
 		case NODE_IndexedLineSet:
 		case NODE_LineSet:
-        case NODE_PointSet:
-            
+		case NODE_PointSet:
 			return  true;
-
 	}
 	return false; // do not add any capabilites here.
 }
 
 /* is the texCoord field a TextureCoordinateGenerator or not? */
 static int getShapeTextureCoordGen(struct X3D_Node *realNode) {
-    struct X3D_Node *tc = NULL;
-    int *fieldOffsetsPtr = NULL;
-    
-    //ConsoleMessage ("getShapeTextureCoordGen, node type %s\n",stringNodeType(realNode->_nodeType));
-    if (realNode == NULL) return 0;
-    
-    fieldOffsetsPtr = (int *)NODE_OFFSETS[realNode->_nodeType];
-    /*go thru all field*/
-    while (*fieldOffsetsPtr != -1) {
-        if (*fieldOffsetsPtr == FIELDNAMES_texCoord) {
-            // get the pointer stored here...
-            memcpy(&tc,offsetPointer_deref(void*, realNode,*(fieldOffsetsPtr+1)),sizeof(struct X3D_Node *));
-            //ConsoleMessage ("tc is %p\n",tc);
-            //ConsoleMessage ("tc is of type %s\n",stringNodeType(tc->_nodeType));
-            if (tc != NULL) {
-                if (tc->_nodeType == NODE_TextureCoordinateGenerator) return HAVE_TEXTURECOORDINATEGENERATOR;
-            }
-        }
-        
-        fieldOffsetsPtr += 5;
-    }
+	struct X3D_Node *tc = NULL;
+	int *fieldOffsetsPtr = NULL;
 
-    return 0;
+	//ConsoleMessage ("getShapeTextureCoordGen, node type %s\n",stringNodeType(realNode->_nodeType));
+	if (realNode == NULL) return 0;
+
+	fieldOffsetsPtr = (int *)NODE_OFFSETS[realNode->_nodeType];
+	/*go thru all field*/
+	while (*fieldOffsetsPtr != -1) {
+		if (*fieldOffsetsPtr == FIELDNAMES_texCoord) {
+			// get the pointer stored here...
+			memcpy(&tc,offsetPointer_deref(void*, realNode,*(fieldOffsetsPtr+1)),sizeof(struct X3D_Node *));
+			//ConsoleMessage ("tc is %p\n",tc);
+			//ConsoleMessage ("tc is of type %s\n",stringNodeType(tc->_nodeType));
+			if (tc != NULL) {
+				if (tc->_nodeType == NODE_TextureCoordinateGenerator) return HAVE_TEXTURECOORDINATEGENERATOR;
+			}
+		}
+		fieldOffsetsPtr += 5;
+	}
+
+	return 0;
 }
 
 
@@ -395,7 +390,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 
 
 	int retval = NOTHING;
-    
+
 	/* if there is no appearance node... */
 	if (myApp == NULL) return retval;
 
@@ -403,7 +398,7 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
     
 	if (realAppearanceNode->material != NULL) {
-        POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->material,realMaterialNode);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->material,realMaterialNode);
 		        
 		if (realMaterialNode->_nodeType == NODE_Material) {
 			retval |= MATERIAL_APPEARANCE_SHADER;
@@ -412,11 +407,11 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 			retval |= TWO_MATERIAL_APPEARANCE_SHADER;
 		}
 	}
-    
-    
+
+
 	if (realAppearanceNode->fillProperties != NULL) {
-        	struct X3D_Node *fp;
-        	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->fillProperties,fp);
+		struct X3D_Node *fp;
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->fillProperties,fp);
 		if (fp->_nodeType != NODE_FillProperties) {
 			ConsoleMessage("getAppearanceShader, fillProperties has a node type of %s",stringNodeType(fp->_nodeType));
 		} else {
@@ -428,21 +423,21 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 
 
 	if (realAppearanceNode->texture != NULL) {
-        //printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
-        struct X3D_Node *tex;
-        
-        POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->texture,tex);
-        if ((tex->_nodeType == NODE_ImageTexture) || 
+		//printf ("getAppearanceShader - rap node is %s\n",stringNodeType(realAppearanceNode->texture->_nodeType));
+		struct X3D_Node *tex;
+
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->texture,tex);
+		if ((tex->_nodeType == NODE_ImageTexture) || 
 			(tex->_nodeType == NODE_MovieTexture) || 
-            (tex->_nodeType == NODE_PixelTexture)){
+			(tex->_nodeType == NODE_PixelTexture)){
 			retval |= ONE_TEX_APPEARANCE_SHADER;
 		} else if (tex->_nodeType == NODE_MultiTexture) {
-            retval |= MULTI_TEX_APPEARANCE_SHADER;
-        } else if ((tex->_nodeType == NODE_ComposedCubeMapTexture) ||
-                   (tex->_nodeType == NODE_ImageCubeMapTexture) || 
-                   (tex->_nodeType == NODE_GeneratedCubeMapTexture)) {
-            retval |= HAVE_CUBEMAP_TEXTURE;
-        } else {
+			retval |= MULTI_TEX_APPEARANCE_SHADER;
+		} else if ((tex->_nodeType == NODE_ComposedCubeMapTexture) ||
+					(tex->_nodeType == NODE_ImageCubeMapTexture) || 
+					(tex->_nodeType == NODE_GeneratedCubeMapTexture)) {
+			retval |= HAVE_CUBEMAP_TEXTURE;
+		} else {
 			ConsoleMessage ("getAppearanceShader, texture field %s not supported yet\n",
 			stringNodeType(tex->_nodeType));
 		}
@@ -484,8 +479,8 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 	GLint hatched;
 	GLint filled;
 
-    struct matpropstruct *me= getAppearanceProperties();
-    
+	struct matpropstruct *me= getAppearanceProperties();
+
 	hatchX = 0.80f; hatchY = 0.80f;
 	algor = node->hatchStyle; filled = node->filled; hatched = node->hatched;
 	switch (node->hatchStyle) {
@@ -502,15 +497,15 @@ void render_FillProperties (struct X3D_FillProperties *node) {
 		}
 	}
 
-    me->filledBool = filled;
-    me->hatchedBool = hatched;
-    me->hatchPercent[0] = hatchX;
-    me->hatchPercent[1] = hatchY;
-    me->hatchScale[0] = node->_hatchScale.c[0];
-    me->hatchScale[1] = node->_hatchScale.c[1];
-    me->algorithm = algor;
-    me->hatchColour[0]=node->hatchColor.c[0]; me->hatchColour[1]=node->hatchColor.c[1]; me->hatchColour[2] = node->hatchColor.c[2];
-    me->hatchColour[3] = 1.0;
+	me->filledBool = filled;
+	me->hatchedBool = hatched;
+	me->hatchPercent[0] = hatchX;
+	me->hatchPercent[1] = hatchY;
+	me->hatchScale[0] = node->_hatchScale.c[0];
+	me->hatchScale[1] = node->_hatchScale.c[1];
+	me->algorithm = algor;
+	me->hatchColour[0]=node->hatchColor.c[0]; me->hatchColour[1]=node->hatchColor.c[1]; me->hatchColour[2] = node->hatchColor.c[2];
+	me->hatchColour[3] = 1.0;
 }
 
 
@@ -583,8 +578,8 @@ void child_Shape (struct X3D_Shape *node) {
 		return;
 	}
 
-    	p = (ppComponent_Shape)tg->Component_Shape.prv;
-    
+	p = (ppComponent_Shape)tg->Component_Shape.prv;
+
 	/* initialization. This will get overwritten if there is a texture in an Appearance
 	   node in this shape (see child_Appearance) */
 	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
@@ -612,87 +607,86 @@ void child_Shape (struct X3D_Shape *node) {
 			/* no materials selected.... */
 		}
 
-        /* enable the shader for this shape */
-        //ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
-        enableGlobalShader (getMyShader(node->_shaderTableEntry));
+		/* enable the shader for this shape */
+		//ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
+		enableGlobalShader (getMyShader(node->_shaderTableEntry));
 
 
-        if (p->userShaderNode != NULL) {
-            //ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
-            switch (p->userShaderNode->_nodeType) {
-                case NODE_ComposedShader:
-                    if (X3D_COMPOSEDSHADER(p->userShaderNode)->isValid) {
-                        if (!X3D_COMPOSEDSHADER(p->userShaderNode)->_initialized) {
-                            sendInitialFieldsToShader(p->userShaderNode);
-                        }
-                    }
-                    break;
-                case NODE_ProgramShader:
-                    if (X3D_PROGRAMSHADER(p->userShaderNode)->isValid) {
-                        if (!X3D_PROGRAMSHADER(p->userShaderNode)->_initialized) {
-                            sendInitialFieldsToShader(p->userShaderNode);
-                        }
-                    }
+		if (p->userShaderNode != NULL) {
+			//ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
+			switch (p->userShaderNode->_nodeType) {
+				case NODE_ComposedShader:
+					if (X3D_COMPOSEDSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_COMPOSEDSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
+					break;
+				case NODE_ProgramShader:
+					if (X3D_PROGRAMSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_PROGRAMSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
 
-                    break;
-                case NODE_PackagedShader:
-                    if (X3D_PACKAGEDSHADER(p->userShaderNode)->isValid) {
-                        if (!X3D_PACKAGEDSHADER(p->userShaderNode)->_initialized) {
-                            sendInitialFieldsToShader(p->userShaderNode);
-                        }
-                    }
+					break;
+				case NODE_PackagedShader:
+					if (X3D_PACKAGEDSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_PACKAGEDSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
 
-                    break;
-            }
-        }
-        
-        
+					break;
+			}
+		}
+
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
-        
-        //see if we have to set up a TextureCoordinateGenerator type here
-        if (node->geometry->_intern) {
-            if (node->geometry->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
-                getAppearanceProperties()->texCoordGeneratorType = node->geometry->_intern->texgentype;
-                //ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
-            }
-        }
-        
-        #ifdef SHAPEOCCLUSION
+
+		//see if we have to set up a TextureCoordinateGenerator type here
+		if (node->geometry->_intern) {
+			if (node->geometry->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
+				getAppearanceProperties()->texCoordGeneratorType = node->geometry->_intern->texgentype;
+				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
+			}
+		}
+
+		#ifdef SHAPEOCCLUSION
 		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
-        #endif
+		#endif
 
 		render_node(tmpN);
 
 		#ifdef SHAPEOCCLUSION
 		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
 		#endif
-        
+
 	}
 
 	/* any shader turned on? if so, turn it off */
-    //ConsoleMessage("turning shader off");
+	//ConsoleMessage("turning shader off");
 	finishedWithGlobalShader();
 	p->material_twoSided = NULL;
 	p->material_oneSided = NULL;
-    p->userShaderNode = NULL;
+	p->userShaderNode = NULL;
     
-    /* load the identity matrix for textures. This is necessary, as some nodes have TextureTransforms
-        and some don't. So, if we have a TextureTransform, loadIdentity */
+	/* load the identity matrix for textures. This is necessary, as some nodes have TextureTransforms
+		and some don't. So, if we have a TextureTransform, loadIdentity */
     
-    if (p->this_textureTransform) {
-        p->this_textureTransform = NULL;
-        FW_GL_MATRIX_MODE(GL_TEXTURE);
-        FW_GL_LOAD_IDENTITY();
-        FW_GL_MATRIX_MODE(GL_MODELVIEW);
-    }
+	if (p->this_textureTransform) {
+		p->this_textureTransform = NULL;
+		FW_GL_MATRIX_MODE(GL_TEXTURE);
+		FW_GL_LOAD_IDENTITY();
+		FW_GL_MATRIX_MODE(GL_MODELVIEW);
+	}
     
-    /* LineSet, PointSets, set the width back to the original. */
+	/* LineSet, PointSets, set the width back to the original. */
 	{
 		float gl_linewidth = tg->Mainloop.gl_linewidth;
 		glLineWidth(gl_linewidth);
 		p->appearanceProperties.pointSize = gl_linewidth;
 	}
-    
+
 	/* did the lack of an Appearance or Material node turn lighting off? */
 	LIGHTING_ON;
 
@@ -704,58 +698,58 @@ void compile_Shape (struct X3D_Shape *node) {
 	int whichAppearanceShader = 0;
 	int whichShapeColorShader = 0;
 	bool isUnlitGeometry = false;
-    int hasTextureCoordinateGenerator = 0;
-    int whichUnlitGeometry = 0;
-    struct X3D_Node *tmpN = NULL;
-    int userDefinedShader = 0;
-    
-   // ConsoleMessage ("**** Compile Shape ****");
-    
-    
-    POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
+	int hasTextureCoordinateGenerator = 0;
+	int whichUnlitGeometry = 0;
+	struct X3D_Node *tmpN = NULL;
+	int userDefinedShader = 0;
+
+	// ConsoleMessage ("**** Compile Shape ****");
+
+
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
 	whichShapeColorShader = getShapeColourShader(tmpN);
-    isUnlitGeometry = getIfLinePoints(tmpN);
-    hasTextureCoordinateGenerator = getShapeTextureCoordGen(tmpN);
-    
-    POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->appearance,tmpN);
-    
-    /* first - does the shader have a shader node here? */
-    userDefinedShader = hasUserDefinedShader(tmpN);
-    
-    /* Lines, points - can get the emission colour from an appearance node */
-    if (isUnlitGeometry) {
-        int myAppShad =  getAppearanceShader(tmpN);
-        
-        /* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
-        if it is zero, we either have an appearance node, or we have no-material. */
-        //ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
-        if ((whichShapeColorShader != 0) || (myAppShad != 0)) {
-            //ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
-            
-            /* which one first? */
-            if (whichShapeColorShader != 0) whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
-            else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
-        }
-    } else {
-        /* if we have a Colour field, put this first */
-        if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
-                whichAppearanceShader = getAppearanceShader(tmpN);
-        }
-    }
+	isUnlitGeometry = getIfLinePoints(tmpN);
+	hasTextureCoordinateGenerator = getShapeTextureCoordGen(tmpN);
 
-    
-        /* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */
-    node->_shaderTableEntry= (whichShapeColorShader | whichAppearanceShader | 
-                hasTextureCoordinateGenerator | whichUnlitGeometry | userDefinedShader);
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->appearance,tmpN);
 
-        
-        
-    
+	/* first - does the shader have a shader node here? */
+	userDefinedShader = hasUserDefinedShader(tmpN);
+
+	/* Lines, points - can get the emission colour from an appearance node */
+	if (isUnlitGeometry) {
+		int myAppShad =  getAppearanceShader(tmpN);
+
+		/* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
+		if it is zero, we either have an appearance node, or we have no-material. */
+		//ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
+		if ((whichShapeColorShader != 0) || (myAppShad != 0)) {
+			//ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
+
+			/* which one first? */
+			if (whichShapeColorShader != 0) whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
+			else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
+		}
+	} else {
+		/* if we have a Colour field, put this first */
+		if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
+				whichAppearanceShader = getAppearanceShader(tmpN);
+		}
+	}
+
+
+		/* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */
+	node->_shaderTableEntry= (whichShapeColorShader | whichAppearanceShader | 
+				hasTextureCoordinateGenerator | whichUnlitGeometry | userDefinedShader);
+
+
+
+
 	if (node->_shaderTableEntry == NOTHING) 
-        node->_shaderTableEntry = NO_APPEARANCE_SHADER;
+		node->_shaderTableEntry = NO_APPEARANCE_SHADER;
 
-    //printf ("compile_Shape, node->_shaderTableEntry is %x\n",node->_shaderTableEntry);
-    
+	//printf ("compile_Shape, node->_shaderTableEntry is %x\n",node->_shaderTableEntry);
+
 	MARK_NODE_COMPILED
 }
 

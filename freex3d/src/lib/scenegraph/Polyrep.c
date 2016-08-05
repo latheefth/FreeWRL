@@ -847,7 +847,7 @@ void render_polyrep(void *node) {
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[TEXTURE_VBO]);
 		textureDraw_start(&mtf);
 	} else {
-        //ConsoleMessage("skipping tds of textures");
+        ConsoleMessage("skipping tds of textures");
 	}
 
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[VERTEX_VBO]);
