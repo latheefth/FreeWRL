@@ -1447,6 +1447,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	textureTableIndexStruct_s *myTableIndex;
 	//float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 	ppTextures p;
+	struct Multi_String *mfurl = NULL;
 	ttglobal tg = gglobal();
 	p = (ppTextures)tg->Textures.prv;
 
@@ -1455,6 +1456,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	thisTextureType = node->_nodeType;
 	if (thisTextureType==NODE_ImageTexture){
 		it = (struct X3D_ImageTexture*) node;
+		mfurl = &it->url;
 		thisTexture = it->__textureTableIndex;
 	} else if (thisTextureType==NODE_PixelTexture){
 		pt = (struct X3D_PixelTexture*) node;
@@ -1462,9 +1464,11 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	} else if (thisTextureType==NODE_MovieTexture){
 		mt = (struct X3D_MovieTexture*) node;
 		thisTexture = mt->__textureTableIndex;
+		mfurl = &mt->url;
 	} else if (thisTextureType==NODE_ImageCubeMapTexture){
 		ict = (struct X3D_ImageCubeMapTexture*) node;
 		thisTexture = ict->__textureTableIndex;
+		mfurl = &ict->url;
 	} else { 
 		ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); 
 		return;
@@ -1481,8 +1485,13 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
 			DEBUG_TEX("feeding texture %p to texture thread...\n", myTableIndex);
-			myTableIndex->status = TEX_LOADING;
-			send_texture_to_loader(myTableIndex);
+			if(mfurl && mfurl->n > 0) {
+				myTableIndex->status = TEX_LOADING;
+				send_texture_to_loader(myTableIndex);
+			} else {
+				//for <ImageTexture /> with url not declared, we should get the default blank image
+				myTableIndex->status = TEX_NEEDSBINDING;
+			}
 			break;
 
 		case TEX_LOADING:

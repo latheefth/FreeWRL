@@ -184,7 +184,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 		/* we have to do a glPush, then restore, later */
 		/* glPushAttrib(GL_ENABLE_BIT); */
 		
-	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;    
+		ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;    
 
 
 		/* is there a TextureTransform? if no texture, fugutaboutit */
