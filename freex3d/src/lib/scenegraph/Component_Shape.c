@@ -550,149 +550,6 @@ void render_LineProperties (struct X3D_LineProperties *node) {
 	}
 }
 
-void child_Shape (struct X3D_Shape *node) {
-	struct X3D_Node *tmpN;    
-	ppComponent_Shape p;
-    	ttglobal tg = gglobal();
-	struct fw_MaterialParameters defaultMaterials = {
-				{0.0f, 0.0f, 0.0f, 1.0f}, /* Emission */
-				{0.0f, 0.0f, 0.0f, 1.0f}, /* Ambient */
-				{0.8f, 0.8f, 0.8f, 1.0f}, /* Diffuse */
-				{0.0f, 0.0f, 0.0f, 1.0f}, /* Specular */
-				10.0f};                   /* Shininess */
-
-	COMPILE_IF_REQUIRED
-
-	/* JAS - if not collision, and render_geom is not set, no need to go further */
-	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
-	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
-
-	if(!(node->geometry)) { return; }
-
-	RECORD_DISTANCE
-
-	if((renderstate()->render_collision) || (renderstate()->render_sensitive)) {
-		/* only need to forward the call to the child */
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpN);
-		render_node(tmpN);
-		return;
-	}
-
-	p = (ppComponent_Shape)tg->Component_Shape.prv;
-
-	/* initialization. This will get overwritten if there is a texture in an Appearance
-	   node in this shape (see child_Appearance) */
-	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
-	
-	/* copy the material stuff in preparation for copying all to the shader */
-	memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-	memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
-
-	/* now, are we rendering blended nodes or normal nodes?*/
-	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-                
-		RENDER_MATERIAL_SUBNODES(node->appearance);
-		if (p->material_oneSided != NULL) {
-			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
-			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
-			/* copy the emissive colour over for lines and points */
-			memcpy(p->appearanceProperties.emissionColour,p->material_oneSided->_verifiedColor.p, 3*sizeof(float));
-
-		} else if (p->material_twoSided != NULL) {
-			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
-			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
-			/* copy the emissive colour over for lines and points */
-			memcpy(p->appearanceProperties.emissionColour,p->material_twoSided->_verifiedFrontColor.p, 3*sizeof(float));
-		} else {
-			/* no materials selected.... */
-		}
-
-		/* enable the shader for this shape */
-		//ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
-		enableGlobalShader (getMyShader(node->_shaderTableEntry));
-
-
-		if (p->userShaderNode != NULL) {
-			//ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
-			switch (p->userShaderNode->_nodeType) {
-				case NODE_ComposedShader:
-					if (X3D_COMPOSEDSHADER(p->userShaderNode)->isValid) {
-						if (!X3D_COMPOSEDSHADER(p->userShaderNode)->_initialized) {
-							sendInitialFieldsToShader(p->userShaderNode);
-						}
-					}
-					break;
-				case NODE_ProgramShader:
-					if (X3D_PROGRAMSHADER(p->userShaderNode)->isValid) {
-						if (!X3D_PROGRAMSHADER(p->userShaderNode)->_initialized) {
-							sendInitialFieldsToShader(p->userShaderNode);
-						}
-					}
-
-					break;
-				case NODE_PackagedShader:
-					if (X3D_PACKAGEDSHADER(p->userShaderNode)->isValid) {
-						if (!X3D_PACKAGEDSHADER(p->userShaderNode)->_initialized) {
-							sendInitialFieldsToShader(p->userShaderNode);
-						}
-					}
-
-					break;
-			}
-		}
-
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
-
-		//see if we have to set up a TextureCoordinateGenerator type here
-		if (node->geometry->_intern) {
-			if (node->geometry->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
-				getAppearanceProperties()->texCoordGeneratorType = node->geometry->_intern->texgentype;
-				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
-			}
-		}
-
-		#ifdef SHAPEOCCLUSION
-		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
-		#endif
-
-		render_node(tmpN);
-
-		#ifdef SHAPEOCCLUSION
-		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
-		#endif
-
-	}
-
-	/* any shader turned on? if so, turn it off */
-	//ConsoleMessage("turning shader off");
-	finishedWithGlobalShader();
-	p->material_twoSided = NULL;
-	p->material_oneSided = NULL;
-	p->userShaderNode = NULL;
-    
-	/* load the identity matrix for textures. This is necessary, as some nodes have TextureTransforms
-		and some don't. So, if we have a TextureTransform, loadIdentity */
-    
-	if (p->this_textureTransform) {
-		p->this_textureTransform = NULL;
-		FW_GL_MATRIX_MODE(GL_TEXTURE);
-		FW_GL_LOAD_IDENTITY();
-		FW_GL_MATRIX_MODE(GL_MODELVIEW);
-	}
-    
-	/* LineSet, PointSets, set the width back to the original. */
-	{
-		float gl_linewidth = tg->Mainloop.gl_linewidth;
-		glLineWidth(gl_linewidth);
-		p->appearanceProperties.pointSize = gl_linewidth;
-	}
-
-	/* did the lack of an Appearance or Material node turn lighting off? */
-	LIGHTING_ON;
-
-	/* turn off face culling */
-	DISABLE_CULL_FACE;
-}
 textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingmodel
 // colorsources: Crgb, TxCrgb, Trgb, White, TTT, Drgb, TxDrgb
@@ -701,6 +558,7 @@ static enum {
 	Crgb, TxCrgb, Trgb, White, TTT, Drgb, TxDrgb,
 	One, AT, MA,
 } lighting_enum;
+static char* lighting_names [] = {"Crgb", "TxCrgb","Trgb","White","TTT","Drgb","TxDrgb","One","AT","MA"};
 static int lookupColorAlpha[2][2][5][2] = {
 	{	//unlit
 		// unlit geometry, table 17-2
@@ -764,6 +622,235 @@ static int lookupColorAlpha[2][2][5][2] = {
 	},
 };
 
+int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometry, int *colorSource, int *alphaSource){
+
+	// returns isLit 1/0, *colorSource, *alphaSource see table above
+	// unlit = apearance == NULL || appearance.material == NULL || points || lines
+	//appearance = (struct X3D_Appearance *)tmpN;
+	// channels = appearance && appearance.texture? appearance.texture.channels : 0
+	int channels, imgalpha, isLit, isUnlitGeometry, hasColorNode, whichShapeColorShader;
+	int colorSourceA, colorSourceB, colorSourceC, alphaSourceA, alphaSourceB;
+	struct X3D_Appearance *appearance;
+	channels = 0;
+	imgalpha = 0;
+	isLit = 0;
+	*colorSource = 0;
+	*alphaSource = 0;
+
+	if(!geometry) return 0;
+	appearance = (struct X3D_Appearance*)appearanceNode;
+	isUnlitGeometry = getIfLinePoints(geometry);
+	whichShapeColorShader = getShapeColourShader(geometry);
+	// colorNode = geometry && geometry.color ? TRUE : FALSE
+	hasColorNode = whichShapeColorShader == NOTHING ? 0 : 1;
+
+	if(appearance){
+		isLit = appearance->material? 1 : 0;
+		isLit = isUnlitGeometry ? 0 : isLit;
+		//do I need possible proto expansione of texture, or will compile_appearance have done that?
+		if(appearance->texture){
+			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
+			if(tti){
+				//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+				//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+				//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
+				channels = tti->channels; 
+				imgalpha = tti->hasAlpha;
+				if(tti->status < TEX_NEEDSBINDING) 
+					printf("."); //should Unmark node compiled
+			}
+		}
+	}
+
+	// colorsource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][0=color]
+	// alphasource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][1=alpha]
+	colorSourceA = lookupColorAlpha[isLit][1-hasColorNode][channels][0];
+	alphaSourceA = lookupColorAlpha[isLit][1-hasColorNode][channels][1];
+	//should be the same as (somewhat less readable):
+	alphaSourceB = imgalpha ? AT : isLit ? MA : One;
+	colorSourceB = hasColorNode ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
+		channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? One : Drgb;
+	colorSourceC;
+	if(hasColorNode){
+		if(channels > 2) colorSourceC = Trgb;
+		else if(channels) colorSourceC = TxCrgb;
+		else colorSourceC = Crgb;
+
+	}else{
+		if(channels > 2) colorSourceC = Trgb;
+		else if(channels){
+			if(!isLit) colorSourceC = TTT;
+			else colorSourceC = TxDrgb;
+		}else{
+			if(!isLit) colorSourceC = One;
+			else colorSourceC = Drgb;
+		}
+	}
+	if(!(colorSourceC == colorSourceB && colorSourceB == colorSourceA)) 
+		printf("ouch - colorsource confusion\n");
+	if(alphaSourceA != alphaSourceB)
+		printf("ouch - alphasource confusione\n");
+	*colorSource = colorSourceA;
+	*alphaSource = alphaSourceA;
+	return isLit;
+}
+void child_Shape (struct X3D_Shape *node) {
+	struct X3D_Node *tmpN;    
+	ppComponent_Shape p;
+    	ttglobal tg = gglobal();
+	struct fw_MaterialParameters defaultMaterials = {
+				{0.0f, 0.0f, 0.0f, 1.0f}, /* Emission */
+				{0.0f, 0.0f, 0.0f, 1.0f}, /* Ambient */
+				{0.8f, 0.8f, 0.8f, 1.0f}, /* Diffuse */
+				{0.0f, 0.0f, 0.0f, 1.0f}, /* Specular */
+				10.0f};                   /* Shininess */
+
+	COMPILE_IF_REQUIRED
+
+	/* JAS - if not collision, and render_geom is not set, no need to go further */
+	/* printf ("child_Shape vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+	 render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
+
+	if(!(node->geometry)) { return; }
+
+	RECORD_DISTANCE
+
+	if((renderstate()->render_collision) || (renderstate()->render_sensitive)) {
+		/* only need to forward the call to the child */
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpN);
+		render_node(tmpN);
+		return;
+	}
+
+	p = (ppComponent_Shape)tg->Component_Shape.prv;
+
+	/* initialization. This will get overwritten if there is a texture in an Appearance
+	   node in this shape (see child_Appearance) */
+	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
+	
+	/* copy the material stuff in preparation for copying all to the shader */
+	memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+	memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+
+	/* now, are we rendering blended nodes or normal nodes?*/
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+        int colorSource, alphaSource, isLit;  
+
+		RENDER_MATERIAL_SUBNODES(node->appearance);
+
+
+
+		if (p->material_oneSided != NULL) {
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			/* copy the emissive colour over for lines and points */
+			memcpy(p->appearanceProperties.emissionColour,p->material_oneSided->_verifiedColor.p, 3*sizeof(float));
+
+		} else if (p->material_twoSided != NULL) {
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
+			/* copy the emissive colour over for lines and points */
+			memcpy(p->appearanceProperties.emissionColour,p->material_twoSided->_verifiedFrontColor.p, 3*sizeof(float));
+		} else {
+			/* no materials selected.... */
+		}
+
+		/* enable the shader for this shape */
+		//ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
+		enableGlobalShader (getMyShader(node->_shaderTableEntry));
+
+
+		if (p->userShaderNode != NULL) {
+			//ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
+			switch (p->userShaderNode->_nodeType) {
+				case NODE_ComposedShader:
+					if (X3D_COMPOSEDSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_COMPOSEDSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
+					break;
+				case NODE_ProgramShader:
+					if (X3D_PROGRAMSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_PROGRAMSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
+
+					break;
+				case NODE_PackagedShader:
+					if (X3D_PACKAGEDSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_PACKAGEDSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
+
+					break;
+			}
+		}
+
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
+
+		//if(node->_shaderTableEntry == builtinShader ){
+		if(0){
+			//Aug 6, 2016, dug9: OK here now we have the parameters for where builtin shader
+			//should get some things.
+			isLit = color_alpha_source(node->appearance,tmpN,&colorSource,&alphaSource);
+			printf("isLit = %d %s %s\n",isLit,lighting_names[colorSource],lighting_names[alphaSource]);
+			//if shader is builtin
+		}
+
+		//see if we have to set up a TextureCoordinateGenerator type here
+		if (node->geometry->_intern) {
+			if (node->geometry->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
+				getAppearanceProperties()->texCoordGeneratorType = node->geometry->_intern->texgentype;
+				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
+			}
+		}
+
+		#ifdef SHAPEOCCLUSION
+		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
+		#endif
+
+		render_node(tmpN);
+
+		#ifdef SHAPEOCCLUSION
+		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
+		#endif
+
+	}
+
+	/* any shader turned on? if so, turn it off */
+	//ConsoleMessage("turning shader off");
+	finishedWithGlobalShader();
+	p->material_twoSided = NULL;
+	p->material_oneSided = NULL;
+	p->userShaderNode = NULL;
+    
+	/* load the identity matrix for textures. This is necessary, as some nodes have TextureTransforms
+		and some don't. So, if we have a TextureTransform, loadIdentity */
+    
+	if (p->this_textureTransform) {
+		p->this_textureTransform = NULL;
+		FW_GL_MATRIX_MODE(GL_TEXTURE);
+		FW_GL_LOAD_IDENTITY();
+		FW_GL_MATRIX_MODE(GL_MODELVIEW);
+	}
+    
+	/* LineSet, PointSets, set the width back to the original. */
+	{
+		float gl_linewidth = tg->Mainloop.gl_linewidth;
+		glLineWidth(gl_linewidth);
+		p->appearanceProperties.pointSize = gl_linewidth;
+	}
+
+	/* did the lack of an Appearance or Material node turn lighting off? */
+	LIGHTING_ON;
+
+	/* turn off face culling */
+	DISABLE_CULL_FACE;
+}
+
 void compile_Shape (struct X3D_Shape *node) {
 	int whichAppearanceShader = 0;
 	int whichShapeColorShader = 0;
@@ -797,52 +884,59 @@ void compile_Shape (struct X3D_Shape *node) {
 	// if(!Appearance.shader) use lightingModel
 
 	/* Lines, points - can get the emission colour from an appearance node */
-	// unlit = apearance == NULL || appearance.material == NULL || points || lines
-	appearance = (struct X3D_Appearance *)tmpN;
-	// channels = appearance && appearance.texture? appearance.texture.channels : 0
-	channels = 0;
-	imgalpha = 0;
-	isLit = 0;
-	if(appearance){
-		isLit = appearance->material? 1 : 0;
-		isLit = isUnlitGeometry ? 0 : isLit;
-		//do I need possible proto expansione of texture, or will compile_appearance have done that?
-		if(appearance->texture){
-			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
-			if(tti){
-				//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
-				//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
-				channels = tti->channels; 
-				imgalpha = tti->hasAlpha;
+	if(0){ 
+		// moved to child_shape
+		// unlit = apearance == NULL || appearance.material == NULL || points || lines
+		appearance = (struct X3D_Appearance *)tmpN;
+		// channels = appearance && appearance.texture? appearance.texture.channels : 0
+		channels = 0;
+		imgalpha = 0;
+		isLit = 0;
+		if(appearance){
+			isLit = appearance->material? 1 : 0;
+			isLit = isUnlitGeometry ? 0 : isLit;
+			//do I need possible proto expansione of texture, or will compile_appearance have done that?
+			if(appearance->texture){
+				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
+				if(tti){
+					//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+					//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+					//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
+					channels = tti->channels; 
+					imgalpha = tti->hasAlpha;
+					if(tti->status < TEX_NEEDSBINDING) 
+						printf(".");
+				}
 			}
 		}
-	}
 
-	// colorsource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][0=color]
-	// alphasource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][1=alpha]
-	int colorSource = lookupColorAlpha[isLit][1-hasColorNode][channels][0];
-	int alphaSource = lookupColorAlpha[isLit][1-hasColorNode][channels][1];
-	//should be the same as (somewhat less readable):
-	int alphaSourceB = imgalpha ? AT : isLit ? MA : One;
-	int colorSourceB = hasColorNode ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
-		channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? One : Drgb;
-	int colorSourceC;
-	if(hasColorNode){
-		if(channels > 2) colorSourceC = Trgb;
-		else if(channels) colorSourceC = TxCrgb;
-		else colorSourceC = Crgb;
+		// colorsource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][0=color]
+		// alphasource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][1=alpha]
+		int colorSource = lookupColorAlpha[isLit][1-hasColorNode][channels][0];
+		int alphaSource = lookupColorAlpha[isLit][1-hasColorNode][channels][1];
+		//should be the same as (somewhat less readable):
+		int alphaSourceB = imgalpha ? AT : isLit ? MA : One;
+		int colorSourceB = hasColorNode ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
+			channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? One : Drgb;
+		int colorSourceC;
+		if(hasColorNode){
+			if(channels > 2) colorSourceC = Trgb;
+			else if(channels) colorSourceC = TxCrgb;
+			else colorSourceC = Crgb;
 
-	}else{
-		if(channels > 2) colorSourceC = Trgb;
-		else if(channels){
-			if(!isLit) colorSourceC = TTT;
-			else colorSourceC = TxDrgb;
 		}else{
-			if(!isLit) colorSourceC = One;
-			else colorSourceC = Drgb;
+			if(channels > 2) colorSourceC = Trgb;
+			else if(channels){
+				if(!isLit) colorSourceC = TTT;
+				else colorSourceC = TxDrgb;
+			}else{
+				if(!isLit) colorSourceC = One;
+				else colorSourceC = Drgb;
+			}
 		}
-	}
-	if(!(colorSourceC == colorSourceB == colorSource)) printf("ouch - colorsource confusion\n");
+		if(!(colorSourceC == colorSourceB && colorSourceB == colorSource)) 
+			printf("ouch - colorsource confusion\n");
+	}	
 	if (isUnlitGeometry) {
 
 		int myAppShad =  getAppearanceShader(tmpN);
