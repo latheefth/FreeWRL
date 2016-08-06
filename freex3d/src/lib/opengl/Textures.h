@@ -48,6 +48,7 @@ struct textureTableIndexStruct {
     GLint  Src;
     GLint  Trc;
 	int textureNumber;
+	int channels; //number of original image file image channels/components 0=no texture default, 1=Intensity 2=IntensityAlpha 3=RGB 4=RGBA
 };
 typedef struct textureTableIndexStruct textureTableIndexStruct_s;
 

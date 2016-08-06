@@ -441,7 +441,33 @@ ConsoleMessage (line);}
 
 	return vector_get(textureTableIndexStruct_s *, p->activeTextureTable, indx);
 }
-
+int getTextureTableIndexFromFromTextureNode(struct X3D_Node *node){
+	int thisTexture = -1;
+	int thisTextureType = node->_nodeType;
+	if (thisTextureType==NODE_ImageTexture){
+		struct X3D_ImageTexture* it = (struct X3D_ImageTexture*) node;
+		thisTexture = it->__textureTableIndex;
+	} else if (thisTextureType==NODE_PixelTexture){
+		struct X3D_PixelTexture* pt = (struct X3D_PixelTexture*) node;
+		thisTexture = pt->__textureTableIndex;
+	} else if (thisTextureType==NODE_MovieTexture){
+		struct X3D_MovieTexture* mt = (struct X3D_MovieTexture*) node;
+		thisTexture = mt->__textureTableIndex;
+	} else if (thisTextureType==NODE_ImageCubeMapTexture){
+		struct X3D_ImageCubeMapTexture* ict = (struct X3D_ImageCubeMapTexture*) node;
+		thisTexture = ict->__textureTableIndex;
+	} else { 
+		ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); 
+	}
+	return thisTexture;
+}
+textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode){
+	textureTableIndexStruct_s *ret = NULL;
+	int index = getTextureTableIndexFromFromTextureNode(textureNode);
+	if(index > -1)
+		ret = getTableIndex(index);
+	return ret;
+}
 /* is this node a texture node? if so, lets keep track of its textures. */
 /* worry about threads - do not make anything reallocable */
 void registerTexture0(int iaction, struct X3D_Node *tmp) {
@@ -1416,6 +1442,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	/* and, now, the Texture is loaded */
 	me->status = TEX_LOADED;
 }
+
 
 /**********************************************************************************
  bind the image,

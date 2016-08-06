@@ -69,6 +69,8 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	// convert to wide char http://msdn.microsoft.com/en-us/library/ms235631(VS.80).aspx   
 	//fname = "C:/source2/freewrl/freex3d/tests/helpers/brick.png";  
     //fname = "junk.jpg"; //test failure condition
+	GUID format;
+	int channels;
 	size_t origsize = strlen(fname) + 1;
 	char* fname2 = (char*) malloc(origsize);
 	strcpy(fname2,fname);
@@ -131,6 +133,19 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 		bitmapData->Stride = -(int)bitmap->GetWidth()*4;
    else
 	   bitmapData->Stride = bitmap->GetWidth()*4;
+   ////https://msdn.microsoft.com/en-us/library/vs/alm/ms534410(v=vs.85).aspx
+   //stat = bitmap->GetRawFormat(&format);
+   //switch(format){
+   //}
+   //https://msdn.microsoft.com/en-us/library/vs/alm/ms534412(v=vs.85).aspx
+   switch(bitmap->GetPixelFormat()){
+	   case PixelFormat16bppGrayScale: channels = 1; break;
+	   //no intensity alpha?
+	   case PixelFormat24bppRGB: channels = 3; break;
+	   case PixelFormat32bppARGB: channels = 4; break;
+	   default:
+		channels = 4; break;
+   }
    bitmapData->Width = bitmap->GetWidth();
    bitmapData->Height = bitmap->GetHeight();
    bitmapData->PixelFormat = PixelFormat32bppARGB;
@@ -177,6 +192,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	   printf("ouch in gdiplus image loader L140 - no image data\n");
    //tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmapData->PixelFormat)?1:0; 
    tti->hasAlpha = Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat())?1:0; 
+   tti->channels = channels; //Gdiplus::GetPixelFormatSize(bitmap->GetPixelFormat());
    //printf("fname=%s alpha=%ld\n",fname,tti->hasAlpha);
 
 #ifdef verbose

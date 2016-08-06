@@ -94,7 +94,16 @@ https://books.google.ca/books?id=O0sxtDeT5PEC&pg=PA125&lpg=PA125&dq=Animating+si
 		divide each world by number_of_limbs
 http://www.nvidia.com/object/doc_characters.html
 - Nvidia link page for various game programming algos with gpu acceleration
-
+http://ruh.li/AnimationVertexSkinning.html
+- Skinning shader
+http://http.developer.nvidia.com/GPUGems/gpugems_ch04.html
+- Bind pose, dawn
+http://www.3dgep.com/gpu-skinning-of-md5-models-in-opengl-and-cg/
+- Glsl impl of skinning
+http://tech-artists.org/wiki/Vertex_Skinning
+- ogre sample shader
+https://www.cs.tcd.ie/publications/tech-reports/reports.06/TCD-CS-2006-46.pdf
+- dual quat skinning
 
 
 Q if the skeleton isnt rendered, when would you traverse the skeleton

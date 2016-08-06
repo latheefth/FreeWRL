@@ -163,6 +163,8 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 		printf ("PixelTexture, need at least 3 elements, have %d\n",node->image.n);
 		ok = FALSE;
 	} else {
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/fieldsDef.html#SFImageAndMFImage
+		//SFImage fields contain three integers representing the width, height and number of components in the image
 		wid = *iptr; iptr++;
 		hei = *iptr; iptr++;
 		depth = *iptr; iptr++;
@@ -190,6 +192,7 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 	this_tex->x = wid;
 	this_tex->y = hei;
 	this_tex->hasAlpha = ((depth == 2) || (depth == 4));
+	this_tex->channels = depth;
 
 	texture = MALLOC (unsigned char *, wid*hei*4);
 	this_tex->texdata = texture; /* this will be freed when texture opengl-ized */
@@ -397,6 +400,7 @@ int loadImage(textureTableIndexStruct_s* tti, char* fname)
 			}
 		}
 		tti->hasAlpha = 1; //img.transparency; //Gdiplus::IsAlphaPixelFormat(bitmap->GetPixelFormat())?1:0;
+		tti->channels = 4; //don't know, don't have img_load_file() function
 		//printf("fname=%s alpha=%ld\n",fname,tti->hasAlpha);
 		iret = 1;
 	}
@@ -540,9 +544,10 @@ static int loadImageTexture_jpeg(textureTableIndexStruct_s* this_tex, char *file
 	this_tex->x = (int)cinfo.output_width;
 	this_tex->y = (int)cinfo.output_height;
 	this_tex->hasAlpha = 0; //jpeg doesn't have alpha?
-	
 	//int bpp = this_tex->hasAlpha ? 4 :  3; //bytes per pixel
 	int bpp = cinfo.output_components; //4
+	this_tex->channels = bpp; //3; //always RGB?
+
 	//char *dataflipped = flipImageVerticallyB(image_data, this_tex->y, this_tex->x, bpp);
 	char *data4bpp = expandto4bpp(image_data,this_tex->y,this_tex->x,bpp);
 	//free(image_data);
@@ -746,6 +751,14 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	this_tex->x = png_info.width;
 	this_tex->y = png_info.height;
 	this_tex->hasAlpha = png_info.color_type == GL_RGBA || png_info.color_type == GL_LUMINANCE_ALPHA;
+	switch(png_info.color_type){
+		case GL_LUMINANCE: this_tex->channels = 1; break;
+		case GL_LUMINANCE_ALPHA: this_tex->channels = 2; break;
+		case GL_RGB: this_tex->channels = 3; break;
+		case GL_RGBA: this_tex->channels = 4; break;
+		default:
+			this_tex->channels = 4; break;
+	}
 	//int bpp = this_tex->hasAlpha ? 4 :  3; //bytes per pixel
 	int bpp = 4;
 	char *dataflipped = flipImageVerticallyB(raw_image.data, this_tex->y, this_tex->x, bpp);
@@ -847,7 +860,8 @@ static int loadImageTexture_gif(textureTableIndexStruct_s* this_tex, char *filen
 		}
 		this_tex->x = width;
 		this_tex->y = height;
-		this_tex->hasAlpha = 1; //jpeg doesn't have alpha?
+		this_tex->hasAlpha = alpha > -1 ? 1 : 0; //jpeg doesn't have alpha?
+		this_tex->channels = 3 + this_tex->hasAlpha;
 		this_tex->frames = 1;
 		int bpp = 4;
 		char *dataflipped = flipImageVerticallyB(rgba, this_tex->y, this_tex->x, bpp);
@@ -958,6 +972,7 @@ ConsoleMessage(me);}
 
 		this_tex->filename = filename;
 		this_tex->hasAlpha = myFile->imageAlpha;
+		this_tex->channels = 4; //don't know but but someone might. I added opened_files_t.imageChannels in case
 		this_tex->frames = 1;
 		this_tex->x = myFile->imageWidth;
 		this_tex->y = myFile->imageHeight;
@@ -1052,6 +1067,7 @@ ConsoleMessage(me);}
 	/* store actual filename, status, ... */
 	this_tex->filename = filename;
 	this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
+	this_tex->channels = this_tex->hasAlpha ? 4 : 3;
 	this_tex->frames = 1;
 	this_tex->x = imlib_image_get_width();
 	this_tex->y = imlib_image_get_height();
@@ -1068,6 +1084,7 @@ ConsoleMessage(me);}
 
 	int 		image_width;
 	int 		image_height;
+	int			channels;
 
 #ifndef FRONTEND_GETS_FILES
 	CFStringRef	path;
@@ -1134,7 +1151,10 @@ ConsoleMessage(me);}
 	if (image != NULL) {
 		image_width = (int) CGImageGetWidth(image);
 		image_height = (int) CGImageGetHeight(image);
-	
+		// https://developer.apple.com/reference/coregraphics/1408848-cgcolorspacegetnumberofcomponent?language=objc
+		// https://developer.apple.com/reference/coregraphics/1454858-cgimagegetcolorspace?language=objc
+
+		channels = CGColorSpaceGetNumberOfComponents(CGImageGetColorSpace(image));
 		/* go through every possible return value and check alpha. 
 			note, in testing, kCGImageAlphaLast and kCGImageAlphaNoneSkipLast
 			are what got returned - which makes sense for BGRA textures */
@@ -1211,6 +1231,7 @@ ConsoleMessage(me);}
 		if (data != NULL) {
 			this_tex->filename = filename;
 			this_tex->hasAlpha = hasAlpha;
+			this_tex->channels = channels;
 			this_tex->frames = 1;
 			this_tex->x = image_width;
 			this_tex->y = image_height;

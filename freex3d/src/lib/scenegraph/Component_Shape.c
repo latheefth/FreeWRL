@@ -693,6 +693,76 @@ void child_Shape (struct X3D_Shape *node) {
 	/* turn off face culling */
 	DISABLE_CULL_FACE;
 }
+textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingmodel
+// colorsources: Crgb, TxCrgb, Trgb, White, TTT, Drgb, TxDrgb
+// alphasources: One, AT, MA
+static enum {
+	Crgb, TxCrgb, Trgb, White, TTT, Drgb, TxDrgb,
+	One, AT, MA,
+} lighting_enum;
+static int lookupColorAlpha[2][2][5][2] = {
+	{	//unlit
+		// unlit geometry, table 17-2
+		// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingoff
+		//table 17-2 UnLit Color and alpha mapping
+		//Texturetype		Color per-vertex		Color Node NULL
+		//					or per face		
+		// No Texture	0	Crgb		1			(1,1,1)		1
+		// Intensity	1	T x Crgb	1			(T,T,T)		1
+		// Intens+Alph	2	T x Crgb	AT			(T,T,T)		AT
+		// RGB			3	Trgb		1			Trgb		1
+		// RGBA			4	Trgb		AT			Trgb		AT
+		//					OutColor	OutAlpha	OutColor	OutAlpha
+		//              ^number of texture channels/compoents 
+		// Crgb - from color node, T-from texture, White = (1,1,1), One = 1.0
+		// MA- Material Alpha (1-Transparency), AT- texture alpha
+		{ //colorNode
+			{Crgb,  One},
+			{TxCrgb,One},
+			{TxCrgb,AT},
+			{Trgb,  One},
+			{Trgb,  AT},
+		},
+		{ //no colorNode
+			{White,One},
+			{TTT  ,One},
+			{TTT,  AT},
+			{Trgb, One},
+			{Trgb, AT},
+		},
+	},
+	{  //lit
+		// Lit geometry, table 17-3
+		// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#t-Litcolourandalpha
+		//table 17-3 Lit Color and alpha mapping
+		//Texturetype		Color per-vertex		Color Node NULL
+		//					or per face		
+		// No Texture	0	Crgb		MA			Drgb		MA
+		// Intensity	1	T x Crgb	MA			T x Drgb	MA
+		// Intens+Alph	2	T x Crgb	AT			T x Drgb	AT
+		// RGB			3	Trgb		MA			Trgb		MA
+		// RGBA			4	Trgb		AT			Trgb		AT
+		//					OutDiffuse	OutAlpha	OutDiffuse	OutAlpha
+		//              ^number of texture channels/compoents 
+		// Crgb - from color node, IT-from texture, Drgb - material diffuse
+		// MA- Material Alpha (1-Transparency), AT- texture alpha
+		{ //colorNode
+			{Crgb,  MA},
+			{TxCrgb,MA},
+			{TxCrgb,AT},
+			{Trgb,  MA},
+			{Trgb,  AT},
+		},
+		{ //no colorNode
+			{Drgb,  MA},
+			{TxDrgb,MA},
+			{TxDrgb,AT},
+			{Trgb,  MA},
+			{Trgb,  AT},
+		},
+	},
+};
 
 void compile_Shape (struct X3D_Shape *node) {
 	int whichAppearanceShader = 0;
@@ -701,23 +771,80 @@ void compile_Shape (struct X3D_Shape *node) {
 	int hasTextureCoordinateGenerator = 0;
 	int whichUnlitGeometry = 0;
 	struct X3D_Node *tmpN = NULL;
+	struct X3D_Appearance *appearance = NULL;
 	int userDefinedShader = 0;
+	int channels = 0;
+	int imgalpha = 0;
+	int hasColorNode = 0;
+	int isLit = 0;
 
 	// ConsoleMessage ("**** Compile Shape ****");
 
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
 	whichShapeColorShader = getShapeColourShader(tmpN);
+	// colorNode = geometry && geometry.color ? TRUE : FALSE
+	hasColorNode = whichShapeColorShader == NOTHING ? 0 : 1;
+
 	isUnlitGeometry = getIfLinePoints(tmpN);
 	hasTextureCoordinateGenerator = getShapeTextureCoordGen(tmpN);
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->appearance,tmpN);
 
-	/* first - does the shader have a shader node here? */
+
+	/* first - does appearance have a shader node? */
 	userDefinedShader = hasUserDefinedShader(tmpN);
+	// if(!Appearance.shader) use lightingModel
 
 	/* Lines, points - can get the emission colour from an appearance node */
+	// unlit = apearance == NULL || appearance.material == NULL || points || lines
+	appearance = (struct X3D_Appearance *)tmpN;
+	// channels = appearance && appearance.texture? appearance.texture.channels : 0
+	channels = 0;
+	imgalpha = 0;
+	isLit = 0;
+	if(appearance){
+		isLit = appearance->material? 1 : 0;
+		isLit = isUnlitGeometry ? 0 : isLit;
+		//do I need possible proto expansione of texture, or will compile_appearance have done that?
+		if(appearance->texture){
+			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
+			if(tti){
+				//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+				//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+				channels = tti->channels; 
+				imgalpha = tti->hasAlpha;
+			}
+		}
+	}
+
+	// colorsource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][0=color]
+	// alphasource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][1=alpha]
+	int colorSource = lookupColorAlpha[isLit][1-hasColorNode][channels][0];
+	int alphaSource = lookupColorAlpha[isLit][1-hasColorNode][channels][1];
+	//should be the same as (somewhat less readable):
+	int alphaSourceB = imgalpha ? AT : isLit ? MA : One;
+	int colorSourceB = hasColorNode ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
+		channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? One : Drgb;
+	int colorSourceC;
+	if(hasColorNode){
+		if(channels > 2) colorSourceC = Trgb;
+		else if(channels) colorSourceC = TxCrgb;
+		else colorSourceC = Crgb;
+
+	}else{
+		if(channels > 2) colorSourceC = Trgb;
+		else if(channels){
+			if(!isLit) colorSourceC = TTT;
+			else colorSourceC = TxDrgb;
+		}else{
+			if(!isLit) colorSourceC = One;
+			else colorSourceC = Drgb;
+		}
+	}
+	if(!(colorSourceC == colorSourceB == colorSource)) printf("ouch - colorsource confusion\n");
 	if (isUnlitGeometry) {
+
 		int myAppShad =  getAppearanceShader(tmpN);
 
 		/* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
@@ -731,6 +858,7 @@ void compile_Shape (struct X3D_Shape *node) {
 			else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
 		}
 	} else {
+
 		/* if we have a Colour field, put this first */
 		if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
 				whichAppearanceShader = getAppearanceShader(tmpN);
