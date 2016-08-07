@@ -86,8 +86,8 @@ static void fw_glLoadMatrixd(GLDOUBLE *val);
 
 
 struct shaderTableEntry {
-    unsigned int whichOne;
-    s_shader_capabilities_t *myCapabilities;
+	unsigned int whichOne;
+	s_shader_capabilities_t *myCapabilities;
 
 };
 
@@ -143,12 +143,12 @@ typedef struct pOpenGL_Utils{
 	GLEWContext glewC;
 #endif
 
-    struct Vector *myShaderTable; /* list of all active shaders requested by input */
+	struct Vector *myShaderTable; /* list of all active shaders requested by input */
 	int userDefinedShaderCount;	/* if the user actually has a Shader node */
-    char *userDefinedFragmentShader[MAX_USER_DEFINED_SHADERS];
-    char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
+	char *userDefinedFragmentShader[MAX_USER_DEFINED_SHADERS];
+	char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
 
-    bool usePhongShaders; /* phong shaders == better rendering, but slower */
+	bool usePhongShaders; /* phong shaders == better rendering, but slower */
 	int maxStackUsed;
 }* ppOpenGL_Utils;
 
@@ -157,54 +157,54 @@ void fwl_glGenQueries(GLsizei n, GLuint* ids)
 {
 #if defined(IPHONE)
 	s_renderer_capabilities_t *rdr_caps;
-    ttglobal tg = gglobal();
+	ttglobal tg = gglobal();
 	rdr_caps = tg->display.rdr_caps;
-    if (rdr_caps->have_GL_VERSION_3_0)
-    {
-        glGenQueries(n, ids);
-    }
-    else
-    {
-        glGenQueriesEXT(n, ids);
-    }
+	if (rdr_caps->have_GL_VERSION_3_0)
+	{
+		glGenQueries(n, ids);
+	}
+	else
+	{
+		glGenQueriesEXT(n, ids);
+	}
 #else
-    glGenQueries(n, ids);
+	glGenQueries(n, ids);
 #endif
 }
 void fwl_glDeleteQueries(GLsizei n, const GLuint* ids)
 {
 #if defined(IPHONE)
 	s_renderer_capabilities_t *rdr_caps;
-    ttglobal tg = gglobal();
+	ttglobal tg = gglobal();
 	rdr_caps = tg->display.rdr_caps;
-    if (rdr_caps->have_GL_VERSION_3_0)
-    {
-        glDeleteQueries(n, ids);
-    }
-    else
-    {
-        glDeleteQueriesEXT(n, ids);
-    }
+	if (rdr_caps->have_GL_VERSION_3_0)
+	{
+		glDeleteQueries(n, ids);
+	}
+	else
+	{
+		glDeleteQueriesEXT(n, ids);
+	}
 #else
-    glDeleteQueries(n, ids);
+	glDeleteQueries(n, ids);
 #endif
 }
 void fwl_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params)
 {
 #if defined(IPHONE)
 	s_renderer_capabilities_t *rdr_caps;
-    ttglobal tg = gglobal();
+	ttglobal tg = gglobal();
 	rdr_caps = tg->display.rdr_caps;
-    if (rdr_caps->have_GL_VERSION_3_0)
-    {
-        glGetQueryObjectuiv(id, pname, params);
-    }
-    else
-    {
-        glGetQueryObjectuivEXT(id, pname, params);
-    }
+	if (rdr_caps->have_GL_VERSION_3_0)
+	{
+		glGetQueryObjectuiv(id, pname, params);
+	}
+	else
+	{
+		glGetQueryObjectuivEXT(id, pname, params);
+	}
 #else
-    glGetQueryObjectuiv(id, pname, params);
+	glGetQueryObjectuiv(id, pname, params);
 #endif
 }
 #endif
@@ -246,23 +246,23 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		p->whichMode = GL_MODELVIEW;
 		p->currentMatrix = p->FW_ModelView[0];
 
-        // load identity matricies in here
-        loadIdentityMatrix(p->FW_ModelView[0]);
-        loadIdentityMatrix(p->FW_ProjectionView[0]);
-        loadIdentityMatrix(p->FW_TextureView[0]);
+		// load identity matricies in here
+		loadIdentityMatrix(p->FW_ModelView[0]);
+		loadIdentityMatrix(p->FW_ProjectionView[0]);
+		loadIdentityMatrix(p->FW_TextureView[0]);
 
 
-        // create room for some shaders. The order in this table is
-        // the order in which they are first referenced.
-        p->myShaderTable = newVector(struct shaderTableEntry *, 8);
+		// create room for some shaders. The order in this table is
+		// the order in which they are first referenced.
+		p->myShaderTable = newVector(struct shaderTableEntry *, 8);
 
-        // userDefinedShaders - assume 0, unless the user is a geek.
-        p->userDefinedShaderCount = 0;
+		// userDefinedShaders - assume 0, unless the user is a geek.
+		p->userDefinedShaderCount = 0;
 
-        // usePhongShaders set to false for now. Can be changed
-        // during runtime, then re-build shaders.
-        p->usePhongShaders = false;
-        //ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
+		// usePhongShaders set to false for now. Can be changed
+		// during runtime, then re-build shaders.
+		p->usePhongShaders = false;
+		//ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
 		p->maxStackUsed = 0;
 	}
 }
@@ -329,7 +329,7 @@ void kill_userDefinedShaders() {
 	}
 
 	for (i=0; i <vectorSize(p->myShaderTable); i++) {
-        	struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
+		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
 		FREE_IF_NZ(me->myCapabilities);
 	
 		//me->whichOne = 0;
@@ -344,40 +344,40 @@ void kill_userDefinedShaders() {
 
 // we allow a certain number of user-defined shaders to (somehow) fit in here.
 int getNextFreeUserDefinedShaderSlot() {
-    int rv;
-    ppOpenGL_Utils p;
+	int rv;
+	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
-    if (p->userDefinedShaderCount == MAX_USER_DEFINED_SHADERS) return -1;
+	if (p->userDefinedShaderCount == MAX_USER_DEFINED_SHADERS) return -1;
 
-    rv = p->userDefinedShaderCount;
-    p->userDefinedShaderCount++;
+	rv = p->userDefinedShaderCount;
+	p->userDefinedShaderCount++;
 
-    return rv;
+	return rv;
 }
 
 // from a user defined shader, we capture the shader text here.
 void sendShaderTextToEngine(int ste, int parts, char ** vertSource, char ** fragSource) {
-    char *fs = NULL;
-    char *vs = NULL;
-    int i;
+	char *fs = NULL;
+	char *vs = NULL;
+	int i;
 
-    ppOpenGL_Utils p;
+	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
-    // find the non-null for each shader text.
-    for (i=0; i<parts; i++) {
-        //ConsoleMessage ("for ptr ind %d, :%s: :%s:",i,vertSource[i],fragSource[i]);
-        if (vertSource[i] != NULL) vs=vertSource[i];
-        if (fragSource[i] != NULL) fs=fragSource[i];
-    }
-    //ConsoleMessage ("sendShaderTextToEngine, saving in %d",ste);
+	// find the non-null for each shader text.
+	for (i=0; i<parts; i++) {
+		//ConsoleMessage ("for ptr ind %d, :%s: :%s:",i,vertSource[i],fragSource[i]);
+		if (vertSource[i] != NULL) vs=vertSource[i];
+		if (fragSource[i] != NULL) fs=fragSource[i];
+	}
+	//ConsoleMessage ("sendShaderTextToEngine, saving in %d",ste);
 
-    p->userDefinedFragmentShader[ste] = fs;
-    p->userDefinedVertexShader[ste] = vs;
-    //printf ("so for shaderTableEntry %d, we have %d %d\n",ste,strlen(fs),strlen(vs));
+	p->userDefinedFragmentShader[ste] = fs;
+	p->userDefinedVertexShader[ste] = vs;
+	//printf ("so for shaderTableEntry %d, we have %d %d\n",ste,strlen(fs),strlen(vs));
 }
 
 #if defined (_ANDROID)
@@ -440,7 +440,7 @@ int fwl_android_get_valid_shapeNodes(struct Vector **shapeNodes) {
 
 	struct Vector *me;
 	int tc;
-        ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	//ConsoleMessage ("fwl_android_get_valid_shapeNodes, passed in vector %p",*shapeNodes);
 
@@ -801,8 +801,8 @@ int fwl_get_FillPropColour(struct Vector **shapeNodes, int whichEntry) {
 
 	integer_colour = 0xFF000000 + (
 		((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[0], 0.0, 1.0)) <<16) |
-               ((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[1], 0.0, 1.0)) <<8) |
-               ((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[2], 0.0, 1.0))));
+		((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[1], 0.0, 1.0)) <<8) |
+		((uint8_t)(255.0f *CLAMP(fp->hatchColor.c[2], 0.0, 1.0))));
 
 	//ConsoleMessage ("fwl_get_fp, is %x",integer_colour);
 	return (integer_colour);
@@ -939,44 +939,44 @@ int fwl_set_MaterialExisting(struct Vector **shapeNodes, int whichEntry) {
 }
 
 /* fwl_get_MaterialColourValue(xx) - example usage:
-                <item>Front Diffuse</item>
-                <item>Front Emissive</item>
-                <item>Front Specular</item>
-                <item>Back Diffuse</item>
-                <item>Back Emissive</item>
-                <item>Back Specular</item>
+	<item>Front Diffuse</item>
+	<item>Front Emissive</item>
+	<item>Front Specular</item>
+	<item>Back Diffuse</item>
+	<item>Back Emissive</item>
+	<item>Back Specular</item>
 
-        int frontDiffuse = FreeX3DLib.getMaterialColourValue(0);
-        int frontEmissive = FreeX3DLib.getMaterialColourValue(1);
-        int frontSpecular = FreeX3DLib.getMaterialColourValue(2);
-        int backDiffuse = FreeX3DLib.getMaterialColourValue(3);
-        int backEmissive = FreeX3DLib.getMaterialColourValue(4);
-        int backSpecular = FreeX3DLib.getMaterialColourValue(5);
+	int frontDiffuse = FreeX3DLib.getMaterialColourValue(0);
+	int frontEmissive = FreeX3DLib.getMaterialColourValue(1);
+	int frontSpecular = FreeX3DLib.getMaterialColourValue(2);
+	int backDiffuse = FreeX3DLib.getMaterialColourValue(3);
+	int backEmissive = FreeX3DLib.getMaterialColourValue(4);
+	int backSpecular = FreeX3DLib.getMaterialColourValue(5);
 
 */
 
 int fwl_get_MaterialColourValue(struct Vector **shapeNodes, int whichEntry, int whichValue) {
-        struct X3D_FillProperties *fp;
-        struct X3D_LineProperties *lp;
-        struct X3D_Material *mat;
-        struct X3D_ImageTexture *tex;
-        struct X3D_TextureTransform *tt;
-        struct X3D_Node *geom;
-        struct X3D_Appearance *ap;
-        struct X3D_TwoSidedMaterial *tsm;
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+	struct X3D_TwoSidedMaterial *tsm;
 
-        // If we do not have any node entries, maybe this is a new scene, and we have to get
-        // the valid nodes?
-        if (vectorSize(*shapeNodes) == 0 ) {
-                if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return 0;
-        }
+	// If we do not have any node entries, maybe this is a new scene, and we have to get
+	// the valid nodes?
+	if (vectorSize(*shapeNodes) == 0 ) {
+		if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return 0;
+	}
 
-        // if we are here, we really do have at least one Shape node.
+	// if we are here, we really do have at least one Shape node.
 
-        struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 
-        //ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
-        fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (mat == NULL) return 0;
 
@@ -996,8 +996,8 @@ int fwl_get_MaterialColourValue(struct Vector **shapeNodes, int whichEntry, int 
 			int integer_colour;
 			integer_colour = 0xFF000000 + (
 				((uint8_t)(255.0f *CLAMP(col->c[0], 0.0, 1.0)) <<16) |
-               			((uint8_t)(255.0f *CLAMP(col->c[1], 0.0, 1.0)) <<8) |
-               			((uint8_t)(255.0f *CLAMP(col->c[2], 0.0, 1.0))));
+				((uint8_t)(255.0f *CLAMP(col->c[1], 0.0, 1.0)) <<8) |
+				((uint8_t)(255.0f *CLAMP(col->c[2], 0.0, 1.0))));
 			//ConsoleMessage ("getMaterialValue, returning colour %d\n",integer_colour);
 			return integer_colour;
 		}
@@ -1083,29 +1083,29 @@ void fwl_set_MaterialColourValue (struct Vector **shapeNodes, int whichEntry, in
 	whichField - 1 - shininess, 2 transparency, 3- Ambient Intensity
 */
 int fwl_get_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int whichSide, int whichField) {
-        struct X3D_FillProperties *fp;
-        struct X3D_LineProperties *lp;
-        struct X3D_Material *mat;
-        struct X3D_ImageTexture *tex;
-        struct X3D_TextureTransform *tt;
-        struct X3D_Node *geom;
-        struct X3D_Appearance *ap;
-        struct X3D_TwoSidedMaterial *tsm;
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+	struct X3D_TwoSidedMaterial *tsm;
 
-	//ConsoleMessage ("gwl_get_materialFloatValue, entry %d, side %d, value %d",whichEntry, whichSide, whichField);
+//ConsoleMessage ("gwl_get_materialFloatValue, entry %d, side %d, value %d",whichEntry, whichSide, whichField);
 
-        // If we do not have any node entries, maybe this is a new scene, and we have to get
-        // the valid nodes?
-        if (vectorSize(*shapeNodes) == 0 ) {
-                if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return 0;
-        }
+	// If we do not have any node entries, maybe this is a new scene, and we have to get
+	// the valid nodes?
+	if (vectorSize(*shapeNodes) == 0 ) {
+		if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return 0;
+	}
 
-        // if we are here, we really do have at least one Shape node.
+	// if we are here, we really do have at least one Shape node.
 
-        struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 
-        //ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
-        fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (mat == NULL) return 0;
 
@@ -1143,29 +1143,29 @@ int fwl_get_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int w
 }
 
 void fwl_set_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int whichSide, int whichField, int nv) {
-        struct X3D_FillProperties *fp;
-        struct X3D_LineProperties *lp;
-        struct X3D_Material *mat;
-        struct X3D_ImageTexture *tex;
-        struct X3D_TextureTransform *tt;
-        struct X3D_Node *geom;
-        struct X3D_Appearance *ap;
-        struct X3D_TwoSidedMaterial *tsm;
+	struct X3D_FillProperties *fp;
+	struct X3D_LineProperties *lp;
+	struct X3D_Material *mat;
+	struct X3D_ImageTexture *tex;
+	struct X3D_TextureTransform *tt;
+	struct X3D_Node *geom;
+	struct X3D_Appearance *ap;
+	struct X3D_TwoSidedMaterial *tsm;
 
 	//ConsoleMessage ("gwl_set_materialFloatValue, entry %d, side %d, value %d new value %d",whichEntry, whichSide, whichField, nv);
 
-        // If we do not have any node entries, maybe this is a new scene, and we have to get
-        // the valid nodes?
-        if (vectorSize(*shapeNodes) == 0 ) {
-                if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return;
-        }
+	// If we do not have any node entries, maybe this is a new scene, and we have to get
+	// the valid nodes?
+	if (vectorSize(*shapeNodes) == 0 ) {
+			if (fwl_android_get_valid_shapeNodes(shapeNodes) == 0) return;
+	}
 
-        // if we are here, we really do have at least one Shape node.
+	// if we are here, we really do have at least one Shape node.
 
-        struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
+	struct X3D_Node *node = vector_get(struct X3D_Node *,*shapeNodes, whichEntry);
 
-        //ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
-        fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
+	//ConsoleMessage ("node %d is a %s",whichEntry,stringNodeType(node->_nodeType));
+	fwl_decomposeShape(X3D_SHAPE(node),&fp,&lp,&mat,&tex,&tt,&geom);
 
 	if (mat == NULL) return;
 
@@ -1206,12 +1206,12 @@ void fwl_set_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int 
 /* this is for looking at and manipulating the node memory table. Expect it to disappear sometime */
 void printNodeMemoryTable(void) {
 
-        int tc;
-        ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+	int tc;
+	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	int foundHoleCount = 0;
 
-LOCK_MEMORYTABLE
+	LOCK_MEMORYTABLE
 	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
 		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);
 
@@ -1253,13 +1253,11 @@ LOCK_MEMORYTABLE
 		} else {
 			foundHoleCount ++;
 		}
-        }
+	}
 
 	//ConsoleMessage ("potentialHoleCount %d, foundHoleCount %d",p->potentialHoleCount, foundHoleCount);
 
-
-
-UNLOCK_MEMORYTABLE
+	UNLOCK_MEMORYTABLE
 
 }
 #endif //JASTESTING
@@ -1341,16 +1339,16 @@ near plane is thus farPlane - highestPeak.
 
 
 static void shaderErrorLog(GLuint myShader, char *which) {
-        #if defined  (GL_VERSION_2_0) || defined (GL_ES_VERSION_2_0)
-#define MAX_INFO_LOG_SIZE 512
-                GLchar infoLog[MAX_INFO_LOG_SIZE];
+	#if defined  (GL_VERSION_2_0) || defined (GL_ES_VERSION_2_0)
+		#define MAX_INFO_LOG_SIZE 512
+		GLchar infoLog[MAX_INFO_LOG_SIZE];
 		char outline[MAX_INFO_LOG_SIZE*2];
-                glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
+		glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog);
 		sprintf(outline,"problem with %s shader: %s",which, infoLog);
-                ConsoleMessage (outline);
-        #else
-                ConsoleMessage ("Problem compiling shader");
-        #endif
+		ConsoleMessage (outline);
+	#else
+		ConsoleMessage ("Problem compiling shader");
+	#endif
 }
 
 
@@ -1361,64 +1359,64 @@ static void shaderErrorLog(GLuint myShader, char *which) {
 /* find a shader that matches the capabilities requested. If no match, recreate it */
 s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
 
-    /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
-    #ifdef GL_SHADER_COMPILER
-    GLboolean b;
-    static bool haveDoneThis = false;
-    #endif
+	/* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
+	#ifdef GL_SHADER_COMPILER
+	GLboolean b;
+	static bool haveDoneThis = false;
+	#endif
 	unsigned int rq_cap;
-    int i;
+	int i;
 
 
 
-    ppOpenGL_Utils p = gglobal()->OpenGL_Utils.prv;
-    struct Vector *myShaderTable = p->myShaderTable;
-    struct shaderTableEntry *new = NULL;
+	ppOpenGL_Utils p = gglobal()->OpenGL_Utils.prv;
+	struct Vector *myShaderTable = p->myShaderTable;
+	struct shaderTableEntry *new = NULL;
 
 	rq_cap = rq_cap0;
 	//rq_cap = NO_APPEARANCE_SHADER; //for thunking to simplest when debugging
 
-    for (i=0; i<vectorSize(myShaderTable); i++) {
-        struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
-        if (me->whichOne == rq_cap) {
-            return me->myCapabilities;
-        }
-    }
+	for (i=0; i<vectorSize(myShaderTable); i++) {
+		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
+		if (me->whichOne == rq_cap) {
+			return me->myCapabilities;
+		}
+	}
 
 
-    // if here, we did not find the shader already compiled for us.
+	// if here, we did not find the shader already compiled for us.
 
-    //ConsoleMessage ("getMyShader, looking for %x",rq_cap);
+	//ConsoleMessage ("getMyShader, looking for %x",rq_cap);
 
-    //ConsoleMessage ("getMyShader, not found, have to create");
-    //for (i=0; i<vectorSize(myShaderTable); i++) {
-        //struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
-        //ConsoleMessage ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
-     //}
-
-
+	//ConsoleMessage ("getMyShader, not found, have to create");
+	//for (i=0; i<vectorSize(myShaderTable); i++) {
+		//struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
+		//ConsoleMessage ("getMyShader, i %d, rq_cap %x, me->whichOne %x myCap %p\n",i,rq_cap,me->whichOne,me->myCapabilities);
+		//}
 
 
 
-    /* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
+
+
+	/* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
 #ifdef GL_SHADER_COMPILER
-      glGetBooleanv(GL_SHADER_COMPILER,&b);
-      if (!haveDoneThis) {
-          haveDoneThis = true;
-          if (!b) {
+		glGetBooleanv(GL_SHADER_COMPILER,&b);
+		if (!haveDoneThis) {
+			haveDoneThis = true;
+			if (!b) {
 			//I found desktop openGL version 2.1.2  comes in here, but does still render OK
 			//ConsoleMessage("NO SHADER COMPILER - have to sometime figure out binary shader distros");
 			ConsoleMessage("no shader compiler\n");
 			return NULL;
-          }
-      }
+			}
+		}
 #endif
 
-    // ConsoleMessage ("getMyShader, here now");
+	// ConsoleMessage ("getMyShader, here now");
 
 #ifdef VERBOSE
 #if defined (GL_SHADER_COMPILER) && defined (GL_HIGH_FLOAT)
-    /* GL_ES_VERSION_2_0 variables for shaders */
+	/* GL_ES_VERSION_2_0 variables for shaders */
 	{ /* debugging */
 	GLint range[2]; GLint precision;
 	GLboolean b;
@@ -1456,26 +1454,23 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
 	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
 	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_INT, range, &precision);
 	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
-
-
-
 	}
 #endif // #ifdef GL_ES_VERSION_2_0 specific debugging
 #endif //VERBOSE
 
-    new = MALLOC(struct shaderTableEntry *, sizeof (struct shaderTableEntry));
+	new = MALLOC(struct shaderTableEntry *, sizeof (struct shaderTableEntry));
 
-    new ->whichOne = rq_cap;
-    new->myCapabilities = MALLOC(s_shader_capabilities_t*, sizeof (s_shader_capabilities_t));
+	new ->whichOne = rq_cap;
+	new->myCapabilities = MALLOC(s_shader_capabilities_t*, sizeof (s_shader_capabilities_t));
 
-    //ConsoleMessage ("going to compile new shader for %x",rq_cap);
-    makeAndCompileShader(new,p->usePhongShaders);
+	//ConsoleMessage ("going to compile new shader for %x",rq_cap);
+	makeAndCompileShader(new,p->usePhongShaders);
 
-    vector_pushBack(struct shaderTableEntry*, myShaderTable, new);
+	vector_pushBack(struct shaderTableEntry*, myShaderTable, new);
 
-    //ConsoleMessage ("going to return new %p",new);
-    //ConsoleMessage ("... myCapabilities is %p",new->myCapabilities);
-    return new->myCapabilities;
+	//ConsoleMessage ("going to return new %p",new);
+	//ConsoleMessage ("... myCapabilities is %p",new->myCapabilities);
+	return new->myCapabilities;
 }
 
 
@@ -1485,52 +1480,52 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
 /* VERTEX inputs */
 
 static const GLchar *vertPosDec = "\
-    attribute      vec4 fw_Vertex; \n \
-    uniform         mat4 fw_ModelViewMatrix; \n \
-    uniform         mat4 fw_ProjectionMatrix; \n ";
+	attribute      vec4 fw_Vertex; \n \
+	uniform         mat4 fw_ModelViewMatrix; \n \
+	uniform         mat4 fw_ProjectionMatrix; \n ";
 
 static const GLchar *vertNormDec = " \
-    uniform        mat3 fw_NormalMatrix;\n \
-    attribute      vec3 fw_Normal; \n";
+	uniform        mat3 fw_NormalMatrix;\n \
+	attribute      vec3 fw_Normal; \n";
 
 static const GLchar *vertSimColDec = "\
-    attribute  vec4 fw_Color;\n ";
+	attribute  vec4 fw_Color;\n ";
 
 static const GLchar *vertTexMatrixDec = "\
-    uniform mat4 fw_TextureMatrix;\n";
+	uniform mat4 fw_TextureMatrix;\n";
 
 static const GLchar *vertTexCoordGenDec ="\
-uniform int fw_textureCoordGenType;\n";
+	uniform int fw_textureCoordGenType;\n";
 
 static const GLchar *vertTexCoordDec = "\
-    attribute vec2 fw_MultiTexCoord0;\n";
+	attribute vec2 fw_MultiTexCoord0;\n";
 
 static const GLchar *vertOneMatDec = "\
-    uniform fw_MaterialParameters\n\
-    fw_FrontMaterial; \n";
+	uniform fw_MaterialParameters\n\
+	fw_FrontMaterial; \n";
 static const GLchar *vertBackMatDec = "\
-    uniform fw_MaterialParameters fw_BackMaterial; \n";
+	uniform fw_MaterialParameters fw_BackMaterial; \n";
 
 
 
 /* VERTEX outputs */
 
 static const GLchar *vecNormPos = " \
-    vec3 vertexNorm; \
-    vec4 vertexPos; \n";
+	vec3 vertexNorm; \
+	vec4 vertexPos; \n";
 
 static const GLchar *varyingNormPos = " \
-    varying vec3 vertexNorm; \
-    varying vec4 vertexPos; \n";
+	varying vec3 vertexNorm; \
+	varying vec4 vertexPos; \n";
 
 static const GLchar *varyingTexCoord = "\
-    varying vec3 v_texC;\n";
+	varying vec3 v_texC;\n";
 
 static const GLchar *varyingFrontColour = "\
-    varying vec4    v_front_colour; \n";
+	varying vec4    v_front_colour; \n";
 
 static const GLchar *varyingHatchPosition = "\
-    varying vec2 hatchPosition; \n";
+	varying vec2 hatchPosition; \n";
 
 /* VERTEX Calculations */
 
@@ -1550,11 +1545,11 @@ static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMater
 static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
 
 static const GLchar *vertSingTexCubeCalc = "\
-    vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
-    /* vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
-    v_texC = reflect(u,n); myEyeNormal */ \n \
-    /* v_texC = reflect(normalize(vec3(vertexPos)),vertexNorm);\n */ \
-    v_texC = reflect(u,vertexNorm);\n";
+	vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
+	/* vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
+	v_texC = reflect(u,n); myEyeNormal */ \n \
+	/* v_texC = reflect(normalize(vec3(vertexPos)),vertexNorm);\n */ \
+	v_texC = reflect(u,vertexNorm);\n";
 
 
 /* TextureCoordinateGenerator mapping  */
@@ -1669,19 +1664,19 @@ if (backFacing) { \n \
 \n\
   /* apply the lights to this material */\n\
   for (i=0; i<MAX_LIGHTS; i++) {\n\
-	if(i<lightcount) { /*weird but ANGLE needs constant loop*/ \n\
+    if(i<lightcount) { /*weird but ANGLE needs constant loop*/ \n\
       vec4 myLightDiffuse = fw_LightSource[i].diffuse;\n\
       vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
       vec4 myLightSpecular = fw_LightSource[i].specular;\n\
       vec4 myLightPosition = fw_LightSource[i].position; \n\
-	  int myLightType = lightType[i]; //fw_LightSource[i].lightType;\n\
-	  vec3 myLightDir = fw_LightSource[i].spotDirection.xyz; \n\
+      int myLightType = lightType[i]; //fw_LightSource[i].lightType;\n\
+      vec3 myLightDir = fw_LightSource[i].spotDirection.xyz; \n\
       vec3 eyeVector = normalize(myPosition.xyz);\n\
       vec3  VP;     /* vector of light direction and distance */\n\
-	  VP = myLightPosition.xyz - myPosition.xyz;\n\
-	  vec3 L = myLightDir; /*directional light*/ \n\
-	  if(myLightType < 2) /*point and spot*/ \n\
-	    L = normalize(VP); \n\
+      VP = myLightPosition.xyz - myPosition.xyz;\n\
+      vec3 L = myLightDir; /*directional light*/ \n\
+      if(myLightType < 2) /*point and spot*/ \n\
+       L = normalize(VP); \n\
       float nDotL = max(dot(normal, L), 0.0);\n\
       vec3 halfVector = normalize(L - eyeVector);\n\
       /* normal dot light half vector */\n\
@@ -1695,41 +1690,41 @@ if (backFacing) { \n \
         float attenuation; /* computed attenuation factor */\n\
         float d;            /* distance to vertex */            \n\
         d = length(VP);\n\
-		if (nDotL > 0.0) {\n\
-		  powerFactor = pow(nDotL,myMat.shininess); \n\
+        if (nDotL > 0.0) {\n\
+          powerFactor = pow(nDotL,myMat.shininess); \n\
           /* tone down the power factor if myMat.shininess borders 0 */\n\
           if (myMat.shininess < 1.0) {\n\
-		    powerFactor *= myMat.shininess; \n\
+            powerFactor *= myMat.shininess; \n\
           } \n\
         } \n\
-		attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
+        attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
         spotDot = dot (-L,myLightDir);\n\
         /* check against spotCosCutoff */\n\
-		if (spotDot > fw_LightSource[i].spotCutoff) {\n\
+        if (spotDot > fw_LightSource[i].spotCutoff) {\n\
           spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent);\n\
         }\n\
         attenuation *= spotAttenuation;\n\
         /* diffuse light computation */\n\
-		diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
+        diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
         /* ambient light computation */\n\
         ambient += myMat.ambient*myLightAmbient;\n\
         /* specular light computation */\n\
         specular += myLightSpecular * powerFactor * attenuation;\n\
         \n\
-	  } else if (myLightType == 2) { \n\
+      } else if (myLightType == 2) { \n\
         /* DirectionalLight */ \n\
         float powerFactor = 0.0; /* for light dropoff */\n\
-		if (nDotL > 0.0) {\n\
-		  powerFactor = pow(nDotHV, myMat.shininess);\n\
+        if (nDotL > 0.0) {\n\
+          powerFactor = pow(nDotHV, myMat.shininess);\n\
           /* tone down the power factor if myMat.shininess borders 0 */\n\
           if (myMat.shininess < 1.0) {\n\
-		    powerFactor *= myMat.shininess;\n\
+           powerFactor *= myMat.shininess;\n\
           }\n\
         }\n\
         /* Specular light computation */\n\
         specular += myMat.specular *myLightSpecular*powerFactor;\n\
         /* diffuse light computation */\n\
-		diffuse += nDotL*matdiffuse*myLightDiffuse;\n\
+        diffuse += nDotL*matdiffuse*myLightDiffuse;\n\
         /* ambient light computation */\n\
         ambient += myMat.ambient*myLightAmbient; \n\
       } else {\n\
@@ -1740,11 +1735,11 @@ if (backFacing) { \n \
         /* are we within range? */\n\
         if (d <= fw_LightSource[i].lightRadius) {\n\
           if (nDotL > 0.0) {\n\
-		    powerFactor = pow(nDotL, myMat.shininess);\n\
+            powerFactor = pow(nDotL, myMat.shininess);\n\
             //attenuation = (myMat.shininess-128.0);\n\
           }\n\
           /* this is actually the SFVec3f attenuation field */\n\
-		  attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
+          attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
           /* diffuse light computation */\n\
           diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
           /* ambient light computation */\n\
@@ -1754,7 +1749,7 @@ if (backFacing) { \n \
           specular += myLightSpecular * powerFactor * attenuation;\n\
         }\n\
       }\n\
-	 }\n\
+    }\n\
   }\n\
   return clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
 }\n\
@@ -1942,7 +1937,7 @@ if (backFacing) { \n \
 //dug9 Jan 5, 2014 static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(0.,0.,0.,0.);\n";
 static const GLchar *fragMainStart = "void main() { vec4 finalFrag = vec4(1.,1.,1.,1.);\n";
 static const GLchar *anaglyphGrayFragEnd =	"float gray = dot(finalFrag.rgb, vec3(0.299, 0.587, 0.114)); \n \
-                                              gl_FragColor = vec4(gray, gray, gray, finalFrag.a);}";
+        gl_FragColor = vec4(gray, gray, gray, finalFrag.a);}";
 
 /* discard operations needed for really doing a good job in transparent situations (FillProperties, filled = false,
    for instance - drawing operations preclude sorting individual triangles for best rendering, so when the user
@@ -2136,7 +2131,7 @@ const static GLchar *pointSizeAss="gl_PointSize = pointSize; \n";
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
 
-    bool doThis;
+	bool doThis;
 	bool didADSLmaterial;
 #ifdef USING_SHADER_LIGHT_ARRAY_METHOD
 	//for angleproject winRT d3d11 - can't do struct[] array for lights
@@ -2148,43 +2143,43 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 #endif
 	
 	/* GL_ES - do we have medium precision, or just low precision?? */
-    /* Phong shading - use the highest we have */
-    /* GL_ES_VERSION_2_0 has these definitions */
+	/* Phong shading - use the highest we have */
+	/* GL_ES_VERSION_2_0 has these definitions */
 
 #if defined (GL_ES_VERSION_2_0)
-    bool haveHighPrecisionFragmentShaders = false;
+	bool haveHighPrecisionFragmentShaders = false;
 
 #ifdef VARY_VERTEX_PRECISION
-    bool haveHighPrecisionVertexShaders = false;
+	bool haveHighPrecisionVertexShaders = false;
 #endif
 
-    GLint range[2]; GLint precision;
+	GLint range[2]; GLint precision;
 
 	// see where we are doing the lighting. Use highest precision there, if we can.
 	if (usePhongShading) {
-        	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
-        	if (precision!=0) {
-        	    haveHighPrecisionFragmentShaders=true;
-        	} else {
-        	    haveHighPrecisionFragmentShaders=false;
-        	    glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
-        	    if (precision == 0) {
-        	        ConsoleMessage("low precision Fragment shaders only available - view may not work so well");
-        	    }
-        	}
+		glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
+		if (precision!=0) {
+			haveHighPrecisionFragmentShaders=true;
+		} else {
+			haveHighPrecisionFragmentShaders=false;
+			glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+			if (precision == 0) {
+        		ConsoleMessage("low precision Fragment shaders only available - view may not work so well");
+			}
+		}
 #ifdef VARY_VERTEX_PRECISION
 	// if we do lighting on the Vertex shader side, do we have to worry about precision?
 	} else {
-        	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_FLOAT, range, &precision);
-        	if (precision!=0) {
-        	    haveHighPrecisionVertexShaders=true;
-        	} else {
-        	    haveHighPrecisionVertexShaders=false;
-        	    glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_FLOAT, range, &precision);
-        	    if (precision == 0) {
-        	        ConsoleMessage("low precision Vertex shaders only available - view may not work so well");
-        	    }
-        	}
+		glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_FLOAT, range, &precision);
+		if (precision!=0) {
+			haveHighPrecisionVertexShaders=true;
+		} else {
+			haveHighPrecisionVertexShaders=false;
+			glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+			if (precision == 0) {
+				ConsoleMessage("low precision Vertex shaders only available - view may not work so well");
+			}
+		}
 #endif //VARY_VERTEX_PRECISION
 
 	}
@@ -2193,56 +2188,56 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 #endif // GL_ES_VERSION_2_0 for GL_HIGH_FLOAT or GL_MEDIUM_FLOAT
 
 	#if defined (VERBOSE) && defined (GL_ES_VERSION_2_0)
-        { /* debugging - only */
-        GLboolean b;
+	{ /* debugging - only */
+	GLboolean b;
 
-        glGetBooleanv(GL_SHADER_COMPILER,&b);
-        if (b) ConsoleMessage("have shader compiler"); else ConsoleMessage("NO SHADER COMPILER");
+	glGetBooleanv(GL_SHADER_COMPILER,&b);
+	if (b) ConsoleMessage("have shader compiler"); else ConsoleMessage("NO SHADER COMPILER");
 
 
-        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_LOW_FLOAT, range, &precision);
-        ConsoleMessage ("GL_VERTEX_SHADER, GL_LOW_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
-        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_FLOAT, range, &precision);
-        ConsoleMessage ("GL_VERTEX_SHADER, GL_MEDIUM_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
-        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_FLOAT, range, &precision);
-        ConsoleMessage ("GL_VERTEX_SHADER, GL_HIGH_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_LOW_FLOAT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_LOW_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_MEDIUM_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_FLOAT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_HIGH_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
 
-        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_LOW_INT, range, &precision);
-        ConsoleMessage ("GL_VERTEX_SHADER, GL_LOW_INT range [%d,%d],precision %d",range[0],range[1],precision);
-        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_INT, range, &precision);
-        ConsoleMessage ("GL_VERTEX_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
-        glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_INT, range, &precision);
-        ConsoleMessage ("GL_VERTEX_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_LOW_INT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_LOW_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_MEDIUM_INT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_VERTEX_SHADER,GL_HIGH_INT, range, &precision);
+	ConsoleMessage ("GL_VERTEX_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
 
-        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_LOW_FLOAT, range, &precision);
-        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_LOW_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
-        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
-        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
-        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
-        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_LOW_FLOAT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_LOW_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_FLOAT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_FLOAT range [%d,%d],precision %d",range[0],range[1],precision);
 
-        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_LOW_INT, range, &precision);
-        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_LOW_INT range [%d,%d],precision %d",range[0],range[1],precision);
-        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_INT, range, &precision);
-        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
-        glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_INT, range, &precision);
-        ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
-        }
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_LOW_INT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_LOW_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_MEDIUM_INT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_MEDIUM_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_INT, range, &precision);
+	ConsoleMessage ("GL_FRAGMENT_SHADER, GL_HIGH_INT range [%d,%d],precision %d",range[0],range[1],precision);
+	}
 	#endif //VERBOSE for GL_ES_VERSION_2_0
 
-    #ifdef VERBOSE
-    if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
-    if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
-    if DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want TWO_MATERIAL_APPEARANCE_SHADER");
-    if DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER)ConsoleMessage("want ONE_TEX_APPEARANCE_SHADER");
-    if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)ConsoleMessage("want MULTI_TEX_APPEARANCE_SHADER");
-    if DESIRE(whichOne,COLOUR_MATERIAL_SHADER)ConsoleMessage("want COLOUR_MATERIAL_SHADER");
-    if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("want FILL_PROPERTIES_SHADER");
-    if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR)ConsoleMessage ("want LINE_POINTS_COLOR");
-    if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
-    if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ConsoleMessage ("want HAVE_TEXTURECOORDINATEGENERATOR");
-    if DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
-    #endif //VERBOSE
+	#ifdef VERBOSE
+	if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
+	if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
+	if DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want TWO_MATERIAL_APPEARANCE_SHADER");
+	if DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER)ConsoleMessage("want ONE_TEX_APPEARANCE_SHADER");
+	if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)ConsoleMessage("want MULTI_TEX_APPEARANCE_SHADER");
+	if DESIRE(whichOne,COLOUR_MATERIAL_SHADER)ConsoleMessage("want COLOUR_MATERIAL_SHADER");
+	if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("want FILL_PROPERTIES_SHADER");
+	if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR)ConsoleMessage ("want LINE_POINTS_COLOR");
+	if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
+	if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ConsoleMessage ("want HAVE_TEXTURECOORDINATEGENERATOR");
+	if DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
+	#endif //VERBOSE
 #undef VERBOSE
 
 
@@ -2275,273 +2270,272 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	vertexSource[vertexGLSLVersion] = "#version 110\n"; //"#version 120\n";
 #endif
 
-    fragmentSource[fragMaxLightsDeclare] = maxLights;
-    vertexSource[vertMaxLightsDeclare] = maxLights;
-    vertexSource[vertexPositionDeclare] = vertPosDec;
+	fragmentSource[fragMaxLightsDeclare] = maxLights;
+	vertexSource[vertMaxLightsDeclare] = maxLights;
+	vertexSource[vertexPositionDeclare] = vertPosDec;
 
 
 
-    /* User defined shaders - only give the defines, let the user do the rest */
+	/* User defined shaders - only give the defines, let the user do the rest */
 
-    if ((whichOne & USER_DEFINED_SHADER_MASK) == 0) {
-	/* initialize */
+	if ((whichOne & USER_DEFINED_SHADER_MASK) == 0) {
+		/* initialize */
 
-    /* Generic things first */
+		/* Generic things first */
 
-    /* Cross shader Vertex bits */
+		/* Cross shader Vertex bits */
 
-    vertexSource[vertexMainStart] = vertMainStart;
-    vertexSource[vertexPositionCalculation] = vertPos;
-    vertexSource[vertexMainEnd] = vertEnd;
-
-
-    fragmentSource[fragmentMainStart] = fragMainStart;
-	if(Viewer()->anaglyph || Viewer()->anaglyphB)
-		fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
-	else {
-        if (usePhongShading) fragmentSource[fragmentMainEnd] = discardInFragEnd;
-        else fragmentSource[fragmentMainEnd] = fragEnd;
-        //fragmentSource[fragmentMainEnd] = discardInFragEnd;
-    }
-
-    //ConsoleMessage ("whichOne %x mask %x",whichOne,~whichOne);
+		vertexSource[vertexMainStart] = vertMainStart;
+		vertexSource[vertexPositionCalculation] = vertPos;
+		vertexSource[vertexMainEnd] = vertEnd;
 
 
-    /* specific strings for specific shader capabilities */
+		fragmentSource[fragmentMainStart] = fragMainStart;
+		if(Viewer()->anaglyph || Viewer()->anaglyphB)
+			fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
+		else {
+			if (usePhongShading) fragmentSource[fragmentMainEnd] = discardInFragEnd;
+			else fragmentSource[fragmentMainEnd] = fragEnd;
+			//fragmentSource[fragmentMainEnd] = discardInFragEnd;
+		}
 
-    if DESIRE(whichOne,COLOUR_MATERIAL_SHADER) {
-        vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
-        vertexSource[vertFrontColourDeclare] = varyingFrontColour;
-        vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
-	    vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
-	    vertexSource[vertexPointSizeAssign] = pointSizeAss;
-        fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
-        fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
-    }
-
-    if DESIRE(whichOne,NO_APPEARANCE_SHADER) {
-        fragmentSource[fragmentSimpleColourAssign] = fragNoAppAss;
-	    vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
-	    vertexSource[vertexPointSizeAssign] = pointSizeAss;
-
-    }
+		//ConsoleMessage ("whichOne %x mask %x",whichOne,~whichOne);
 
 
-    /* One or TWO material no texture shaders - one material, choose between
-     Phong shading (slower) or Gouraud shading (faster). */
+		/* specific strings for specific shader capabilities */
 
-    if (usePhongShading) {
-        doThis = (DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) ||
-            (DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER));
-    } else {
-        doThis = DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER);
-    }
+		if DESIRE(whichOne,COLOUR_MATERIAL_SHADER) {
+			vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
+			vertexSource[vertFrontColourDeclare] = varyingFrontColour;
+			vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
+			vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
+			vertexSource[vertexPointSizeAssign] = pointSizeAss;
+			fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
+			fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
+		}
 
-    if (doThis) {
-        vertexSource[vertexNormPosOutput] = varyingNormPos;
-        vertexSource[vertexNormalDeclare] = vertNormDec;
-        vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
+		if DESIRE(whichOne,NO_APPEARANCE_SHADER) {
+			fragmentSource[fragmentSimpleColourAssign] = fragNoAppAss;
+			vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
+			vertexSource[vertexPointSizeAssign] = pointSizeAss;
 
-        fragmentSource[fragmentLightDefines] = lightDefines0;
-        fragmentSource[fragmentOneColourDeclare] = vertOneMatDec;
-        fragmentSource[fragmentBackColourDeclare] = vertBackMatDec;
-        fragmentSource[fragmentNormPosDeclare] = varyingNormPos;
-        fragmentSource[fragmentADSLLightModel] = ADSLLightModel0;
-        fragmentSource[fragmentADSLAssign] = fragADSLAss;
-
-    }
+		}
 
 
-        /* TWO_MATERIAL_APPEARANCE_SHADER - this does not crop up
-         that often, so just use the PHONG shader. */
-	didADSLmaterial = false;
-    if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!usePhongShading)) {
-        vertexSource[vertexNormalDeclare] = vertNormDec;
-        vertexSource[vertexLightDefines] = lightDefines0;
-        vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
-        vertexSource[vertFrontColourDeclare] = varyingFrontColour;
-        vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
-        vertexSource[vertexNormPosOutput] = vecNormPos;
-        vertexSource[vertexLightingEquation] = ADSLLightModel0;
-        vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
-        vertexSource[vertexADSLCalculation] = vertADSLCalc;
-		didADSLmaterial = true;
-        fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
-        fragmentSource[fragmentOneColourAssign] = fragFrontColAss;
-    }
+		/* One or TWO material no texture shaders - one material, choose between
+			Phong shading (slower) or Gouraud shading (faster). */
+
+		if (usePhongShading) {
+			doThis = (DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) ||
+				(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER));
+		} else {
+			doThis = DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER);
+		}
+
+		if (doThis) {
+			vertexSource[vertexNormPosOutput] = varyingNormPos;
+			vertexSource[vertexNormalDeclare] = vertNormDec;
+			vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
+
+			fragmentSource[fragmentLightDefines] = lightDefines0;
+			fragmentSource[fragmentOneColourDeclare] = vertOneMatDec;
+			fragmentSource[fragmentBackColourDeclare] = vertBackMatDec;
+			fragmentSource[fragmentNormPosDeclare] = varyingNormPos;
+			fragmentSource[fragmentADSLLightModel] = ADSLLightModel0;
+			fragmentSource[fragmentADSLAssign] = fragADSLAss;
+
+		}
 
 
-        if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
-            vertexSource[vertexLightDefines] = lightDefines0;
-            vertexSource[vertFrontColourDeclare] = varyingFrontColour;
-            vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
+		/* TWO_MATERIAL_APPEARANCE_SHADER - this does not crop up
+				that often, so just use the PHONG shader. */
+		didADSLmaterial = false;
+		if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!usePhongShading)) {
+			vertexSource[vertexNormalDeclare] = vertNormDec;
+			vertexSource[vertexLightDefines] = lightDefines0;
+			vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
+			vertexSource[vertFrontColourDeclare] = varyingFrontColour;
+			vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
+			vertexSource[vertexNormPosOutput] = vecNormPos;
+			vertexSource[vertexLightingEquation] = ADSLLightModel0;
+			vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
+			vertexSource[vertexADSLCalculation] = vertADSLCalc;
+			didADSLmaterial = true;
+			fragmentSource[fragmentOneColourDeclare] = varyingFrontColour;
+			fragmentSource[fragmentOneColourAssign] = fragFrontColAss;
+		}
+
+
+		if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
+			vertexSource[vertexLightDefines] = lightDefines0;
+			vertexSource[vertFrontColourDeclare] = varyingFrontColour;
+			vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
 
     		#if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
-	    vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
-	    vertexSource[vertexPointSizeAssign] = pointSizeAss;
+		vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
+		vertexSource[vertexPointSizeAssign] = pointSizeAss;
 		#endif
 
-            vertexSource[vertexOneMaterialCalculation] = vertEmissionOnlyColourAss;
-            fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
-            fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
-        }
+			vertexSource[vertexOneMaterialCalculation] = vertEmissionOnlyColourAss;
+			fragmentSource[fragmentSimpleColourDeclare] = varyingFrontColour;
+			fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
+		}
 
 
-        /* texturing - MULTI_TEX builds on ONE_TEX */
-        if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
-            DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ||
-            DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ||
-            DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
-            vertexSource[vertexTexCoordInputDeclare] = vertTexCoordDec;
-            vertexSource[vertexTexCoordOutputDeclare] = varyingTexCoord;
-            vertexSource[vertexTextureMatrixDeclare] = vertTexMatrixDec;
-            vertexSource[vertexSingleTextureCalculation] = vertSingTexCalc;
-            if(didADSLmaterial)
-            	vertexSource[vertexADSLCalculation] = vertADSLCalc0; //over-ride material diffuseColor with texture
+		/* texturing - MULTI_TEX builds on ONE_TEX */
+		if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
+			DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ||
+			DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ||
+			DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
+			vertexSource[vertexTexCoordInputDeclare] = vertTexCoordDec;
+			vertexSource[vertexTexCoordOutputDeclare] = varyingTexCoord;
+			vertexSource[vertexTextureMatrixDeclare] = vertTexMatrixDec;
+			vertexSource[vertexSingleTextureCalculation] = vertSingTexCalc;
+			if(didADSLmaterial)
+				vertexSource[vertexADSLCalculation] = vertADSLCalc0; //over-ride material diffuseColor with texture
 
-            fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord;
-            fragmentSource[fragmentTex0Declare] = fragTex0Dec;
-            fragmentSource[fragmentTextureAssign] = fragSingTexAss;
-        }
+			fragmentSource[fragmentTexCoordDeclare] = varyingTexCoord;
+			fragmentSource[fragmentTex0Declare] = fragTex0Dec;
+			fragmentSource[fragmentTextureAssign] = fragSingTexAss;
+		}
 
-        /* Cubemaps - do not multi-texture these yet */
-    if (DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)) {
-        vertexSource[vertexSingleTextureCalculation] = vertSingTexCubeCalc;
+		/* Cubemaps - do not multi-texture these yet */
+		if (DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)) {
+			vertexSource[vertexSingleTextureCalculation] = vertSingTexCubeCalc;
 
-        fragmentSource[fragmentTex0Declare] = fragTex0CubeDec;
-        fragmentSource[fragmentTextureAssign] = fragSingTexCubeAss;
-    }
+			fragmentSource[fragmentTex0Declare] = fragTex0CubeDec;
+			fragmentSource[fragmentTextureAssign] = fragSingTexCubeAss;
+		}
 
-        /* MULTI_TEX builds on ONE_TEX */
-        if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER) {
-            /* we have to do the material params, in case we need to
-                modulate/play with this. */
+		/* MULTI_TEX builds on ONE_TEX */
+		if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER) {
+			/* we have to do the material params, in case we need to
+				modulate/play with this. */
 
-            vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
-            vertexSource[vertexLightDefines] = lightDefines0;
-            vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
-            vertexSource[vertexNormPosOutput] = vecNormPos;
-            vertexSource[vertexLightingEquation] = ADSLLightModel0;
-            vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
+			vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
+			vertexSource[vertexLightDefines] = lightDefines0;
+			vertexSource[vertexNormPosCalculation] = vertNormPosCalc;
+			vertexSource[vertexNormPosOutput] = vecNormPos;
+			vertexSource[vertexLightingEquation] = ADSLLightModel0;
+			vertexSource[vertexBackMaterialDeclare] = vertBackMatDec;
 
-            fragmentSource[fragmentMultiTexDefines]= fragMultiTexUniforms;
-            fragmentSource[fragmentMultiTexDeclare] = fragMultiTexDef;
-            fragmentSource[fragmentTex0Declare] = fragTex0Dec;
-            fragmentSource[fragmentMultiTexModel] = fragMulTexFunc;
-            fragmentSource[fragmentTextureAssign] = fragMulTexCalc;
-        }
+			fragmentSource[fragmentMultiTexDefines]= fragMultiTexUniforms;
+			fragmentSource[fragmentMultiTexDeclare] = fragMultiTexDef;
+			fragmentSource[fragmentTex0Declare] = fragTex0Dec;
+			fragmentSource[fragmentMultiTexModel] = fragMulTexFunc;
+			fragmentSource[fragmentTextureAssign] = fragMulTexCalc;
+		}
 
-    /* TextureCoordinateGenerator - do calcs in Vertex, fragment like one texture */
-    if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) {
-        /* the vertex single texture calculation is different from normal single texture */
-        /* pass in the type of generator, and do the calculations */
-        vertexSource[vertexTextureMatrixDeclare] = vertTexCoordGenDec;
-        vertexSource[vertexSingleTextureCalculation] = sphEnvMapCalc;
+		/* TextureCoordinateGenerator - do calcs in Vertex, fragment like one texture */
+		if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) {
+			/* the vertex single texture calculation is different from normal single texture */
+			/* pass in the type of generator, and do the calculations */
+			vertexSource[vertexTextureMatrixDeclare] = vertTexCoordGenDec;
+			vertexSource[vertexSingleTextureCalculation] = sphEnvMapCalc;
 
-        vertexSource[vertexTCGTDefines] = fragTCGTDefs;
+			vertexSource[vertexTCGTDefines] = fragTCGTDefs;
 
-    }
+		}
 
-        if DESIRE(whichOne,FILL_PROPERTIES_SHADER) {
-            /* just add on top of the other shaders the fill properties "stuff" */
+			if DESIRE(whichOne,FILL_PROPERTIES_SHADER) {
+				/* just add on top of the other shaders the fill properties "stuff" */
 
-            vertexSource[vertexHatchPositionDeclare] = varyingHatchPosition;
-            vertexSource[vertexHatchPositionCalculation] = vertHatchPosCalc;
+				vertexSource[vertexHatchPositionDeclare] = varyingHatchPosition;
+				vertexSource[vertexHatchPositionCalculation] = vertHatchPosCalc;
 
-            fragmentSource[fragmentFillPropDefines] = fillPropDefines;
-            fragmentSource[fragmentHatchPositionDeclare] = varyingHatchPosition;
-            fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
-            fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
-        }
+				fragmentSource[fragmentFillPropDefines] = fillPropDefines;
+				fragmentSource[fragmentHatchPositionDeclare] = varyingHatchPosition;
+				fragmentSource[fragmentFillPropModel] = fragFillPropFunc;
+				fragmentSource[fragmentFillPropAssign] = fragFillPropCalc;
+			}
 
-    } else {
-    // user defined shaders
-    if (whichOne >= USER_DEFINED_SHADER_START) {
-        int me = 0;
-        ppOpenGL_Utils p;
-        ttglobal tg = gglobal();
-        p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+	} else {  // user defined shaders
 
-        me = (whichOne / USER_DEFINED_SHADER_START) -1;
-        //ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
+		if (whichOne >= USER_DEFINED_SHADER_START) {
+			int me = 0;
+			ppOpenGL_Utils p;
+			ttglobal tg = gglobal();
+			p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
-        // add the following:
-        // this has both Vertex manipulations, and lighting, etc.
-//                    #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n
-        vertexSource[vertexMainStart] = "  \n \
-					#define HEADLIGHT_LIGHT 0\n \
-					#define ftransform() (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex)\n \
-                    #define gl_ModelViewProjectionMatrix (fw_ProjectionMatrix*fw_ModelViewMatrix)\n \
-                    #define gl_NormalMatrix fw_NormalMatrix\n \
-                    #define gl_ProjectionMatrix fw_ProjectionMatrix \n\
-                    #define gl_ModelViewMatrix fw_ModelViewMatrix \n\
-                    #define gl_TextureMatrix fw_TextureMatrix \n\
-                    #define gl_Vertex fw_Vertex \n \
-                    #define gl_Normal fw_Normal\n \
-                    #define gl_Texture_unit0 fw_Texture_unit0\n \
-                    #define gl_MultiTexCoord0 fw_MultiTexCoord0\n \
-                    #define gl_Texture_unit1 fw_Texture_unit1\n \
-                    #define gl_MultiTexCoord1 fw_MultiTexCoord1\n \
-                    #define gl_Texture_unit2 fw_Texture_unit2\n \
-                    #define gl_MultiTexCoord2 fw_MultiTexCoord2\n \
-                    #define gl_LightSource fw_LightSource\n ";
+			me = (whichOne / USER_DEFINED_SHADER_START) -1;
+			//ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
 
-	// copy over the same defines, but for the fragment shader.
-    // Some GLSL compilers will complain about the "fttransform()"
-    // definition if defined in a Fragment shader, so we judiciously
-    // copy over things that are fragment-only.
+			// add the following:
+			// this has both Vertex manipulations, and lighting, etc.
+	//		#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n
+			vertexSource[vertexMainStart] = "  \n \
+			#define HEADLIGHT_LIGHT 0\n \
+			#define ftransform() (fw_ProjectionMatrix*fw_ModelViewMatrix*fw_Vertex)\n \
+			#define gl_ModelViewProjectionMatrix (fw_ProjectionMatrix*fw_ModelViewMatrix)\n \
+			#define gl_NormalMatrix fw_NormalMatrix\n \
+			#define gl_ProjectionMatrix fw_ProjectionMatrix \n\
+			#define gl_ModelViewMatrix fw_ModelViewMatrix \n\
+			#define gl_TextureMatrix fw_TextureMatrix \n\
+			#define gl_Vertex fw_Vertex \n \
+			#define gl_Normal fw_Normal\n \
+			#define gl_Texture_unit0 fw_Texture_unit0\n \
+			#define gl_MultiTexCoord0 fw_MultiTexCoord0\n \
+			#define gl_Texture_unit1 fw_Texture_unit1\n \
+			#define gl_MultiTexCoord1 fw_MultiTexCoord1\n \
+			#define gl_Texture_unit2 fw_Texture_unit2\n \
+			#define gl_MultiTexCoord2 fw_MultiTexCoord2\n \
+			#define gl_LightSource fw_LightSource\n ";
 
-//                   #define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n
-	fragmentSource[fragmentMainStart] = " \
-					#define HEADLIGHT_LIGHT 0\n \
-                    #define gl_NormalMatrix fw_NormalMatrix\n \
-                    #define gl_Normal fw_Normal\n \
-                    #define gl_LightSource fw_LightSource\n ";
+		// copy over the same defines, but for the fragment shader.
+		// Some GLSL compilers will complain about the "fttransform()"
+		// definition if defined in a Fragment shader, so we judiciously
+		// copy over things that are fragment-only.
 
-
-
-
-        vertexSource[vertexLightDefines] = lightDefines0;
-        vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
-        vertexSource[vertFrontColourDeclare] = varyingFrontColour;
+		//	#define HEADLIGHT_LIGHT (MAX_LIGHTS-1)\n
+			fragmentSource[fragmentMainStart] = " \
+			#define HEADLIGHT_LIGHT 0\n \
+			#define gl_NormalMatrix fw_NormalMatrix\n \
+			#define gl_Normal fw_Normal\n \
+			#define gl_LightSource fw_LightSource\n ";
 
 
 
-        vertexSource[vertexNormalDeclare] = vertNormDec;
-        fragmentSource[fragmentLightDefines] = lightDefines0;
-        //ConsoleMessage ("sources here for %d are %p and %p", me, p->userDefinedVertexShader[me], p->userDefinedFragmentShader[me]);
 
-        if ((p->userDefinedVertexShader[me] == NULL) || (p->userDefinedFragmentShader[me]==NULL)) {
-            ConsoleMessage ("no Shader Source found for user defined shaders...");
-            return false;
-
-        }
-        fragmentSource[fragmentUserDefinedInput] = p->userDefinedFragmentShader[me];
-        vertexSource[vertexUserDefinedInput] = p->userDefinedVertexShader[me];
+			vertexSource[vertexLightDefines] = lightDefines0;
+			vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
+			vertexSource[vertFrontColourDeclare] = varyingFrontColour;
 
 
-    }
-    }
+
+			vertexSource[vertexNormalDeclare] = vertNormDec;
+			fragmentSource[fragmentLightDefines] = lightDefines0;
+			//ConsoleMessage ("sources here for %d are %p and %p", me, p->userDefinedVertexShader[me], p->userDefinedFragmentShader[me]);
+
+			if ((p->userDefinedVertexShader[me] == NULL) || (p->userDefinedFragmentShader[me]==NULL)) {
+				ConsoleMessage ("no Shader Source found for user defined shaders...");
+				return false;
+
+			}
+			fragmentSource[fragmentUserDefinedInput] = p->userDefinedFragmentShader[me];
+			vertexSource[vertexUserDefinedInput] = p->userDefinedVertexShader[me];
+
+		}
+	}
 
 //#define VERBOSE 1
-    #ifdef VERBOSE
+	#ifdef VERBOSE
 	/* print out the vertex source here */
 		{
 			vertexShaderResources_t x1;
 			fragmentShaderResources_t x2;
-            int i;
+			int i;
 
 			ConsoleMessage ("Vertex source:\n");
 			for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++) {
-                    if (strlen(vertexSource[x1])>0)
-				ConsoleMessage(vertexSource[x1]);
-        }
+				if (strlen(vertexSource[x1])>0)
+					ConsoleMessage("%s",vertexSource[x1]);
+			}
 			ConsoleMessage("Fragment Source:\n");
-            i=0;
+			i=0;
 			for (x2=fragmentGLSLVersion; x2<fragmentEndMarker; x2++) {
 				if (strlen(fragmentSource[x2])>0)
-                ConsoleMessage(fragmentSource[x2]);
-            }
+					ConsoleMessage("%s",fragmentSource[x2]);
+			}
 		}
 	#endif //VERBOSE
 //#undef VERBOSE
@@ -2552,7 +2546,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 
 static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading) {
 
-    GLint success;
+	GLint success;
 	GLuint myVertexShader = 0;
 	GLuint myFragmentShader= 0;
 
@@ -2560,16 +2554,16 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	s_shader_capabilities_t *myShader = me->myCapabilities;
 	const GLchar *vertexSource[vertexEndMarker];
 	const GLchar  *fragmentSource[fragmentEndMarker];
-   	vertexShaderResources_t x1;
+	vertexShaderResources_t x1;
 	fragmentShaderResources_t x2;
 
 
 #ifdef VERBOSE
-        ConsoleMessage ("makeAndCompileShader called");
+	ConsoleMessage ("makeAndCompileShader called");
 #endif //VERBOSE
 #undef VERBOSE
 
-   	/* initialize shader sources to blank strings, later we'll fill it in */
+	/* initialize shader sources to blank strings, later we'll fill it in */
 	for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++)
 		vertexSource[x1] = "";
 	for (x2=fragmentGLSLVersion; x2<fragmentEndMarker; x2++)
@@ -2583,7 +2577,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	/* assume the worst... */
 	(*myShader).compiledOK = FALSE;
 
-    /* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
+	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
 	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne, phongShading)) {
 		return;
 	}
@@ -2620,7 +2614,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 }
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	GLuint myProg = me->myShaderProgram;
-    int i;
+	int i;
 
 
 	#ifdef SHADERVERBOSE
@@ -2634,7 +2628,10 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 	printf ("getShaderCommonInterfaces, I am program %d\n",myProg);
 
-	if (glIsProgram(myProg)) printf ("getShaderCommonInterfaces, %d is a program\n",myProg); else printf ("hmmm - it is not a program!\n");
+	if (glIsProgram(myProg)) 
+		printf ("getShaderCommonInterfaces, %d is a program\n",myProg); 
+	else 
+		printf ("hmmm - it is not a program!\n");
 	glGetAttachedShaders(myProg,10,&count,shaders);
 	printf ("got %d attached shaders, they are: \n",count);
 	for (i=0; i<count; i++) {
@@ -2654,11 +2651,9 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	glGetProgramiv(myProg,GL_INFO_LOG_LENGTH, xxx);
 	if (xxx[0] != 0) {
 		#define MAX_INFO_LOG_SIZE 512
-                GLchar infoLog[MAX_INFO_LOG_SIZE];
-                glGetProgramInfoLog(myProg, MAX_INFO_LOG_SIZE, NULL, infoLog);
+		GLchar infoLog[MAX_INFO_LOG_SIZE];
+		glGetProgramInfoLog(myProg, MAX_INFO_LOG_SIZE, NULL, infoLog);
 		printf ("log: %s\n",infoLog);
-
-
 	}
 	}
 	#endif /* DEBUG */
@@ -2676,182 +2671,182 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->myMaterialBackAmbient = GET_UNIFORM(myProg,"fw_BackMaterial.ambient");
 	me->myMaterialBackSpecular = GET_UNIFORM(myProg,"fw_BackMaterial.specular");
 
-        //me->lightState = GET_UNIFORM(myProg,"lightState");
-        //me->lightType = GET_UNIFORM(myProg,"lightType");
-        //me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
+	//me->lightState = GET_UNIFORM(myProg,"lightState");
+	//me->lightType = GET_UNIFORM(myProg,"lightType");
+	//me->lightRadius = GET_UNIFORM(myProg,"lightRadius");
 	me->lightcount = GET_UNIFORM(myProg,"lightcount");
 
-    /* get lights in a more normal OpenGL GLSL format */
+	/* get lights in a more normal OpenGL GLSL format */
 
-    /*
-     struct gl_LightSourceParameters
-     {
-        vec4 ambient;              // Aclarri
-        vec4 diffuse;              // Dcli
-        vec4 specular;             // Scli
-        vec4 position;             // Ppli
-        vec4 halfVector;           // Derived: Hi
-        vec4 spotDirection;        // Sdli
-        float spotExponent;        // Srli
-        float spotCutoff;          // Crli
-        float spotCosCutoff;       // Derived: cos(Crli)
+	/*
+		struct gl_LightSourceParameters
+		{
+		vec4 ambient;              // Aclarri
+		vec4 diffuse;              // Dcli
+		vec4 specular;             // Scli
+		vec4 position;             // Ppli
+		vec4 halfVector;           // Derived: Hi
+		vec4 spotDirection;        // Sdli
+		float spotExponent;        // Srli
+		float spotCutoff;          // Crli
+		float spotCosCutoff;       // Derived: cos(Crli)
 		vec3 Attenuations (const,lin,quad)
-        //float constantAttenuation; // K0
-        //float linearAttenuation;   // K1
-        //float quadraticAttenuation;// K2
+		//float constantAttenuation; // K0
+		//float linearAttenuation;   // K1
+		//float quadraticAttenuation;// K2
 		float lightRadius;
 		int lightType;
-     };
+		};
 
 
-     uniform gl_LightSourceParameters gl_LightSource[gl_MaxLights];
-     */
-		{
-			//using lighsource arrays - see shader
-			char uniformName[100];
-			me->haveLightInShader = false;
+		uniform gl_LightSourceParameters gl_LightSource[gl_MaxLights];
+	*/
+	{
+		//using lighsource arrays - see shader
+		char uniformName[100];
+		me->haveLightInShader = false;
 #ifdef USING_SHADER_LIGHT_ARRAY_METHOD
-			//char* sndx;
-			for (i = 0; i<MAX_LIGHTS; i++) {
-				char* sndx;
-				/* go through and modify the array for each variable */
-				strcpy(uniformName, "lightambient[0]");
-				sndx = strstr(uniformName, "["); 
-				sndx[1] = '0' + i;
-				me->lightAmbient[i] = GET_UNIFORM(myProg, uniformName);
+		//char* sndx;
+		for (i = 0; i<MAX_LIGHTS; i++) {
+			char* sndx;
+			/* go through and modify the array for each variable */
+			strcpy(uniformName, "lightambient[0]");
+			sndx = strstr(uniformName, "["); 
+			sndx[1] = '0' + i;
+			me->lightAmbient[i] = GET_UNIFORM(myProg, uniformName);
 
-				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightAmbient[i]);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightAmbient[i]);
 
-				strcpy(uniformName, "lightdiffuse[0]");
-				sndx = strstr(uniformName, "[");
-				sndx[1] = '0' + i;
-				me->lightDiffuse[i] = GET_UNIFORM(myProg, uniformName);
-				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightDiffuse[i]);
-
-
-				strcpy(uniformName, "lightspecular[0]");
-				sndx = strstr(uniformName, "[");
-				sndx[1] = '0' + i;
-				me->lightSpecular[i] = GET_UNIFORM(myProg, uniformName);
-				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpecular[i]);
+			strcpy(uniformName, "lightdiffuse[0]");
+			sndx = strstr(uniformName, "[");
+			sndx[1] = '0' + i;
+			me->lightDiffuse[i] = GET_UNIFORM(myProg, uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightDiffuse[i]);
 
 
-				strcpy(uniformName, "lightposition[0]");
-				sndx = strstr(uniformName, "[");
-				sndx[1] = '0' + i;
-				me->lightPosition[i] = GET_UNIFORM(myProg, uniformName);
-				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightPosition[i]);
+			strcpy(uniformName, "lightspecular[0]");
+			sndx = strstr(uniformName, "[");
+			sndx[1] = '0' + i;
+			me->lightSpecular[i] = GET_UNIFORM(myProg, uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpecular[i]);
 
 
-				// flag used to determine if we have to send light position info to this shader
-				if (me->lightPosition[i] != -1) me->haveLightInShader = true;
-
-				strcpy(uniformName, "lightspotDirection[0]");
-				sndx = strstr(uniformName, "[");
-				sndx[1] = '0' + i;
-				me->lightSpotDir[i] = GET_UNIFORM(myProg, uniformName);
-				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotDir[i]);
+			strcpy(uniformName, "lightposition[0]");
+			sndx = strstr(uniformName, "[");
+			sndx[1] = '0' + i;
+			me->lightPosition[i] = GET_UNIFORM(myProg, uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightPosition[i]);
 
 
-				strcpy(uniformName, "lightspotExponent[0]");
-				sndx = strstr(uniformName, "[");
-				sndx[1] = '0' + i;
-				me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg, uniformName);
-				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotBeamWidth[i]);
+			// flag used to determine if we have to send light position info to this shader
+			if (me->lightPosition[i] != -1) me->haveLightInShader = true;
+
+			strcpy(uniformName, "lightspotDirection[0]");
+			sndx = strstr(uniformName, "[");
+			sndx[1] = '0' + i;
+			me->lightSpotDir[i] = GET_UNIFORM(myProg, uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotDir[i]);
 
 
-				strcpy(uniformName, "lightspotCutoff[0]");
-				sndx = strstr(uniformName, "[");
-				sndx[1] = '0' + i;
-				me->lightSpotCutoffAngle[i] = GET_UNIFORM(myProg, uniformName);
-				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotCutoffAngle[i]);
+			strcpy(uniformName, "lightspotExponent[0]");
+			sndx = strstr(uniformName, "[");
+			sndx[1] = '0' + i;
+			me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg, uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotBeamWidth[i]);
 
 
-				strcpy(uniformName, "lightAttenuations[0]");
-				sndx = strstr(uniformName, "[");
-				sndx[1] = '0' + i;
-				me->lightAtten[i] = GET_UNIFORM(myProg, uniformName);
+			strcpy(uniformName, "lightspotCutoff[0]");
+			sndx = strstr(uniformName, "[");
+			sndx[1] = '0' + i;
+			me->lightSpotCutoffAngle[i] = GET_UNIFORM(myProg, uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotCutoffAngle[i]);
 
-				strcpy(uniformName, "lightRadius[0]");
-				sndx = strstr(uniformName, "[");
-				sndx[1] = '0' + i;
-				me->lightRadius[i] = GET_UNIFORM(myProg, uniformName);
-				//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
-			}
+			strcpy(uniformName, "lightAttenuations[0]");
+			sndx = strstr(uniformName, "[");
+			sndx[1] = '0' + i;
+			me->lightAtten[i] = GET_UNIFORM(myProg, uniformName);
+
+			strcpy(uniformName, "lightRadius[0]");
+			sndx = strstr(uniformName, "[");
+			sndx[1] = '0' + i;
+			me->lightRadius[i] = GET_UNIFORM(myProg, uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
+
+		}
 
 #else //USING_SHADER_LIGHT_ARRAY_METHOD
-        strcpy(uniformName,"fw_LightSource[0].");
-        for (i=0; i<MAX_LIGHTS; i++) {
-            /* go through and modify the array for each variable */
-            uniformName[15] = '0' + i;
+		strcpy(uniformName,"fw_LightSource[0].");
+		for (i=0; i<MAX_LIGHTS; i++) {
+			/* go through and modify the array for each variable */
+			uniformName[15] = '0' + i;
 
-            strcpy(&uniformName[18],"ambient");
+			strcpy(&uniformName[18],"ambient");
 
-            //ConsoleMessage ("have uniform name request :%s:",uniformName);
-            me->lightAmbient[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("have uniform name request :%s:",uniformName);
+			me->lightAmbient[i] = GET_UNIFORM(myProg,uniformName);
 
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightAmbient[i]);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightAmbient[i]);
 
-            strcpy(&uniformName[18],"diffuse");
-            me->lightDiffuse[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightDiffuse[i]);
-
-
-            strcpy(&uniformName[18],"specular");
-            me->lightSpecular[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpecular[i]);
+			strcpy(&uniformName[18],"diffuse");
+			me->lightDiffuse[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightDiffuse[i]);
 
 
-            strcpy(&uniformName[18],"position");
-            me->lightPosition[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightPosition[i]);
+			strcpy(&uniformName[18],"specular");
+			me->lightSpecular[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpecular[i]);
 
 
-            // flag used to determine if we have to send light position info to this shader
-            if (me->lightPosition[i] != -1) me->haveLightInShader = true;
-
-            strcpy(&uniformName[18],"spotDirection");
-            me->lightSpotDir[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotDir[i]);
+			strcpy(&uniformName[18],"position");
+			me->lightPosition[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightPosition[i]);
 
 
-            strcpy(&uniformName[18],"spotExponent");
-            me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotBeamWidth[i]);
+			// flag used to determine if we have to send light position info to this shader
+			if (me->lightPosition[i] != -1) me->haveLightInShader = true;
+
+			strcpy(&uniformName[18],"spotDirection");
+			me->lightSpotDir[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotDir[i]);
 
 
-            strcpy(&uniformName[18],"spotCutoff");
-            me->lightSpotCutoffAngle[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotCutoffAngle[i]);
+			strcpy(&uniformName[18],"spotExponent");
+			me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotBeamWidth[i]);
 
 
-            strcpy(&uniformName[18],"Attenuations");
-            me->lightAtten[i] = GET_UNIFORM(myProg,uniformName);
+			strcpy(&uniformName[18],"spotCutoff");
+			me->lightSpotCutoffAngle[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotCutoffAngle[i]);
 
-	//strcpy(&uniformName[18],"constantAttenuation");
-            //me->lightConstAtten[i] = GET_UNIFORM(myProg,uniformName);
-            ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightConstAtten[i]);
-            //
 
-            //strcpy(&uniformName[18],"linearAttenuation");
-            //me->lightLinAtten[i] = GET_UNIFORM(myProg,uniformName);
-            ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightLinAtten[i]);
-            //
+			strcpy(&uniformName[18],"Attenuations");
+			me->lightAtten[i] = GET_UNIFORM(myProg,uniformName);
 
-            //strcpy(&uniformName[18],"quadraticAttenuation");
-            //me->lightQuadAtten[i] = GET_UNIFORM(myProg,uniformName);
-            ////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
+		//strcpy(&uniformName[18],"constantAttenuation");
+			//me->lightConstAtten[i] = GET_UNIFORM(myProg,uniformName);
+			////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightConstAtten[i]);
+			//
 
-            strcpy(&uniformName[18],"lightRadius");
-            me->lightRadius[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
+			//strcpy(&uniformName[18],"linearAttenuation");
+			//me->lightLinAtten[i] = GET_UNIFORM(myProg,uniformName);
+			////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightLinAtten[i]);
+			//
+
+			//strcpy(&uniformName[18],"quadraticAttenuation");
+			//me->lightQuadAtten[i] = GET_UNIFORM(myProg,uniformName);
+			////ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
+
+			strcpy(&uniformName[18],"lightRadius");
+			me->lightRadius[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
 			//strcpy(&uniformName[18],"lightType");
-            //me->lightType[i] = GET_UNIFORM(myProg,uniformName);
-            //ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
+			//me->lightType[i] = GET_UNIFORM(myProg,uniformName);
+			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightQuadAtten[i]);
 
-        }
+		}
 #endif // USING_SHADER_LIGHT_ARRAY_METHOD
 		strcpy(uniformName,"lightType[0]");
 		for (i = 0; i < MAX_LIGHTS; i++) {
@@ -2859,9 +2854,9 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 			uniformName[10] = '0' + i;
 			me->lightType[i] = GET_UNIFORM(myProg, uniformName);
 		}
-    }
+	}
 
-    //if (me->haveLightInShader) ConsoleMessage ("this shader HAS lightfields");
+	//if (me->haveLightInShader) ConsoleMessage ("this shader HAS lightfields");
 
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
@@ -2875,18 +2870,18 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->TexCoords = GET_ATTRIB(myProg,"fw_MultiTexCoord0");
 
 
-    for (i=0; i<MAX_MULTITEXTURE; i++) {
-        char line[200];
-        sprintf (line,"fw_Texture_unit%d",i);
-        me->TextureUnit[i]= GET_UNIFORM(myProg,line);
-        sprintf (line,"fw_Texture_mode%d",i);
-        me->TextureMode[i] = GET_UNIFORM(myProg,line);
-        //printf ("   i %d tu %d mode %d\n",i,me->TextureUnit[i],me->TextureMode[i]);
+	for (i=0; i<MAX_MULTITEXTURE; i++) {
+		char line[200];
+		sprintf (line,"fw_Texture_unit%d",i);
+		me->TextureUnit[i]= GET_UNIFORM(myProg,line);
+		sprintf (line,"fw_Texture_mode%d",i);
+		me->TextureMode[i] = GET_UNIFORM(myProg,line);
+		//printf ("   i %d tu %d mode %d\n",i,me->TextureUnit[i],me->TextureMode[i]);
 
-    }
+	}
 
-    me->textureCount = GET_UNIFORM(myProg,"textureCount");
-    //printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
+	me->textureCount = GET_UNIFORM(myProg,"textureCount");
+	//printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
 
 
 	/* for FillProperties */
@@ -2898,14 +2893,14 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->hatchedBool = GET_UNIFORM(myProg,"hatched");
 	me->algorithm = GET_UNIFORM(myProg,"algorithm");
 
-    /* TextureCoordinateGenerator */
-    me->texCoordGenType = GET_UNIFORM(myProg,"fw_textureCoordGenType");
+	/* TextureCoordinateGenerator */
+	me->texCoordGenType = GET_UNIFORM(myProg,"fw_textureCoordGenType");
 
 
 	#ifdef VERBOSE
 	printf ("shader uniforms: vertex %d normal %d modelview %d projection %d\n",
 		me->Vertices, me->Normals, me->ModelViewMatrix, me->ProjectionMatrix);
-        printf ("hatchColour %d, hatchPercent %d",me->hatchColour, me->hatchPercent);
+    printf ("hatchColour %d, hatchPercent %d",me->hatchColour, me->hatchPercent);
 	#endif
 
 
@@ -2927,7 +2922,7 @@ static void handle_GeoLODRange(struct X3D_GeoLOD *node) {
 	/* try to see if we are closer than the range */
 	oldInRange = node->__inRange;
 
-    /* handle squares, as it is faster than doing square roots */
+	/* handle squares, as it is faster than doing square roots */
 	if((cx*cx+cy*cy+cz*cz) > (node->range * node->range)) {
 		node->__inRange = FALSE;
 	} else {
@@ -3062,26 +3057,26 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode, int layerid ) {
 	GLDOUBLE cfp = -DBL_MAX;
 	GLDOUBLE cnp = DBL_MAX;
 	GLDOUBLE MM[16];
-    bool doingGeoSpatial = false;
-    double bboxMovedCentreZ = 0.0;
-    double bboxSphereRadius = 0.0;
+	bool doingGeoSpatial = false;
+	double bboxMovedCentreZ = 0.0;
+	double bboxSphereRadius = 0.0;
 
 #ifdef VERBOSE
-    int smooger = 0;
+	int smooger = 0;
 #endif
 
 	int ci;
-    struct X3D_Node* rn = rootNode();
+	struct X3D_Node* rn = rootNode();
 	ttglobal tg = gglobal();
 	X3D_Viewer *viewer = ViewerByLayerId(layerid);
 
 
 
 	#ifdef VERBOSE
-    if (smooger == 0) {
-	printf ("have a bound viewpoint... lets calculate our near/far planes from it \n");
-	printf ("we are currently at %4.2f %4.2f %4.2f\n",Viewer()->currentPosInModel.x, Viewer()->currentPosInModel.y, Viewer()->currentPosInModel.z);
-    }
+	if (smooger == 0) {
+		printf ("have a bound viewpoint... lets calculate our near/far planes from it \n");
+		printf ("we are currently at %4.2f %4.2f %4.2f\n",Viewer()->currentPosInModel.x, Viewer()->currentPosInModel.y, Viewer()->currentPosInModel.z);
+	}
 	#endif
 
 
@@ -3096,79 +3091,79 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode, int layerid ) {
 		return;
 	}
 
-    if (vpnode->_nodeType == NODE_GeoViewpoint) {
-        doingGeoSpatial = true;
-    }
+	if (vpnode->_nodeType == NODE_GeoViewpoint) {
+		doingGeoSpatial = true;
+	}
 
 	if (rn == NULL) {
 		return; /* nothing to display yet */
 	}
 
-    /* if doing GeoSpatial, use radius to view model, rather than a rotated bounding box */
-    if (doingGeoSpatial) {
-        if ((rn->EXTENT_MAX_X - rn->EXTENT_MIN_X) > bboxSphereRadius) {
-            bboxSphereRadius = rn->EXTENT_MAX_X - rn->EXTENT_MIN_X;
-        }
-        if ((rn->EXTENT_MAX_Y - rn->EXTENT_MIN_Y) > bboxSphereRadius) {
-            bboxSphereRadius = rn->EXTENT_MAX_Y - rn->EXTENT_MIN_Y;
-        }
-        if ((rn->EXTENT_MAX_Z - rn->EXTENT_MIN_Z) > bboxSphereRadius) {
-            bboxSphereRadius = rn->EXTENT_MAX_Z - rn->EXTENT_MIN_Z;
-        }
-        bboxSphereRadius /=2.0; // diameter to radius
+	/* if doing GeoSpatial, use radius to view model, rather than a rotated bounding box */
+	if (doingGeoSpatial) {
+		if ((rn->EXTENT_MAX_X - rn->EXTENT_MIN_X) > bboxSphereRadius) {
+			bboxSphereRadius = rn->EXTENT_MAX_X - rn->EXTENT_MIN_X;
+		}
+		if ((rn->EXTENT_MAX_Y - rn->EXTENT_MIN_Y) > bboxSphereRadius) {
+			bboxSphereRadius = rn->EXTENT_MAX_Y - rn->EXTENT_MIN_Y;
+		}
+		if ((rn->EXTENT_MAX_Z - rn->EXTENT_MIN_Z) > bboxSphereRadius) {
+			bboxSphereRadius = rn->EXTENT_MAX_Z - rn->EXTENT_MIN_Z;
+		}
+		bboxSphereRadius /=2.0; // diameter to radius
 
 #ifdef VERBOSE
-        if (smooger == 0) {
-            ConsoleMessage ("bboxSphereRadius %lf",bboxSphereRadius);
-        }
+		if (smooger == 0) {
+			ConsoleMessage ("bboxSphereRadius %lf",bboxSphereRadius);
+		}
 #endif
 
-    }
+	}
 
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, MM);
 
-		#ifdef VERBOSE
-		printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",rootNode()->EXTENT_MAX_X, rootNode()->EXTENT_MIN_X,rootNode()->EXTENT_MAX_Y, rootNode()->EXTENT_MIN_Y,rootNode()->EXTENT_MAX_Z, rootNode()->EXTENT_MIN_Z);
+	#ifdef VERBOSE
+	printf ("rootNode extents x: %4.2f %4.2f  y:%4.2f %4.2f z: %4.2f %4.2f\n",rootNode()->EXTENT_MAX_X, rootNode()->EXTENT_MIN_X,rootNode()->EXTENT_MAX_Y, rootNode()->EXTENT_MIN_Y,rootNode()->EXTENT_MAX_Z, rootNode()->EXTENT_MIN_Z);
+	#endif
+
+	/* make up 8 vertices for our bounding box, and place them within our view */
+	moveAndRotateThisPoint(&bboxPoints[0], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
+	moveAndRotateThisPoint(&bboxPoints[1], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
+	moveAndRotateThisPoint(&bboxPoints[2], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
+	moveAndRotateThisPoint(&bboxPoints[3], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
+	moveAndRotateThisPoint(&bboxPoints[4], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
+	moveAndRotateThisPoint(&bboxPoints[5], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
+	moveAndRotateThisPoint(&bboxPoints[6], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
+	moveAndRotateThisPoint(&bboxPoints[7], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
+
+
+
+	for (ci=0; ci<8; ci++) {
+		bboxMovedCentreZ += bboxPoints[ci].z;
+
+		#ifdef XXVERBOSE
+		if (smooger == 0)
+		printf ("moved bbox node %d is %4.2f %4.2f %4.2f\n",ci,bboxPoints[ci].x, bboxPoints[ci].y, bboxPoints[ci].z);
 		#endif
 
-		/* make up 8 vertices for our bounding box, and place them within our view */
-        moveAndRotateThisPoint(&bboxPoints[0], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
-        moveAndRotateThisPoint(&bboxPoints[1], rn->EXTENT_MIN_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
-        moveAndRotateThisPoint(&bboxPoints[2], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
-        moveAndRotateThisPoint(&bboxPoints[3], rn->EXTENT_MIN_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
-        moveAndRotateThisPoint(&bboxPoints[4], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MIN_Z,MM);
-        moveAndRotateThisPoint(&bboxPoints[5], rn->EXTENT_MAX_X, rn->EXTENT_MIN_Y, rn->EXTENT_MAX_Z,MM);
-        moveAndRotateThisPoint(&bboxPoints[6], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MIN_Z,MM);
-        moveAndRotateThisPoint(&bboxPoints[7], rn->EXTENT_MAX_X, rn->EXTENT_MAX_Y, rn->EXTENT_MAX_Z,MM);
-
-
-
-		for (ci=0; ci<8; ci++) {
-            bboxMovedCentreZ += bboxPoints[ci].z;
-
-			#ifdef XXVERBOSE
-            if (smooger == 0)
-			printf ("moved bbox node %d is %4.2f %4.2f %4.2f\n",ci,bboxPoints[ci].x, bboxPoints[ci].y, bboxPoints[ci].z);
-			#endif
-
-            if (!doingGeoSpatial) {
-                if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
-                if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
-            }
+		if (!doingGeoSpatial) {
+			if (-(bboxPoints[ci].z) > cfp) cfp = -(bboxPoints[ci].z);
+			if (-(bboxPoints[ci].z) < cnp) cnp = -(bboxPoints[ci].z);
 		}
+	}
 
-    bboxMovedCentreZ /= 8.0; // average of 8 z values from bbox
+	bboxMovedCentreZ /= 8.0; // average of 8 z values from bbox
 
-    if (doingGeoSpatial) {
-        cnp = -bboxMovedCentreZ - bboxSphereRadius;
-        cfp = -bboxMovedCentreZ; // + bboxSphereRadius;
-    }
+	if (doingGeoSpatial) {
+		cnp = -bboxMovedCentreZ - bboxSphereRadius;
+		cfp = -bboxMovedCentreZ; // + bboxSphereRadius;
+	}
 
 #ifdef VERBOSE
-    if (smooger==0) {
-        ConsoleMessage ("centre of bbox is %lf Z away",bboxMovedCentreZ);
-        ConsoleMessage ("bboxMovedCentreZ minus bboxRadius %lf",-bboxMovedCentreZ - bboxSphereRadius);
-    }
+	if (smooger==0) {
+		ConsoleMessage ("centre of bbox is %lf Z away",bboxMovedCentreZ);
+		ConsoleMessage ("bboxMovedCentreZ minus bboxRadius %lf",-bboxMovedCentreZ - bboxSphereRadius);
+	}
 #endif
 
 	/* lets bound check here, both must be positive, and farPlane more than DEFAULT_NEARPLANE */
@@ -3187,28 +3182,28 @@ static void calculateNearFarplanes(struct X3D_Node *vpnode, int layerid ) {
 	#ifdef VERBOSE
 	if (smooger == 0) {
 
-        printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
-        //cnp = 0.1; cfp = 75345215.0 * 2.0;
-    }
+		printf ("cnp %lf cfp before leaving room for Background %lf\n",cnp,cfp);
+		//cnp = 0.1; cfp = 75345215.0 * 2.0;
+	}
 #endif
 
-    /* do we have a GeoViewpoint, and is the near plane about zero?                     */
-    /* we CAN have the issue if we have the world in an AABB, and we have one of the    */
-    /* corners of the AABB behind us; the near plane will be <1, but the surface        */
-    /* will still be really far away                                                    */
-    /*      In this case, we try and use the elevation to give us a hand                */
-    if ((cnp<1.0) && (vpnode->_nodeType == NODE_GeoViewpoint)) {
+	/* do we have a GeoViewpoint, and is the near plane about zero?                     */
+	/* we CAN have the issue if we have the world in an AABB, and we have one of the    */
+	/* corners of the AABB behind us; the near plane will be <1, but the surface        */
+	/* will still be really far away                                                    */
+	/*      In this case, we try and use the elevation to give us a hand                */
+	if ((cnp<1.0) && (vpnode->_nodeType == NODE_GeoViewpoint)) {
 #ifdef VERBOSE
-        cnp = Viewer()->currentPosInModel.z/16.0;
-        if (smooger == 0) {
-            ConsoleMessage ("vp height %lf moved height %lf posinModel %f",X3D_GEOVIEWPOINT(vpnode)->position.c[2],
-                                    X3D_GEOVIEWPOINT(vpnode)->__movedPosition.c[2],Viewer()->currentPosInModel.z);
-            smooger ++; if (smooger == 100) smooger = 0;
-        }
+		cnp = Viewer()->currentPosInModel.z/16.0;
+		if (smooger == 0) {
+			ConsoleMessage ("vp height %lf moved height %lf posinModel %f",X3D_GEOVIEWPOINT(vpnode)->position.c[2],
+									X3D_GEOVIEWPOINT(vpnode)->__movedPosition.c[2],Viewer()->currentPosInModel.z);
+			smooger ++; if (smooger == 100) smooger = 0;
+		}
 #endif
 #undef VERBOSE
 
-    }
+	}
 
 	/* lets use these values; leave room for a Background or TextureBackground node here */
 	viewer->nearPlane = min(cnp,DEFAULT_NEARPLANE);
@@ -3241,14 +3236,14 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 
 	/* is this a simple TextureTransform? */
 	if (textureNode->_nodeType == NODE_TextureTransform) {
-        //ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
+		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
 		struct X3D_TextureTransform  *ttt = (struct X3D_TextureTransform *) textureNode;
 		/*  Render transformations according to spec.*/
-        	FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-        	FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-        	FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
-        	FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-        	FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+		FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
+		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 
 	/* is this a MultiTextureTransform? */
 	} else  if (textureNode->_nodeType == NODE_MultiTextureTransform) {
@@ -3258,18 +3253,18 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 			/* is this a simple TextureTransform? */
 			if (ttt->_nodeType == NODE_TextureTransform) {
 				/*  Render transformations according to spec.*/
-        			FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-        			FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-        			FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
-        			FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-        			FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+				FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+				FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+				FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
+				FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+				FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
 			} else {
 				printf ("MultiTextureTransform expected a textureTransform for texture %d, got %d\n",
 					ttnum, ttt->_nodeType);
 			}
 		} else {
 			printf ("not enough textures in MultiTextureTransform....\n");
-        	}
+		}
 	} else {
 		printf ("expected a textureTransform node, got %d\n",textureNode->_nodeType);
 	}
@@ -3291,9 +3286,9 @@ void clear_shader_table()
 		int i;
 
 		for (i=0; i<vectorSize(p->myShaderTable); i++) {
-        		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
+			struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
 			FREE_IF_NZ(me);
-        	}
+		}
 		deleteVector (struct shaderTableEntry *,p->myShaderTable);
 		p->myShaderTable = newVector(struct shaderTableEntry *, 8);
 
@@ -3346,20 +3341,20 @@ bool fwl_initialize_GL()
 
 	gl_linewidth = gglobal()->Mainloop.gl_linewidth;
 
-    // dp pointSize in shaders on more modern OpenGL renderings
-    // keep Windows and Linux doing old way, as we have failures
-    // circa 2013 in this.
+	// dp pointSize in shaders on more modern OpenGL renderings
+	// keep Windows and Linux doing old way, as we have failures
+	// circa 2013 in this.
 
-    #if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
-    	#if defined (GL_PROGRAM_POINT_SIZE)
-    	glEnable(GL_PROGRAM_POINT_SIZE);
-    	#endif
-    	#if defined (GL_PROGRAM_POINT_SIZE_EXT)
-    	glEnable(GL_PROGRAM_POINT_SIZE_EXT);
-    	#endif
-    #else
+	#if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
+		#if defined (GL_PROGRAM_POINT_SIZE)
+		glEnable(GL_PROGRAM_POINT_SIZE);
+		#endif
+		#if defined (GL_PROGRAM_POINT_SIZE_EXT)
+		glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+		#endif
+	#else
 	glPointSize (gl_linewidth);
-    #endif
+	#endif
 
 	glLineWidth(gl_linewidth);
 
@@ -3368,10 +3363,10 @@ bool fwl_initialize_GL()
 
 
 	/*
-     * JAS - ALPHA testing for textures - right now we just use 0/1 alpha
-     * JAS   channel for textures - true alpha blending can come when we sort
-     * JAS   nodes.
-	 */
+	* JAS - ALPHA testing for textures - right now we just use 0/1 alpha
+	* JAS   channel for textures - true alpha blending can come when we sort
+	* JAS   nodes.
+	*/
 
 	glEnable(GL_BLEND);
 	FW_GL_BLENDFUNC(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -3403,14 +3398,14 @@ bool fwl_initialize_GL()
 	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start c");
 
 
-        /* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
-        FW_GL_GENTEXTURES (1,&tg->Textures.defaultBlankTexture);
-        glBindTexture (GL_TEXTURE_2D, tg->Textures.defaultBlankTexture);
-        FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
+	/* create an empty texture, defaultBlankTexture, to be used when a texture is loading, or if it fails */
+	FW_GL_GENTEXTURES (1,&tg->Textures.defaultBlankTexture);
+	glBindTexture (GL_TEXTURE_2D, tg->Textures.defaultBlankTexture);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	FW_GL_TEXIMAGE2D(GL_TEXTURE_2D, 0, GL_RGBA,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, blankTexture);
 
-        PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start d");
+	PRINT_GL_ERROR_IF_ANY("fwl_initialize_GL start d");
 
 	/* remove entries in the shader table, if they exist. Android, on "bring to front" will
 	   call this routine, and shaders will be re-created as they are needed to display geometry.
@@ -3421,9 +3416,9 @@ bool fwl_initialize_GL()
 		int i;
 
 		for (i=0; i<vectorSize(p->myShaderTable); i++) {
-        		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
+			struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,p->myShaderTable, i);
 			FREE_IF_NZ(me);
-        	}
+		}
 		deleteVector (struct shaderTableEntry *,p->myShaderTable);
 		p->myShaderTable = newVector(struct shaderTableEntry *, 8);
 
@@ -3480,7 +3475,7 @@ void fw_glMatrixMode(GLint mode) {
 
 void fw_glLoadIdentity(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-    //ConsoleMessage ("fw_glLoadIdentity, whichMode %d, tex %d",p->whichMode,GL_TEXTURE);
+	//ConsoleMessage ("fw_glLoadIdentity, whichMode %d, tex %d",p->whichMode,GL_TEXTURE);
 	loadIdentityMatrix(p->currentMatrix);
 	FW_GL_LOADMATRIX(p->currentMatrix);
 }
@@ -3512,10 +3507,10 @@ void fw_glPushMatrix(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	switch (p->whichMode) {
-	case GL_PROJECTION: p->currentMatrix = *PushMat(GL_PROJECTION, &p->projectionviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_ProjectionView); break;
-	case GL_MODELVIEW:  p->currentMatrix = *PushMat(GL_MODELVIEW, &p->modelviewTOS, MAX_LARGE_MATRIX_STACK, p->FW_ModelView); break;
-	case GL_TEXTURE:	p->currentMatrix = *PushMat(GL_TEXTURE, &p->textureviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_TextureView); break;
-	default:printf("wrong mode in popMatrix\n");
+		case GL_PROJECTION: p->currentMatrix = *PushMat(GL_PROJECTION, &p->projectionviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_ProjectionView); break;
+		case GL_MODELVIEW:  p->currentMatrix = *PushMat(GL_MODELVIEW, &p->modelviewTOS, MAX_LARGE_MATRIX_STACK, p->FW_ModelView); break;
+		case GL_TEXTURE:	p->currentMatrix = *PushMat(GL_TEXTURE, &p->textureviewTOS, MAX_SMALL_MATRIX_STACK, p->FW_TextureView); break;
+		default:printf("wrong mode in popMatrix\n");
 	}
 	p->maxStackUsed = max(p->maxStackUsed, p->modelviewTOS);
 	FW_GL_LOADMATRIX(p->currentMatrix);
@@ -3547,11 +3542,11 @@ void fw_glPopMatrix(void) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
 	switch (p->whichMode) {
-	case GL_PROJECTION: p->currentMatrix = *PopMat(GL_PROJECTION, &p->projectionviewTOS, p->FW_ProjectionView); break;
-	case GL_MODELVIEW:  p->currentMatrix = *PopMat(GL_MODELVIEW, &p->modelviewTOS, p->FW_ModelView); break;
-	case GL_TEXTURE:   p->currentMatrix = *PopMat(GL_TEXTURE, &p->textureviewTOS, p->FW_TextureView); break;
+		case GL_PROJECTION: p->currentMatrix = *PopMat(GL_PROJECTION, &p->projectionviewTOS, p->FW_ProjectionView); break;
+		case GL_MODELVIEW:  p->currentMatrix = *PopMat(GL_MODELVIEW, &p->modelviewTOS, p->FW_ModelView); break;
+		case GL_TEXTURE:   p->currentMatrix = *PopMat(GL_TEXTURE, &p->textureviewTOS, p->FW_TextureView); break;
 
-	default: printf ("wrong mode in popMatrix\n");
+		default: printf ("wrong mode in popMatrix\n");
 	}
 
  	FW_GL_LOADMATRIX(p->currentMatrix);
@@ -3703,14 +3698,14 @@ void fw_glScaled (GLDOUBLE x, GLDOUBLE y, GLDOUBLE z) {
 void fw_glScalef (float x, float y, float z) {
 	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
 
-//      printf ("glScalef(%5.4f %5.4f %5.4f)\n",x,y,z);
+//	printf ("glScalef(%5.4f %5.4f %5.4f)\n",x,y,z);
 
-        p->currentMatrix[0] *= x;   p->currentMatrix[4] *= y;   p->currentMatrix[8]  *= z;
-        p->currentMatrix[1] *= x;   p->currentMatrix[5] *= y;   p->currentMatrix[9]  *= z;
-        p->currentMatrix[2] *= x;   p->currentMatrix[6] *= y;   p->currentMatrix[10] *= z;
-        p->currentMatrix[3] *= x;   p->currentMatrix[7] *= y;   p->currentMatrix[11] *= z;
+	p->currentMatrix[0] *= x;   p->currentMatrix[4] *= y;   p->currentMatrix[8]  *= z;
+	p->currentMatrix[1] *= x;   p->currentMatrix[5] *= y;   p->currentMatrix[9]  *= z;
+	p->currentMatrix[2] *= x;   p->currentMatrix[6] *= y;   p->currentMatrix[10] *= z;
+	p->currentMatrix[3] *= x;   p->currentMatrix[7] *= y;   p->currentMatrix[11] *= z;
 
-        FW_GL_LOADMATRIX(p->currentMatrix);
+	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
 
@@ -3781,10 +3776,10 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	int i;
 	struct X3D_Node* rootnode;
 	#ifndef AQUA
-        char mystring[20];
+	char mystring[20];
 	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
-    //printf ("kill_oldWorld called...\n");
+	//printf ("kill_oldWorld called...\n");
 
 
 #ifdef VERBOSE
@@ -3819,9 +3814,9 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 
 
 
-    /* mark all rootNode children for Dispose */
+	/* mark all rootNode children for Dispose */
 	rootnode = rootNode();
-    if (rootnode != NULL) {
+	if (rootnode != NULL) {
 		if(rootnode->_nodeType == NODE_Proto){
 			unload_broto(X3D_PROTO(rootnode));
 		}else{
@@ -3870,8 +3865,8 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	//kill_status();
 	setMenuStatus(NULL);
 
-        /* any user defined Shader nodes - ComposedShader, PackagedShader, ProgramShader?? */
-        kill_userDefinedShaders();
+	/* any user defined Shader nodes - ComposedShader, PackagedShader, ProgramShader?? */
+	kill_userDefinedShaders();
 
 	/* free textures */
 /*
@@ -3886,7 +3881,7 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 #if !defined(EXCLUDE_EAI)
 	/* free EAI */
 	if (kill_EAI) {
-	       	/* shutdown_EAI(); */
+		/* shutdown_EAI(); */
 		fwlio_RxTx_control(CHANNEL_EAI, RxTx_STOP) ;
 	}
 #endif
@@ -3927,7 +3922,7 @@ void reset_Browser(){
 	// also don't erase browser metadata key,value pairs, which could be avatar state to be 
 	// carried over between room-scenes in multi-scene game
 	struct X3D_Node *rootnode = rootNode();
-    if (rootnode != NULL) {
+	if (rootnode != NULL) {
 		if( rootnode->_nodeType == NODE_Proto){
 			unload_broto(X3D_PROTO(rootnode)); //we still want a rootnode: empty and waiting for parsing (destroy in finalizeRenderSceneUpdateScene only on exit)
 			unload_globalParser();
@@ -4096,10 +4091,10 @@ void registerX3DNode(struct X3D_Node * tmp){
 	}
 
 
-/*
-if (filledHole) ConsoleMessage ("registerX3DNode, filled hole, now phc %d for type %s",p->potentialHoleCount,stringNodeType(tmp->_nodeType));
-if (!filledHole) ConsoleMessage ("registerX3DNode, no hole, phc %d for type %s",p->potentialHoleCount,stringNodeType(tmp->_nodeType));
-*/
+	/*
+	if (filledHole) ConsoleMessage ("registerX3DNode, filled hole, now phc %d for type %s",p->potentialHoleCount,stringNodeType(tmp->_nodeType));
+	if (!filledHole) ConsoleMessage ("registerX3DNode, no hole, phc %d for type %s",p->potentialHoleCount,stringNodeType(tmp->_nodeType));
+	*/
 
 	if (!filledHole) vector_pushBack(struct X3D_Node *, p->linearNodeTable, tmp);
 
@@ -5337,10 +5332,10 @@ BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,
 
 						switch(node->_nodeType)
 						{
-  							case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
-  							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
-  							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
-  							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
+							case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
+							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
+							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 						}
 						if (shader)
 							for(j=0; j!=vectorSize(shader->fields); ++j)
@@ -5673,20 +5668,20 @@ struct Shader_Script *getShader(struct X3D_Node *node){
 	struct Shader_Script *shader = NULL;
 	switch(node->_nodeType)
 	{
-  		case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
-  		case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
-  		case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
-  		case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
+		case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
+		case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+		case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
+		case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 	}
 	return shader;
 }
 void setShader(struct X3D_Node *node, struct Shader_Script *shader){
 	switch(node->_nodeType)
 	{
-  		case NODE_Script:         X3D_SCRIPT(node)->__scriptObj = (void *)shader; break;
-  		case NODE_ComposedShader: X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
-  		case NODE_ShaderProgram:  X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields = (void *)shader;; break;
-  		case NODE_PackagedShader: X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
+		case NODE_Script:         X3D_SCRIPT(node)->__scriptObj = (void *)shader; break;
+		case NODE_ComposedShader: X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
+		case NODE_ShaderProgram:  X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields = (void *)shader;; break;
+		case NODE_PackagedShader: X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
 	}
 
 }
@@ -6059,7 +6054,7 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 			*sp = (float) *dp;
 			sp ++; dp ++;
 		}
-        profile_start("sendmtx");
+		profile_start("sendmtx");
 		GLUNIFORMMATRIX4FV(TextureMatrix,1,GL_FALSE,spval);
 		profile_end("sendmtx");
 	}
@@ -6067,7 +6062,7 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 
 	/* send in the NormalMatrix */
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
-                               		  leftmost 3x3 of gl_ModelViewMatrix */
+			  leftmost 3x3 of gl_ModelViewMatrix */
 	if (NormalMatrix != -1) {
 		float normMat[9];
 		dp = p->FW_ModelView[p->modelviewTOS];
@@ -6144,30 +6139,30 @@ if (me->myMat != -1) { GLUNIFORM1I(me->myMat,myVal);}
 
 
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
-    struct matpropstruct *myap = getAppearanceProperties();
-    struct fw_MaterialParameters *fw_FrontMaterial;
+	struct matpropstruct *myap = getAppearanceProperties();
+	struct fw_MaterialParameters *fw_FrontMaterial;
 	struct fw_MaterialParameters *fw_BackMaterial;
 
-    if (!myap) return;
-    fw_FrontMaterial = &myap->fw_FrontMaterial;
-    fw_BackMaterial = &myap->fw_BackMaterial;
+	if (!myap) return;
+	fw_FrontMaterial = &myap->fw_FrontMaterial;
+	fw_BackMaterial = &myap->fw_BackMaterial;
 
 
 	/* go through all of the Uniforms for this shader */
 
-    /* ConsoleMessage ("sending in front diffuse %f %f %f %f ambient %f %f %f %f spec %f %f %f %f emission %f %f %f %f, shin %f",
-                    fw_FrontMaterial.diffuse[0],fw_FrontMaterial.diffuse[1],fw_FrontMaterial.diffuse[2],fw_FrontMaterial.diffuse[3],
-                    fw_FrontMaterial.ambient[0],fw_FrontMaterial.ambient[1],fw_FrontMaterial.ambient[2],fw_FrontMaterial.ambient[3],
-                    fw_FrontMaterial.specular[0],fw_FrontMaterial.specular[1],fw_FrontMaterial.specular[2],fw_FrontMaterial.specular[3],
-                    fw_FrontMaterial.emission[0],fw_FrontMaterial.emission[1],fw_FrontMaterial.emission[2],fw_FrontMaterial.emission[3],
-                    fw_FrontMaterial.shininess);
+	/* ConsoleMessage ("sending in front diffuse %f %f %f %f ambient %f %f %f %f spec %f %f %f %f emission %f %f %f %f, shin %f",
+					fw_FrontMaterial.diffuse[0],fw_FrontMaterial.diffuse[1],fw_FrontMaterial.diffuse[2],fw_FrontMaterial.diffuse[3],
+					fw_FrontMaterial.ambient[0],fw_FrontMaterial.ambient[1],fw_FrontMaterial.ambient[2],fw_FrontMaterial.ambient[3],
+					fw_FrontMaterial.specular[0],fw_FrontMaterial.specular[1],fw_FrontMaterial.specular[2],fw_FrontMaterial.specular[3],
+					fw_FrontMaterial.emission[0],fw_FrontMaterial.emission[1],fw_FrontMaterial.emission[2],fw_FrontMaterial.emission[3],
+					fw_FrontMaterial.shininess);
 
-ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f %f %f %f emission %f %f %f %f, shin %f",
-                fw_BackMaterial.diffuse[0],fw_BackMaterial.diffuse[1],fw_BackMaterial.diffuse[2],fw_BackMaterial.diffuse[3],
-                fw_BackMaterial.ambient[0],fw_BackMaterial.ambient[1],fw_BackMaterial.ambient[2],fw_BackMaterial.ambient[3],
-                fw_BackMaterial.specular[0],fw_BackMaterial.specular[1],fw_BackMaterial.specular[2],fw_BackMaterial.specular[3],
-                fw_BackMaterial.emission[0],fw_BackMaterial.emission[1],fw_BackMaterial.emission[2],fw_BackMaterial.emission[3],
-                fw_BackMaterial.shininess);
+	ConsoleMessage ("sending in back diffuse %f %f %f %f ambient %f %f %f %f spec %f %f %f %f emission %f %f %f %f, shin %f",
+				fw_BackMaterial.diffuse[0],fw_BackMaterial.diffuse[1],fw_BackMaterial.diffuse[2],fw_BackMaterial.diffuse[3],
+				fw_BackMaterial.ambient[0],fw_BackMaterial.ambient[1],fw_BackMaterial.ambient[2],fw_BackMaterial.ambient[3],
+				fw_BackMaterial.specular[0],fw_BackMaterial.specular[1],fw_BackMaterial.specular[2],fw_BackMaterial.specular[3],
+				fw_BackMaterial.emission[0],fw_BackMaterial.emission[1],fw_BackMaterial.emission[2],fw_BackMaterial.emission[3],
+				fw_BackMaterial.shininess);
 */
 
 PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
@@ -6189,91 +6184,91 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 
 	if (me->haveLightInShader) sendLightInfo(me);
 
-    /* FillProperties, LineProperty lineType */
-    #if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
+	/* FillProperties, LineProperty lineType */
+	#if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
 	SEND_FLOAT(myPointSize,myap->pointSize);
-    #else
+	#else
 	glPointSize(myap->pointSize > 0 ? myap->pointSize : 1);
-    #endif
+	#endif
 
 	profile_start("sendmat");
-    //ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
-    SEND_INT(filledBool,myap->filledBool);
-    SEND_INT(hatchedBool,myap->hatchedBool);
-    SEND_INT(algorithm,myap->algorithm);
-    SEND_VEC4(hatchColour,myap->hatchColour);
-    SEND_VEC2(hatchScale,myap->hatchScale);
-    SEND_VEC2(hatchPercent,myap->hatchPercent);
+	//ConsoleMessage ("rlp %d %d %d %d",me->hatchPercent,me->filledBool,me->hatchedBool,me->algorithm,me->hatchColour);
+	SEND_INT(filledBool,myap->filledBool);
+	SEND_INT(hatchedBool,myap->hatchedBool);
+	SEND_INT(algorithm,myap->algorithm);
+	SEND_VEC4(hatchColour,myap->hatchColour);
+	SEND_VEC2(hatchScale,myap->hatchScale);
+	SEND_VEC2(hatchPercent,myap->hatchPercent);
 
-    //TextureCoordinateGenerator
-    SEND_INT(texCoordGenType,myap->texCoordGeneratorType);
+	//TextureCoordinateGenerator
+	SEND_INT(texCoordGenType,myap->texCoordGeneratorType);
 	profile_end("sendmat");
 	PRINT_GL_ERROR_IF_ANY("END sendMaterialsToShader");
 }
 
 void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4],
-                      GLDOUBLE out[4])
+					GLDOUBLE out[4])
 {
-    int i;
+	int i;
 
-    for (i=0; i<4; i++) {
-        out[i] =
-            in[0] * matrix[0*4+i] +
-            in[1] * matrix[1*4+i] +
-            in[2] * matrix[2*4+i] +
-            in[3] * matrix[3*4+i];
-    }
+	for (i=0; i<4; i++) {
+		out[i] =
+			in[0] * matrix[0*4+i] +
+			in[1] * matrix[1*4+i] +
+			in[2] * matrix[2*4+i] +
+			in[3] * matrix[3*4+i];
+	}
 }
 
 
 void fw_gluProject
 (GLDOUBLE objx, GLDOUBLE objy, GLDOUBLE objz,
-	      const GLDOUBLE modelMatrix[16],
-	      const GLDOUBLE projMatrix[16],
-              const GLint viewport[4],
-	      GLDOUBLE *winx, GLDOUBLE *winy, GLDOUBLE *winz)
+		const GLDOUBLE modelMatrix[16],
+		const GLDOUBLE projMatrix[16],
+		const GLint viewport[4],
+		GLDOUBLE *winx, GLDOUBLE *winy, GLDOUBLE *winz)
 {
-    GLDOUBLE in[4];
-    GLDOUBLE out[4];
+	GLDOUBLE in[4];
+	GLDOUBLE out[4];
 
-    in[0]=objx;
-    in[1]=objy;
-    in[2]=objz;
-    in[3]=1.0;
-    __gluMultMatrixVecd(modelMatrix, in, out);
-    __gluMultMatrixVecd(projMatrix, out, in);
-    if (in[3] == 0.0) return;
-    in[0] /= in[3];
-    in[1] /= in[3];
-    in[2] /= in[3];
-    /* Map x, y and z to range 0-1 */
-    in[0] = in[0] * 0.5 + 0.5;
-    in[1] = in[1] * 0.5 + 0.5;
-    in[2] = in[2] * 0.5 + 0.5;
+	in[0]=objx;
+	in[1]=objy;
+	in[2]=objz;
+	in[3]=1.0;
+	__gluMultMatrixVecd(modelMatrix, in, out);
+	__gluMultMatrixVecd(projMatrix, out, in);
+	if (in[3] == 0.0) return;
+	in[0] /= in[3];
+	in[1] /= in[3];
+	in[2] /= in[3];
+	/* Map x, y and z to range 0-1 */
+	in[0] = in[0] * 0.5 + 0.5;
+	in[1] = in[1] * 0.5 + 0.5;
+	in[2] = in[2] * 0.5 + 0.5;
 
-    /* Map x,y to viewport */
-    in[0] = in[0] * viewport[2] + viewport[0];
-    in[1] = in[1] * viewport[3] + viewport[1];
+	/* Map x,y to viewport */
+	in[0] = in[0] * viewport[2] + viewport[0];
+	in[1] = in[1] * viewport[3] + viewport[1];
 
-    *winx=in[0];
-    *winy=in[1];
-    *winz=in[2];
+	*winx=in[0];
+	*winy=in[1];
+	*winz=in[2];
 }
 
 static void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],
-                                GLDOUBLE r[16])
+					GLDOUBLE r[16])
 {
-    int i, j;
+	int i, j;
 
-    for (i = 0; i < 4; i++) {
-        for (j = 0; j < 4; j++) {
-            r[i*4+j] =
-                a[i*4+0]*b[0*4+j] +
-                a[i*4+1]*b[1*4+j] +
-                a[i*4+2]*b[2*4+j] +
-                a[i*4+3]*b[3*4+j];
-        }
-    }
+	for (i = 0; i < 4; i++) {
+		for (j = 0; j < 4; j++) {
+			r[i*4+j] =
+				a[i*4+0]*b[0*4+j] +
+				a[i*4+1]*b[1*4+j] +
+				a[i*4+2]*b[2*4+j] +
+				a[i*4+3]*b[3*4+j];
+		}
+	}
 }
 
 
@@ -6283,52 +6278,52 @@ static void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],
 */
 int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16])
 {
-    GLDOUBLE inv[16], det;
-    int i;
+	GLDOUBLE inv[16], det;
+	int i;
 
-    inv[0] =   m[5]*m[10]*m[15] - m[5]*m[11]*m[14] - m[9]*m[6]*m[15]
-             + m[9]*m[7]*m[14] + m[13]*m[6]*m[11] - m[13]*m[7]*m[10];
-    inv[4] =  -m[4]*m[10]*m[15] + m[4]*m[11]*m[14] + m[8]*m[6]*m[15]
-             - m[8]*m[7]*m[14] - m[12]*m[6]*m[11] + m[12]*m[7]*m[10];
-    inv[8] =   m[4]*m[9]*m[15] - m[4]*m[11]*m[13] - m[8]*m[5]*m[15]
-             + m[8]*m[7]*m[13] + m[12]*m[5]*m[11] - m[12]*m[7]*m[9];
-    inv[12] = -m[4]*m[9]*m[14] + m[4]*m[10]*m[13] + m[8]*m[5]*m[14]
-             - m[8]*m[6]*m[13] - m[12]*m[5]*m[10] + m[12]*m[6]*m[9];
-    inv[1] =  -m[1]*m[10]*m[15] + m[1]*m[11]*m[14] + m[9]*m[2]*m[15]
-             - m[9]*m[3]*m[14] - m[13]*m[2]*m[11] + m[13]*m[3]*m[10];
-    inv[5] =   m[0]*m[10]*m[15] - m[0]*m[11]*m[14] - m[8]*m[2]*m[15]
-             + m[8]*m[3]*m[14] + m[12]*m[2]*m[11] - m[12]*m[3]*m[10];
-    inv[9] =  -m[0]*m[9]*m[15] + m[0]*m[11]*m[13] + m[8]*m[1]*m[15]
-             - m[8]*m[3]*m[13] - m[12]*m[1]*m[11] + m[12]*m[3]*m[9];
-    inv[13] =  m[0]*m[9]*m[14] - m[0]*m[10]*m[13] - m[8]*m[1]*m[14]
-             + m[8]*m[2]*m[13] + m[12]*m[1]*m[10] - m[12]*m[2]*m[9];
-    inv[2] =   m[1]*m[6]*m[15] - m[1]*m[7]*m[14] - m[5]*m[2]*m[15]
-             + m[5]*m[3]*m[14] + m[13]*m[2]*m[7] - m[13]*m[3]*m[6];
-    inv[6] =  -m[0]*m[6]*m[15] + m[0]*m[7]*m[14] + m[4]*m[2]*m[15]
-             - m[4]*m[3]*m[14] - m[12]*m[2]*m[7] + m[12]*m[3]*m[6];
-    inv[10] =  m[0]*m[5]*m[15] - m[0]*m[7]*m[13] - m[4]*m[1]*m[15]
-             + m[4]*m[3]*m[13] + m[12]*m[1]*m[7] - m[12]*m[3]*m[5];
-    inv[14] = -m[0]*m[5]*m[14] + m[0]*m[6]*m[13] + m[4]*m[1]*m[14]
-             - m[4]*m[2]*m[13] - m[12]*m[1]*m[6] + m[12]*m[2]*m[5];
-    inv[3] =  -m[1]*m[6]*m[11] + m[1]*m[7]*m[10] + m[5]*m[2]*m[11]
-             - m[5]*m[3]*m[10] - m[9]*m[2]*m[7] + m[9]*m[3]*m[6];
-    inv[7] =   m[0]*m[6]*m[11] - m[0]*m[7]*m[10] - m[4]*m[2]*m[11]
-             + m[4]*m[3]*m[10] + m[8]*m[2]*m[7] - m[8]*m[3]*m[6];
-    inv[11] = -m[0]*m[5]*m[11] + m[0]*m[7]*m[9] + m[4]*m[1]*m[11]
-             - m[4]*m[3]*m[9] - m[8]*m[1]*m[7] + m[8]*m[3]*m[5];
-    inv[15] =  m[0]*m[5]*m[10] - m[0]*m[6]*m[9] - m[4]*m[1]*m[10]
-             + m[4]*m[2]*m[9] + m[8]*m[1]*m[6] - m[8]*m[2]*m[5];
+	inv[0] =   m[5]*m[10]*m[15] - m[5]*m[11]*m[14] - m[9]*m[6]*m[15]
+				+ m[9]*m[7]*m[14] + m[13]*m[6]*m[11] - m[13]*m[7]*m[10];
+	inv[4] =  -m[4]*m[10]*m[15] + m[4]*m[11]*m[14] + m[8]*m[6]*m[15]
+				- m[8]*m[7]*m[14] - m[12]*m[6]*m[11] + m[12]*m[7]*m[10];
+	inv[8] =   m[4]*m[9]*m[15] - m[4]*m[11]*m[13] - m[8]*m[5]*m[15]
+				+ m[8]*m[7]*m[13] + m[12]*m[5]*m[11] - m[12]*m[7]*m[9];
+	inv[12] = -m[4]*m[9]*m[14] + m[4]*m[10]*m[13] + m[8]*m[5]*m[14]
+				- m[8]*m[6]*m[13] - m[12]*m[5]*m[10] + m[12]*m[6]*m[9];
+	inv[1] =  -m[1]*m[10]*m[15] + m[1]*m[11]*m[14] + m[9]*m[2]*m[15]
+				- m[9]*m[3]*m[14] - m[13]*m[2]*m[11] + m[13]*m[3]*m[10];
+	inv[5] =   m[0]*m[10]*m[15] - m[0]*m[11]*m[14] - m[8]*m[2]*m[15]
+				+ m[8]*m[3]*m[14] + m[12]*m[2]*m[11] - m[12]*m[3]*m[10];
+	inv[9] =  -m[0]*m[9]*m[15] + m[0]*m[11]*m[13] + m[8]*m[1]*m[15]
+				- m[8]*m[3]*m[13] - m[12]*m[1]*m[11] + m[12]*m[3]*m[9];
+	inv[13] =  m[0]*m[9]*m[14] - m[0]*m[10]*m[13] - m[8]*m[1]*m[14]
+				+ m[8]*m[2]*m[13] + m[12]*m[1]*m[10] - m[12]*m[2]*m[9];
+	inv[2] =   m[1]*m[6]*m[15] - m[1]*m[7]*m[14] - m[5]*m[2]*m[15]
+				+ m[5]*m[3]*m[14] + m[13]*m[2]*m[7] - m[13]*m[3]*m[6];
+	inv[6] =  -m[0]*m[6]*m[15] + m[0]*m[7]*m[14] + m[4]*m[2]*m[15]
+				- m[4]*m[3]*m[14] - m[12]*m[2]*m[7] + m[12]*m[3]*m[6];
+	inv[10] =  m[0]*m[5]*m[15] - m[0]*m[7]*m[13] - m[4]*m[1]*m[15]
+				+ m[4]*m[3]*m[13] + m[12]*m[1]*m[7] - m[12]*m[3]*m[5];
+	inv[14] = -m[0]*m[5]*m[14] + m[0]*m[6]*m[13] + m[4]*m[1]*m[14]
+				- m[4]*m[2]*m[13] - m[12]*m[1]*m[6] + m[12]*m[2]*m[5];
+	inv[3] =  -m[1]*m[6]*m[11] + m[1]*m[7]*m[10] + m[5]*m[2]*m[11]
+				- m[5]*m[3]*m[10] - m[9]*m[2]*m[7] + m[9]*m[3]*m[6];
+	inv[7] =   m[0]*m[6]*m[11] - m[0]*m[7]*m[10] - m[4]*m[2]*m[11]
+				+ m[4]*m[3]*m[10] + m[8]*m[2]*m[7] - m[8]*m[3]*m[6];
+	inv[11] = -m[0]*m[5]*m[11] + m[0]*m[7]*m[9] + m[4]*m[1]*m[11]
+				- m[4]*m[3]*m[9] - m[8]*m[1]*m[7] + m[8]*m[3]*m[5];
+	inv[15] =  m[0]*m[5]*m[10] - m[0]*m[6]*m[9] - m[4]*m[1]*m[10]
+				+ m[4]*m[2]*m[9] + m[8]*m[1]*m[6] - m[8]*m[2]*m[5];
 
-    det = m[0]*inv[0] + m[1]*inv[4] + m[2]*inv[8] + m[3]*inv[12];
-    if (det == 0)
-        return GL_FALSE;
+	det = m[0]*inv[0] + m[1]*inv[4] + m[2]*inv[8] + m[3]*inv[12];
+	if (det == 0)
+		return GL_FALSE;
 
-    det = 1.0 / det;
+	det = 1.0 / det;
 
-    for (i = 0; i < 16; i++)
-        invOut[i] = inv[i] * det;
+	for (i = 0; i < 16; i++)
+		invOut[i] = inv[i] * det;
 
-    return GL_TRUE;
+	return GL_TRUE;
 }
 
 
@@ -6336,41 +6331,41 @@ int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16])
 void fw_gluUnProject(GLDOUBLE winx, GLDOUBLE winy, GLDOUBLE winz,
 		const GLDOUBLE modelMatrix[16],
 		const GLDOUBLE projMatrix[16],
-                const GLint viewport[4],
-	        GLDOUBLE *objx, GLDOUBLE *objy, GLDOUBLE *objz)
+		const GLint viewport[4],
+		GLDOUBLE *objx, GLDOUBLE *objy, GLDOUBLE *objz)
 {
 	/* https://www.opengl.org/sdk/docs/man2/xhtml/gluUnProject.xml
 	FLOPs 196 double: full matmult 64, full mat inverse 102, full transform 16, miscalaneous 8
 	*/
-    GLDOUBLE finalMatrix[16];
-    GLDOUBLE in[4];
-    GLDOUBLE out[4];
+	GLDOUBLE finalMatrix[16];
+	GLDOUBLE in[4];
+	GLDOUBLE out[4];
 
-    __gluMultMatricesd(modelMatrix, projMatrix, finalMatrix);
-    if (!__gluInvertMatrixd(finalMatrix, finalMatrix)) return;
+	__gluMultMatricesd(modelMatrix, projMatrix, finalMatrix);
+	if (!__gluInvertMatrixd(finalMatrix, finalMatrix)) return;
 
-    in[0]=winx;
-    in[1]=winy;
-    in[2]=winz;
-    in[3]=1.0;
+	in[0]=winx;
+	in[1]=winy;
+	in[2]=winz;
+	in[3]=1.0;
 
-    /* Map x and y from window coordinates */
-    in[0] = (in[0] - viewport[0]) / viewport[2];
-    in[1] = (in[1] - viewport[1]) / viewport[3];
+	/* Map x and y from window coordinates */
+	in[0] = (in[0] - viewport[0]) / viewport[2];
+	in[1] = (in[1] - viewport[1]) / viewport[3];
 
-    /* Map to range -1 to 1 */
-    in[0] = in[0] * 2 - 1;
-    in[1] = in[1] * 2 - 1;
-    in[2] = in[2] * 2 - 1;
+	/* Map to range -1 to 1 */
+	in[0] = in[0] * 2 - 1;
+	in[1] = in[1] * 2 - 1;
+	in[2] = in[2] * 2 - 1;
 
-    __gluMultMatrixVecd(finalMatrix, in, out);
-    if (out[3] == 0.0) return;
-    out[0] /= out[3];
-    out[1] /= out[3];
-    out[2] /= out[3];
-    *objx = out[0];
-    *objy = out[1];
-    *objz = out[2];
+	__gluMultMatrixVecd(finalMatrix, in, out);
+	if (out[3] == 0.0) return;
+	out[0] /= out[3];
+	out[1] /= out[3];
+	out[2] /= out[3];
+	*objx = out[0];
+	*objy = out[1];
+	*objz = out[2];
 }
 
 
@@ -6440,29 +6435,29 @@ void fw_gluPerspective(GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE 
 /* testing... */
 {
 	GLDOUBLE m[16];
-    GLDOUBLE sine, cotangent, deltaZ;
-    GLDOUBLE radians = fovy / 2.0 * M_PI / 180.0;
+	GLDOUBLE sine, cotangent, deltaZ;
+	GLDOUBLE radians = fovy / 2.0 * M_PI / 180.0;
 
-    deltaZ = zFar - zNear;
-    sine = sin(radians);
-    if ((deltaZ == 0) || (sine == 0) || (aspect == 0)) {
-        return;
-    }
-    cotangent = cos(radians) / sine;
+	deltaZ = zFar - zNear;
+	sine = sin(radians);
+	if ((deltaZ == 0) || (sine == 0) || (aspect == 0)) {
+		return;
+	}
+	cotangent = cos(radians) / sine;
 
 	loadIdentityMatrix(m); //(&m);
-    //__gluMakeIdentityd(&m[0][0]);
-    m[0*4+0] = cotangent / aspect;
-    m[1*4+1] = cotangent;
-    m[2*4+2] = -(zFar + zNear) / deltaZ;
-    m[2*4+3] = -1;
-    m[3*4+2] = -2 * zNear * zFar / deltaZ;
-    m[3*4+3] = 0;
+	//__gluMakeIdentityd(&m[0][0]);
+	m[0*4+0] = cotangent / aspect;
+	m[1*4+1] = cotangent;
+	m[2*4+2] = -(zFar + zNear) / deltaZ;
+	m[2*4+3] = -1;
+	m[3*4+2] = -2 * zNear * zFar / deltaZ;
+	m[3*4+3] = 0;
 	matmultiplyFULL(m,m,dp);
 	if(method==2)
-	  FW_GL_LOADMATRIX(m);
+		FW_GL_LOADMATRIX(m);
 
-    //glMultMatrixd(&m[0][0]);
+	//glMultMatrixd(&m[0][0]);
 }
 	#endif
 
@@ -6561,12 +6556,12 @@ static void
 mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m)
 {
  /* http://www.songho.ca/opengl/gl_projectionmatrix.html shows derivation*/
-   GLDOUBLE x = (2.0*nearZ) / (right-left);
-   GLDOUBLE y = (2.0*nearZ) / (top-bottom);
-   GLDOUBLE a = (right+left) / (right-left);
-   GLDOUBLE b = (top+bottom) / (top-bottom);
-   GLDOUBLE c = -(farZ+nearZ) / ( farZ-nearZ);
-   GLDOUBLE d = -(2.0F*farZ*nearZ) / (farZ-nearZ);
+	GLDOUBLE x = (2.0*nearZ) / (right-left);
+	GLDOUBLE y = (2.0*nearZ) / (top-bottom);
+	GLDOUBLE a = (right+left) / (right-left);
+	GLDOUBLE b = (top+bottom) / (top-bottom);
+	GLDOUBLE c = -(farZ+nearZ) / ( farZ-nearZ);
+	GLDOUBLE d = -(2.0F*farZ*nearZ) / (farZ-nearZ);
 
 	/* printf ("mesa_Frustum (%lf, %lf, %lf, %lf, %lf, %lf)\n",left,right,bottom,top,nearZ, farZ); */
 	m[0] = x;
@@ -6591,10 +6586,10 @@ mesa_Frustum(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOU
 /*
 
 #define M(row,col)  m[col*4+row]
-   M(0,0) = x;     M(0,1) = 0.0F;  M(0,2) = a;      M(0,3) = 0.0F;
-   M(1,0) = 0.0F;  M(1,1) = y;     M(1,2) = b;      M(1,3) = 0.0F;
-   M(2,0) = 0.0F;  M(2,1) = 0.0F;  M(2,2) = c;      M(2,3) = d;
-   M(3,0) = 0.0F;  M(3,1) = 0.0F;  M(3,2) = -1.0F;  M(3,3) = 0.0F;
+	M(0,0) = x;     M(0,1) = 0.0F;  M(0,2) = a;      M(0,3) = 0.0F;
+	M(1,0) = 0.0F;  M(1,1) = y;     M(1,2) = b;      M(1,3) = 0.0F;
+	M(2,0) = 0.0F;  M(2,1) = 0.0F;  M(2,2) = c;      M(2,3) = d;
+	M(3,0) = 0.0F;  M(3,1) = 0.0F;  M(3,2) = -1.0F;  M(3,3) = 0.0F;
 #undef M
 */
 }
@@ -6606,24 +6601,24 @@ static void
 mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m)
 {
 #define M(row,col)  m[col*4+row]
-   M(0,0) = 2.0F / (right-left);
-   M(0,1) = 0.0F;
-   M(0,2) = 0.0F;
-   M(0,3) = -(right+left) / (right-left);
+	M(0,0) = 2.0F / (right-left);
+	M(0,1) = 0.0F;
+	M(0,2) = 0.0F;
+	M(0,3) = -(right+left) / (right-left);
 
-   M(1,0) = 0.0F;
-   M(1,1) = 2.0F / (top-bottom);
-   M(1,2) = 0.0F;
-   M(1,3) = -(top+bottom) / (top-bottom);
+	M(1,0) = 0.0F;
+	M(1,1) = 2.0F / (top-bottom);
+	M(1,2) = 0.0F;
+	M(1,3) = -(top+bottom) / (top-bottom);
 
-   M(2,0) = 0.0F;
-   M(2,1) = 0.0F;
-   M(2,2) = -2.0F / (farZ-nearZ);
-   M(2,3) = -(farZ+nearZ) / (farZ-nearZ);
+	M(2,0) = 0.0F;
+	M(2,1) = 0.0F;
+	M(2,2) = -2.0F / (farZ-nearZ);
+	M(2,3) = -(farZ+nearZ) / (farZ-nearZ);
 
-   M(3,0) = 0.0F;
-   M(3,1) = 0.0F;
-   M(3,2) = 0.0F;
-   M(3,3) = 1.0F;
+	M(3,0) = 0.0F;
+	M(3,1) = 0.0F;
+	M(3,2) = 0.0F;
+	M(3,3) = 1.0F;
 #undef M
 }

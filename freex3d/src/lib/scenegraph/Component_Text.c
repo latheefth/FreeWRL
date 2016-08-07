@@ -65,7 +65,7 @@ X3D Text Component
 #define XRES 96
 #define YRES 96
 #define PPI 72
-#define POINTSIZE 20
+#define POINTSIZE 200  //20 before forced TTF hinting, which triggered tesselation combiner calls on intersections
 
 
 #define TOPTOBOTTOM (fsparam & 0x04)
@@ -1785,6 +1785,63 @@ p->myff = 4;
 						fprintf(fptris," ] }}}\n");
 						fprintf(fptris," ]}");
 						fclose(fptris);
+						// original closed polygon as 1 face IFS
+						fptris = fopen("test_glyph_polygon.wrl","w+");
+						fprintf(fptris,"%s\n","#VRML V2.0 utf8");
+						fprintf(fptris,"Transform {\n children [\n  Shape {\n   appearance Appearance { material Material { diffuseColor .5 .5 .5 }}\n");
+						fprintf(fptris,"   geometry IndexedFaceSet { solid FALSE convex FALSE \n");
+						fprintf(fptris,"   coordIndex ");
+						//indexes
+						fprintf(fptris,"[");
+						for(ii=0;ii<p->FW_RIA_indx;ii++){
+								fprintf(fptris," %d",ii);
+						}
+						fprintf(fptris," -1");
+						fprintf(fptris,"]\n");
+
+						fprintf(fptris,"coord Coordinate { \n");
+						fprintf(fptris,"    point [");
+						//we use FW_RIA_indx instead of IFS_Coord_count to print out the coords:
+						//  FW_RIA_indx includes contour points dropped by tesselation Combiner, 
+						//    that are still in actualCoords, and the indexing above needs as filler 
+						//    in order for the captured indexing to still make sense
+						//  IFS_Coord_count: its 3 x number of triangles, but doesn't know how long actualCoord is
+						//     that its indexes refer to
+						for(ii=0;ii<p->FW_RIA_indx;ii++){
+							for(jj=0;jj<3;jj++){
+								fprintf(fptris," %f",p->FW_rep_->actualCoord[ii*3 + jj]);
+							}
+							fprintf(fptris,",");
+						}
+
+						fprintf(fptris," ] }}}\n");
+						fprintf(fptris," ]}");
+						//fclose(fptris);
+
+						// original closed polygon as Polygon2D
+						//fptris = fopen("test_glyph_polygon.wrl","w+");
+						fprintf(fptris,"%s\n","#VRML V2.0 utf8");
+						fprintf(fptris,"Transform {\n translation 0 0 .1 children [\n  Shape {\n   appearance Appearance { material Material { emissiveColor .1 .8 .2 }}\n");
+						fprintf(fptris,"   geometry Polyline2D {  \n");
+						fprintf(fptris,"   lineSegments [");
+						//we use FW_RIA_indx instead of IFS_Coord_count to print out the coords:
+						//  FW_RIA_indx includes contour points dropped by tesselation Combiner, 
+						//    that are still in actualCoords, and the indexing above needs as filler 
+						//    in order for the captured indexing to still make sense
+						//  IFS_Coord_count: its 3 x number of triangles, but doesn't know how long actualCoord is
+						//     that its indexes refer to
+						for(ii=0;ii<p->FW_RIA_indx;ii++){
+							for(jj=0;jj<2;jj++){
+								fprintf(fptris," %f",p->FW_rep_->actualCoord[ii*3 + jj]);
+							}
+							fprintf(fptris,",");
+						}
+
+						fprintf(fptris," ] }}\n");
+						fprintf(fptris," ]}");
+						fclose(fptris);
+
+
 						_once = 1;
 					}
 			

@@ -51,6 +51,7 @@ typedef struct openned_file {
 	int imageHeight;
 	int imageWidth;
 	bool imageAlpha;
+	int imageChannels;
 } openned_file_t;
 
 void of_dump(openned_file_t *of);

@@ -441,7 +441,33 @@ ConsoleMessage (line);}
 
 	return vector_get(textureTableIndexStruct_s *, p->activeTextureTable, indx);
 }
-
+int getTextureTableIndexFromFromTextureNode(struct X3D_Node *node){
+	int thisTexture = -1;
+	int thisTextureType = node->_nodeType;
+	if (thisTextureType==NODE_ImageTexture){
+		struct X3D_ImageTexture* it = (struct X3D_ImageTexture*) node;
+		thisTexture = it->__textureTableIndex;
+	} else if (thisTextureType==NODE_PixelTexture){
+		struct X3D_PixelTexture* pt = (struct X3D_PixelTexture*) node;
+		thisTexture = pt->__textureTableIndex;
+	} else if (thisTextureType==NODE_MovieTexture){
+		struct X3D_MovieTexture* mt = (struct X3D_MovieTexture*) node;
+		thisTexture = mt->__textureTableIndex;
+	} else if (thisTextureType==NODE_ImageCubeMapTexture){
+		struct X3D_ImageCubeMapTexture* ict = (struct X3D_ImageCubeMapTexture*) node;
+		thisTexture = ict->__textureTableIndex;
+	} else { 
+		ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); 
+	}
+	return thisTexture;
+}
+textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode){
+	textureTableIndexStruct_s *ret = NULL;
+	int index = getTextureTableIndexFromFromTextureNode(textureNode);
+	if(index > -1)
+		ret = getTableIndex(index);
+	return ret;
+}
 /* is this node a texture node? if so, lets keep track of its textures. */
 /* worry about threads - do not make anything reallocable */
 void registerTexture0(int iaction, struct X3D_Node *tmp) {
@@ -1417,6 +1443,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	me->status = TEX_LOADED;
 }
 
+
 /**********************************************************************************
  bind the image,
 
@@ -1447,6 +1474,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	textureTableIndexStruct_s *myTableIndex;
 	//float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 	ppTextures p;
+	struct Multi_String *mfurl = NULL;
 	ttglobal tg = gglobal();
 	p = (ppTextures)tg->Textures.prv;
 
@@ -1455,6 +1483,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	thisTextureType = node->_nodeType;
 	if (thisTextureType==NODE_ImageTexture){
 		it = (struct X3D_ImageTexture*) node;
+		mfurl = &it->url;
 		thisTexture = it->__textureTableIndex;
 	} else if (thisTextureType==NODE_PixelTexture){
 		pt = (struct X3D_PixelTexture*) node;
@@ -1462,9 +1491,11 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	} else if (thisTextureType==NODE_MovieTexture){
 		mt = (struct X3D_MovieTexture*) node;
 		thisTexture = mt->__textureTableIndex;
+		mfurl = &mt->url;
 	} else if (thisTextureType==NODE_ImageCubeMapTexture){
 		ict = (struct X3D_ImageCubeMapTexture*) node;
 		thisTexture = ict->__textureTableIndex;
+		mfurl = &ict->url;
 	} else { 
 		ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); 
 		return;
@@ -1481,8 +1512,13 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
 			DEBUG_TEX("feeding texture %p to texture thread...\n", myTableIndex);
-			myTableIndex->status = TEX_LOADING;
-			send_texture_to_loader(myTableIndex);
+			if(mfurl && mfurl->n > 0) {
+				myTableIndex->status = TEX_LOADING;
+				send_texture_to_loader(myTableIndex);
+			} else {
+				//for <ImageTexture /> with url not declared, we should get the default blank image
+				myTableIndex->status = TEX_NEEDSBINDING;
+			}
 			break;
 
 		case TEX_LOADING:
@@ -1493,6 +1529,21 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		case TEX_NEEDSBINDING:
 			DEBUG_TEX("texture loaded into memory... now lets load it into OpenGL...\n");
 			move_texture_to_opengl(myTableIndex);
+			//Aug 6, 2016 should we trigger a compile_shape 
+			if(myTableIndex->scenegraphNode){
+				//myTableIndex->scenegraphNode->_ichange++;  //problem: this causes the image file to be reloaded, a new opengl texture mipmapped etc.
+				int i,j;
+				struct X3D_Node *texnode = myTableIndex->scenegraphNode;
+				for(i=0;i<vectorSize(texnode->_parentVector);i++){
+					struct X3D_Node *parent = vector_get(struct X3D_Node *,texnode->_parentVector, i);
+					//parent->_ichange++;  //appearance change doesn't trigger shape_recompile
+					for(j=0;j<vectorSize(parent->_parentVector);j++){
+						struct X3D_Node *grandparent = vector_get(struct X3D_Node *,parent->_parentVector, j);
+						grandparent->_ichange++;  //shape node - tell it to recompile
+					}
+				}
+			}
+			//giving up on compiling in texture channels. Shader will have to be updatable on each draw, not compiled channel-specific shader
 			break;
 
 		case TEX_LOADED:

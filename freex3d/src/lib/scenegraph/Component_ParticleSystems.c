@@ -80,6 +80,11 @@ void Component_ParticleSystems_clear(struct tComponent_ParticleSystems *t){
 		Non- x3d:
 			https://stemkoski.github.io/Three.js/#particlesystem-shader
 		x3d scenes:
+	links:
+		http://mmaklin.com/uppfra_preprint.pdf
+		Nice particle physics
+		http://www.nvidia.com/object/doc_characters.html
+		Nvidia link page for game programmming with shaders
 
 	Fuzzy Design:
 	1. Update position of particles from a particleSystem node
