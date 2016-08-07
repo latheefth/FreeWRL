@@ -6123,6 +6123,11 @@ void fwl_do_keyPress0(int key, int type) {
 							tg->Mainloop.CTRL = keystate; break;
 						case SFT_KEY:
 							tg->Mainloop.SHIFT = keystate; break;
+						//unwritten convention for web3d browsers > viewpoint changes
+						case HOME_KEY: if(keystate) fwl_First_ViewPoint(); break;
+						case END_KEY:  if(keystate) fwl_Last_ViewPoint(); break;
+						case PGUP_KEY: if(keystate) fwl_Prev_ViewPoint(); break;
+						case PGDN_KEY: if(keystate) fwl_Next_ViewPoint(); break;
 						default:
 						break;
 					}
