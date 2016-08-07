@@ -2528,13 +2528,13 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 			ConsoleMessage ("Vertex source:\n");
 			for (x1=vertexGLSLVersion; x1<vertexEndMarker; x1++) {
 				if (strlen(vertexSource[x1])>0)
-					ConsoleMessage(vertexSource[x1]);
+					ConsoleMessage("%s",vertexSource[x1]);
 			}
 			ConsoleMessage("Fragment Source:\n");
 			i=0;
 			for (x2=fragmentGLSLVersion; x2<fragmentEndMarker; x2++) {
 				if (strlen(fragmentSource[x2])>0)
-					ConsoleMessage(fragmentSource[x2]);
+					ConsoleMessage("%s",fragmentSource[x2]);
 			}
 		}
 	#endif //VERBOSE

@@ -314,12 +314,18 @@ void compile_Material (struct X3D_Material *node) {
 	} 
 
 /* if this is a LineSet, PointSet, etc... */
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingoff
+// 'shapes that represent points or lines are unlit
 static bool getIfLinePoints(struct X3D_Node *realNode) {
 	if (realNode == NULL) return false;
 	switch (realNode->_nodeType) {
 		case NODE_IndexedLineSet:
 		case NODE_LineSet:
 		case NODE_PointSet:
+		case NODE_Polyline2D:
+		case NODE_Polypoint2D:
+		case NODE_Circle2D:
+		case NODE_Arc2D:
 			return  true;
 	}
 	return false; // do not add any capabilites here.
@@ -622,20 +628,23 @@ static int lookupColorAlpha[2][2][5][2] = {
 	},
 };
 
-int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometry, int *colorSource, int *alphaSource){
+int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometry, int *colorSource, int *alphaSource, int *imgchannels){
 
 	// returns isLit 1/0, *colorSource, *alphaSource see table above
 	// unlit = apearance == NULL || appearance.material == NULL || points || lines
 	//appearance = (struct X3D_Appearance *)tmpN;
 	// channels = appearance && appearance.texture? appearance.texture.channels : 0
 	int channels, imgalpha, isLit, isUnlitGeometry, hasColorNode, whichShapeColorShader;
-	int colorSourceA, colorSourceB, colorSourceC, alphaSourceA, alphaSourceB;
+	int colorSourceA, colorSourceB, colorSourceC, alphaSourceA, alphaSourceB, haveTexture;
 	struct X3D_Appearance *appearance;
 	channels = 0;
 	imgalpha = 0;
 	isLit = 0;
+	haveTexture = 0;
+
 	*colorSource = 0;
 	*alphaSource = 0;
+	*imgchannels = 0; //no texture
 
 	if(!geometry) return 0;
 	appearance = (struct X3D_Appearance*)appearanceNode;
@@ -650,6 +659,7 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 		//do I need possible proto expansione of texture, or will compile_appearance have done that?
 		if(appearance->texture){
 			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
+			haveTexture = 1;
 			if(tti){
 				//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
 				//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
@@ -669,7 +679,7 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 	//should be the same as (somewhat less readable):
 	alphaSourceB = imgalpha ? AT : isLit ? MA : One;
 	colorSourceB = hasColorNode ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
-		channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? One : Drgb;
+		channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? White : Drgb;
 	colorSourceC;
 	if(hasColorNode){
 		if(channels > 2) colorSourceC = Trgb;
@@ -682,7 +692,7 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 			if(!isLit) colorSourceC = TTT;
 			else colorSourceC = TxDrgb;
 		}else{
-			if(!isLit) colorSourceC = One;
+			if(!isLit) colorSourceC = White;
 			else colorSourceC = Drgb;
 		}
 	}
@@ -692,6 +702,7 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 		printf("ouch - alphasource confusione\n");
 	*colorSource = colorSourceA;
 	*alphaSource = alphaSourceA;
+	*imgchannels = haveTexture ? channels : -1;
 	return isLit;
 }
 void child_Shape (struct X3D_Shape *node) {
@@ -795,8 +806,9 @@ void child_Shape (struct X3D_Shape *node) {
 		if(0){
 			//Aug 6, 2016, dug9: OK here now we have the parameters for where builtin shader
 			//should get some things.
-			isLit = color_alpha_source(node->appearance,tmpN,&colorSource,&alphaSource);
-			printf("isLit = %d %s %s\n",isLit,lighting_names[colorSource],lighting_names[alphaSource]);
+			int channels;
+			isLit = color_alpha_source(node->appearance,tmpN,&colorSource,&alphaSource,&channels);
+			printf("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
 			//if shader is builtin
 		}
 
@@ -858,23 +870,20 @@ void compile_Shape (struct X3D_Shape *node) {
 	int hasTextureCoordinateGenerator = 0;
 	int whichUnlitGeometry = 0;
 	struct X3D_Node *tmpN = NULL;
+	struct X3D_Node *tmpG = NULL;
 	struct X3D_Appearance *appearance = NULL;
 	int userDefinedShader = 0;
-	int channels = 0;
-	int imgalpha = 0;
-	int hasColorNode = 0;
-	int isLit = 0;
+	int colorSource, alphaSource, channels, isLit;
+
 
 	// ConsoleMessage ("**** Compile Shape ****");
 
 
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
-	whichShapeColorShader = getShapeColourShader(tmpN);
-	// colorNode = geometry && geometry.color ? TRUE : FALSE
-	hasColorNode = whichShapeColorShader == NOTHING ? 0 : 1;
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpG);
+	whichShapeColorShader = getShapeColourShader(tmpG);
 
-	isUnlitGeometry = getIfLinePoints(tmpN);
-	hasTextureCoordinateGenerator = getShapeTextureCoordGen(tmpN);
+	isUnlitGeometry = getIfLinePoints(tmpG);
+	hasTextureCoordinateGenerator = getShapeTextureCoordGen(tmpG);
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->appearance,tmpN);
 
@@ -883,60 +892,19 @@ void compile_Shape (struct X3D_Shape *node) {
 	userDefinedShader = hasUserDefinedShader(tmpN);
 	// if(!Appearance.shader) use lightingModel
 
+	if(1){
+		//Aug 6, 2016, dug9: OK here now we have some parameters for builtin shader
+		//int colorSource, alphaSource, channels, isLit;
+		isLit = color_alpha_source(tmpN,tmpG,&colorSource,&alphaSource,&channels);
+		if(0) printf("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
+		//PROBLEM: the texture may not loaded or bound yet, so the channels (number of image components ie RGBA=4) will be 0
+		//colorSource and alphaSource depend on channels count
+		//therefore values coming out here may not be the final values
+		//SOLUTION: Textures.c > new_bind_image > about line 1530 in case TEX_NEEDSBINDING > we ichange++ the Shape
+
+	}
+
 	/* Lines, points - can get the emission colour from an appearance node */
-	if(0){ 
-		// moved to child_shape
-		// unlit = apearance == NULL || appearance.material == NULL || points || lines
-		appearance = (struct X3D_Appearance *)tmpN;
-		// channels = appearance && appearance.texture? appearance.texture.channels : 0
-		channels = 0;
-		imgalpha = 0;
-		isLit = 0;
-		if(appearance){
-			isLit = appearance->material? 1 : 0;
-			isLit = isUnlitGeometry ? 0 : isLit;
-			//do I need possible proto expansione of texture, or will compile_appearance have done that?
-			if(appearance->texture){
-				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
-				if(tti){
-					//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
-					//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
-					//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
-					channels = tti->channels; 
-					imgalpha = tti->hasAlpha;
-					if(tti->status < TEX_NEEDSBINDING) 
-						printf(".");
-				}
-			}
-		}
-
-		// colorsource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][0=color]
-		// alphasource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][1=alpha]
-		int colorSource = lookupColorAlpha[isLit][1-hasColorNode][channels][0];
-		int alphaSource = lookupColorAlpha[isLit][1-hasColorNode][channels][1];
-		//should be the same as (somewhat less readable):
-		int alphaSourceB = imgalpha ? AT : isLit ? MA : One;
-		int colorSourceB = hasColorNode ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
-			channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? One : Drgb;
-		int colorSourceC;
-		if(hasColorNode){
-			if(channels > 2) colorSourceC = Trgb;
-			else if(channels) colorSourceC = TxCrgb;
-			else colorSourceC = Crgb;
-
-		}else{
-			if(channels > 2) colorSourceC = Trgb;
-			else if(channels){
-				if(!isLit) colorSourceC = TTT;
-				else colorSourceC = TxDrgb;
-			}else{
-				if(!isLit) colorSourceC = One;
-				else colorSourceC = Drgb;
-			}
-		}
-		if(!(colorSourceC == colorSourceB && colorSourceB == colorSource)) 
-			printf("ouch - colorsource confusion\n");
-	}	
 	if (isUnlitGeometry) {
 
 		int myAppShad =  getAppearanceShader(tmpN);
@@ -953,10 +921,36 @@ void compile_Shape (struct X3D_Shape *node) {
 		}
 	} else {
 
-		/* if we have a Colour field, put this first */
-		if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
+		if(0){
+			/* if we have a Colour field, put this first */
+			//old way - KelpForest > SharkLefty renders with CPV instead of IMG
+			if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
+					whichAppearanceShader = getAppearanceShader(tmpN);
+			}
+		}else if(1){
+			//for late arriving channels > recompile strategy (versus if-else conditional in compound shader)
+			//SharkLefty renders correctly
+			if(colorSource != Crgb){
 				whichAppearanceShader = getAppearanceShader(tmpN);
+				whichShapeColorShader = NOTHING;
+			}
 		}
+		//else{
+		//	//these more ellaborate use permutations dont' work.
+		//	if(colorSource == Trgb){
+		//		whichAppearanceShader = getAppearanceShader(tmpN);
+		//		whichShapeColorShader = NOTHING;
+		//	}
+		//	if(colorSource == Crgb || colorSource == Drgb){
+		//		whichAppearanceShader = NOTHING;
+		//		whichShapeColorShader = whichShapeColorShader;
+		//	}
+		//	if(colorSource == TxCrgb || colorSource == TxDrgb){
+		//		whichAppearanceShader = getAppearanceShader(tmpN);
+		//		whichShapeColorShader = whichShapeColorShader;
+		//	}
+
+		//}
 	}
 
 

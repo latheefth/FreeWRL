@@ -65,7 +65,7 @@ X3D Text Component
 #define XRES 96
 #define YRES 96
 #define PPI 72
-#define POINTSIZE 20
+#define POINTSIZE 200  //20 before forced TTF hinting, which triggered tesselation combiner calls on intersections
 
 
 #define TOPTOBOTTOM (fsparam & 0x04)
@@ -1789,7 +1789,7 @@ p->myff = 4;
 						fptris = fopen("test_glyph_polygon.wrl","w+");
 						fprintf(fptris,"%s\n","#VRML V2.0 utf8");
 						fprintf(fptris,"Transform {\n children [\n  Shape {\n   appearance Appearance { material Material { diffuseColor .5 .5 .5 }}\n");
-						fprintf(fptris,"   geometry IndexedFaceSet { solid FALSE \n");
+						fprintf(fptris,"   geometry IndexedFaceSet { solid FALSE convex FALSE \n");
 						fprintf(fptris,"   coordIndex ");
 						//indexes
 						fprintf(fptris,"[");
