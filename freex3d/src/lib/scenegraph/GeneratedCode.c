@@ -106,6 +106,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__do_trans",
 	"__externProtoDeclares",
 	"__finishedloading",
+	"__fogScale",
 	"__frontTexture",
 	"__geoSystem",
 	"__highest",
@@ -2626,7 +2627,9 @@ struct X3D_Virt virt_LineSet = { NULL,(void *)render_LineSet,NULL,NULL,NULL,NULL
 void render_LoadSensor(struct X3D_LoadSensor *);
 struct X3D_Virt virt_LoadSensor = { NULL,(void *)render_LoadSensor,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_LocalFog = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void prep_LocalFog(struct X3D_LocalFog *);
+void fin_LocalFog(struct X3D_LocalFog *);
+struct X3D_Virt virt_LocalFog = { (void *)prep_LocalFog,NULL,NULL,(void *)fin_LocalFog,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_Material(struct X3D_Material *);
 void compile_Material(struct X3D_Material *);
@@ -4236,6 +4239,7 @@ const int OFFSETS_FloatVertexAttribute[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Fog[] = {
+	(int) FIELDNAMES___fogScale, (int) offsetof (struct X3D_Fog, __fogScale),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_Fog, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_Fog, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_Fog, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4959,6 +4963,7 @@ const int OFFSETS_LoadSensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_LocalFog[] = {
+	(int) FIELDNAMES___fogScale, (int) offsetof (struct X3D_LocalFog, __fogScale),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_LocalFog, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_LocalFog, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_fogType, (int) offsetof (struct X3D_LocalFog, fogType),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8886,6 +8891,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Fog : {
 			struct X3D_Fog * tmp2;
 			tmp2 = (struct X3D_Fog *) tmp;
+			tmp2->__fogScale = 1.0f;
 			tmp2->_layerId = 0;
 			tmp2->bindTime = -1;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
@@ -9790,6 +9796,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LocalFog : {
 			struct X3D_LocalFog * tmp2;
 			tmp2 = (struct X3D_LocalFog *) tmp;
+			tmp2->__fogScale = 1.0f;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->enabled = TRUE;
 			tmp2->fogType = newASCIIString("LINEAR");
@@ -13477,6 +13484,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Fog *tmp;
 			tmp = (struct X3D_Fog *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __fogScale (SFFloat) \t%4.3f\n",tmp->__fogScale);
+		    }
 			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");
@@ -14409,6 +14419,9 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_LocalFog *tmp;
 			tmp = (struct X3D_LocalFog *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __fogScale (SFFloat) \t%4.3f\n",tmp->__fogScale);
+		    }
 			spacer fprintf (fp," color (SFColor): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->color.c[i]); }
 			fprintf (fp,"\n");

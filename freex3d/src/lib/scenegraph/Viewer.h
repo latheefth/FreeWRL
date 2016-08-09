@@ -330,7 +330,7 @@ void increment_pos( struct point_XYZ *vec);
 void bind_Viewpoint(struct X3D_Viewpoint *node);
 void bind_OrthoViewpoint(struct X3D_OrthoViewpoint *node);
 void bind_GeoViewpoint(struct X3D_GeoViewpoint *node);
-
+void bind_Fog(struct X3D_Fog *node);
 
 extern float eyedist;
 extern float screendist;

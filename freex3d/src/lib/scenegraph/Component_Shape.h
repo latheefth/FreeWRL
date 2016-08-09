@@ -60,6 +60,8 @@ Proximity sensor macro.
 
 /* CubeMapTexturing */
 #define HAVE_CUBEMAP_TEXTURE 0x00400
+#define FOG_APPEARANCE_SHADER 0X00800
+
 
 /* Component_Shader - user-specified shaders. Currently limited in number */
 /* note we start at 0x1000 and count up by 1 for (currently) 255 shaders per program */

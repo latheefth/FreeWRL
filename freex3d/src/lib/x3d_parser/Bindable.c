@@ -384,6 +384,9 @@ void send_bind_to(struct X3D_Node *node, int value) {
 		struct X3D_Fog *fg = (struct X3D_Fog *) node;
 		fg->set_bind = value;
 		bind_node (node, getBindableStacksByLayer(tg,fg->_layerId)->fog);
+		if(value==1){
+			bind_Fog(fg);
+		}
 		break;
 		}
 
@@ -600,9 +603,28 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 	}
 }
 
-
 //fog: see also notes in Component_EnvironEffects.c
-void render_Fog (struct X3D_Fog *node) {
+void bind_Fog(struct X3D_Fog *node){
+	//new Aug 2016, goal GLES2 compatible (no builtin opengl fog)
+	//nothing to do in here - we'll check the binding stack for fog before rendering
+	//ttglobal tg = gglobal();
+
+	/* check the set_bind eventin to see if it is TRUE or FALSE */
+	//if (node->set_bind < 100) {
+	//	bind_node (X3D_NODE(node), getActiveBindableStacks(tg)->fog);
+
+		/* if we do not have any more nodes on top of stack, disable fog */
+		//if(vectorSize(getActiveBindableStacks(tg)->fog) <= 0)
+			// we'll check before general scengraph rendering glDisable(GL_FOG);
+	//}
+	//glEnable(GL_FOG);
+
+	//if(!node->isBound) return;
+	if(node->isBound)
+		printf("bound global fog\n");
+}
+
+void render_Fog_OLD (struct X3D_Fog *node) {
 	#ifndef GL_ES_VERSION_2_0 // this should be handled in material shader
 	GLDOUBLE mod[16];
 	GLDOUBLE proj[16];

@@ -705,6 +705,8 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 	*imgchannels = haveTexture ? channels : -1;
 	return isLit;
 }
+unsigned int getShaderFlags();
+struct X3D_Node *getFogParams();
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpN;    
 	ppComponent_Shape p;
@@ -746,6 +748,7 @@ void child_Shape (struct X3D_Shape *node) {
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
         int colorSource, alphaSource, isLit;  
+		unsigned int shader_requirements;
 
 		RENDER_MATERIAL_SUBNODES(node->appearance);
 
@@ -768,7 +771,13 @@ void child_Shape (struct X3D_Shape *node) {
 
 		/* enable the shader for this shape */
 		//ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
-		enableGlobalShader (getMyShader(node->_shaderTableEntry));
+		shader_requirements = node->_shaderTableEntry;
+		//getShaderFlags() are from non-leaf-node shader influencers: fog, local_lights, clipplane ...
+		// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
+		shader_requirements |= getShaderFlags(); 
+		if(shader_requirements & FOG_APPEARANCE_SHADER)
+			printf("halleluja - fog in child_shape\n");
+		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
 
 
 		if (p->userShaderNode != NULL) {
