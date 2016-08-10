@@ -363,6 +363,15 @@
     <ClCompile Include="..\..\src\lib\ui\freewrl_wingding_ttf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_Texturing3D.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SRC)\lib\scenegraph\Component_VolumeRendering.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(SRC)\lib\opengl\Compositing_Shaders.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(SRC)\lib\scenegraph\Component_Picking.h">

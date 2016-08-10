@@ -215,8 +215,8 @@ void extractPlugName(char *start, char *PlugName,char *PlugDeclaredParameters){
 	PlugDeclaredParameters[len] = '\0';
 	printf("PlugName %s PlugDeclaredParameters %s\n",PlugName,PlugDeclaredParameters);
 }
-#define SBUFSIZE 10000 //must hold final size of composited shader part, could do per-gglobal-instance malloced buffer instead and resize to largest composited shader
-#define PBUFSIZE 1000 //must hold largets PlugValue
+#define SBUFSIZE 32767 //must hold final size of composited shader part, could do per-gglobal-instance malloced buffer instead and resize to largest composited shader
+#define PBUFSIZE 16384 //must hold largets PlugValue
 void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *unique_int)
 {
 	//Algo: 
@@ -344,23 +344,80 @@ void EnableEffects( struct Multi_Node *Effects, char **CompletedCode, int *uniqu
 */
 
 
+
+
+
 static const GLchar *genericVertex = "\
 #version 110\n\
-maxLights = 8;\n\
+#define MAX_LIGHTS 8 \n\
 #if defined (GL_ES_VERSION_2_0)\n\
 precision highp float;\n\
 precision mediump float;\n\
 #endif\n\
-/* PLUG-DECLARATIONS */\n\
-varying vec4 castle_vertex_eye;\n\
-varying vec3 castle_normal_eye;\n\
+\n\
+/*light defines*/ \n\
+struct fw_MaterialParameters { \n\
+  vec4 emission; \n\
+  vec4 ambient; \n\
+  vec4 diffuse; \n\
+  vec4 specular; \n\
+  float shininess; \n\
+}; \n\
+uniform int lightcount; \n\
+//uniform float lightRadius[MAX_LIGHTS]; \n\
+uniform int lightType[MAX_LIGHTS];//ANGLE like this \n\
+struct fw_LightSourceParameters { \n\
+  vec4 ambient;  \n\
+  vec4 diffuse;   \n\
+  vec4 specular; \n\
+  vec4 position;   \n\
+  vec4 halfVector;  \n\
+  vec4 spotDirection; \n\
+  float spotExponent; \n\
+  float spotCutoff; \n\
+  float spotCosCutoff; \n\
+  vec3 Attenuations; \n\
+  //float constantAttenuation; \n\
+  //float linearAttenuation;  \n\
+  //float quadraticAttenuation; \n\
+  float lightRadius; \n\
+  //int lightType; ANGLE doesnt like int in struct array \n\
+}; \n\
+\n\
+uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
+/*vertex inputs*/\n\
+attribute  vec4 fw_Vertex; \n\
+uniform    mat4 fw_ModelViewMatrix; \n\
+uniform    mat4 fw_ProjectionMatrix; \n\
+uniform    mat3 fw_NormalMatrix; \n\
+attribute  vec3 fw_Normal; \n\
+attribute  vec4 fw_Color; \n\
+uniform    mat4 fw_TextureMatrix; \n\
+uniform    int  fw_textureCoordGenType; \n\
+attribute  vec2 fw_MultiTexCoord0; \n\
+uniform fw_MaterialParameters fw_FrontMaterial; \n\
+uniform fw_MaterialParameters fw_BackMaterial; \n\
+\n\
+/* VERTEX outputs */\n\
+varying vec3 vertexNorm; \n\
+varying vec4 vertexPos; \n\
+varying vec3 v_texC; \n\
+//varying vec4 v_front_colour; \n\
+varying vec2 hatchPosition; \n\
+varying vec4 fw_FrontColor; \n\
+varying vec4 fw_BackColor; \n\
+varying vec4 fw_vColor; \n\
+\n\
+/* PLUG-DECLARATIONS */ \n\
+varying vec4 castle_vertex_eye; \n\
+varying vec3 castle_normal_eye; \n\
 \n\
 void main(void)\n\
 {\n\
-  vec4 vertex_object = fw_Vertex;\n\
-  vec3 normal_object = fw_Normal;\n\
-  /* PLUG: vertex_object_space_change (vertex_object, normal_object) */\n\
-  /* PLUG: vertex_object_space (vertex_object, normal_object) */\n\
+  vec4 vertex_object = fw_Vertex; \n\
+  vec3 normal_object = fw_Normal; \n\
+  /* PLUG: vertex_object_space_change (vertex_object, normal_object) */ \n\
+  /* PLUG: vertex_object_space (vertex_object, normal_object) */ \n\
   \n\
   castle_vertex_eye = fw_ModelViewMatrix * vertex_object;\n\
   /* Although we will normalize it again in the fragment shader\n\
@@ -369,21 +426,24 @@ void main(void)\n\
      vertexes), we also have to normalize it in vertex shader (otherwise\n\
      a much longer normal on one vertex would pull all the interpolated\n\
      normals, thus making their direction invalid in fragment shaders). */\n\
-  castle_normal_eye = normalize(gl_NormalMatrix * normal_object);\n\
+  castle_normal_eye = normalize(fw_NormalMatrix * normal_object); \n\
   \n\
-  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */\n\
+  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */ \n\
   \n\
-#ifndef LIT\n\
-  gl_FrontColor = gl_Color;\n\
-  gl_BackColor = gl_Color;\n\
-#endif\n\
+  fw_vColor = vec4(1.0,1.0,1.0,1.0); \n\
+  /* PLUG: vertex_lighting (fw_vColor, vertex_object, normal_object) */ \n\
+#define LIT 1 \n\
+#ifndef LIT \n\
+  fw_FrontColor = fw_Color; \n\
+  fw_BackColor = fw_Color; \n\
+#endif \n\
 \n\
-#ifdef VERTEX_OBJECT_SPACE_CHANGED\n\
-  gl_Position = fw_ProjectionMatrix * castle_vertex_eye;\n\
-#else\n\
-  gl_Position = ftransform();\n\
-#endif\n\
-}\n";
+//#ifdef VERTEX_OBJECT_SPACE_CHANGED \n\
+  gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
+//#else \n\
+//  gl_Position = ftransform(); \n\
+//#endif \n\
+} \n";
 
 /* Generic GLSL fragment shader.
    Used by ../castlerendererinternalshader.pas to construct the final shader.
@@ -393,14 +453,18 @@ void main(void)\n\
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
+//maxLights = 8;\n\
+//#if defined (GL_ES_VERSION_2_0)\n\
+//precision highp float;\n\
+//precision mediump float;\n\
+//#endif\n\
 
 static const GLchar *genericFragment = "\
 #version 110\n\
-maxLights = 8;\n\
-#if defined (GL_ES_VERSION_2_0)\n\
-precision highp float;\n\
-precision mediump float;\n\
-#endif\n\
+#define MAX_LIGHTS 8 \n\
+varying vec4 fw_FrontColor; \n\
+varying vec4 fw_BackColor; \n\
+varying vec4 fw_vColor; \n\
 /* PLUG-DECLARATIONS */\n\
 #ifdef HAS_GEOMETRY_SHADER\n\
   #define castle_vertex_eye castle_vertex_eye_geoshader\n\
@@ -428,36 +492,36 @@ void main(void)\n\
        with ATI Mobility Radeon HD 4300 (castle computer czarny), \n\
        since Ubuntu 11.4 (fglrx OpenGL version 3.3.10665).\n\
 	   \n\
-       It causes both (gl_FrontFacing) and (!gl_FrontFacing) to be true...\n\
-       To minimize the number of problems, never use if (!gl_FrontFacing),\n\
-       only if (gl_FrontFacing).\n\
+       It causes both (fw_FrontFacing) and (!fw_FrontFacing) to be true...\n\
+       To minimize the number of problems, never use if (!fw_FrontFacing),\n\
+       only if (fw_FrontFacing).\n\
     */ ; else\n\
     normal_eye_fragment = -normal_eye_fragment;\n\
 #endif\n\
 \n\
   /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */\n\
   \n\
-#ifdef LIT\n\
-  vec4 fragment_color;\n\
+#ifdef LIT \n\
+  vec4 fragment_color; \n\
   \n\
 #ifndef CASTLE_BUGGY_FRONT_FACING\n\
   if (gl_FrontFacing)\n\
   {\n\
 #endif\n\
-    fragment_color = gl_FrontLightModelProduct.sceneColor;\n\
+    fragment_color = vec4(1.0,1.0,1.0,.5); //gl_FrontLightModelProduct.sceneColor;\n\
     /* PLUG: add_light_contribution_front (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */\n\
 	\n\
     /* Otherwise, alpha is usually large after previous add_light_contribution,\n\
        and it's always opaque.\n\
        Using diffuse.a is actually exactly what fixed-function pipeline does\n\
        too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */\n\
-    fragment_color.a = gl_FrontMaterial.diffuse.a;\n\
+    fragment_color.a = fw_FrontMaterial.diffuse.a;\n\
 #ifndef CASTLE_BUGGY_FRONT_FACING\n\
   } else\n\
   {\n\
-    fragment_color = gl_BackLightModelProduct.sceneColor;\n\
-    /* PLUG: add_light_contribution_back (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_BackMaterial) */\n\
-    fragment_color.a = gl_BackMaterial.diffuse.a;\n\
+    fragment_color = vec4(1.0,1.0,1.0..5); //gl_BackLightModelProduct.sceneColor;\n\
+    /* PLUG: add_light_contribution_back (fragment_color, castle_vertex_eye, normal_eye_fragment, fw_BackMaterial) */\n\
+    fragment_color.a = fw_BackMaterial.diffuse.a;\n\
   }\n\
 #endif\n\
 \n\
@@ -467,7 +531,7 @@ void main(void)\n\
      Of course, for future HDR rendering we will turn this off. */\n\
   fragment_color.rgb = min(fragment_color.rgb, 1.0);\n\
 #else\n\
-  vec4 fragment_color = gl_Color;\n\
+  vec4 fragment_color = fw_vColor;\n\
 #endif\n\
 \n\
   /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */\n\
@@ -496,21 +560,212 @@ const char *getGenericFragment(){
 #include "../scenegraph/Component_Shape.h"
 
 static const GLchar *plug_fragment_end_anaglyph =	"\
-void PLUG_fragment_end (inout vec3 finalFrag){ \n\
+void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 	float gray = dot(finalFrag.rgb, vec3(0.299, 0.587, 0.114)); \n\
 	finalFrag = vec4(gray,gray,gray, finalFrag.a); \n\
 }\n";
+
+static const GLchar *plug_vertex_lighting_ADSLLightModel = "\n\
+/* use ADSLightModel here the ADS colour is returned from the function.  */\n\
+void PLUG_vertex_lighting (inout vec4 vertexcolor, in vec4 myPosition, in vec3 myNormal) {\n\
+  int i;\n\
+  vec4 diffuse = vec4(0., 0., 0., 0.);\n\
+  vec4 ambient = vec4(0., 0., 0., 0.);\n\
+  vec4 specular = vec4(0., 0., 0., 1.);\n\
+  vec3 normal = normalize (myNormal);\n\
+\n\
+  vec3 viewv = -normalize(myPosition.xyz); \n \
+  bool backFacing = (dot(normal,viewv) < 0.0); \n \
+  vec4 emissive;\n\
+  vec4 matdiffuse = vec4(1.0,1.0,1.0,1.0);\n\
+  float myAlph = 0.0;\n\
+\n\
+  fw_MaterialParameters myMat = fw_FrontMaterial;\n\
+\n\
+/* back Facing materials - flip the normal and grab back materials */ \n \
+if (false && backFacing) { \n \
+	normal = -normal; \n \
+	myMat = fw_BackMaterial; \n \
+} \n \
+\n\
+  emissive = myMat.emission;\n\
+  myAlph = myMat.diffuse.a;\n\
+  //if(useMatDiffuse)\n\
+    matdiffuse = myMat.diffuse;\n\
+\n\
+  /* apply the lights to this material */\n\
+  for (i=0; i<MAX_LIGHTS; i++) {\n\
+    if(i<lightcount) { /*weird but ANGLE needs constant loop*/ \n\
+      vec4 myLightDiffuse = fw_LightSource[i].diffuse;\n\
+      vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
+      vec4 myLightSpecular = fw_LightSource[i].specular;\n\
+      vec4 myLightPosition = fw_LightSource[i].position; \n\
+      int myLightType = lightType[i]; //fw_LightSource[i].lightType;\n\
+      vec3 myLightDir = fw_LightSource[i].spotDirection.xyz; \n\
+      vec3 eyeVector = normalize(myPosition.xyz);\n\
+      vec3  VP;     /* vector of light direction and distance */\n\
+      VP = myLightPosition.xyz - myPosition.xyz;\n\
+      vec3 L = myLightDir; /*directional light*/ \n\
+      if(myLightType < 2) /*point and spot*/ \n\
+       L = normalize(VP); \n\
+      float nDotL = max(dot(normal, L), 0.0);\n\
+      vec3 halfVector = normalize(L - eyeVector);\n\
+      /* normal dot light half vector */\n\
+      float nDotHV = max(dot(normal,halfVector),0.0);\n\
+      \n\
+      if (myLightType==1) {\n\
+        /* SpotLight */\n\
+        float spotDot; \n\
+        float spotAttenuation = 0.0; \n\
+        float powerFactor = 0.0; /* for light dropoff */ \n\
+        float attenuation; /* computed attenuation factor */\n\
+        float d;            /* distance to vertex */            \n\
+        d = length(VP);\n\
+        if (nDotL > 0.0) {\n\
+          powerFactor = pow(nDotL,myMat.shininess); \n\
+          /* tone down the power factor if myMat.shininess borders 0 */\n\
+          if (myMat.shininess < 1.0) {\n\
+            powerFactor *= myMat.shininess; \n\
+          } \n\
+        } \n\
+        attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
+        spotDot = dot (-L,myLightDir);\n\
+        /* check against spotCosCutoff */\n\
+        if (spotDot > fw_LightSource[i].spotCutoff) {\n\
+          spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent);\n\
+        }\n\
+        attenuation *= spotAttenuation;\n\
+        /* diffuse light computation */\n\
+        diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
+        /* ambient light computation */\n\
+        ambient += myMat.ambient*myLightAmbient;\n\
+        /* specular light computation */\n\
+        specular += myLightSpecular * powerFactor * attenuation;\n\
+        \n\
+      } else if (myLightType == 2) { \n\
+        /* DirectionalLight */ \n\
+        float powerFactor = 0.0; /* for light dropoff */\n\
+        if (nDotL > 0.0) {\n\
+          powerFactor = pow(nDotHV, myMat.shininess);\n\
+          /* tone down the power factor if myMat.shininess borders 0 */\n\
+          if (myMat.shininess < 1.0) {\n\
+           powerFactor *= myMat.shininess;\n\
+          }\n\
+        }\n\
+        /* Specular light computation */\n\
+        specular += myMat.specular *myLightSpecular*powerFactor;\n\
+        /* diffuse light computation */\n\
+        diffuse += nDotL*matdiffuse*myLightDiffuse;\n\
+        /* ambient light computation */\n\
+        ambient += myMat.ambient*myLightAmbient; \n\
+      } else {\n\
+        /* PointLight */\n\
+        float powerFactor=0.0; /* for light dropoff */\n\
+        float attenuation = 0.0; /* computed attenuation factor */\n\
+        float d = length(VP);  /* distance to vertex */ \n\
+        /* are we within range? */\n\
+        if (d <= fw_LightSource[i].lightRadius) {\n\
+          if (nDotL > 0.0) {\n\
+            powerFactor = pow(nDotL, myMat.shininess);\n\
+            //attenuation = (myMat.shininess-128.0);\n\
+          }\n\
+          /* this is actually the SFVec3f attenuation field */\n\
+          attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
+          /* diffuse light computation */\n\
+          diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
+          /* ambient light computation */\n\
+          ambient += myMat.ambient*myLightAmbient;\n\
+          /* specular light computation */\n\
+          attenuation *= (myMat.shininess/128.0);\n\
+          specular += myLightSpecular * powerFactor * attenuation;\n\
+        }\n\
+      }\n\
+    }\n\
+  }\n\
+  vertexcolor = clamp(vec4(vec3(ambient+diffuse+specular+emissive),myAlph), 0.0, 1.0);\n\
+  //vertexcolor = ambient+diffuse+specular+emissive; \n\
+}\n\
+";
+
+static const GLchar *original_vertex =	"\
+#version 110 \n\
+ \n\
+#define MAX_LIGHTS 8 \n\
+ struct fw_MaterialParameters { \n\
+  vec4 emission; \n\
+  vec4 ambient; \n\
+  vec4 diffuse; \n\
+  vec4 specular; \n\
+  float shininess; \n\
+}; \n\
+uniform int lightcount; \n\
+//uniform float lightRadius[MAX_LIGHTS]; \n\
+uniform int lightType[MAX_LIGHTS];//ANGLE like this  \n\
+struct fw_LightSourceParameters {  \n\
+  vec4 ambient;  \n\
+  vec4 diffuse;  \n\
+  vec4 specular;  \n\
+  vec4 position;  \n\
+  vec4 halfVector;  \n\
+  vec4 spotDirection;  \n\
+  float spotExponent;  \n\
+  float spotCutoff; \n\
+  float spotCosCutoff; \n\
+  vec3 Attenuations; \n\
+  //float constantAttenuation; \n\
+  //float linearAttenuation; \n\
+  //float quadraticAttenuation; \n\
+  float lightRadius; \n\
+  //int lightType; ANGLE doesnt like int in struct array \n\
+}; \n\
+ \n\
+uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ; \n\
+        uniform        mat3 fw_NormalMatrix; \n\
+        attribute      vec3 fw_Normal; \n\
+        attribute      vec4 fw_Vertex; \n\
+        uniform         mat4 fw_ModelViewMatrix; \n\
+        uniform         mat4 fw_ProjectionMatrix; \n\
+        uniform fw_MaterialParameters \n\
+        fw_FrontMaterial; \n\
+        uniform fw_MaterialParameters fw_BackMaterial; \n\
+        varying vec4    fw_vColor; \n\
+        vec3 vertexNorm;        vec4 vertexPos; \n\
+		\n\
+/* use ADSLightModel here the ADS colour is returned from the function.  */ \n\
+void main(void) {\n\
+gl_Position = fw_ProjectionMatrix * fw_ModelViewMatrix * fw_Vertex;\n\
+        vertexNorm = normalize(fw_NormalMatrix * fw_Normal);\n\
+        vertexPos = fw_ModelViewMatrix * fw_Vertex;\n\
+ fw_vColor = vec4(1.0,1.0,0.0,.5); //ADSLightModel(vertexNorm,vertexPos,true); \n\
+ }\n";
+
+
+
+static const GLchar *original_fragment = "\
+#version 110 \n\
+\n\
+#define MAX_LIGHTS 8 \n\
+        varying vec4    fw_vColor; \n\
+void main() { vec4 finalFrag = vec4(1.,1.,1.,1.); \n\
+ finalFrag = fw_vColor * finalFrag; \n\
+gl_FragColor = finalFrag; \n\
+} \n";
+
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
 	const GLchar **fragmentSource, unsigned int whichOne, int usePhongShading) 
 {
 	//for building the Builtin (similar to fixed-function pipeline, except from shader parts)
+	//in OpenGL_Utils.c L.2553 set usingCastlePlugs = 1 to get in here.
+	//whichone - a bitmask of shader requirements, one bit for each requirement, so shader permutation can be built
+
 	int retval, unique_int;
 	char *CompleteCode[3];
 	retval = FALSE;
 	char *vs, *fs;
 	if(whichOne & USER_DEFINED_SHADER_MASK) return retval; //not supported yet as of Aug 9, 2016
+	retval = TRUE;
 
 	//generic
 	vs = strdup(getGenericVertex());
@@ -525,11 +780,13 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//Fog
 	//analglyph
 	if(DESIRE(whichOne,WANT_ANAGLYPH))
-		Plug(SHADERPART_FRAGMENT,plug_fragment_end_anaglyph,CompleteCode,&unique_int);
+		Plug(SHADERPART_FRAGMENT,plug_fragment_end_anaglyph,CompleteCode,&unique_int);  //works, converts frag to gray
 	//color material
 	//material appearance
 	//2 material appearance
 	//phong vs gourard
+	if(DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) || DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
+		Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLLightModel,CompleteCode,&unique_int);
 	//linespoints 
 	//textureCoordinategen
 	//cubemap texure
@@ -538,7 +795,7 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//cubemap tex
 	//fill properties
 	//
-	*fragmentSource = fs;
-	*vertexSource = vs;
+	*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
+	*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
 	return retval;
 }

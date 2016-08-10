@@ -775,8 +775,8 @@ void child_Shape (struct X3D_Shape *node) {
 		//getShaderFlags() are from non-leaf-node shader influencers: fog, local_lights, clipplane ...
 		// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
 		shader_requirements |= getShaderFlags(); 
-		if(shader_requirements & FOG_APPEARANCE_SHADER)
-			printf("halleluja - fog in child_shape\n");
+		//if(shader_requirements & FOG_APPEARANCE_SHADER)
+		//	printf("halleluja - fog in child_shape\n");
 		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
 
 
