@@ -111,6 +111,9 @@ typedef struct pRenderFuncs{
 	Stack *render_geom_stack;
 	Stack *sensor_stack;
 	Stack *ray_stack;
+	Stack *shaderflags_stack;
+	Stack *fog_stack;
+
 
 	//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
 	struct point_XYZ3 t_r123;
@@ -163,6 +166,8 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->sensor_stack = newStack(struct currayhit);
 		p->ray_stack = newStack(struct point_XYZ3);
 		p->usehits_stack = newStack(usehit);
+		p->shaderflags_stack = newStack(unsigned int);
+		p->fog_stack = newStack(struct X3D_Node*);
 		//t->t_r123 = (void *)&p->t_r123;
 		t->hp = (void *)&p->hp;
 	}
@@ -232,6 +237,8 @@ void RenderFuncs_clear(struct tRenderFuncs *t){
 	deleteVector(struct currayhit,p->sensor_stack);
 	deleteVector(struct point_XYZ3,p->ray_stack);
 	deleteVector(usehit,p->usehits_stack);
+	deleteVector(unsigned int,p->shaderflags_stack);
+	deleteVector(struct X3D_Node*,p->fog_stack);
 }
 void unload_libraryscenes(){
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -1261,6 +1268,59 @@ void profile_print_all(){
 		}
 	}
 }
+
+
+unsigned int getShaderFlags(){
+	//return top-of-stack global shaderflags
+	unsigned int retval;
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	retval = stack_top(unsigned int,p->shaderflags_stack);
+	return retval;
+}
+void pushShaderFlags(unsigned int flags){
+	//at root level, before render_hier, you would push 0000000
+	//and pop after render_hier
+	//for prep_LocalFog you would call this to push (and pop in fin_LocalFog)
+	//these flags are for non-leaf-node shader influencers
+	//localLights, localFog, clipPlane
+	//and will be |= with shape->_shaderTableEntry flags in child_shape
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_push(unsigned int,p->shaderflags_stack,flags);
+
+}
+void popShaderFlags(){
+	//
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_pop(unsigned int,p->shaderflags_stack);
+
+}
+struct X3D_Node *getFogParams(){
+	//return top-of-stack Fog or LocalFog
+	struct X3D_Node *retval;
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	retval = stack_top(struct X3D_Node*,p->fog_stack);
+	return retval;
+}
+void pushFogParams(struct X3D_Node *fogparams){
+	//at root level, before render_hier, any bound Fog node
+	//and pop after render_hier
+	//for prep_LocalFog you would call this to push (and pop in fin_LocalFog)
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_push(struct X3D_Node*,p->fog_stack,fogparams);
+
+}
+void popFogParams(){
+	//
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_pop(struct X3D_Node*,p->fog_stack);
+
+}
 //struct point_XYZ3 {
 //	struct point_XYZ p1;
 //	struct point_XYZ p2;
@@ -1665,6 +1725,7 @@ render_hier(struct X3D_Node *g, int rwhat) {
 	ttrenderstate rs;
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 	rs = renderstate();
+	pushShaderFlags(0);
 
 	rs->render_vp = rwhat & VF_Viewpoint;
 	rs->render_geom =  rwhat & VF_Geom;
@@ -1702,10 +1763,17 @@ render_hier(struct X3D_Node *g, int rwhat) {
 	if (rs->render_sensitive) {
 		upd_ray();
 	}
-
+	if(rs->render_blend || rs->render_geom){
+		push_boundFog();
+	}
 	profile_start("render_hier");
 	render_node(X3D_NODE(g));
 	profile_end("render_hier");
+	if(rs->render_blend || rs->render_geom){
+		pop_boundFog();
+	}
+	popShaderFlags();
+
 
 }
 

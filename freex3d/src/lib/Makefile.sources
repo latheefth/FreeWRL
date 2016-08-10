@@ -191,6 +191,7 @@ opengl/Frustum.h \
 opengl/Frustum.c \
 opengl/OpenGL_Utils.h \
 opengl/OpenGL_Utils.c \
+opengl/Compositing_Shaders.c \
 opengl/Material.h \
 opengl/Material.c \
 opengl/LoadTextures.h \

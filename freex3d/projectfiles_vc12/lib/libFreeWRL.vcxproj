@@ -333,6 +333,7 @@
     <ClCompile Include="$(SRC)\lib\scenegraph\MPEG_Utils.c" />
     <ClCompile Include="$(SRC)\lib\scenegraph\NormalCalcs.c" />
     <ClCompile Include="$(SRC)\lib\opengl\OpenGL_Utils.c" />
+    <ClCompile Include="$(SRC)\lib\opengl\Compositing_Shaders.c" />
     <ClCompile Include="$(SRC)\lib\plugin\PluginSocket.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_glew|Win32'">
       </ExcludedFromBuild>

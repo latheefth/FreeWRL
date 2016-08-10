@@ -671,6 +671,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\lib\opengl\Compositing_Shaders.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\lib\plugin\PluginSocket.c"
 				>
 			</File>

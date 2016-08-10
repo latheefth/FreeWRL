@@ -673,7 +673,7 @@ int push_child_clipplane(struct X3D_Node *parent){
 	//		might need: to set a flag indicating which shader to use?
 	//  return 1
 	//else 
-	//  return 0
+	return 0;
 }
 void pop_child_clipplane(){
 	//pop clipplane

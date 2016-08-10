@@ -1,0 +1,40 @@
+library version 3.2.0
+argv[0]=C:\Users\Public\dev\source2\freewrl\freex3d\projectfiles_vc12\Debug_glew\freeWRL.exe
+argv[1]=C:\Users\Public\dev\source2\tests\KelpForest\Fish.x3d
+posixlycorrect=[(null)]
+starting createWindow32
+hInstance=00EA0000
+wm_create
+made a window
+showed window
+updated window - leaving createwindow
+starting createcontext32b
+got hdc
+Depth Bits = 24
+created context
+openGL version 4.3.0 - Build 20.19.15.4331
+start of RenderFontAtlas
+spacing between rows = 0.000000
+height(px)= 9.0 x_ppem=8
+max advance px=5
+creating atlas VeraMono8 with dimension 64 advance 4 rowheight 9
+end of RenderFontAtlas
+start of RenderFontAtlas
+spacing between rows = 0.000000
+height(px)= 14.0 x_ppem=12
+max advance px=7
+creating atlas VeraMono12 with dimension 128 advance 6 rowheight 14
+end of RenderFontAtlas
+Going to register textpanel for ConsoleMessages
+Registered textpanel for ConsoleMessages
+start of RenderFontAtlas
+spacing between rows = 0.000000
+height(px)= 11.0 x_ppem=10
+max advance px=11
+creating atlas freewrl_wingding10 with dimension 128 advance 5 rowheight 11
+end of RenderFontAtlas
+Going to register textpanel for ConsoleMessages
+Registered textpanel for ConsoleMessages
+in runQueuedDirectOutputs
+in process_eventsProcessed
+{1}

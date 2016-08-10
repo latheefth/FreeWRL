@@ -2129,7 +2129,8 @@ const static GLchar *pointSizeDeclare="uniform float pointSize;\n";
 const static GLchar *pointSizeAss="gl_PointSize = pointSize; \n";
 
 
-static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
+static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEndMarker], 
+	const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
 
 	bool doThis;
 	bool didADSLmaterial;
@@ -2517,7 +2518,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 		}
 	}
 
-//#define VERBOSE 1
+#define VERBOSE 1
 	#ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -2542,6 +2543,24 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	return TRUE;
 }
 #undef VERBOSE
+
+//see Composite_Shading.c for CastlePlugs details.
+int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
+	const GLchar **fragmentSource, unsigned int whichOne, int usePhongShading);
+
+static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], 
+		unsigned int whichOne, int usePhongShading) {
+	int iret, usingCastlePlugs = 0;
+	if(usingCastlePlugs){
+		//new Aug 2016 castle plugs
+		if(Viewer()->anaglyph || Viewer()->anaglyphB)
+			whichOne |= WANT_ANAGLYPH;  //in theory, this bitflag could be set in render_hier in the new Aug2016 shaderFlags stack 
+		iret = getSpecificShaderSourceCastlePlugs(vertexSource, fragmentSource, whichOne,usePhongShading);
+	}else{
+		iret = getSpecificShaderSourceOriginal(vertexSource, fragmentSource, whichOne,usePhongShading);
+	}
+	return iret;
+}
 
 
 static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading) {
