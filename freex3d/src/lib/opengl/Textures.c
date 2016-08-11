@@ -1512,12 +1512,12 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	switch (myTableIndex->status) {
 		case TEX_NOTLOADED:
 			DEBUG_TEX("feeding texture %p to texture thread...\n", myTableIndex);
-			if(mfurl && mfurl->n > 0) {
-				myTableIndex->status = TEX_LOADING;
-				send_texture_to_loader(myTableIndex);
-			} else {
+			if(mfurl && mfurl->n == 0) {
 				//for <ImageTexture /> with url not declared, we should get the default blank image
 				myTableIndex->status = TEX_NEEDSBINDING;
+			} else {
+				myTableIndex->status = TEX_LOADING;
+				send_texture_to_loader(myTableIndex);
 			}
 			break;
 
