@@ -208,7 +208,7 @@ ui/statusbar.h \
 ui/CursorDraw.c \
 ui/CursorDraw.h \
 ui/hudIcons_octalpha.h \
-ui/freewrl_wingding.c \
+ui/freewrl_wingding_ttf.c \
  \
 plugin/pluginUtils.c \
 plugin/pluginUtils.h \
