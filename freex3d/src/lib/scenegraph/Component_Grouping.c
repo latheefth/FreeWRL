@@ -192,20 +192,37 @@ void fin_Transform (struct X3D_Transform *node) {
 
 void child_Switch (struct X3D_Switch *node) {
 	/* exceedingly simple - render only one child */
+	struct X3D_Node **pp;
+	int n;
 	int wc = node->whichChoice;
 
 	/* is this VRML, or X3D?? */
-	if (node->__isX3D ||  (node->children).n) {
-		if(wc >= 0 && wc < (node->children).n) {
-			void *p = ((node->children).p[wc]);
-			render_node(p);
-		}
-	} else {
-		if(wc >= 0 && wc < ((node->choice).n)) {
-			void *p = ((node->choice).p[wc]);
+	n = 0;
+	pp = NULL;
+	if(node->children.n){
+		pp = node->children.p;
+		n = node->children.n;
+	} else if(node->choice.n){
+		pp = node->choice.p;
+		n = node->choice.n;
+	}
+	if(n && pp){
+		if(wc >= 0 && wc < n){
+			void * p = pp[wc];
 			render_node(p);
 		}
 	}
+	//if (node->__isX3D ||  (node->children).n) {
+	//	if(wc >= 0 && wc < (node->children).n) {
+	//		void *p = ((node->children).p[wc]);
+	//		render_node(p);
+	//	}
+	//} else {
+	//	if(wc >= 0 && wc < ((node->choice).n)) {
+	//		void *p = ((node->choice).p[wc]);
+	//		render_node(p);
+	//	}
+	//}
 }
 
 
@@ -307,6 +324,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	/* now, just render the non-directionalLight children */
 	renderFirstProtoChildOnlyAsPerSpecs = 0; //flux/vivaty render all children
 	normalChildren(node->_sortedChildren);
+
 
 	LOCAL_LIGHT_OFF
 }

@@ -86,6 +86,7 @@ typedef struct pRenderFuncs{
 	GLint lightType[MAX_LIGHT_STACK]; //0=point 1=spot 2=directional
 	/* Rearrange to take advantage of headlight when off */
 	int nextFreeLight;// = 0;
+	int refreshLightUniforms;
 	unsigned int currentLoop;
 	unsigned int lastLoop;
 	unsigned int sendCount;
@@ -149,6 +150,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		/* which arrays are enabled, and defaults for each array */
 		/* Rearrange to take advantage of headlight when off */
 		p->nextFreeLight = 0;
+		p->refreshLightUniforms = 0;
 		//p->firstLight = 0;
 		//p->cur_hits=0;
 		p->empty_group=0;
@@ -329,7 +331,15 @@ void restoreLightState2(int last) {
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	p->nextFreeLight = last;
 }
-
+void refreshLightUniforms(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	p->refreshLightUniforms = TRUE;
+}
+int numberOfLights(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	int rv = p->nextFreeLight;
+	return rv;
+}
 
 void transformLightToEye(float *pos, float* dir)
 {
@@ -538,8 +548,9 @@ void sendLightInfo (s_shader_capabilities_t *me) {
 			}
 		}
 	}
-	if(!lightsChanged && (p->currentShader == p->lastShader)) 
+	if(!lightsChanged && (p->currentShader == p->lastShader) && !p->refreshLightUniforms) 
 			return;
+	p->refreshLightUniforms = FALSE;
 	p->lastShader = p->currentShader;
     for (j=0;j<lightcount; j++) {
 		i = lightIndexesToSend[j];
