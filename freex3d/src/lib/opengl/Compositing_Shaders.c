@@ -253,7 +253,7 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	char Code[SBUFSIZE], Plug[PBUFSIZE];
 	int HasGeometryMain = FALSE, AnyOccurrences;
 	char *found, *end;
-	errno_t err;
+	int err;
 
 	//var
 	// Code: string list;
@@ -335,7 +335,7 @@ void AddDefine( int EffectPartType, const char *defineline, char **CompleteCode)
 {
 	char Code[SBUFSIZE], line[1000];
 	char *found;
-	errno_t err;
+	int err;
 
 	if(!CompleteCode[EffectPartType]) return;
 	err = strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
