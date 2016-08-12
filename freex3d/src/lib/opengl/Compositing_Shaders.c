@@ -217,6 +217,27 @@ void extractPlugName(char *start, char *PlugName,char *PlugDeclaredParameters){
 }
 #define SBUFSIZE 32767 //must hold final size of composited shader part, could do per-gglobal-instance malloced buffer instead and resize to largest composited shader
 #define PBUFSIZE 16384 //must hold largets PlugValue
+int fw_strcpy_s(char *dest, int destsize, char *source){
+	int ier = -1;
+	if(dest)
+	if(source && strlen(source) < destsize){
+		strcpy(dest,source);
+		ier = 0;
+	}
+	return ier;
+}
+int fw_strcat_s(char *dest, int destsize, char *source){
+	int ier = -1;
+	if(dest){
+		int destlen = strlen(dest);
+		if(source)
+			if(strlen(source)+destlen < destsize){
+				strcat(dest,source);
+				ier = 0;
+			}
+	}
+	return ier;
+}
 void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *unique_int)
 {
 	//Algo: 
@@ -239,8 +260,8 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	//begin
 	
 	if(!CompleteCode[EffectPartType]) return;
-	err = strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
-	err = strcpy_s(Plug,PBUFSIZE, PlugValue);
+	err = fw_strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
+	err = fw_strcpy_s(Plug,PBUFSIZE, PlugValue);
 
 	//HasGeometryMain := HasGeometryMain or
 	//  ( EffectPartType = geometry and
@@ -305,9 +326,28 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	of utility functions (no PLUG_xxx inside) also works. }*/
 	//Code.Add(PlugValue)
 	//printf("strlen Code = %d strlen PlugValue=%d\n",strlen(Code),strlen(PlugValue));
-	err = strcat_s(Code,SBUFSIZE,Plug);
+	err = fw_strcat_s(Code,SBUFSIZE,Plug);
+	FREE_IF_NZ(CompleteCode[EffectPartType]);
 	CompleteCode[EffectPartType] = strdup(Code);
 } //end
+
+void AddDefine( int EffectPartType, const char *defineline, char **CompleteCode)
+{
+	char Code[SBUFSIZE], line[1000];
+	char *found;
+	errno_t err;
+
+	if(!CompleteCode[EffectPartType]) return;
+	err = strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
+
+	found = strstr(Code,"/* DEFINE"); 
+	if(found){
+		sprintf(line,"#define %s \n",defineline);
+		insertBefore(found,line,Code,SBUFSIZE);
+		FREE_IF_NZ(CompleteCode[EffectPartType]);
+		CompleteCode[EffectPartType] = strdup(Code);
+	}
+} 
 
 //procedure EnableEffects(
 //  Effects: list of Effect nodes;
@@ -347,7 +387,7 @@ void EnableEffects( struct Multi_Node *Effects, char **CompletedCode, int *uniqu
 
 
 
-static const GLchar *genericVertex = "\
+static const GLchar *genericVertexDesktop = "\
 #version 110\n\
 #define MAX_LIGHTS 8 \n\
 #if defined (GL_ES_VERSION_2_0)\n\
@@ -459,7 +499,7 @@ void main(void)\n\
 //precision mediump float;\n\
 //#endif\n\
 
-static const GLchar *genericFragment = "\
+static const GLchar *genericFragmentDesktop = "\
 #version 110\n\
 #define MAX_LIGHTS 8 \n\
 varying vec4 fw_FrontColor; \n\
@@ -550,12 +590,217 @@ void main(void)\n\
   \n\
   /* PLUG: fragment_end (gl_FragColor) */\n\
 }\n";
+/*
+started with: http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/src/x3d/opengl/glsl/template_mobile.vs
+ castle						freewrl
+ uniforms:
+ castle_ModelViewMatrix		fw_ModelViewMatrix
+ castle_ProjectionMatrix	fw_ProjectionMatrix
+ castle_NormalMatrix		fw_NormalMatrix
+ castle_MaterialDiffuseAlpha fw_FrontMaterial.diffuse.a
+ castle_MaterialShininess	fw_FrontMaterial.shininess
+ castle_SceneColor			fw_FrontMaterial.ambient
+ castle_castle_UnlitColor	fw_FrontMaterial.emission
+							fw_FrontMaterial.specular
+ per-vertex attributes
+ castle_Vertex				fw_Vertex
+ castle_Normal				fw_Normal
+ castle_ColorPerVertex		fw_Color
+
+ defines
+ LIT
+ COLOR_PER_VERTEX
+ CASTLE_BUGGY_GLSL_READ_VARYING
+*/
+
+
+
+#define DEFINE_LIT "LIT 1"
+#define DEFINE_COLOR_PER_VERTEX "COLOR_PER_VERTEX 1"
+static const GLchar *genericVertexGLES2 = "\
+#version 110\n\
+/* DEFINES */ \n\
+/* Generic GLSL vertex shader, used on OpenGL ES. */ \n\
+ \n\
+uniform mat4 fw_ModelViewMatrix; \n\
+uniform mat4 fw_ProjectionMatrix; \n\
+uniform mat3 fw_NormalMatrix; \n\
+attribute vec4 fw_Vertex; \n\
+attribute vec3 fw_Normal; \n\
+ \n\
+/* PLUG-DECLARATIONS */ \n\
+ \n\
+varying vec4 castle_vertex_eye; \n\
+varying vec3 castle_normal_eye; \n\
+varying vec4 castle_Color; \n\
+ \n\
+//uniform float castle_MaterialDiffuseAlpha; \n\
+//uniform float castle_MaterialShininess; \n\
+/* Color summed with all the lights. \n\
+   Like gl_Front/BackLightModelProduct.sceneColor: \n\
+   material emissive color + material ambient color * global (light model) ambient. \n\
+*/ \n\
+\n\
+#define MAX_LIGHTS 8 \n\
+uniform int lightcount; \n\
+//uniform float lightRadius[MAX_LIGHTS]; \n\
+uniform int lightType[MAX_LIGHTS];//ANGLE like this \n\
+struct fw_LightSourceParameters { \n\
+  vec4 ambient;  \n\
+  vec4 diffuse;   \n\
+  vec4 specular; \n\
+  vec4 position;   \n\
+  vec4 halfVector;  \n\
+  vec4 spotDirection; \n\
+  float spotExponent; \n\
+  float spotCutoff; \n\
+  float spotCosCutoff; \n\
+  vec3 Attenuations; \n\
+  //float constantAttenuation; \n\
+  //float linearAttenuation;  \n\
+  //float quadraticAttenuation; \n\
+  float lightRadius; \n\
+  //int lightType; ANGLE doesnt like int in struct array \n\
+}; \n\
+\n\
+uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
+\n\
+//uniform vec3 castle_SceneColor; \n\
+//uniform vec4 castle_UnlitColor; \n\
+struct fw_MaterialParameters { \n\
+  vec4 emission; \n\
+  vec4 ambient; \n\
+  vec4 diffuse; \n\
+  vec4 specular; \n\
+  float shininess; \n\
+}; \n\
+uniform fw_MaterialParameters fw_FrontMaterial; \n\
+uniform fw_MaterialParameters fw_BackMaterial; \n\
+float castle_MaterialDiffuseAlpha; \n\
+float castle_MaterialShininess; \n\
+vec3 castle_SceneColor; \n\
+vec4 castle_UnlitColor; \n\
+vec4 castle_Specular; \n\
+ \n\
+#ifdef COLOR_PER_VERTEX \n\
+attributevec4 castle_ColorPerVertex; \n\
+#endif \n\
+ \n\
+void main(void) \n\
+{ \n\
+  castle_MaterialDiffuseAlpha = fw_FrontMaterial.diffuse.a; \n\
+  castle_MaterialShininess =	fw_FrontMaterial.shininess; \n\
+  castle_SceneColor = fw_FrontMaterial.ambient.rgb; \n\
+  castle_UnlitColor = fw_FrontMaterial.emission; \n\
+  castle_Specular =	fw_FrontMaterial.specular; \n\
+  vec4 vertex_object = fw_Vertex; \n\
+  vec3 normal_object = fw_Normal; \n\
+  /* PLUG: vertex_object_space_change (vertex_object, normal_object) */ \n\
+  /* PLUG: vertex_object_space (vertex_object, normal_object) */ \n\
+   \n\
+  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
+  /* use local variables, instead of reading + writing to varying variables, \n\
+     when VARYING_NOT_READABLE */ \n\
+  vec4 temp_castle_vertex_eye; \n\
+  vec3 temp_castle_normal_eye; \n\
+  vec4 temp_castle_Color; \n\
+  #define castle_vertex_eye temp_castle_vertex_eye \n\
+  #define castle_normal_eye temp_castle_normal_eye \n\
+  #define castle_Color      temp_castle_Color \n\
+  #endif \n\
+   \n\
+  castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
+  castle_normal_eye = normalize(fw_NormalMatrix * normal_object); \n\
+   \n\
+  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */ \n\
+   \n\
+#ifdef LIT \n\
+  castle_Color = vec4(castle_SceneColor, 1.0); \n\
+  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */ \n\
+  castle_Color.a = castle_MaterialDiffuseAlpha; \n\
+   \n\
+  /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */ \n\
+  castle_Color.rgb = min(castle_Color.rgb, 1.0); \n\
+#else \n\
+  castle_Color = castle_UnlitColor \n\
+#ifdef COLOR_PER_VERTEX \n\
+    * fw_Color \n\
+#endif \n\
+  ; \n\
+#endif \n\
+ \n\
+  gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
+   \n\
+  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
+  #undef castle_vertex_eye \n\
+  #undef castle_normal_eye \n\
+  #undef castle_Color \n\
+  castle_vertex_eye = temp_castle_vertex_eye; \n\
+  castle_normal_eye = temp_castle_normal_eye; \n\
+  castle_Color      = temp_castle_Color; \n\
+  #endif \n\
+} \n";
+
+/* 
+	started with: http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/src/x3d/opengl/glsl/template_mobile.fs
+  defines:
+  GL_ES_VERSION_2_0 - non-desktop
+  HAS_GEOMETRY_SHADER - version 3+ gles
+*/
+#define DEFINE_GL_ES_VERSION_2_0 "GL_ES_VERSION_2_0 1"
+static const GLchar *genericFragmentGLES2 = "\
+#version 110\n\
+/* DEFINES */ \n\
+/* Generic GLSL fragment shader, used on OpenGL ES. */ \n\
+ \n\
+#ifdef GL_ES_VERSION_2_0 \n\
+//precision highp float;\n\
+precision mediump float;\n\
+#endif\n\
+ \n\
+/* PLUG-DECLARATIONS */ \n\
+ \n\
+#ifdef HAS_GEOMETRY_SHADER \n\
+  #define castle_vertex_eye castle_vertex_eye_geoshader \n\
+  #define castle_normal_eye castle_normal_eye_geoshader \n\
+#endif \n\
+ \n\
+varying vec4 castle_vertex_eye; \n\
+varying vec3 castle_normal_eye; \n\
+varying vec4 castle_Color; \n\
+ \n\
+/* Wrapper for calling PLUG texture_coord_shift */ \n\
+vec2 texture_coord_shifted(in vec2 tex_coord) \n\
+{ \n\
+  /* PLUG: texture_coord_shift (tex_coord) */ \n\
+  return tex_coord; \n\
+} \n\
+ \n\
+void main(void) \n\
+{ \n\
+  vec4 fragment_color = castle_Color; \n\
+   \n\
+/* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
+#define normal_eye_fragment vec3(0.0) \n\
+ \n\
+  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+  /* PLUG: steep_parallax_shadow_apply (fragment_color) */ \n\
+  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */ \n\
+   \n\
+#undef normal_eye_fragment \n\
+ \n\
+  gl_FragColor = fragment_color; \n\
+   \n\
+  /* PLUG: fragment_end (gl_FragColor) */ \n\
+} \n";
+
+
 
 const char *getGenericVertex(){
-	return genericVertex;
+	return genericVertexGLES2; //genericVertexDesktop
 }
 const char *getGenericFragment(){
-	return genericFragment;
+	return genericFragmentGLES2; //genericFragmentDesktop;
 }
 #include "../scenegraph/Component_Shape.h"
 
@@ -565,9 +810,10 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 	finalFrag = vec4(gray,gray,gray, finalFrag.a); \n\
 }\n";
 
+//add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess)
 static const GLchar *plug_vertex_lighting_ADSLLightModel = "\n\
 /* use ADSLightModel here the ADS colour is returned from the function.  */\n\
-void PLUG_vertex_lighting (inout vec4 vertexcolor, in vec4 myPosition, in vec3 myNormal) {\n\
+void PLUG_add_light_contribution (inout vec4 vertexcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ) {\n\
   int i;\n\
   vec4 diffuse = vec4(0., 0., 0., 0.);\n\
   vec4 ambient = vec4(0., 0., 0., 0.);\n\
@@ -770,10 +1016,11 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//generic
 	vs = strdup(getGenericVertex());
 	fs = strdup(getGenericFragment());
+		
 	CompleteCode[SHADERPART_VERTEX] = vs;
 	CompleteCode[SHADERPART_GEOMETRY] = NULL;
 	CompleteCode[SHADERPART_FRAGMENT] = fs;
-
+	AddDefine(SHADERPART_VERTEX,DEFINE_LIT,CompleteCode);
 	unique_int = 0;
 	//Add in:
 	//Lit

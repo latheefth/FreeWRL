@@ -645,7 +645,10 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int tcin;
 	int colin;
 	int norin;
-	float creaseAngle = (float) PI*2;
+	//Aug 11, 2016 there are some complainers on web3d-public -TriangleSet too smoothed
+	// and nodes like TriangleSet don't officially have a creaseangle field like IndexedFaceSet or ElevationGrid
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#TriangleSet
+	float creaseAngle = (float) PI * .25; // PI*2; //PI will make some happy, because ccw can control, but TriangleSet->creaseAngle would be better
 	int ccw = TRUE;
 
 	int ntri = 0;
@@ -1010,9 +1013,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 		return;
 	}
 
-	facenormals = MALLOC(struct point_XYZ *, sizeof(*facenormals)*faces);
+	facenormals = MALLOC(struct point_XYZ *, sizeof(struct point_XYZ)*faces); // sizeof(*facenormals)
 	faceok = MALLOC(int *, sizeof(int)*faces);
-	pointfaces = MALLOC(int *, sizeof(*pointfaces)*npoints*POINT_FACES); /* save max x points */
+	pointfaces = MALLOC(int *, sizeof(int)*npoints*POINT_FACES); /* save max x points */ //sizeof(*pointfaces)
 
 	/* generate the face-normals table, so for each face, we know the normal
 	   and for each point, we know the faces that it is in */
