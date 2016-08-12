@@ -338,7 +338,7 @@ void AddDefine( int EffectPartType, const char *defineline, char **CompleteCode)
 	int err;
 
 	if(!CompleteCode[EffectPartType]) return;
-	err = strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
+	err = fw_strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
 
 	found = strstr(Code,"/* DEFINE"); 
 	if(found){
@@ -796,7 +796,7 @@ void main(void) \n\
 
 
 
-const char *getGenericVertex(){
+const char *getGenericVertex(void){
 	return genericVertexGLES2; //genericVertexDesktop
 }
 const char *getGenericFragment(){
