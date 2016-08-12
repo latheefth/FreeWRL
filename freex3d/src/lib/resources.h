@@ -207,11 +207,12 @@ resource_item_t* resource_create_from_string(const char *string);
 
 void push_resource_request(const char *request);
 void resource_identify(resource_item_t *base, resource_item_t *resresource_identify);
-bool resource_fetch(resource_item_t *res);
+//JAS bool resource_fetch(resource_item_t *res);
+bool resource_fetch(void *res);
+
 void resitem_enqueue(s_list_t *resitem);
 bool resource_load(resource_item_t *res);
 void resource_identify_type(resource_item_t *res);
-//bool resource_fetch(resource_item_t *res);
 void resource_destroy(resource_item_t *res);
 void destroy_root_res();
 

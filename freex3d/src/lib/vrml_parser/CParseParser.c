@@ -231,35 +231,6 @@ BOOL (*PARSE_TYPE[])(struct VRMLParser*, void*)={
     &parser_fieldTypeNotParsedYet,							// 42    FreeWRLThread
 };
 
-/* for error messages */
-//char fw_outline[2000];
-
-
-/* General processing macros */
-#define PROCESS_EVENT(constPre, destPre, node, field, type, var, realType) \
- case constPre##_##field: \
-  destPre##Ofs=(int) offsetof(struct X3D_##node, var); \
-  destPre##Type = realType; \
-  break;
-
-#define EVENT_BEGIN_NODE(fieldInd, ptr, node) \
- case NODE_##node: \
- { \
-  switch(fieldInd) \
-  {
-
-#define EVENT_END_NODE(myn,fieldString) \
-  default: \
-	CPARSE_ERROR_FIELDSTRING("ERROR: Unsupported event ",fieldString); \
-        PARSER_FINALLY;  \
-        return FALSE;  \
-  } \
-  break; \
- }
-
-#define EVENT_NODE_DEFAULT \
- default: \
-  PARSE_ERROR("Parser - PROCESS_EVENT: Unsupported node!")
 
 /************************************************************************************************/
 /* parse an SF/MF; return the parsed value in the defaultVal field */
@@ -1447,7 +1418,6 @@ void parser_registerRoute(struct VRMLParser* me,
 static vrmlNodeT parse_KW_DEF(struct VRMLParser *me) {
     int ind = ID_UNDEFINED;
     vrmlNodeT node;
-	char* name;
 
     /* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
     /* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
@@ -1712,51 +1682,6 @@ void parser_specificInitNode_B(struct X3D_Node* n, struct VRMLParser* me)
 #define INIT_CODE_sfvec2d(var)
 #define INIT_CODE_sfvec4f(var)
 
-
-/* The field type indices */
-#define FTIND_sfnode    FIELDTYPE_SFNode
-#define FTIND_sfbool    FIELDTYPE_SFBool
-#define FTIND_sfcolor   FIELDTYPE_SFColor
-#define FTIND_sfcolorrgba       FIELDTYPE_SFColorRGBA
-#define FTIND_sffloat   FIELDTYPE_SFFloat
-#define FTIND_sfimage   FIELDTYPE_SFImage
-#define FTIND_sfint32   FIELDTYPE_SFInt32
-#define FTIND_sfrotation        FIELDTYPE_SFRotation
-#define FTIND_sfstring  FIELDTYPE_SFString
-#define FTIND_sftime    FIELDTYPE_SFTime
-#define FTIND_sfdouble  FIELDTYPE_SFDouble
-#define FTIND_sfvec2f   FIELDTYPE_SFVec2f
-#define FTIND_sfvec2d   FIELDTYPE_SFVec2d
-#define FTIND_sfvec3f   FIELDTYPE_SFVec3f
-#define FTIND_sfvec3d   FIELDTYPE_SFVec3d
-#define FTIND_sfvec4f	FIELDTYPE_SFVec4f
-#define FTIND_sfvec4d	FIELDTYPE_SFVec4d
-#define FTIND_sfmatrix3f FIELDTYPE_SFMatrix3f
-#define FTIND_sfmatrix4f FIELDTYPE_SFMatrix4f
-#define FTIND_sfmatrix3d FIELDTYPE_SFMatrix3d
-#define FTIND_sfmatrix4d FIELDTYPE_SFMatrix4d
-
-#define FTIND_mfnode    FIELDTYPE_MFNode
-#define FTIND_mfbool    FIELDTYPE_MFBool
-#define FTIND_mfcolor   FIELDTYPE_MFColor
-#define FTIND_mfcolorrgba       FIELDTYPE_MFColorRGBA
-#define FTIND_mffloat   FIELDTYPE_MFFloat
-#define FTIND_mfint32   FIELDTYPE_MFInt32
-#define FTIND_mfrotation        FIELDTYPE_MFRotation
-#define FTIND_mfstring  FIELDTYPE_MFString
-#define FTIND_mftime    FIELDTYPE_MFTime
-#define FTIND_mfvec2f   FIELDTYPE_MFVec2f
-#define FTIND_mfvec2d   FIELDTYPE_MFVec2d
-#define FTIND_mfvec3f   FIELDTYPE_MFVec3f
-#define FTIND_mfvec3d   FIELDTYPE_MFVec3d
-#define FTIND_mfvec4d   FIELDTYPE_MFVec4d
-#define FTIND_mfvec4f   FIELDTYPE_MFVec4f
-#define FTIND_mfdouble  FIELDTYPE_MFDouble
-#define FTIND_mfmatrix3f FIELDTYPE_MFMatrix3f
-#define FTIND_mfmatrix4f FIELDTYPE_MFMatrix4f
-#define FTIND_mfmatrix3d FIELDTYPE_MFMatrix3d
-#define FTIND_mfmatrix4d FIELDTYPE_MFMatrix4d
- 
 /* Parses a fieldvalue for a built-in field and sets it in node */
 static BOOL parser_field_B(struct VRMLParser* me, struct X3D_Node* node)
 {
@@ -2344,12 +2269,9 @@ static BOOL parser_sfnodeValue(struct VRMLParser* me, void* ret) {
         return parser_nodeStatement(me, rv);
     } else {
         /* expect something like a number (memory pointer) to be here */
-        #ifndef DISABLER
-        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%u",  &tmp) != 1) {
-        #else
-        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%lu",  (unsigned long *)&tmp) != 1) {
-        #endif
-            CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
+        if (sscanf(me->lexer->startOfStringPtr[me->lexer->lexerInputLevel], "%lu",  &tmp) != 1) {
+            CPARSE_ERROR_FIELDSTRING ("error finding SFNode id on line :%s:",
+			me->lexer->startOfStringPtr[me->lexer->lexerInputLevel]);
             *rv=NULL;
             return FALSE;
         }
@@ -2514,7 +2436,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 	struct X3D_Node* node=NULL;
 	struct X3D_Proto *currentContext;
 	char pflagdepth;
-	struct ProtoDefinition *thisProto = NULL;
 		struct Shader_Script* script=NULL;
 	struct Shader_Script* shader=NULL;
 	DECLAREUP
@@ -5569,7 +5490,6 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
     int type;
 	int source;
 	int ifield, iprotofield;
-    	//OLDCODE union anyVrml *defaultVal;
 	struct ProtoDefinition* pdef=NULL;
 	struct X3D_Proto* proto;
 	char *protoFieldName;
@@ -5581,7 +5501,6 @@ BOOL found_IS_field(struct VRMLParser* me, struct X3D_Node *node)
 	union anyVrml *fieldPtr;
 	void *fdecl;
 
-	//OLDCODE defaultVal = NULL;
 
 
 
