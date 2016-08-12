@@ -430,7 +430,8 @@ void LocalLight_Rend(void *nod_);
 
 void saveLightState2(int *ls);
 void restoreLightState2(int ls);
-
+int numberOfLights();
+void refreshLightUniforms();
 #define LOCAL_LIGHT_SAVE int lastlight; //savedlight[8];
 /* 
 Saved version by Doug Sanden(?) 
@@ -450,7 +451,12 @@ void restoreLightState(int *);
 
 #define LOCAL_LIGHT_OFF \
 	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight) { \
-		restoreLightState2(lastlight); }
+		if(numberOfLights() > lastlight) {\
+			setLightChangedFlag(numberOfLights()-1); \
+			refreshLightUniforms();\
+		}\
+		restoreLightState2(lastlight); \
+	}
 
 
 void normalize_ifs_face (float *point_normal,

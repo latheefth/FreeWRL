@@ -325,6 +325,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	renderFirstProtoChildOnlyAsPerSpecs = 0; //flux/vivaty render all children
 	normalChildren(node->_sortedChildren);
 
+
 	LOCAL_LIGHT_OFF
 }
 
