@@ -211,7 +211,7 @@ bool resource_fetch(resource_item_t *res);
 void resitem_enqueue(s_list_t *resitem);
 bool resource_load(resource_item_t *res);
 void resource_identify_type(resource_item_t *res);
-bool resource_fetch(resource_item_t *res);
+//bool resource_fetch(resource_item_t *res);
 void resource_destroy(resource_item_t *res);
 void destroy_root_res();
 

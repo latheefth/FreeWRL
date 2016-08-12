@@ -217,6 +217,27 @@ void extractPlugName(char *start, char *PlugName,char *PlugDeclaredParameters){
 }
 #define SBUFSIZE 32767 //must hold final size of composited shader part, could do per-gglobal-instance malloced buffer instead and resize to largest composited shader
 #define PBUFSIZE 16384 //must hold largets PlugValue
+int fw_strcpy_s(char *dest, int destsize, char *source){
+	int ier = -1;
+	if(dest)
+	if(source && strlen(source) < destsize){
+		strcpy(dest,source);
+		ier = 0;
+	}
+	return ier;
+}
+int fw_strcat_s(char *dest, int destsize, char *source){
+	int ier = -1;
+	if(dest){
+		int destlen = strlen(dest);
+		if(source)
+			if(strlen(source)+destlen < destsize){
+				strcat(dest,source);
+				ier = 0;
+			}
+	}
+	return ier;
+}
 void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *unique_int)
 {
 	//Algo: 
@@ -239,8 +260,8 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	//begin
 	
 	if(!CompleteCode[EffectPartType]) return;
-	err = strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
-	err = strcpy_s(Plug,PBUFSIZE, PlugValue);
+	err = fw_strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
+	err = fw_strcpy_s(Plug,PBUFSIZE, PlugValue);
 
 	//HasGeometryMain := HasGeometryMain or
 	//  ( EffectPartType = geometry and
@@ -305,7 +326,7 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	of utility functions (no PLUG_xxx inside) also works. }*/
 	//Code.Add(PlugValue)
 	//printf("strlen Code = %d strlen PlugValue=%d\n",strlen(Code),strlen(PlugValue));
-	err = strcat_s(Code,SBUFSIZE,Plug);
+	err = fw_strcat_s(Code,SBUFSIZE,Plug);
 	FREE_IF_NZ(CompleteCode[EffectPartType]);
 	CompleteCode[EffectPartType] = strdup(Code);
 } //end
