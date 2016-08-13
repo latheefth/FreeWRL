@@ -188,6 +188,10 @@ typedef struct damper_ptrs {
 //goal: abstract a few numerical field types without using ## macroization
 //- including SF and MF in same interface, so algos can be generic
 //  this should be static for a fieldtype
+#define VOIDFN (void(*))
+#define FLOATFN (float (*)(void *))
+#define INTFN (int (*) (void *, void *))
+#define VOIDPTR (void *)
 typedef struct ftype {
 	int type;
 	void* (*copy)(void *T,void *A);
@@ -218,18 +222,20 @@ float *veclerp3f(float *T, float *A, float *B, float alpha){
 }
 float tmp3f1[6][3];
 void *tmp3f [] = {&tmp3f[0],&tmp3f[1],&tmp3f[2],&tmp3f[3],&tmp3f[4],&tmp3f[5]};
+
+
 ftype ftype_vec3f = {
--1, //not a real type, just for warm-up
-veccopy3f,
-vecadd3f,
-vecdif3f,
-vecscale3f,
-veclerp3f,
-veclength3f,
-vecsame3f,
-vecsame3f,
-arr3f,
-tmp3f,
+	-1, //not a real type, just for warm-up
+	VOIDFN veccopy3f,
+	VOIDFN vecadd3f,
+	VOIDFN vecdif3f,
+	VOIDFN vecscale3f,
+	VOIDFN veclerp3f,
+	FLOATFN veclength3f,
+	INTFN vecsame3f,
+	INTFN vecsame3f,
+	VOIDFN arr3f,
+	VOIDPTR tmp3f,
 };
 
 struct SFVec3f *sfvec3f_copy(struct SFVec3f* T, struct SFVec3f *A){
@@ -264,17 +270,17 @@ struct SFVec3f *sfvec3f_arr(struct SFVec3f *A, int i){
 struct SFVec3f sfvec3f_tmps[6];
 void *sfvec3f_tmp [] = {&sfvec3f_tmps[0],&sfvec3f_tmps[1],&sfvec3f_tmps[2],&sfvec3f_tmps[3],&sfvec3f_tmps[4],&sfvec3f_tmps[5]};
 ftype ftype_sfvec3f = {
-FIELDTYPE_SFVec3f,
-sfvec3f_copy,
-sfvec3f_add,
-sfvec3f_dif,
-sfvec3f_scale,
-sfvec3f_lerp,
-sfvec3f_dist,
-sfvec3f_same,
-sfvec3f_same,
-sfvec3f_arr,
-sfvec3f_tmp,
+	FIELDTYPE_SFVec3f,
+	VOIDFN sfvec3f_copy,
+	VOIDFN sfvec3f_add,
+	VOIDFN sfvec3f_dif,
+	VOIDFN sfvec3f_scale,
+	VOIDFN sfvec3f_lerp,
+	FLOATFN sfvec3f_dist,
+	INTFN sfvec3f_same,
+	INTFN sfvec3f_same,
+	VOIDFN sfvec3f_arr,
+	VOIDPTR sfvec3f_tmp,
 };
 #define NEWWAY 1
 #ifdef NEWWAY
@@ -407,7 +413,7 @@ void chaser_tick(struct X3D_PositionChaser *node, double Now)
     //struct SFVec3f DeltaIn;
     //struct SFVec3f DeltaOut;
 	void *Output, *DeltaIn, *DeltaOut;
-	struct SFVec3f *buffer = (struct SFVec3f*)node->_buffer;
+	// OLDCODE UNUSED struct SFVec3f *buffer = (struct SFVec3f*)node->_buffer;
 	chaser_ptrs *p = node->_p;
 	ftype *t = node->_t;
 
@@ -517,7 +523,6 @@ void chaser_set_value(struct X3D_PositionChaser *node)
 
 void do_PositionChaserTick(void * ptr){
 	double Now;
-	static double lasttime;
 	struct X3D_PositionChaser *_node = (struct X3D_PositionChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
 	if(!node) return;
@@ -576,7 +581,7 @@ void damper_set_value(struct X3D_PositionDamper *node, void *opos);
 void damper_Init(struct X3D_PositionDamper *node)
 {
 	damper_ptrs *p = node->_p;
-	ftype *t = node->_t;
+	// OLDCODE UNUSED ftype *t = node->_t;
 
     node->_takefirstinput = TRUE;
     //damper_set_value(node,node->initialValue);
@@ -1004,7 +1009,6 @@ void chaser_set_value(struct X3D_PositionChaser *node, struct SFVec3f opos)
 
 void do_PositionChaserTick(void * ptr){
 	double Now;
-	static double lasttime;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr;
 	if(!node) return;
 	if(!node->_buffer){
@@ -1234,7 +1238,6 @@ void do_ColorDamperTick_default(void * ptr){
 }
 void do_ColorChaserTick(void * ptr){
 	double Now;
-	static double lasttime;
 	struct X3D_ColorChaser *_node = (struct X3D_ColorChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
@@ -1404,17 +1407,17 @@ struct Multi_Vec3f *mfvec3f_arr(struct Multi_Vec3f *A, int i){
 struct Multi_Vec3f mfvec3f_tmps[6];
 void *mfvec3f_tmp [] = {&mfvec3f_tmps[0],&mfvec3f_tmps[1],&mfvec3f_tmps[2],&mfvec3f_tmps[3],&mfvec3f_tmps[4],&mfvec3f_tmps[5]};
 ftype ftype_mfvec3f = {
-FIELDTYPE_MFVec3f,
-mfvec3f_copy,
-mfvec3f_add,
-mfvec3f_dif,
-mfvec3f_scale,
-mfvec3f_lerp,
-mfvec3f_dist,
-mfvec3f_same,
-mfvec3f_same,
-mfvec3f_arr,
-mfvec3f_tmp,
+	FIELDTYPE_MFVec3f,
+	VOIDFN mfvec3f_copy,
+	VOIDFN mfvec3f_add,
+	VOIDFN mfvec3f_dif,
+	VOIDFN mfvec3f_scale,
+	VOIDFN mfvec3f_lerp,
+	FLOATFN mfvec3f_dist,
+	INTFN mfvec3f_same,
+	INTFN mfvec3f_same,
+	VOIDFN mfvec3f_arr,
+	VOIDPTR mfvec3f_tmp,
 };
 
 
@@ -1566,22 +1569,21 @@ struct SFRotation *sfrotation_arr(struct SFRotation *A, int i){
 struct SFRotation sfrotation_tmps[6];
 void *sfrotation_tmp [] = {&sfrotation_tmps[0],&sfrotation_tmps[1],&sfrotation_tmps[2],&sfrotation_tmps[3],&sfrotation_tmps[4],&sfrotation_tmps[5]};
 ftype ftype_sfrotation = {
-FIELDTYPE_SFRotation,
-sfrotation_copy,
-sfrotation_add,
-sfrotation_dif,
-sfrotation_scale,
-sfrotation_slerp,
-sfrotation_dist,
-sfrotation_same,
-sfrotation_same,
-sfrotation_arr,
-sfrotation_tmp,
+	FIELDTYPE_SFRotation,
+	VOIDFN sfrotation_copy,
+	VOIDFN sfrotation_add,
+	VOIDFN sfrotation_dif,
+	VOIDFN sfrotation_scale,
+	VOIDFN sfrotation_slerp,
+	FLOATFN sfrotation_dist,
+	INTFN sfrotation_same,
+	INTFN sfrotation_same,
+	VOIDFN sfrotation_arr,
+	VOIDPTR sfrotation_tmp,
 };
 
 void do_OrientationChaserTick(void * ptr){
 	double Now;
-	static double lasttime;
 	struct X3D_OrientationChaser *_node = (struct X3D_OrientationChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
@@ -1870,7 +1872,6 @@ void orichaser_set_value(struct X3D_OrientationChaser *node, struct SFRotation o
 
 void do_OrientationChaserTick_oldway_works(void * ptr){
 	double Now;
-	static double lasttime;
 	struct X3D_OrientationChaser *node = (struct X3D_OrientationChaser *)ptr;
 	if(!node) return;
 	if(!node->_buffer){
@@ -1899,7 +1900,6 @@ void do_OrientationChaserTick_oldway_works(void * ptr){
 
 void do_CoordinateChaserTick(void * ptr){
 	double Now;
-	static double lasttime;
 	struct X3D_CoordinateChaser *_node = (struct X3D_CoordinateChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
@@ -2046,22 +2046,21 @@ struct SFVec2f *sfvec2f_arr(struct SFVec2f *A, int i){
 struct SFVec2f sfvec2f_tmps[6];
 void *sfvec2f_tmp [] = {&sfvec2f_tmps[0],&sfvec2f_tmps[1],&sfvec2f_tmps[2],&sfvec2f_tmps[3],&sfvec2f_tmps[4],&sfvec2f_tmps[5]};
 ftype ftype_sfvec2f = {
-FIELDTYPE_SFVec2f,
-sfvec2f_copy,
-sfvec2f_add,
-sfvec2f_dif,
-sfvec2f_scale,
-sfvec2f_lerp,
-sfvec2f_dist,
-sfvec2f_same,
-sfvec2f_same,
-sfvec2f_arr,
-sfvec2f_tmp,
+	FIELDTYPE_SFVec2f,
+	VOIDFN sfvec2f_copy,
+	VOIDFN sfvec2f_add,
+	VOIDFN sfvec2f_dif,
+	VOIDFN sfvec2f_scale,
+	VOIDFN sfvec2f_lerp,
+	FLOATFN sfvec2f_dist,
+	INTFN sfvec2f_same,
+	INTFN sfvec2f_same,
+	VOIDFN sfvec2f_arr,
+	VOIDPTR sfvec2f_tmp,
 };
 
 void do_PositionChaser2DTick(void * ptr){
 	double Now;
-	static double lasttime;
 	struct X3D_PositionChaser2D *_node = (struct X3D_PositionChaser2D *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
@@ -2195,22 +2194,21 @@ float *scalar_arr(float *A, int i){
 float scalar_tmps[6];
 void *scalar_tmp [] = {&scalar_tmps[0],&scalar_tmps[1],&scalar_tmps[2],&scalar_tmps[3],&scalar_tmps[4],&scalar_tmps[5]};
 ftype ftype_scalar = {
-FIELDTYPE_SFFloat,
-scalar_copy,
-scalar_add,
-scalar_dif,
-scalar_scale,
-scalar_lerp,
-scalar_dist,
-scalar_same,
-scalar_same,
-scalar_arr,
-scalar_tmp,
+	FIELDTYPE_SFFloat,
+	VOIDFN scalar_copy,
+	VOIDFN scalar_add,
+	VOIDFN scalar_dif,
+	VOIDFN scalar_scale,
+	VOIDFN scalar_lerp,
+	FLOATFN scalar_dist,
+	INTFN scalar_same,
+	INTFN scalar_same,
+	VOIDFN scalar_arr,
+	VOIDPTR scalar_tmp,
 };
 
 void do_ScalarChaserTick(void * ptr){
 	double Now;
-	static double lasttime;
 	struct X3D_ScalarChaser *_node = (struct X3D_ScalarChaser *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
@@ -2380,22 +2378,21 @@ struct Multi_Vec2f *mfvec2f_arr(struct Multi_Vec2f *A, int i){
 struct Multi_Vec2f mfvec2f_tmps[6];
 void *mfvec2f_tmp [] = {&mfvec2f_tmps[0],&mfvec2f_tmps[1],&mfvec2f_tmps[2],&mfvec2f_tmps[3],&mfvec2f_tmps[4],&mfvec2f_tmps[5]};
 ftype ftype_mfvec2f = {
-FIELDTYPE_MFVec2f,
-mfvec2f_copy,
-mfvec2f_add,
-mfvec2f_dif,
-mfvec2f_scale,
-mfvec2f_lerp,
-mfvec2f_dist,
-mfvec2f_same,
-mfvec2f_same,
-mfvec2f_arr,
-mfvec2f_tmp,
+	FIELDTYPE_MFVec2f,
+	VOIDFN mfvec2f_copy,
+	VOIDFN mfvec2f_add,
+	VOIDFN mfvec2f_dif,
+	VOIDFN mfvec2f_scale,
+	VOIDFN mfvec2f_lerp,
+	FLOATFN mfvec2f_dist,
+	INTFN mfvec2f_same,
+	INTFN  mfvec2f_same,
+	VOIDFN mfvec2f_arr,
+	VOIDPTR mfvec2f_tmp,
 };
 void do_TexCoordChaser2DTick(void * ptr){
 	double Now;
-	static double lasttime;
-	struct X3D_TexCoordChaser2D *_node = (struct X3D_TexCoordChaser2D *)ptr;
+	struct X3D_TexCoordChaser2D * _node = (struct X3D_TexCoordChaser2D *)ptr;
 	struct X3D_PositionChaser *node = (struct X3D_PositionChaser *)ptr; //abstract interface
 	if(!node) return;
 	if(!_node->_buffer){

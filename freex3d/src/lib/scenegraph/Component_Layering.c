@@ -88,7 +88,7 @@ void Component_Layering_clear(struct tComponent_Text *t){
 	//public
 	//private
 	{
-		ppComponent_Layering p = (ppComponent_Layering)t->prv;
+		// ppComponent_Layering p = (ppComponent_Layering)t->prv;
 		//FREE_IF_NZ(p->xxx);
 	}
 }
@@ -110,10 +110,8 @@ static float defaultClipBoundary [] = {0.0f, 1.0f, 0.0f, 1.0f}; // left/right/bo
 //- LayerSet should be the only caller for these 3 normally, according to specs
 //- if no LayerSet but a Layer then Layer doesn't do any per-layer stacks or viewer
 void prep_Layer(struct X3D_Node * _node){
-	ttglobal tg;
 	ttrenderstate rs;
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
-	tg = gglobal();
 
 	
 	rs = renderstate();
@@ -152,10 +150,8 @@ void child_Layer(struct X3D_Node * _node){
 	}
 }
 void fin_Layer(struct X3D_Node * _node){
-	ttglobal tg;
 	ttrenderstate rs;
 	struct X3D_Layer *node = (struct X3D_Layer*)_node;
-	tg = gglobal();
 
 	rs = renderstate();
 
@@ -254,7 +250,10 @@ void child_LayerSet(struct X3D_Node * node){
 	// Picking reverses the order of layers so top layer can 'swallow the mouse'
 
 	if(node && node->_nodeType == NODE_LayerSet){
-		int ii,i,activeLayer,layerId;
+		int ii,i,layerId;
+
+		// UNUSED OLDCODE activeLayer 
+
 		ttglobal tg;
 		struct X3D_LayerSet * layerset;
 		ttrenderstate rs;
@@ -262,14 +261,14 @@ void child_LayerSet(struct X3D_Node * node){
 		rs = renderstate();
 		layerset = (struct X3D_LayerSet *)node;
 		tg = gglobal();
-		activeLayer = layerset->activeLayer;
+		// UNUSED OLDCODE activeLayer = layerset->activeLayer;
 
 		for(i=0;i<layerset->order.n;i++){
 
 			int i0, saveActive, isActive;
 			struct X3D_Node *rayhit;
 			struct X3D_Layer * layer;
-			X3D_Viewer *viewer;
+			// UNUSED OLDCODE X3D_Viewer *viewer;
 			bindablestack* bstack;
 
 			ii = i;
@@ -298,8 +297,9 @@ void child_LayerSet(struct X3D_Node * node){
 				addBindableStack(tg,bstack);
 			}
 			saveActive = tg->Bindable.activeLayer;
-			viewer = (X3D_Viewer*)bstack->viewer;
-			//if(viewer) printf("layerid=%d ortho=%d ofield=%f %f %f %f\n",layerId,viewer->ortho,viewer->orthoField[0],viewer->orthoField[1],viewer->orthoField[2],viewer->orthoField[3]);
+			// UNUSED OLDCODE viewer = (X3D_Viewer*)bstack->viewer;
+			// UNUSED OLDCODE if(viewer) printf("layerid=%d ortho=%d ofield=%f %f %f %f\n",layerId,viewer->ortho,viewer->orthoField[0],viewer->orthoField[1],viewer->orthoField[2],viewer->orthoField[3]);
+
 			tg->Bindable.activeLayer = layerId;
 
 			//per-layer modelview matrix is handled here in LayerSet because according
@@ -441,7 +441,11 @@ void fin_Viewport(struct X3D_Node * node){
 		Stack *vportstack;
 		ttrenderstate rs;
 		ttglobal tg;
-		struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
+		// OLDCODE UNUSED struct X3D_Viewport * viewport = (struct X3D_Viewport *)node;
+
+		// compiler warning mitigation
+		UNUSED(rs);
+
 		tg = gglobal();
 
 		rs = renderstate();

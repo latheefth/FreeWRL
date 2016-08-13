@@ -1371,7 +1371,7 @@ static void texture_process_list_item(s_list_t *item)
 {
 	bool remove_it = FALSE;
 	textureTableIndexStruct_s *entry;
-	ppLoadTextures p = (ppLoadTextures)gglobal()->LoadTextures.prv;
+	// OLDCODE UNUSED ppLoadTextures p = (ppLoadTextures)gglobal()->LoadTextures.prv;
 
 	if (!item || !item->elem)
 		return;
@@ -1407,7 +1407,7 @@ static void texture_process_list_item(s_list_t *item)
 		
 	if (remove_it) {
 		/* free the parsed resource and list item */
-		//p->texture_list = ml_delete_self(p->texture_list, item);
+		//OLDCODE UNUSED p->texture_list = ml_delete_self(p->texture_list, item);
 		ml_free(item);
 	}
 }

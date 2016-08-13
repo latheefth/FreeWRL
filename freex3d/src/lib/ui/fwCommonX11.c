@@ -409,16 +409,23 @@ int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *sha
 	//scrape parameters from statics
 	params->context = GLcx;
 	params->display = Xdpy;
-	params->surface = GLwin;
-	params->xwin = Xwin;
+
+	// JAS - this is actually a "Window" but store it as a pointer... 
+	params->surface = (void*) GLwin;
 
 	return TRUE;
 }
+// remember, Window {aka long unsigned int} is stored as a pointer, so 
+// type cast it back again.
+
 void fv_change_GLcontext(freewrl_params_t* d){
-	glXMakeCurrent(d->display,d->surface,d->context); 
+	glXMakeCurrent(d->display,
+		(Window) d->surface,
+		d->context); 
 }
 void fv_swapbuffers(freewrl_params_t* d){
-	glXSwapBuffers(d->display,d->surface);
+	glXSwapBuffers(d->display,
+		(Window) d->surface);
 }
 
 #define TRY_MAINLOOP_STUFF_HERE 1
@@ -433,16 +440,6 @@ void fv_swapbuffers(freewrl_params_t* d){
 #define PPGUP_KEY XK_Page_Up //85
 #define PDOWN_KEY XK_Down //59
 #define PF1_KEY  XK_F1 //0xFFBE
-//OLDCODE #define PF2_KEY  XK_F2 //0xFFBF
-//OLDCODE #define PF3_KEY  XK_F3 //0XFFC0
-//OLDCODE #define PF4_KEY  XK_F4 //0XFFC1
-//OLDCODE #define PF5_KEY  XK_F5 //0XFFC2
-//OLDCODE #define PF6_KEY  XK_F6 //0XFFC3
-//OLDCODE #define PF7_KEY  XK_F7 //0XFFC4
-//OLDCODE #define PF8_KEY  XK_F8 //0XFFC5
-//OLDCODE #define PF9_KEY  XK_F9 //0XFFC6
-//OLDCODE #define PF10_KEY XK_F10 //0XFFC7
-//OLDCODE #define PF11_KEY XK_F11 //0XFFC8
 #define PF12_KEY XK_F12 //0XFFC9
 #define PALT_KEY XK_Alt_L //0XFFE9 //left, and 0XFFEA   //0XFFE7
 #define PALT_KEYR XK_Alt_R //0XFFE9 //left, and 0XFFEA   //0XFFE7
@@ -451,7 +448,6 @@ void fv_swapbuffers(freewrl_params_t* d){
 #define PSFT_KEY XK_Shift_L //0XFFE1 //left, and 0XFFE2 on right
 #define PSFT_KEYR XK_Shift_R //0XFFE1 //left, and 0XFFE2 on right
 #define PDEL_KEY XK_Delete //0XFF9F //on numpad, and 0XFFFF near Insert //0x08
-//OLDCODE #define PRTN_KEY XK_Return //XK_KP_Enter //0xff0d 13
 #define PNUM0 XK_KP_Insert    //XK_KP_0
 #define PNUM1 XK_KP_End       //XK_KP_1
 #define PNUM2 XK_KP_Down      //XK_KP_2
@@ -463,10 +459,6 @@ void fv_swapbuffers(freewrl_params_t* d){
 #define PNUM8 XK_KP_Up        //XK_KP_8
 #define PNUM9 XK_KP_Page_Up   //XK_KP_9
 #define PNUMDEC XK_KP_Delete //XK_KP_Decimal
-
-//OLDCODE #define KEYPRESS 1
-//OLDCODE #define KEYDOWN 2
-//OLDCODE #define KEYUP	3
 
 ///* from http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/index.html
 //section 21.4.1
@@ -606,7 +598,9 @@ void handle_Xevents(XEvent event) {
 		default: printf ("event, unknown %d\n", event.type);
 	}
 #endif
-	windex = fwl_hwnd_to_windex(event.xany.window); //sets it if doesn't exist	
+	// window is Window {aka long unsigned int} but we store it as a void *, so...
+	windex = fwl_hwnd_to_windex( (void *)event.xany.window); //sets it if doesn't exist	
+
 	switch(event.type) {
 //#ifdef HAVE_NOTOOLKIT
 		/* Motif, etc, usually handles this. */

@@ -123,7 +123,7 @@ w3dx.manifest:
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
-//#include <resources.h>
+#include <resources.h>
 #include <libFreeWRL.h>
 #include <internal.h>
 #include <io_http.h>
@@ -257,7 +257,6 @@ enum {
 //int file2blob(resource_item_t *res);
 int url2file(void *res){
 	int status, retval = 0;
-	int more_multi;
 	resource_fetch(res); //URL2FILE
 	status = fwl_resitem_getStatus(res);
 	if(status == ress_downloaded){
@@ -326,7 +325,7 @@ void frontend_dequeue_get_enqueue(void *tg){
 				resitem_enqueue(item);
 			}else{
 				if(tactic == url2file_task_chain){
-					int more_multi;
+					//int more_multi;
 					resource_fetch(res); //URL2FILE
 					//if(1){
 						//Multi_URL in backend 
@@ -378,8 +377,12 @@ void _displayThread(void *globalcontext)
 	rather than using mutex conditions.
 	*/
 	int more;
+
+#ifdef SSR_SERVER
 	int run_ssr;
 	run_ssr = FALSE;
+#endif //SSR_SERVER
+
 	fwl_setCurrentHandle(globalcontext, __FILE__, __LINE__);
 	ENTER_THREAD("display");
 #ifdef SSR_SERVER

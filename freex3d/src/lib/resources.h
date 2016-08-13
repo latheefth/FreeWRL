@@ -207,7 +207,6 @@ resource_item_t* resource_create_from_string(const char *string);
 
 void push_resource_request(const char *request);
 void resource_identify(resource_item_t *base, resource_item_t *resresource_identify);
-//JAS bool resource_fetch(resource_item_t *res);
 bool resource_fetch(void *res);
 
 void resitem_enqueue(s_list_t *resitem);
@@ -223,9 +222,8 @@ void send_resource_to_parser_async(resource_item_t *res);
 
 bool send_resource_to_parser_if_available(resource_item_t *res);
 
-/*
-void resource_push_single_request(const char *request);
-*/
+void fwl_resitem_setStatus(void *resp, int status);
+
 void resource_push_multi_request(struct Multi_String *request);
 void resource_wait(resource_item_t *res);
 

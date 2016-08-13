@@ -39,9 +39,6 @@
 #include "tessmono.h"
 #include <assert.h>
 
-#define AddWinding(eDst,eSrc)	(eDst->winding += eSrc->winding, \
-				 eDst->Sym->winding += eSrc->Sym->winding)
-
 /* __gl_meshTessellateMonoRegion( face ) tessellates a monotone region
  * (what else would it do??)  The region must consist of a single
  * loop of half-edges (see mesh.h) oriented CCW.  "Monotone" in this
@@ -165,8 +162,6 @@ void __gl_meshDiscardExterior( GLUmesh *mesh )
     }
   }
 }
-
-#define MARKED_FOR_DELETION	0x7fffffff
 
 /* __gl_meshSetWindingNumber( mesh, value, keepOnlyBoundary ) resets the
  * winding numbers on all edges so that regions marked "inside" the

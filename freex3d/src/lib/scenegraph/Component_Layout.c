@@ -71,7 +71,7 @@ typedef struct layout_scale_item {
 	float scale[2];
 	int scalemode[2];
 } layout_scale_item;
-static layout_scale_item default_layout_scale_item = {1.0f,1.0f,LAYOUT_FRACTION,LAYOUT_FRACTION};
+static layout_scale_item default_layout_scale_item = {{1.0f,1.0f},{LAYOUT_FRACTION,LAYOUT_FRACTION}};
 
 typedef struct pComponent_Layout{
 	Stack *layout_scale_stack;
@@ -152,6 +152,10 @@ void prep_LayoutGroup(struct X3D_Node *_node){
 		ppComponent_Layout p;
 		layout_scale_item lsi;
 		ttrenderstate rs;
+
+		// compiler warning mitigation
+		UNUSED(rs);
+
 		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
 		tg = gglobal();
 		p = (ppComponent_Layout)tg->Component_Layout.prv;
@@ -180,6 +184,9 @@ void child_LayoutGroup(struct X3D_Node *_node){
 		ttrenderstate rs;
 		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
 
+		// compiler warning mitigation
+		UNUSED(rs);
+
 		rs = renderstate();
 		ivpvis = TRUE;
 		if(!rs->render_vp && !rs->render_collision){
@@ -193,9 +200,9 @@ void child_LayoutGroup(struct X3D_Node *_node){
 		if(ivpvis){
 
 			//see prep_transform for equivalent
-			struct X3D_Layout *layout = NULL;
-			if(node->layout && node->layout->_nodeType == NODE_Layout)
-				layout = (struct X3D_Layout*) node->layout;
+			// UNUSED struct X3D_Layout *layout = NULL;
+			// UNUSED if(node->layout && node->layout->_nodeType == NODE_Layout)
+			// UNUSED  		layout = (struct X3D_Layout*) node->layout;
 
 			normalChildren(node->children);
 		}
@@ -203,15 +210,19 @@ void child_LayoutGroup(struct X3D_Node *_node){
 }
 void fin_LayoutGroup(struct X3D_Node *_node){
 	if(_node->_nodeType == NODE_LayoutGroup){
-		ttglobal tg;
-		ppComponent_Layout p;
+		// OLDCODE ttglobal tg;
+		// OLDCODE ppComponent_Layout p;
 		ttrenderstate rs;
 		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
+
+		// compiler warning mitigation
+		UNUSED(rs);
+
 		
 		if(node->layout) fin_Layout(node->layout);
 		if(node->viewport) fin_Viewport(node->viewport);
-		tg = gglobal();
-		p = (ppComponent_Layout)tg->Component_Layout.prv;
+		// OLDCODE tg = gglobal();
+		// OLDCODE p = (ppComponent_Layout)tg->Component_Layout.prv;
 		rs = renderstate();
 
 		FW_GL_POP_MATRIX();

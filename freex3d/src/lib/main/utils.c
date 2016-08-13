@@ -1459,9 +1459,9 @@ void *freewrlStrndup (int line, char *file, const char *str, size_t n)
 /**
  * This code get compiled only when debugging is enabled
  */
-pthread_mutex_t __memTableGlobalLock = PTHREAD_MUTEX_INITIALIZER;
-#define LOCK_GLOBAL_MEMORYTABLE 		pthread_mutex_lock(&__memTableGlobalLock);
-#define UNLOCK_GLOBAL_MEMORYTABLE		pthread_mutex_unlock(&__memTableGlobalLock);
+// OLDCODE pthread_mutex_t __memTableGlobalLock = PTHREAD_MUTEX_INITIALIZER;
+// OLDCODE #define LOCK_GLOBAL_MEMORYTABLE 		pthread_mutex_lock(&__memTableGlobalLock);
+// OLDCODE #define UNLOCK_GLOBAL_MEMORYTABLE		pthread_mutex_unlock(&__memTableGlobalLock);
 
 #ifdef DEBUG_MALLOC
 static int _noisy = 0; //=1 if more printfs during malloc and free, 0 if just summary on exit
@@ -1774,14 +1774,14 @@ void *reallocn_debug(int line, char *file, void *node, void *pold, size_t newsiz
 #else
 void *mallocn(void *node,size_t size){
 	void *p;
-	struct X3D_Node *_node = X3D_NODE(node);
+	// OLDCODE struct X3D_Node *_node = X3D_NODE(node);
 	p = malloc(size);
 	register_node_gc(node,p);
 	return p;
 }
 void *reallocn(void *node, void *pold, size_t newsize){
 	void *p;
-	struct X3D_Node *_node = X3D_NODE(node);
+	// OLDCODE struct X3D_Node *_node = X3D_NODE(node);
 	unregister_node_gc(node,pold);
 	p = realloc(pold,newsize);
 	register_node_gc(node,p);

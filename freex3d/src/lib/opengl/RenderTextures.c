@@ -45,17 +45,6 @@ texture enabling - works for single texture, for multitexture.
 #include "Material.h"
 
 
-//#ifdef TEXVERBOSE
-//#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) { \
-//	printf ("cubeFace %d textureUnit %d texture %d at %d\n",aaa,bbb,ccc,__LINE__); \
-//    glActiveTexture(GL_TEXTURE0+bbb); \
-//	if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
-//#else
-//#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) { \
-//    glActiveTexture(GL_TEXTURE0+bbb); \
-//    if (aaa==0) glBindTexture(GL_TEXTURE_2D,ccc); else glBindTexture(GL_TEXTURE_CUBE_MAP,ccc); }
-//#endif
-
 typedef struct pRenderTextures{
 	struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
 }* ppRenderTextures;
@@ -200,8 +189,8 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				if (tt!=NULL) 
 					do_textureTransform(tt,c);
 				texture = tg->RenderFuncs.boundTextureStack[c];
-				// SET_TEXTURE_UNIT_AND_BIND(getAppearanceProperties()->cubeFace,c,tg->RenderFuncs.boundTextureStack[c]);
-				//#define SET_TEXTURE_UNIT_AND_BIND(aaa,bbb,ccc) {
+
+				// SET_TEXTURE_UNIT_AND_BIND
 				glActiveTexture(GL_TEXTURE0+c); 
 				//printf("active texture %d texture %d c %d\n",GL_TEXTURE0+c,texture,c);
 				if (getAppearanceProperties()->cubeFace==0) {
@@ -209,7 +198,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				} else {
 					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); 
 				}
-				//#endif
+				
 				if (genTex->pre_canned_textureCoords != NULL) {
 					/* simple shapes, like Boxes and Cones and Spheres will have pre-canned arrays */
 					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->pre_canned_textureCoords);

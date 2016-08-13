@@ -86,8 +86,13 @@ typedef struct freewrl_params {
 	//or a window app with 2+ fw windows - swapbuffers needs to know which one
 	void *display;
 	void *context;
+
+	// generic place holder for current surface
+	// on Linux, Window {aka long unsigned int} but Window definition is not used
+	// everywhere this file is, so we store it as a pointer and just cast it.
+
 	void *surface;
-	void *xwin; //just linux desktop
+
 } freewrl_params_t;
 
 
@@ -100,26 +105,6 @@ typedef struct freewrl_params {
 /* extern freewrl_params_t OSX_params; */
 void *fwl_init_instance();
 void fwl_initParams( freewrl_params_t *params) ;
-
-#ifdef OLDCODE
-OLDCODEvoid fwl_setp_width		(int foo);
-OLDCODEvoid fwl_setp_height		(int foo);
-OLDCODEvoid fwl_setp_winToEmbedInto	(void *);
-OLDCODEvoid fwl_setp_fullscreen	(bool foo);
-OLDCODEvoid fwl_setp_multithreading	(bool foo);
-OLDCODEvoid fwl_setp_eai		(bool foo);
-OLDCODEvoid fwl_setp_verbose		(bool foo);
-OLDCODE//void fwl_setp_collision		(int foo);
-OLDCODE
-OLDCODEint	fwl_getp_width		(void);
-OLDCODEint	fwl_getp_height		(void);
-OLDCODElong int fwl_getp_winToEmbedInto (void);
-OLDCODEbool	fwl_getp_fullscreen	(void);
-OLDCODEbool	fwl_getp_multithreading	(void);
-OLDCODEbool	fwl_getp_eai		(void);
-OLDCODEbool	fwl_getp_verbose	(void);
-OLDCODE//int	fwl_getp_collision	(void);
-#endif //OLDCODE
 
 bool fwl_initFreeWRL(freewrl_params_t *params);
 void closeFreeWRL();
