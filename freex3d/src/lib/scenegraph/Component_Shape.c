@@ -658,6 +658,11 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 		isLit = isUnlitGeometry ? 0 : isLit;
 		//do I need possible proto expansione of texture, or will compile_appearance have done that?
 		if(appearance->texture){
+			//mutli-texture? should loop over multitexture->texture nodes? 
+			// --to get to get max channels or hasAlpha, or need channels for each one?
+			// H0: if nay of the multitextures has an alpha, then its alpha replaces material alpha
+			// H1: multitexture alpha is only for composing textures, assumed to take material alpha 
+			//single texture:
 			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
 			haveTexture = 1;
 			if(tti){
@@ -747,7 +752,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-        int colorSource, alphaSource, isLit;  
+		int colorSource, alphaSource, isLit;  
 		unsigned int shader_requirements;
 
 		RENDER_MATERIAL_SUBNODES(node->appearance);
@@ -771,9 +776,15 @@ void child_Shape (struct X3D_Shape *node) {
 
 		/* enable the shader for this shape */
 		//ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
-		shader_requirements = node->_shaderTableEntry;
-		//getShaderFlags() are from non-leaf-node shader influencers: fog, local_lights, clipplane ...
+
+		//_shaderTableEntry has bit flags for things like:
+		// isLit, haveMaterial, one/twoMats, haveTexture, MultiTexture, TextureAlpha, hatching, LinePoints
+		shader_requirements = node->_shaderTableEntry;  
+		
+		//getShaderFlags() are from non-leaf-node shader influencers: 
+		//   fog, local_lights, clipplane, Effect/EffectPart (for CastlePlugs) ...
 		// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
+		// - so they are ORd here before selecting a shader permutation
 		shader_requirements |= getShaderFlags(); 
 		//if(shader_requirements & FOG_APPEARANCE_SHADER)
 		//	printf("halleluja - fog in child_shape\n");
@@ -832,6 +843,17 @@ void child_Shape (struct X3D_Shape *node) {
 		#ifdef SHAPEOCCLUSION
 		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
 		#endif
+		//call stack to get from child_shape to sendMaterialsToShader and sendLightInfo as of Aug 13, 2016
+		//child_shape
+		//- render_node
+		//-- render_indexedfaceset (or other specific shape)
+		//--- render_polyrep
+		//---- sendArraysToGPU
+		//----- setupShader
+		//------ sendMaterialsToShader
+		//          Uniforms being sent for materials and hatching
+		//--------- sendLightInfo
+		//           Uniforms sent for lights
 
 		render_node(tmpN);
 

@@ -2518,7 +2518,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		}
 	}
 
-//#define VERBOSE 1
+#define VERBOSE 1
 	#ifdef VERBOSE
 	/* print out the vertex source here */
 		{
@@ -2550,7 +2550,7 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], 
 		unsigned int whichOne, int usePhongShading) {
-	int iret, usingCastlePlugs = 0;
+	int iret, usingCastlePlugs = 1;
 	if(usingCastlePlugs){
 		//new Aug 2016 castle plugs
 		if(Viewer()->anaglyph || Viewer()->anaglyphB)
