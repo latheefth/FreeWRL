@@ -34,31 +34,15 @@
 
 #include <config.h>
 
-#ifdef OLDCODE
-OLDCODE #ifdef GLES2
-OLDCODE    #include <GLES2/gl2.h>
-OLDCODE    #define GLdouble double //GLdouble not defined in GL ES or GL ES 2
-OLDCODE#else
-OLDCODE    #include <GL/gl.h>
-OLDCODE    #include <limits.h>		/* LONG_MAX */
-OLDCODE#endif //GLES2
-#endif //OLDCODE
-
-#ifdef OLDCODE
-OLDCODE #include <GL/gl.h>
-OLDCODE #include <limits.h>		/* LONG_MAX */
-#endif //OLDCODE
-
-
-#if defined (_ANDROID) || defined(ANDROIDNDK) || defined (IPHONE) || defined (QNX) || defined (ANGLEPROJECT)
+#if defined (_ANDROID) || defined(ANDROIDNDK) || defined (QNX) || defined (ANGLEPROJECT)
 	#include <GLES2/gl2.h>
 	#define GLdouble double
 #else
-#ifdef AQUA
-#include <OpenGL/gl.h>
-#else
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA #include <OpenGL/gl.h>
+// OLD_IPHONE_AQUA #else
     #include <GL/gl.h>
-#endif
+// OLD_IPHONE_AQUA #endif
 #endif
 
 

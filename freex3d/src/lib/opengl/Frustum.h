@@ -45,15 +45,17 @@ Global includes.
 /* no occlusion queries right now - need to work on the shader implementation 
     of occlusion culling */ 
 
-#if defined (AQUA)
-    #define OCCLUSION
-    #define VISIBILITYOCCLUSION
-    #define SHAPEOCCLUSION
-#else
+// OLD_IPHONE_AQUA #if defined (AQUA)
+// OLD_IPHONE_AQUA     #define OCCLUSION
+// OLD_IPHONE_AQUA     #define VISIBILITYOCCLUSION
+// OLD_IPHONE_AQUA     #define SHAPEOCCLUSION
+// OLD_IPHONE_AQUA #else
+
     #undef OCCLUSION
     #undef VISIBILITYOCCLUSION
     #undef SHAPEOCCLUSION
-#endif
+
+// OLD_IPHONE_AQUA #endif
 
 
 

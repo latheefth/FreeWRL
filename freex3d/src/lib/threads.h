@@ -29,9 +29,12 @@
 #define __LIBFREEWRL_THREADS_H__
 
 /* for some reason, OSX now needs this one, too (July 2010) */
-#ifdef AQUA
-#include <system_threads.h>
-#endif
+/* 
+OLD_IPHONE_AQUA
+OLD_IPHONE_AQUA #ifdef AQUA
+OLD_IPHONE_AQUA #include <system_threads.h>
+OLD_IPHONE_AQUA #endif
+*/
 
 #ifdef _MSC_VER
 #include <system_threads.h>

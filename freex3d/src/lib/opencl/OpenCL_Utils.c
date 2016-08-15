@@ -197,43 +197,43 @@ static bool initialize_OpenCL() {
 
 	// get the device id
 
-#if defined (TARGET_AQUA)
-    {
-        printf ("testing...\n");
-        cl_uint num_devices, i;
-        clGetDeviceIDs (NULL, CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
-        cl_device_id *devices = calloc(sizeof(cl_device_id), num_devices);
-        clGetDeviceIDs(NULL, CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
-        char buf[128];
-        for (i=0; i<num_devices; i++) {
-            clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 128, buf, NULL);
-            printf ("Device %s supports ",buf);
-            clGetDeviceInfo(devices[i],CL_DEVICE_VERSION, 128, buf, NULL);
-            printf ("%s\n",buf);
-        }
-        free (devices);
-    }
-	CGLContextObj kCGLContext = CGLGetCurrentContext();
-	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
-	cl_context_properties properties[] = {
-		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 0 };
-
-	err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &p->CL_device_id, NULL);
-    {
-        char buf[128];
-        clGetDeviceInfo(p->CL_device_id, CL_DEVICE_NAME, 128, buf, NULL);
-        printf ("Device %s supports ",buf);
-        clGetDeviceInfo(p->CL_device_id,CL_DEVICE_VERSION, 128, buf, NULL);
-        printf ("%s\n",buf);
-
-    }
-	if (err != CL_SUCCESS) {
-		printCLError("clGetDeviceIDs",err);
-		return FALSE;
-	}
-
-	p->CL_context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
-#endif // TARGET_AQUA
+// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
+// OLD_IPHONE_AQUA     {
+// OLD_IPHONE_AQUA         printf ("testing...\n");
+// OLD_IPHONE_AQUA         cl_uint num_devices, i;
+// OLD_IPHONE_AQUA         clGetDeviceIDs (NULL, CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
+// OLD_IPHONE_AQUA         cl_device_id *devices = calloc(sizeof(cl_device_id), num_devices);
+// OLD_IPHONE_AQUA         clGetDeviceIDs(NULL, CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
+// OLD_IPHONE_AQUA         char buf[128];
+// OLD_IPHONE_AQUA         for (i=0; i<num_devices; i++) {
+// OLD_IPHONE_AQUA             clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 128, buf, NULL);
+// OLD_IPHONE_AQUA             printf ("Device %s supports ",buf);
+// OLD_IPHONE_AQUA             clGetDeviceInfo(devices[i],CL_DEVICE_VERSION, 128, buf, NULL);
+// OLD_IPHONE_AQUA             printf ("%s\n",buf);
+// OLD_IPHONE_AQUA         }
+// OLD_IPHONE_AQUA         free (devices);
+// OLD_IPHONE_AQUA     }
+// OLD_IPHONE_AQUA 	CGLContextObj kCGLContext = CGLGetCurrentContext();
+// OLD_IPHONE_AQUA 	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
+// OLD_IPHONE_AQUA 	cl_context_properties properties[] = {
+// OLD_IPHONE_AQUA 		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup, 0 };
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &p->CL_device_id, NULL);
+// OLD_IPHONE_AQUA     {
+// OLD_IPHONE_AQUA         char buf[128];
+// OLD_IPHONE_AQUA         clGetDeviceInfo(p->CL_device_id, CL_DEVICE_NAME, 128, buf, NULL);
+// OLD_IPHONE_AQUA         printf ("Device %s supports ",buf);
+// OLD_IPHONE_AQUA         clGetDeviceInfo(p->CL_device_id,CL_DEVICE_VERSION, 128, buf, NULL);
+// OLD_IPHONE_AQUA         printf ("%s\n",buf);
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA     }
+// OLD_IPHONE_AQUA 	if (err != CL_SUCCESS) {
+// OLD_IPHONE_AQUA 		printCLError("clGetDeviceIDs",err);
+// OLD_IPHONE_AQUA 		return FALSE;
+// OLD_IPHONE_AQUA 	}
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	p->CL_context =clCreateContext(properties,0,0,clLogMessagesToStderrAPPLE,0,&err);
+// OLD_IPHONE_AQUA #endif // TARGET_AQUA
 
 #if defined (_MSC_VER)
 
@@ -486,7 +486,7 @@ clGetGLContextInfoKHR = (clGetGLContextInfoKHR_fn)clGetExtensionFunctionAddress(
 	printf ("CL_DEVICE_MAX_WORK_GROUP_SIZE %d\n",wg_size);
 
 	// debugging information
-#ifndef AQUA
+// OLD_IPHONE_AQUA #ifndef AQUA
 	rv = clGetPlatformInfo(platforms[0],CL_PLATFORM_PROFILE,1000,rvstring,&rvlen);
 	printf ("CL_PLATFORM_PROFILE :%s:\n",rvstring);
 	rv = clGetPlatformInfo(platforms[0],CL_PLATFORM_VERSION,1000,rvstring,&rvlen);
@@ -497,7 +497,7 @@ clGetGLContextInfoKHR = (clGetGLContextInfoKHR_fn)clGetExtensionFunctionAddress(
 	printf ("CL_PLATFORM_VENDOR :%s:\n",rvstring);
 	rv = clGetPlatformInfo(platforms[0],CL_PLATFORM_EXTENSIONS,1000,rvstring,&rvlen);
 	printf ("CL_PLATFORM_EXTENSIONS :%s:\n",rvstring);
-#endif
+// OLD_IPHONE_AQUA #endif
 
 	rv = clGetDeviceInfo (p->CL_device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(size_t), &xyz, &rvlen);
 	printf ("CL_DEVICE_MAX_COMPUTE_UNITS %d\n",xyz);
@@ -1114,22 +1114,22 @@ static const char* interpolator_headers = " \
 ";
 #else
 
-#if defined (TARGET_AQUA)
-static const char* interpolator_headers = " \
-//#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
-#pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable \n\
-#pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable \n\
-#pragma OPENCL EXTENSION cl_khr_select_fprounding_mode : enable \n\
-";
-#else
+// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
+// OLD_IPHONE_AQUA static const char* interpolator_headers = " \
+// OLD_IPHONE_AQUA //#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
+// OLD_IPHONE_AQUA #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
+// OLD_IPHONE_AQUA #pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable \n\
+// OLD_IPHONE_AQUA #pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable \n\
+// OLD_IPHONE_AQUA #pragma OPENCL EXTENSION cl_khr_select_fprounding_mode : enable \n\
+// OLD_IPHONE_AQUA ";
+// OLD_IPHONE_AQUA #else
 
 // this seems to be ok on AMD drivers under Linux
 static const char* interpolator_headers = " \
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
 //#pragma OPENCL EXTENSION cl_khr_gl_sharing : enable \n\
 ";
-#endif // AQUA
+// OLD_IPHONE_AQUA #endif // AQUA
 
 #endif
 

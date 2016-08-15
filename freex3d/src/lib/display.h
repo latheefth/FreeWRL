@@ -59,24 +59,24 @@ Functions:
 #define HEADLIGHT_LIGHT (MAX_LIGHT_STACK-1)
 #endif
 
-/**
- * Specific platform : Mac
- */
-#ifdef AQUA
-
-#ifdef IPHONE
-#include <OpenGLES/ES2/gl.h>
-#include <OpenGLES/ES2/glext.h>
-#include <OpenGLES/ES3/gl.h>
-#include <OpenGLES/ES3/glext.h>
-#else
-
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/CGLTypes.h>
-
-#include <AGL/AGL.h> 
-#endif /* defined IPHONE */
-#endif /* defined TARGET_AQUA */
+#ifdef AQUA // OLD_IPHONE_AQUA
+OLD_IPHONE_AQUA /**
+OLD_IPHONE_AQUA  * Specific platform : Mac
+OLD_IPHONE_AQUA  */
+OLD_IPHONE_AQUA 
+OLD_IPHONE_AQUA #ifdef IPHONE
+OLD_IPHONE_AQUA #include <OpenGLES/ES2/gl.h>
+OLD_IPHONE_AQUA #include <OpenGLES/ES2/glext.h>
+OLD_IPHONE_AQUA #include <OpenGLES/ES3/gl.h>
+OLD_IPHONE_AQUA #include <OpenGLES/ES3/glext.h>
+OLD_IPHONE_AQUA #else
+OLD_IPHONE_AQUA 
+OLD_IPHONE_AQUA #include <OpenGL/OpenGL.h>
+OLD_IPHONE_AQUA #include <OpenGL/CGLTypes.h>
+OLD_IPHONE_AQUA 
+OLD_IPHONE_AQUA #include <AGL/AGL.h> 
+OLD_IPHONE_AQUA #endif /* defined IPHONE */
+#endif /* defined TARGET_AQUA OLD_IPHONE_AQUA */
 
 #include <libFreeWRL.h>
 
@@ -286,7 +286,9 @@ GLEWContext * glewGetContext();
 	#define GLUNIFORMMATRIX3FV glUniformMatrix3fv
 #endif
 
-#if defined (_MSC_VER) || defined (TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID) || defined(ANDROIDNDK) || defined(QNX)  /* not aqua and not win32, ie linux */
+/* OLD_IPHONE_AQUA
+   OLD_IPHONE_AQUA #if defined (_MSC_VER) || defined (TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID) || defined(ANDROIDNDK) || defined(QNX) */
+#if defined (_MSC_VER) || defined(_ANDROID) || defined(ANDROIDNDK) || defined(QNX)  /* not win32, ie linux */
 	#include <libtess2.h>
 #endif // linux spefcific for now
 
@@ -297,7 +299,6 @@ GLEWContext * glewGetContext();
 /**
  * Sort of "virtual" functions
  *
- * TARGET_AQUA   : 
  * TARGET_X11    : ui/fwBareWindow.c
  * TARGET_MOTIF  : ui/fwMotifWindow.c
  * TARGET_WIN32  : ui/fwWindow32.c
@@ -442,30 +443,30 @@ void initialize_rdr_functions();
 void rdr_caps_dump(s_renderer_capabilities_t *rdr_caps);
 
 
-#ifdef TARGET_AQUA
-#ifndef IPHONE
-
-extern int ccurse;
-extern int ocurse;
-
-//#define SCURSE 1
-//#define ACURSE 0
-
-/* for handling Safari window changes at the top of the display event loop */
-extern int PaneClipnpx;
-extern int PaneClipnpy;
-
-extern int PaneClipct;
-extern int PaneClipcb;
-extern int PaneClipcr;
-extern int PaneClipcl;
-extern int PaneClipwidth;
-extern int PaneClipheight;
-extern int PaneClipChanged;
-
-#include "OpenGL/glu.h"
-#endif
-#endif /* defined TARGET_AQUA */
+#ifdef TARGET_AQUA /* OLD_IPHONE_AQUA */
+OLD_IPHONE_AQUA #ifndef IPHONE
+OLD_IPHONE_AQUA 
+OLD_IPHONE_AQUA extern int ccurse;
+OLD_IPHONE_AQUA extern int ocurse;
+OLD_IPHONE_AQUA 
+OLD_IPHONE_AQUA //#define SCURSE 1
+OLD_IPHONE_AQUA //#define ACURSE 0
+OLD_IPHONE_AQUA 
+OLD_IPHONE_AQUA /* for handling Safari window changes at the top of the display event loop */
+OLD_IPHONE_AQUA extern int PaneClipnpx;
+OLD_IPHONE_AQUA extern int PaneClipnpy;
+OLD_IPHONE_AQUA 
+OLD_IPHONE_AQUA extern int PaneClipct;
+OLD_IPHONE_AQUA extern int PaneClipcb;
+OLD_IPHONE_AQUA extern int PaneClipcr;
+OLD_IPHONE_AQUA extern int PaneClipcl;
+OLD_IPHONE_AQUA extern int PaneClipwidth;
+OLD_IPHONE_AQUA extern int PaneClipheight;
+OLD_IPHONE_AQUA extern int PaneClipChanged;
+OLD_IPHONE_AQUA 
+OLD_IPHONE_AQUA #include "OpenGL/glu.h"
+OLD_IPHONE_AQUA #endif
+#endif /* OLD_IPHONE_AQUA TARGET_AQUA */
 
 /**
  * Specific platform : Linux / UNIX

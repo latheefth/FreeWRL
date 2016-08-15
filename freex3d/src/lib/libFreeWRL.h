@@ -29,7 +29,9 @@
 
 
 /* for front ends that do not have these X-11-based defines */
-#if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID)
+// OLD_IPHONE_AQUA #if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID)
+
+#if defined(_MSC_VER) || defined(_ANDROID)
 #ifndef _MIMIC_X11_SCREEN_BUTTONS
         #define _MIMIC_X11_SCREEN_BUTTONS
                 #define KeyPress        2
@@ -196,17 +198,17 @@ void PRINTF_ALL( const char*pFmtStr, ...);
 
 /* ** REPLACE DJ ** */
 /* Try to replace the compile-time options in ConsoleMessage with run-time options */
-#ifdef AQUA
-	#define MC_DEF_AQUA 1
-#else
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA 	#define MC_DEF_AQUA 1
+// OLD_IPHONE_AQUA #else
 	#define MC_DEF_AQUA 0
-#endif
+// OLD_IPHONE_AQUA #endif
 
-#ifdef TARGET_AQUA
-	#define MC_TARGET_AQUA 1
-#else
+// OLD_IPHONE_AQUA #ifdef TARGET_AQUA
+// OLD_IPHONE_AQUA 	#define MC_TARGET_AQUA 1
+// OLD_IPHONE_AQUA #else
 	#define MC_TARGET_AQUA 0
-#endif
+// OLD_IPHONE_AQUA #endif
 
 #ifdef HAVE_MOTIF
 	#define MC_HAVE_MOTIF 1

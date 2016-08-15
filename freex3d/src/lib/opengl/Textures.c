@@ -51,19 +51,19 @@
 #include "../scenegraph/RenderFuncs.h"
 #include "LoadTextures.h"
 
-#ifdef AQUA
-#ifndef IPHONE
-# include <Carbon/Carbon.h>
-# include <QuickTime/QuickTime.h>
-#endif
-#else
-# if HAVE_JPEGLIB_H
-#undef HAVE_STDLIB_H
-#undef FAR
-#  include <jpeglib.h>
-#  include <setjmp.h>
-# endif
-#endif
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA #ifndef IPHONE
+// OLD_IPHONE_AQUA # include <Carbon/Carbon.h>
+// OLD_IPHONE_AQUA # include <QuickTime/QuickTime.h>
+// OLD_IPHONE_AQUA #endif
+// OLD_IPHONE_AQUA #else
+// OLD_IPHONE_AQUA # if HAVE_JPEGLIB_H
+// OLD_IPHONE_AQUA #undef HAVE_STDLIB_H
+// OLD_IPHONE_AQUA #undef FAR
+// OLD_IPHONE_AQUA #  include <jpeglib.h>
+// OLD_IPHONE_AQUA #  include <setjmp.h>
+// OLD_IPHONE_AQUA # endif
+// OLD_IPHONE_AQUA #endif
 
 
 
@@ -131,9 +131,11 @@ void Textures_clear(struct tTextures *t){
 		deleteVector(textureTableIndexStruct_s *, p->activeTextureTable);
 	}
 }
-#if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
+// OLD_IPHONE_AQUA #if defined(AQUA) /* for AQUA OS X sharing of OpenGL Contexts */
 
-#elif defined(_MSC_VER)
+// OLD_IPHONE_AQUA #elif defined(_MSC_VER)
+#if defined(_MSC_VER)
+
 
 #else
 #if !defined(_ANDROID) && !defined(ANDROIDNDK) && !defined(GLES2)

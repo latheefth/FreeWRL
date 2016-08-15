@@ -26,7 +26,9 @@
 
 #include <config.h>
 
-#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
+// OLD_IPHONE_AQUA #if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
+
+#if !(defined(_ANDROID))
 
 #include <system.h>
 #include <display.h>
@@ -346,9 +348,10 @@ bool fv_bind_GLcontext()
 	}
 #endif
 
-#if defined(TARGET_AQUA)
-	return aglSetCurrentContext(aqglobalContext);
-#endif
+// OLD_IPHONE_AQUA #if defined(TARGET_AQUA)
+// OLD_IPHONE_AQUA 	return aglSetCurrentContext(aqglobalContext);
+// OLD_IPHONE_AQUA #endif
+
 	return TRUE;
 }
 #endif /* KEEP_FV_INLIB */

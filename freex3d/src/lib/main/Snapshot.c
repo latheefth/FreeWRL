@@ -586,74 +586,76 @@ void saveSnapSequence() {
 #endif
 
 
-#ifdef AQUA
-
-CGContextRef MyCreateBitmapContext(int pixelsWide, int pixelsHigh, unsigned char *buffer) { 
-	CGContextRef context=NULL; 
-	CGColorSpaceRef colorSpace; 
-	unsigned char* bitmapData; 
-	int bitmapByteCount; 
-	int bitmapBytesPerRow; 
-	int i;
-
-	bitmapBytesPerRow =(pixelsWide*4); 
-	bitmapByteCount =(bitmapBytesPerRow*pixelsHigh); 
-	colorSpace=CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB); 
-	bitmapData=(unsigned char*) MALLOC(void *, bitmapByteCount); 
-
-	if(bitmapData==NULL) 
-	{ 
-		fprintf(stderr,"Memorynotallocated!"); 
-		return NULL; 
-	} 
-
-	/* copy the saved OpenGL data, but, invert it */
-	for (i=0; i<pixelsHigh; i++) {
-		memcpy (&bitmapData[i*bitmapBytesPerRow], 
-			&buffer[(pixelsHigh-i-1)*bitmapBytesPerRow], 
-			bitmapBytesPerRow);
-	}
-
-	context=CGBitmapContextCreate(bitmapData, 
-		pixelsWide, 
-		pixelsHigh, 
-		8, // bits per component 
-		bitmapBytesPerRow, 
-		colorSpace, 
-		kCGImageAlphaPremultipliedLast); 
-	if (context== NULL) 
-	{ 
-		FREE(bitmapData);
-		fprintf (stderr, "Context not created!"); 
-		return NULL; 
-	} 
-	CGColorSpaceRelease( colorSpace ); 
-	return context; 
-} 
-#endif
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA CGContextRef MyCreateBitmapContext(int pixelsWide, int pixelsHigh, unsigned char *buffer) { 
+// OLD_IPHONE_AQUA 	CGContextRef context=NULL; 
+// OLD_IPHONE_AQUA 	CGColorSpaceRef colorSpace; 
+// OLD_IPHONE_AQUA 	unsigned char* bitmapData; 
+// OLD_IPHONE_AQUA 	int bitmapByteCount; 
+// OLD_IPHONE_AQUA 	int bitmapBytesPerRow; 
+// OLD_IPHONE_AQUA 	int i;
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	bitmapBytesPerRow =(pixelsWide*4); 
+// OLD_IPHONE_AQUA 	bitmapByteCount =(bitmapBytesPerRow*pixelsHigh); 
+// OLD_IPHONE_AQUA 	colorSpace=CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB); 
+// OLD_IPHONE_AQUA 	bitmapData=(unsigned char*) MALLOC(void *, bitmapByteCount); 
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	if(bitmapData==NULL) 
+// OLD_IPHONE_AQUA 	{ 
+// OLD_IPHONE_AQUA 		fprintf(stderr,"Memorynotallocated!"); 
+// OLD_IPHONE_AQUA 		return NULL; 
+// OLD_IPHONE_AQUA 	} 
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	/* copy the saved OpenGL data, but, invert it */
+// OLD_IPHONE_AQUA 	for (i=0; i<pixelsHigh; i++) {
+// OLD_IPHONE_AQUA 		memcpy (&bitmapData[i*bitmapBytesPerRow], 
+// OLD_IPHONE_AQUA 			&buffer[(pixelsHigh-i-1)*bitmapBytesPerRow], 
+// OLD_IPHONE_AQUA 			bitmapBytesPerRow);
+// OLD_IPHONE_AQUA 	}
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	context=CGBitmapContextCreate(bitmapData, 
+// OLD_IPHONE_AQUA 		pixelsWide, 
+// OLD_IPHONE_AQUA 		pixelsHigh, 
+// OLD_IPHONE_AQUA 		8, // bits per component 
+// OLD_IPHONE_AQUA 		bitmapBytesPerRow, 
+// OLD_IPHONE_AQUA 		colorSpace, 
+// OLD_IPHONE_AQUA 		kCGImageAlphaPremultipliedLast); 
+// OLD_IPHONE_AQUA 	if (context== NULL) 
+// OLD_IPHONE_AQUA 	{ 
+// OLD_IPHONE_AQUA 		FREE(bitmapData);
+// OLD_IPHONE_AQUA 		fprintf (stderr, "Context not created!"); 
+// OLD_IPHONE_AQUA 		return NULL; 
+// OLD_IPHONE_AQUA 	} 
+// OLD_IPHONE_AQUA 	CGColorSpaceRelease( colorSpace ); 
+// OLD_IPHONE_AQUA 	return context; 
+// OLD_IPHONE_AQUA } 
+// OLD_IPHONE_AQUA #endif
 
 /* get 1 frame; convert if we are doing 1 image at a time */
 void Snapshot () {
 	GLvoid *buffer;
 	DIR *mydir;
 	
-	#ifndef AQUA
+// OLD_IPHONE_AQUA	#ifndef AQUA
 	char sysline[2000];
 	FILE * tmpfile;
 	char thisRawFile[2000];
-	#endif
+
+// OLD_IPHONE_AQUA	#endif
 
 	char thisGoodFile[2000];
 	char *mytmp, *mysnapb;
 
-	#ifdef AQUA
-        CFStringRef     path;
-        CFURLRef        url;
-	CGImageRef	image;
-	CGImageDestinationRef imageDest;
-	CGRect myBoundingBox; 
-	CGContextRef myBitmapContext;
-	#endif
+// OLD_IPHONE_AQUA 	#ifdef AQUA
+// OLD_IPHONE_AQUA         CFStringRef     path;
+// OLD_IPHONE_AQUA         CFURLRef        url;
+// OLD_IPHONE_AQUA 	CGImageRef	image;
+// OLD_IPHONE_AQUA 	CGImageDestinationRef imageDest;
+// OLD_IPHONE_AQUA 	CGRect myBoundingBox; 
+// OLD_IPHONE_AQUA 	CGContextRef myBitmapContext;
+// OLD_IPHONE_AQUA 	#endif
+
 	struct tSnapshot* t = &gglobal()->Snapshot;
 	struct pSnapshot* p = (struct pSnapshot*)t->prv;
 
@@ -702,16 +704,17 @@ void Snapshot () {
 #endif
 
 	
-	#ifdef AQUA	
-		/* OSX needs 32 bits per byte. */
-		/* MALLOC 4 bytes per pixel */
-		buffer = MALLOC (GLvoid *, 4*gglobal()->display.screenWidth*gglobal()->display.screenHeight*sizeof(char));
-	
-		/* grab the data */
-		FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
-		FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
-		FW_GL_READPIXELS (0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight,GL_RGBA,GL_UNSIGNED_BYTE, buffer);
-	#else	
+// OLD_IPHONE_AQUA 	#ifdef AQUA	
+// OLD_IPHONE_AQUA 		/* OSX needs 32 bits per byte. */
+// OLD_IPHONE_AQUA 		/* MALLOC 4 bytes per pixel */
+// OLD_IPHONE_AQUA 		buffer = MALLOC (GLvoid *, 4*gglobal()->display.screenWidth*gglobal()->display.screenHeight*sizeof(char));
+// OLD_IPHONE_AQUA 	
+// OLD_IPHONE_AQUA 		/* grab the data */
+// OLD_IPHONE_AQUA 		FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
+// OLD_IPHONE_AQUA 		FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
+// OLD_IPHONE_AQUA 		FW_GL_READPIXELS (0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight,GL_RGBA,GL_UNSIGNED_BYTE, buffer);
+// OLD_IPHONE_AQUA 	#else	
+
 		/* Linux, etc, can get by with 3 bytes per pixel */
 		/* MALLOC 3 bytes per pixel */
 		buffer = MALLOC (GLvoid *, 3*gglobal()->display.screenWidth*gglobal()->display.screenHeight*sizeof(char));
@@ -720,7 +723,7 @@ void Snapshot () {
 		FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
 		FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
 		FW_GL_READPIXELS (0,0,gglobal()->display.screenWidth,gglobal()->display.screenHeight,GL_RGB,GL_UNSIGNED_BYTE, buffer);
-	#endif
+// OLD_IPHONE_AQUA	#endif
 	
 	/* save this snapshot */
 	p->snapRawCount ++;
@@ -733,50 +736,51 @@ void Snapshot () {
 	}
 #endif
 
-	#ifdef AQUA
+// OLD_IPHONE_AQUA 	#ifdef AQUA
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 		myBoundingBox = CGRectMake (0, 0, gglobal()->display.screenWidth, gglobal()->display.screenHeight); 
+// OLD_IPHONE_AQUA 		myBitmapContext = MyCreateBitmapContext (gglobal()->display.screenWidth, gglobal()->display.screenHeight,buffer); 
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 		image = CGBitmapContextCreateImage (myBitmapContext); 
+// OLD_IPHONE_AQUA 		CGContextDrawImage(myBitmapContext, myBoundingBox, image); 
+// OLD_IPHONE_AQUA 		char *bitmapData = CGBitmapContextGetData(myBitmapContext); 
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 		CGContextRelease (myBitmapContext); 
+// OLD_IPHONE_AQUA 		if (bitmapData) FREE(bitmapData);
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 		p->snapGoodCount++;
+// OLD_IPHONE_AQUA 		if (t->doPrintshot) {
+// OLD_IPHONE_AQUA 			snprintf (thisGoodFile, sizeof(thisGoodFile), "/tmp/FW_print_snap_tmp.png");
+// OLD_IPHONE_AQUA 			p->doPrintshot = FALSE;
+// OLD_IPHONE_AQUA 			t->doSnapshot = p->savedSnapshot;
+// OLD_IPHONE_AQUA 	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
+// OLD_IPHONE_AQUA 			printf("thisGoodFile is %s\n", thisGoodFile);
+// OLD_IPHONE_AQUA 	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
+// OLD_IPHONE_AQUA 		} else {
+// OLD_IPHONE_AQUA 			snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.png",mytmp,mysnapb,p->snapGoodCount);
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
+// OLD_IPHONE_AQUA 	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
+// OLD_IPHONE_AQUA 		}
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 		imageDest = CGImageDestinationCreateWithURL(url, CFSTR("public.png"), 1, NULL);
+// OLD_IPHONE_AQUA 		CFRelease(url);
+// OLD_IPHONE_AQUA 		CFRelease(path);
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 		if (!imageDest) {
+// OLD_IPHONE_AQUA 			ConsoleMessage("[1] Snapshot cannot be written");
+// OLD_IPHONE_AQUA 			return;
+// OLD_IPHONE_AQUA 		}
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 		CGImageDestinationAddImage(imageDest, image, NULL);
+// OLD_IPHONE_AQUA 		if (!CGImageDestinationFinalize(imageDest)) {
+// OLD_IPHONE_AQUA 			ConsoleMessage ("[2] Snapshot cannot be written");
+// OLD_IPHONE_AQUA 		}
+// OLD_IPHONE_AQUA 		CFRelease(imageDest);
+// OLD_IPHONE_AQUA 		CGImageRelease(image); 
+// OLD_IPHONE_AQUA 	#else	
 
-		myBoundingBox = CGRectMake (0, 0, gglobal()->display.screenWidth, gglobal()->display.screenHeight); 
-		myBitmapContext = MyCreateBitmapContext (gglobal()->display.screenWidth, gglobal()->display.screenHeight,buffer); 
-
-		image = CGBitmapContextCreateImage (myBitmapContext); 
-		CGContextDrawImage(myBitmapContext, myBoundingBox, image); 
-		char *bitmapData = CGBitmapContextGetData(myBitmapContext); 
-
-		CGContextRelease (myBitmapContext); 
-		if (bitmapData) FREE(bitmapData);
-
-
-		p->snapGoodCount++;
-		if (t->doPrintshot) {
-			snprintf (thisGoodFile, sizeof(thisGoodFile), "/tmp/FW_print_snap_tmp.png");
-			p->doPrintshot = FALSE;
-			t->doSnapshot = p->savedSnapshot;
-	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
-			printf("thisGoodFile is %s\n", thisGoodFile);
-	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
-		} else {
-			snprintf (thisGoodFile, sizeof(thisGoodFile),"%s/%s.%04d.png",mytmp,mysnapb,p->snapGoodCount);
-
-	        	path = CFStringCreateWithCString(NULL, thisGoodFile, kCFStringEncodingUTF8); 
-	        	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, FALSE);
-		}
-
-		imageDest = CGImageDestinationCreateWithURL(url, CFSTR("public.png"), 1, NULL);
-		CFRelease(url);
-		CFRelease(path);
-
-		if (!imageDest) {
-			ConsoleMessage("[1] Snapshot cannot be written");
-			return;
-		}
-
-		CGImageDestinationAddImage(imageDest, image, NULL);
-		if (!CGImageDestinationFinalize(imageDest)) {
-			ConsoleMessage ("[2] Snapshot cannot be written");
-		}
-		CFRelease(imageDest);
-		CGImageRelease(image); 
-	#else	
 		/* save the file */
 	if(p->modeTesting){
 		snprintf (thisRawFile, sizeof(thisRawFile),"%s/%s.%04d.bmp",mytmp,mysnapb,p->snapRawCount);
@@ -825,9 +829,10 @@ void Snapshot () {
 
 		}
 #endif
-	#endif
+
+// OLD_IPHONE_AQUA 	#endif
 	}
 }
 #endif /*ifdef win32*/
 
-#endif /
+#endif 

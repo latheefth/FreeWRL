@@ -1076,11 +1076,15 @@ int open_font()
 	//ConsoleMessage("font directory=%s\n",p->font_directory);
     /* were fonts not found? */
     if (p->font_directory == NULL) {
-#ifdef AQUA
-        ConsoleMessage ("No Fonts; this should not happen on OSX computers; contact FreeWRL team\n");
-#else
+
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA         ConsoleMessage ("No Fonts; this should not happen on OSX computers; contact FreeWRL team\n");
+// OLD_IPHONE_AQUA #else
+
         ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONTS_DIR environment variable\n");
-#endif
+
+// OLD_IPHONE_AQUA #endif
+
 		//return FALSE;
     }
 #endif //HAVE_FONTCONFIG
@@ -1251,11 +1255,13 @@ int len_utf8(unsigned char *utf8string)
 }
 
 
-#ifdef AQUA
-#include <malloc/malloc.h>
-#else
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA #include <malloc/malloc.h>
+// OLD_IPHONE_AQUA #else
+
 #include <malloc.h>
-#endif
+
+// OLD_IPHONE_AQUA #endif
 
 void prep_screentext(struct X3D_Text *tnode, int num, double screensize);
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep or rowvec[] for screen(pixel) font

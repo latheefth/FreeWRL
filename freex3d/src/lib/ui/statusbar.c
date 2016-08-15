@@ -50,7 +50,7 @@
 
 #include "../opengl/RasterFont.h"
 
-#if !defined(AQUA)
+// OLD_IPHONE_AQUA #if !defined(AQUA)
 
 #define DJ_KEEP_COMPILER_WARNING 0
 
@@ -186,7 +186,7 @@ void drawStatusBar()
 			buffer[0] = '\0';
 		}
     } else {
-	#if !(defined(IPHONE) || defined(_ANDROID))
+	#if !(defined(_ANDROID))
 		ttglobal tg = gglobal();
 		/* dont do this if we can not display; note that when we start, we can send along
 		   invalid data to the OpenGL drivers when doing ortho calcs */
@@ -203,4 +203,4 @@ void drawStatusBar()
     }
 }
 
-#endif //AQUA
+// OLD_IPHONE_AQUA  #endif //AQUA

@@ -4657,10 +4657,10 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 			// dont do the null... 
 			if (*p->keypress_string) {
 				// printf ("handling key %c\n",*p->keypress_string); 
-#if !defined( AQUA ) && !defined( _MSC_VER )  /*win32 - don't know whats it is suppsoed to do yet */
+#if !defined( _MSC_VER )  /*win32 - don't know whats it is suppsoed to do yet */
 				DEBUG_XEV("CMD LINE GEN EVENT: %c\n", *p->keypress_string);
 				fwl_do_keyPress(*p->keypress_string,KeyPress);
-#endif /* NOT AQUA and NOT WIN32 */
+#endif /* NOT WIN32 */
 				p->keypress_string++;
 			} else {
 				p->keypress_string=NULL;
@@ -6001,13 +6001,14 @@ void sendKeyToKeySensor(const char key, int upDown);
 
 #define KEYDOWN 2
 #define KEYUP 3
-#ifdef AQUA
-#define KEYPRESS 2
-#define isAQUA 1
-#else
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA #define KEYPRESS 2
+// OLD_IPHONE_AQUA #define isAQUA 1
+// OLD_IPHONE_AQUA #else
 #define KEYPRESS 1
 #define isAQUA 0
-#endif
+// OLD_IPHONE_AQUA #endif
+
 char lookup_fly_key(int key);
 //#endif
 void dump_scenegraph(int method);
@@ -6028,6 +6029,7 @@ void fwl_do_keyPress0(int key, int type) {
 		sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
 	} else {
 		int handled = isAQUA;
+
 		if(p->keywait){
 			if(type == KEYPRESS){
 				//key,value commands
@@ -6178,7 +6180,7 @@ void fwl_do_rawKeyPress(int key, int type) {
 }
 
 void fwl_do_keyPress(char kp, int type) {
-	//call this from AQUA, ANDROID, QNX, IPHONE as always
+	//call this from ANDROID, QNX as always
 	//it will do the old-style action-key lookup
 	//(desktop win32 and linux can get finer tuning on the keyboard
 	// with per-platform platform2web3dActionKeyLINUX and WIN32 functions
@@ -6849,9 +6851,9 @@ void fwl_Next_ViewPoint() {
 /* initialization for the OpenGL render, event processing sequence. Should be done in threat that has the OpenGL context */
 void fwl_initializeRenderSceneUpdateScene() {
 
-#ifndef AQUA
+// OLD_IPHONE_AQUA #ifndef AQUA
 	ttglobal tg = gglobal();
-#endif
+// OLD_IPHONE_AQUA #endif
 
 	/*
 	ConsoleMessage("fwl_initializeRenderSceneUpdateScene start\n");
@@ -6865,9 +6867,9 @@ void fwl_initializeRenderSceneUpdateScene() {
 	//fwl_set_viewer_type(VIEWER_EXAMINE);
 	viewer_postGLinit_init();
 
-#ifndef AQUA
+// OLD_IPHONE_AQUA #ifndef AQUA
 	if( ((freewrl_params_t*)(tg->display.params))->fullscreen && newResetGeometry != NULL) newResetGeometry();
-#endif
+// OLD_IPHONE_AQUA #endif
 
 }
 
@@ -6955,9 +6957,9 @@ void finalizeRenderSceneUpdateScene() {
 	printf ("finalizeRenderSceneUpdateScene\n");
 
 	/* set geometry to normal size from fullscreen */
-#ifndef AQUA
+// OLD_IPHONE_AQUA #ifndef AQUA
 	if (newResetGeometry != NULL) newResetGeometry();
-#endif
+// OLD_IPHONE_AQUA #endif
 	/* kill any remaining children processes like sound processes or consoles */
 	killErrantChildren();
 	/* tested on win32 console program July9,2011 seems OK */
@@ -7676,14 +7678,14 @@ void setIsPlugin() {
 
 }
 
-#ifdef AQUA
-
-int aquaPrintVersion() {
-	printf ("FreeWRL version: %s\n", libFreeWRL_get_version());
-	exit(EXIT_SUCCESS);
-}
-
-#endif
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA int aquaPrintVersion() {
+// OLD_IPHONE_AQUA 	printf ("FreeWRL version: %s\n", libFreeWRL_get_version());
+// OLD_IPHONE_AQUA 	exit(EXIT_SUCCESS);
+// OLD_IPHONE_AQUA }
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA #endif
 
 /* if we are visible, draw the OpenGL stuff, if not, don not bother */
 void setDisplayed (int state) {
@@ -7709,9 +7711,9 @@ void fwl_init_EaiVerbose() {
 
 void fwl_Android_replaceWorldNeeded() {
 	int i;
-	#ifndef AQUA
+	// OLD_IPHONE_AQUA #ifndef AQUA
         char mystring[20];
-	#endif
+	// OLD_IPHONE_AQUA #endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
 
 	/* get rid of sensor events */
@@ -7780,10 +7782,10 @@ void fwl_Android_replaceWorldNeeded() {
 	}
 	#endif //EXCLUDE_EAI
 
-	#ifndef AQUA
+	// OLD_IPHONE_AQUA #ifndef AQUA
 		sprintf (mystring, "QUIT");
 		Sound_toserver(mystring);
-	#endif
+	// OLD_IPHONE_AQUA #endif
 
 	/* reset any VRML Parser data */
 	if (globalParser != NULL) {
@@ -7896,103 +7898,107 @@ void resetSensorEvents(void) {
 
 }
 
-#if defined (_ANDROID) || defined (AQUA)
+#ifdef OLDCODE
+OLDCODE
+OLDCODE#if defined (_ANDROID) || defined (AQUA)
+OLDCODE
+OLDCODEstruct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
+OLDCODE	struct X3D_Node *shape, *app, *mat, *ils = NULL;
+OLDCODE	struct X3D_Node *bbCoord = NULL;
+OLDCODE
+OLDCODE	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
+OLDCODE        float emis[] = {0.8, 1.0, 0.6};
+OLDCODE        float myp[] = {
+OLDCODE            -2.0, 1.0, 1.0,
+OLDCODE            2.0, 1.0, 1.0,
+OLDCODE            2.0, 1.0, -1.0,
+OLDCODE            -2.0, 1.0, -1.0,
+OLDCODE            -2.0, -1.0, 1.0,
+OLDCODE            2.0, -1.0, 1.0,
+OLDCODE            2.0, -1.0, -1.0,
+OLDCODE            -2.0, -1.0, -1.0
+OLDCODE        };
+OLDCODE        int myci[] = {
+OLDCODE            0, 1, 2, 3, 0, -1,
+OLDCODE            4, 5, 6, 7, 4, -1,
+OLDCODE            0, 4, -1,
+OLDCODE            1, 5, -1,
+OLDCODE            2, 6, -1,
+OLDCODE            3, 7, -1
+OLDCODE
+OLDCODE        };
+OLDCODE
+OLDCODE	if (rn == NULL) return NULL;
+OLDCODE
+OLDCODE	if (rn->children.n > 0) {
+OLDCODE		shape = createNewX3DNode(NODE_Shape);
+OLDCODE		app = createNewX3DNode(NODE_Appearance);
+OLDCODE		mat = createNewX3DNode(NODE_Material);
+OLDCODE		ils = createNewX3DNode(NODE_IndexedLineSet);
+OLDCODE		bbCoord = createNewX3DNode(NODE_Coordinate);
+OLDCODE		//ConsoleMessage ("adding shape to rootNode");
+OLDCODE
+OLDCODE		memcpy(X3D_MATERIAL(mat)->emissiveColor.c,emis,sizeof(float) * 3);
+OLDCODE		X3D_INDEXEDLINESET(ils)->coordIndex.p = MALLOC (int *, sizeof(int) * 24);
+OLDCODE		X3D_INDEXEDLINESET(ils)->coordIndex.n = 24;
+OLDCODE		memcpy(X3D_INDEXEDLINESET(ils)->coordIndex.p, myci, sizeof(int) * 24);
+OLDCODE
+OLDCODE		X3D_COORDINATE(bbCoord)->point.p = MALLOC( struct SFVec3f *, sizeof(struct SFVec3f) * 8);
+OLDCODE		X3D_COORDINATE(bbCoord)->point.n = 8;
+OLDCODE		memcpy(X3D_COORDINATE(bbCoord)->point.p, myp, sizeof (struct SFVec3f) * 8);
+OLDCODE
+OLDCODE		// MFNode field manipulation
+OLDCODE		AddRemoveChildren(X3D_NODE(rootNode()),
+OLDCODE			offsetPointer_deref(void *,rootNode(),
+OLDCODE			offsetof(struct X3D_Group, children)),
+OLDCODE			&shape,1,1,__FILE__,__LINE__);
+OLDCODE
+OLDCODE		// SFNode manipulation
+OLDCODE		X3D_SHAPE(shape)->appearance = app;
+OLDCODE		ADD_PARENT(app,shape);
+OLDCODE
+OLDCODE		X3D_SHAPE(shape)->geometry = ils;
+OLDCODE
+OLDCODE		// we break the back link, so that this IndexedLineSet does not affect the
+OLDCODE		// bounding box. Try this with the 1.wrl test, with a Transform, translation in
+OLDCODE		// it, and see the difference
+OLDCODE		//ADD_PARENT(ils,shape);
+OLDCODE
+OLDCODE		X3D_INDEXEDLINESET(ils)->coord = bbCoord;
+OLDCODE		ADD_PARENT(ils,bbCoord);
+OLDCODE
+OLDCODE		X3D_APPEARANCE(app)->material = mat;
+OLDCODE		ADD_PARENT(mat,app);
+OLDCODE
+OLDCODE		return X3D_INDEXEDLINESET(ils);
+OLDCODE	}
+OLDCODE	return NULL;
+OLDCODE}
+OLDCODE
+OLDCODEvoid fwl_update_boundingBox(struct X3D_IndexedLineSet* node) {
+OLDCODE
+OLDCODE	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
+OLDCODE	struct SFVec3f newbbc[8];
+OLDCODE
+OLDCODE	if (node==NULL) return;
+OLDCODE	if (rn != NULL) {
+OLDCODE		// x coordinate
+OLDCODE		newbbc[1].c[0] = newbbc[2].c[0]= newbbc[5].c[0] = newbbc[6].c[0]=rn->EXTENT_MAX_X;
+OLDCODE		newbbc[0].c[0] = newbbc[3].c[0]= newbbc[4].c[0] = newbbc[7].c[0]=rn->EXTENT_MIN_X;
+OLDCODE
+OLDCODE		// y coordinate
+OLDCODE		newbbc[0].c[1] = newbbc[1].c[1] = newbbc[2].c[1] = newbbc[3].c[1]=rn->EXTENT_MAX_Y;
+OLDCODE		newbbc[4].c[1] = newbbc[5].c[1] = newbbc[6].c[1] = newbbc[7].c[1]=rn->EXTENT_MIN_Y;
+OLDCODE
+OLDCODE		// z coordinate
+OLDCODE		newbbc[0].c[2] = newbbc[1].c[2] = newbbc[4].c[2] = newbbc[5].c[2]=rn->EXTENT_MAX_Z;
+OLDCODE		newbbc[2].c[2] = newbbc[3].c[2] = newbbc[6].c[2] = newbbc[7].c[2]=rn->EXTENT_MIN_Z;
+OLDCODE
+OLDCODE		memcpy(X3D_COORDINATE(node->coord)->point.p, newbbc, sizeof (struct SFVec3f) * 8);
+OLDCODE
+OLDCODE		node->_change++;
+OLDCODE	}
+OLDCODE}
+OLDCODE#endif // _ANDROID
+#endif // OLDCODE
 
-struct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
-	struct X3D_Node *shape, *app, *mat, *ils = NULL;
-	struct X3D_Node *bbCoord = NULL;
-
-	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
-        float emis[] = {0.8, 1.0, 0.6};
-        float myp[] = {
-            -2.0, 1.0, 1.0,
-            2.0, 1.0, 1.0,
-            2.0, 1.0, -1.0,
-            -2.0, 1.0, -1.0,
-            -2.0, -1.0, 1.0,
-            2.0, -1.0, 1.0,
-            2.0, -1.0, -1.0,
-            -2.0, -1.0, -1.0
-        };
-        int myci[] = {
-            0, 1, 2, 3, 0, -1,
-            4, 5, 6, 7, 4, -1,
-            0, 4, -1,
-            1, 5, -1,
-            2, 6, -1,
-            3, 7, -1
-
-        };
-
-	if (rn == NULL) return NULL;
-
-	if (rn->children.n > 0) {
-		shape = createNewX3DNode(NODE_Shape);
-		app = createNewX3DNode(NODE_Appearance);
-		mat = createNewX3DNode(NODE_Material);
-		ils = createNewX3DNode(NODE_IndexedLineSet);
-		bbCoord = createNewX3DNode(NODE_Coordinate);
-		//ConsoleMessage ("adding shape to rootNode");
-
-		memcpy(X3D_MATERIAL(mat)->emissiveColor.c,emis,sizeof(float) * 3);
-		X3D_INDEXEDLINESET(ils)->coordIndex.p = MALLOC (int *, sizeof(int) * 24);
-		X3D_INDEXEDLINESET(ils)->coordIndex.n = 24;
-		memcpy(X3D_INDEXEDLINESET(ils)->coordIndex.p, myci, sizeof(int) * 24);
-
-		X3D_COORDINATE(bbCoord)->point.p = MALLOC( struct SFVec3f *, sizeof(struct SFVec3f) * 8);
-		X3D_COORDINATE(bbCoord)->point.n = 8;
-		memcpy(X3D_COORDINATE(bbCoord)->point.p, myp, sizeof (struct SFVec3f) * 8);
-
-		// MFNode field manipulation
-		AddRemoveChildren(X3D_NODE(rootNode()),
-			offsetPointer_deref(void *,rootNode(),
-			offsetof(struct X3D_Group, children)),
-			&shape,1,1,__FILE__,__LINE__);
-
-		// SFNode manipulation
-		X3D_SHAPE(shape)->appearance = app;
-		ADD_PARENT(app,shape);
-
-		X3D_SHAPE(shape)->geometry = ils;
-
-		// we break the back link, so that this IndexedLineSet does not affect the
-		// bounding box. Try this with the 1.wrl test, with a Transform, translation in
-		// it, and see the difference
-		//ADD_PARENT(ils,shape);
-
-		X3D_INDEXEDLINESET(ils)->coord = bbCoord;
-		ADD_PARENT(ils,bbCoord);
-
-		X3D_APPEARANCE(app)->material = mat;
-		ADD_PARENT(mat,app);
-
-		return X3D_INDEXEDLINESET(ils);
-	}
-	return NULL;
-}
-
-void fwl_update_boundingBox(struct X3D_IndexedLineSet* node) {
-
-	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
-	struct SFVec3f newbbc[8];
-
-	if (node==NULL) return;
-	if (rn != NULL) {
-		// x coordinate
-		newbbc[1].c[0] = newbbc[2].c[0]= newbbc[5].c[0] = newbbc[6].c[0]=rn->EXTENT_MAX_X;
-		newbbc[0].c[0] = newbbc[3].c[0]= newbbc[4].c[0] = newbbc[7].c[0]=rn->EXTENT_MIN_X;
-
-		// y coordinate
-		newbbc[0].c[1] = newbbc[1].c[1] = newbbc[2].c[1] = newbbc[3].c[1]=rn->EXTENT_MAX_Y;
-		newbbc[4].c[1] = newbbc[5].c[1] = newbbc[6].c[1] = newbbc[7].c[1]=rn->EXTENT_MIN_Y;
-
-		// z coordinate
-		newbbc[0].c[2] = newbbc[1].c[2] = newbbc[4].c[2] = newbbc[5].c[2]=rn->EXTENT_MAX_Z;
-		newbbc[2].c[2] = newbbc[3].c[2] = newbbc[6].c[2] = newbbc[7].c[2]=rn->EXTENT_MIN_Z;
-
-		memcpy(X3D_COORDINATE(node->coord)->point.p, newbbc, sizeof (struct SFVec3f) * 8);
-
-		node->_change++;
-	}
-}
-#endif // _ANDROID

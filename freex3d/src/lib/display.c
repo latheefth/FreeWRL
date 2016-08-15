@@ -45,24 +45,20 @@
 #endif
 
 
-#if defined (TARGET_AQUA)
-/* display part specific to Mac */
-
-#ifndef IPHONE
-
-/* for handling Safari window changes at the top of the display event loop */
-int PaneClipnpx;
-int PaneClipnpy;
-
-int PaneClipct;
-int PaneClipcb;
-int PaneClipcr;
-int PaneClipcl;
-int PaneClipwidth;
-int PaneClipheight;
-int PaneClipChanged = FALSE;
-#endif
-#endif
+// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
+// OLD_IPHONE_AQUA #ifndef IPHONE
+// OLD_IPHONE_AQUA int PaneClipnpx;
+// OLD_IPHONE_AQUA int PaneClipnpy;
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA int PaneClipct;
+// OLD_IPHONE_AQUA int PaneClipcb;
+// OLD_IPHONE_AQUA int PaneClipcr;
+// OLD_IPHONE_AQUA int PaneClipcl;
+// OLD_IPHONE_AQUA int PaneClipwidth;
+// OLD_IPHONE_AQUA int PaneClipheight;
+// OLD_IPHONE_AQUA int PaneClipChanged = FALSE;
+// OLD_IPHONE_AQUA #endif
+// OLD_IPHONE_AQUA #endif
 
 //static Stack *_vpstack = NULL; //ivec4 in y-down pixel coords - viewport stack used for clipping drawing
 
@@ -118,10 +114,11 @@ void display_init(struct tdisplay* t)
 		p->params.ypos = 0;
 		p->params.frontend_handles_display_thread = FALSE;
 		*/
-#if defined(ANGLEPROJECT) || defined(_ANDROID) || defined(QNX) || defined(IPHONE)
+// OLD_IPHONE_AQUA #if defined(ANGLEPROJECT) || defined(_ANDROID) || defined(QNX) || defined(IPHONE)
+#if defined(ANGLEPROJECT) || defined(_ANDROID) || defined(QNX)
 		p->multi_window_capable = 0; //single-window EGL/ANGLEPROJECT(GLES2)/MOBILE
 #else
-		p->multi_window_capable = 1;  //desktop opengl __linux__, _MSC_VER, TARGET_AQUA
+		p->multi_window_capable = 1;  //desktop opengl __linux__, _MSC_VER
 #endif
 		t->params = (void*)&p->params;
 	}
@@ -191,10 +188,12 @@ void fv_change_GLcontext(freewrl_params_t* d){
 //void fv_change_GLcontext(freewrl_params_t* d){
 //	glXMakeCurrent(d->display,d->surface,d->context); 
 //}
-#elif AQUA
-void fv_change_GLcontext(freewrl_params_t* d){
-	aglSetCurrentContext(d->context);
-}
+
+// OLD_IPHONE_AQUA #elif AQUA
+// OLD_IPHONE_AQUA void fv_change_GLcontext(freewrl_params_t* d){
+// OLD_IPHONE_AQUA 	aglSetCurrentContext(d->context);
+// OLD_IPHONE_AQUA }
+
 #else
 void fv_change_GLcontext(freewrl_params_t* d){
 	//stub for non-desktop configs (they can't do multiple windows anyway)
@@ -237,26 +236,26 @@ int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *sha
 	return TRUE;
 }
 #endif //_MSC_VER
-#ifdef AQUA
-int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
- 	/* make the window, create the OpenGL context, share the context if necessary 
-		Nov 2015: OSX desktop is still single windowed, with static AGLcontext etc, no sharing
-		- to get sharing, you need to populate params during creation of window and gl context
-			d->display = (don't need)
-			d->surface = (don't need)
-			d->context = AGLContext
-			so when the targetwindow changes, there's enough info to do aglSetCurrentContext and aglSwapBuffers
-			- and when doing aglCreateContext you have the previous window's AGLContext to use as a share
-
-	*/
-
-	if (!fv_create_main_window(params)){ //0 /*argc*/, NULL /*argv*/)) {
-		return FALSE;
-	}
-	fv_bind_GLcontext();
-	return TRUE;
-}
-#endif
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA int fv_create_window_and_context(freewrl_params_t *params, freewrl_params_t *share){
+// OLD_IPHONE_AQUA  	/* make the window, create the OpenGL context, share the context if necessary 
+// OLD_IPHONE_AQUA 		Nov 2015: OSX desktop is still single windowed, with static AGLcontext etc, no sharing
+// OLD_IPHONE_AQUA 		- to get sharing, you need to populate params during creation of window and gl context
+// OLD_IPHONE_AQUA 			d->display = (don't need)
+// OLD_IPHONE_AQUA 			d->surface = (don't need)
+// OLD_IPHONE_AQUA 			d->context = AGLContext
+// OLD_IPHONE_AQUA 			so when the targetwindow changes, there's enough info to do aglSetCurrentContext and aglSwapBuffers
+// OLD_IPHONE_AQUA 			- and when doing aglCreateContext you have the previous window's AGLContext to use as a share
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	*/
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	if (!fv_create_main_window(params)){ //0 /*argc*/, NULL /*argv*/)) {
+// OLD_IPHONE_AQUA 		return FALSE;
+// OLD_IPHONE_AQUA 	}
+// OLD_IPHONE_AQUA 	fv_bind_GLcontext();
+// OLD_IPHONE_AQUA 	return TRUE;
+// OLD_IPHONE_AQUA }
+// OLD_IPHONE_AQUA #endif
 
 void targetwindow_set_params(int itargetwindow, freewrl_params_t* params);
 freewrl_params_t* targetwindow_get_params(int itargetwindow);
@@ -328,7 +327,8 @@ int fv_display_initialize_desktop(){
 
     PRINT_GL_ERROR_IF_ANY ("end of fv_display_initialize");
     
-#if !(defined(TARGET_AQUA) || defined(_MSC_VER) || defined(_ANDROID))
+// OLD_IPHONE_AQUA #if !(defined(TARGET_AQUA) || defined(_MSC_VER) || defined(_ANDROID))
+#if !(defined(_MSC_VER) || defined(_ANDROID))
         
 	if (RUNNINGASPLUGIN) {
 #if defined(FREEWRL_PLUGIN) && (defined(TARGET_X11) || defined(TARGET_MOTIF))
@@ -337,7 +337,7 @@ int fv_display_initialize_desktop(){
 	} else {
 		XMapWindow(Xdpy, Xwin);
 	}
-#endif /* IPHONE */
+#endif
 	return TRUE;
 }
 #endif //!_ANDORID

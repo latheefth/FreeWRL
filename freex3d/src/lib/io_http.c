@@ -469,14 +469,16 @@ char* download_url_wget(char *parsed_request, char *temp_dir)
     char *temp, *wgetcmd, *safe;
     int ret;
 
-#if defined (TARGET_AQUA)
-	#define WGET_OPTIONS ""
-	#define WGET_OUTPUT_DIRECT "-o"
-#else
+// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
+// OLD_IPHONE_AQUA 	#define WGET_OPTIONS ""
+// OLD_IPHONE_AQUA 	#define WGET_OUTPUT_DIRECT "-o"
+// OLD_IPHONE_AQUA #else
+
 	// move this to another place (where we check wget options)
 	#define WGET_OPTIONS "--no-check-certificate"
 	#define WGET_OUTPUT_DIRECT "-O"
-#endif
+
+// OLD_IPHONE_AQUA #endif
 
     // create temp filename
     if (temp_dir) {
@@ -496,12 +498,15 @@ char* download_url_wget(char *parsed_request, char *temp_dir)
 	                    strlen(safe) +
                             strlen(temp) + 6 +1+1);
 
-#if defined (TARGET_AQUA)
-    /* AQUA - we DO NOT have the options, but we can not have the space - it screws the freewrlSystem up */
-    sprintf(wgetcmd, "%s %s %s %s", WGET, safe, WGET_OUTPUT_DIRECT, temp);
-#else
+// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
+// OLD_IPHONE_AQUA     /* AQUA - we DO NOT have the options, but we can not have the space - it screws the freewrlSystem up */
+// OLD_IPHONE_AQUA     sprintf(wgetcmd, "%s %s %s %s", WGET, safe, WGET_OUTPUT_DIRECT, temp);
+// OLD_IPHONE_AQUA #else
+
     sprintf(wgetcmd, "%s %s %s %s %s", WGET, WGET_OPTIONS, safe, WGET_OUTPUT_DIRECT, temp);
-#endif
+
+// OLD_IPHONE_AQUA #endif
+
 	FREE_IF_NZ(safe);
     /* printf ("wgetcmd is %s\n",wgetcmd); */
 

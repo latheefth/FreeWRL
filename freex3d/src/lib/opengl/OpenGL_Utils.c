@@ -1285,10 +1285,12 @@ void setglClearColor (float *val) {
 	p->cc_red = *val; val++;
 	p->cc_green = *val; val++;
 	p->cc_blue = *val;
-#ifdef AQUA
-	val++;
-	p->cc_alpha = *val;
-#endif
+
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA 	val++;
+// OLD_IPHONE_AQUA 	p->cc_alpha = *val;
+// OLD_IPHONE_AQUA #endif
+
 	tg->OpenGL_Utils.cc_changed = TRUE;
 }
 
@@ -2372,7 +2374,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 			vertexSource[vertFrontColourDeclare] = varyingFrontColour;
 			vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
 
-    		#if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
+    		#if defined (GL_ES_VERSION_2_0)
 		vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
 		vertexSource[vertexPointSizeAssign] = pointSizeAss;
 		#endif
@@ -3364,7 +3366,7 @@ bool fwl_initialize_GL()
 	// keep Windows and Linux doing old way, as we have failures
 	// circa 2013 in this.
 
-	#if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
+	#if defined (GL_ES_VERSION_2_0)
 		#if defined (GL_PROGRAM_POINT_SIZE)
 		glEnable(GL_PROGRAM_POINT_SIZE);
 		#endif
@@ -3794,10 +3796,9 @@ void killNodes();
 void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	int i;
 	struct X3D_Node* rootnode;
-	#ifndef AQUA
-	char mystring[20];
-	#endif
 	struct VRMLParser *globalParser = (struct VRMLParser *)gglobal()->CParse.globalParser;
+	char mystring[20];
+
 	//printf ("kill_oldWorld called...\n");
 
 
@@ -3905,10 +3906,10 @@ void kill_oldWorld(int kill_EAI, int kill_JavaScript, char *file, int line) {
 	}
 #endif
 
-	#ifndef AQUA
+// OLD_IPHONE_AQUA	#ifndef AQUA
 		sprintf (mystring, "QUIT");
 		Sound_toserver(mystring);
-	#endif
+// OLD_IPHONE_AQUA	#endif
 
 
 	/* reset any VRML Parser data */
@@ -6204,7 +6205,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN sendMaterialsToShader");
 	if (me->haveLightInShader) sendLightInfo(me);
 
 	/* FillProperties, LineProperty lineType */
-	#if defined  (AQUA) || defined (GL_ES_VERSION_2_0)
+	#if defined (GL_ES_VERSION_2_0)
 	SEND_FLOAT(myPointSize,myap->pointSize);
 	#else
 	glPointSize(myap->pointSize > 0 ? myap->pointSize : 1);

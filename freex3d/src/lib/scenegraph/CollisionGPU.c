@@ -40,7 +40,8 @@ Render the children of nodes.
 
 #include "LinearAlgebra.h"
 #include "Collision.h"
-#if !defined(_ANDROID) && !defined(IPHONE)
+// OLD_IPHONE_AQUA #if !defined(_ANDROID) && !defined(IPHONE)
+#if !defined(_ANDROID)
 #include "../opencl/OpenCL_Utils.h"
 #endif
 #ifdef HAVE_OPENCL
@@ -436,21 +437,21 @@ static const char* collide_non_walk_kernel_headers = " \
 ";
 #else
 
-#if defined (TARGET_AQUA)
-static const char* collide_non_walk_kernel_headers = " \
-//#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
-#pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable \n\
-#pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable \n\
-#pragma OPENCL EXTENSION cl_khr_select_fprounding_mode : enable \n\
-";
-#else
+// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
+// OLD_IPHONE_AQUA static const char* collide_non_walk_kernel_headers = " \
+// OLD_IPHONE_AQUA //#pragma OPENCL EXTENSION cl_khr_fp64 : enable \n\
+// OLD_IPHONE_AQUA #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
+// OLD_IPHONE_AQUA #pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable \n\
+// OLD_IPHONE_AQUA #pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable \n\
+// OLD_IPHONE_AQUA #pragma OPENCL EXTENSION cl_khr_select_fprounding_mode : enable \n\
+// OLD_IPHONE_AQUA ";
+// OLD_IPHONE_AQUA #else
 
 // this seems to be ok on AMD drivers under Linux
 static const char* collide_non_walk_kernel_headers = " \
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable \n\
 ";
-#endif // AQUA
+// OLD_IPHONE_AQUA #endif // AQUA
 
 #endif
 

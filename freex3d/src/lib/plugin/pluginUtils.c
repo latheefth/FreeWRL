@@ -146,12 +146,13 @@ void startNewHTMLWindow(char *url) {
 
 	browser = NULL;
 
-#ifdef AQUA
-	if (RUNNINGASPLUGIN) {
-		/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
-		requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, url);
-	} else {
-#endif
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA 	if (RUNNINGASPLUGIN) {
+// OLD_IPHONE_AQUA 		/* printf ("Anchor, running as a plugin - load non-vrml file\n"); */
+// OLD_IPHONE_AQUA 		requestNewWindowfromPlugin(_fw_browser_plugin, _fw_instance, url);
+// OLD_IPHONE_AQUA 	} else {
+// OLD_IPHONE_AQUA #endif
+
 	browser = freewrl_get_browser_program();
 	if (!browser) {
 		ConsoleMessage ("Error: no Internet browser found.");
@@ -183,9 +184,10 @@ void startNewHTMLWindow(char *url) {
 		sprintf(syslineFailed ,"ERR %s %d system call failed, returned %d. Was: %s\n",__FILE__,__LINE__,sysReturnCode,sysline);
 		ConsoleMessage (syslineFailed);
 	}
-#ifdef AQUA
-	}
-#endif
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA 
+// OLD_IPHONE_AQUA 	}
+// OLD_IPHONE_AQUA #endif
 }
 #endif
 
@@ -563,7 +565,8 @@ void URLencod (char *dest, const char *src, int maxlen) {
 }
 
 /* this is for Unix only */
-#if !defined(AQUA) && !defined(_MSC_VER) && !defined(_ANDROID) && !defined(ANDROIDNDK) && !defined(GLES2)
+// OLD_IPHONE_AQUA #if !defined(AQUA) && !defined(_MSC_VER) && !defined(_ANDROID) && !defined(ANDROIDNDK) && !defined(GLES2)
+#if !defined(_MSC_VER) && !defined(_ANDROID) && !defined(ANDROIDNDK) && !defined(GLES2)
 
 void sendXwinToPlugin()
 {

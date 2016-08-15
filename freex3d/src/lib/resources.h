@@ -29,9 +29,9 @@
 
 #include "list.h"
 
-#ifdef AQUA
-#include <system_threads.h>
-#endif
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA #include <system_threads.h>
+// OLD_IPHONE_AQUA #endif
 
 #ifdef _MSC_VER
 #include <system_threads.h>

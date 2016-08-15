@@ -721,10 +721,11 @@ void handle_aqua(const int mev, const unsigned int button, int x, int y);
 
 #define overMark        23425
 
-/* mimic X11 events in AQUA and/or WIN32 ; FIXME: establish a cleaner interface for this */
+/* mimic X11 events in WIN32 ; FIXME: establish a cleaner interface for this */
 #define KeyChar         1
 
-#if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID) || defined(ANDROIDNDK)
+// OLD_IPHONE_AQUA #if defined(AQUA) || defined(_MSC_VER) || defined(_ANDROID) || defined(ANDROIDNDK)
+#if defined(_MSC_VER) || defined(_ANDROID) || defined(ANDROIDNDK)
 #ifndef _MIMIC_X11_SCREEN_BUTTONS
 	#define _MIMIC_X11_SCREEN_BUTTONS
 		#define KeyPress        2
