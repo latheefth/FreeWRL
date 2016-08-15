@@ -164,12 +164,12 @@ void CALLBACK FW_tess_combine_text_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w
 		nv[2] = c[2];
 		*out = nv;
 	}else{
-		int i, FW_pointctr, RAI_indx;
+		int FW_pointctr, RAI_indx;
 		text_combiner_data *cbdata;
 		float *coords;
-		cbdata = (text_combiner_data*) polygondata;
 		//GLDOUBLE *nv = MALLOC(GLDOUBLE *, sizeof(GLDOUBLE)*6);
 		ttglobal tg = gglobal();
+		cbdata = (text_combiner_data*) polygondata;
 
 		//OpenGL Redbook says we must malloc a new point. 
 		//but in our Component_Text system, that just means adding it to our 
@@ -179,9 +179,9 @@ void CALLBACK FW_tess_combine_text_data (GLDOUBLE c[3], GLfloat *d[4], GLfloat w
 		RAI_indx = *(cbdata->riaindex);
 		tg->Tess.global_IFS_Coords[RAI_indx] = FW_pointctr;
 		coords = (float *)cbdata->coords;
-		coords[FW_pointctr*3+0] = c[0];
-		coords[FW_pointctr*3+1] = c[1];
-		coords[FW_pointctr*3+2] = c[2];
+		coords[FW_pointctr*3+0] = (float)c[0];
+		coords[FW_pointctr*3+1] = (float)c[1];
+		coords[FW_pointctr*3+2] = (float)c[2];
 		cbdata->ria[(*cbdata->riaindex)] = FW_pointctr;
 		*out = &cbdata->ria[(*cbdata->riaindex)]; //tell FW_IFS_tess_vertex the index of the new point
 		//printf("combiner, out pointer = %p nv pointer = %p\n",out,*out);
@@ -263,7 +263,7 @@ void CALLBACK FW_tess_combine_polyrep_data (GLDOUBLE c[3], GLfloat *d[4], GLfloa
 	
 
 		*/
-		polyrep_combiner_data *cbdata;
+		//polyrep_combiner_data *cbdata;
 	}
 }
 

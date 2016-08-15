@@ -72,6 +72,7 @@ char *insertBefore(char *current, char *insert, char* wholeBuffer, int wholeBuff
 	insertlen = strlen(insert);
 	need = wholelen + insertlen + 1;
 	movesize = wholelen;
+	newcurrent = current;
 	if(need < wholeBuffersize){
 		here = current;
 		newcurrent = current + insertlen;
@@ -125,14 +126,14 @@ int LookForPlugDeclarations( char * CodeForPlugDeclarations, int bsize, char *Pl
 	//Result := false
 	//for each S: string in CodeForPlugDeclaration do
 	//begin
-	int i, Result;
-	Result = FALSE;
+	int Result;
 	//i = 0;
 	//while(CodeForPlugDeclarations[i]){
 		char *S;
 		char MainPlugName[100], MainPlugParams[1000];
 		//char PlugDeclarationBuffer[10000];
 		int AnyOccurrencesHere = FALSE; //:= false
+	Result = FALSE;
 		//strcpy_s(PlugDeclarationBuffer,10000,*CodeForPlugDeclarations);
 		S = CodeForPlugDeclarations;
 		do {
@@ -217,21 +218,21 @@ void extractPlugName(char *start, char *PlugName,char *PlugDeclaredParameters){
 }
 #define SBUFSIZE 32767 //must hold final size of composited shader part, could do per-gglobal-instance malloced buffer instead and resize to largest composited shader
 #define PBUFSIZE 16384 //must hold largets PlugValue
-int fw_strcpy_s(char *dest, int destsize, char *source){
+int fw_strcpy_s(char *dest, int destsize, const char *source){
 	int ier = -1;
 	if(dest)
-	if(source && strlen(source) < destsize){
+	if(source && strlen(source) < (unsigned)destsize){
 		strcpy(dest,source);
 		ier = 0;
 	}
 	return ier;
 }
-int fw_strcat_s(char *dest, int destsize, char *source){
+int fw_strcat_s(char *dest, int destsize, const char *source){
 	int ier = -1;
 	if(dest){
 		int destlen = strlen(dest);
 		if(source)
-			if(strlen(source)+destlen < destsize){
+			if(strlen(source)+destlen < (unsigned)destsize){
 				strcat(dest,source);
 				ier = 0;
 			}
@@ -252,7 +253,7 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	char PlugName[100], PlugDeclaredParameters[1000], PlugForwardDeclaration[1000], ProcedureName[100], PLUG_PlugName[100];
 	char Code[SBUFSIZE], Plug[PBUFSIZE];
 	int HasGeometryMain = FALSE, AnyOccurrences;
-	char *found, *end;
+	char *found;
 	int err;
 
 	//var
@@ -1008,8 +1009,8 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 
 	int retval, unique_int;
 	char *CompleteCode[3];
-	retval = FALSE;
 	char *vs, *fs;
+	retval = FALSE;
 	if(whichOne & USER_DEFINED_SHADER_MASK) return retval; //not supported yet as of Aug 9, 2016
 	retval = TRUE;
 

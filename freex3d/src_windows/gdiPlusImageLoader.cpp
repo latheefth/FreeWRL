@@ -69,7 +69,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	// convert to wide char http://msdn.microsoft.com/en-us/library/ms235631(VS.80).aspx   
 	//fname = "C:/source2/freewrl/freex3d/tests/helpers/brick.png";  
     //fname = "junk.jpg"; //test failure condition
-	GUID format;
+	//GUID format;
 	int channels;
 	size_t origsize = strlen(fname) + 1;
 	char* fname2 = (char*) malloc(origsize);

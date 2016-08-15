@@ -151,15 +151,10 @@ void prep_LayoutGroup(struct X3D_Node *_node){
 		ttglobal tg;
 		ppComponent_Layout p;
 		layout_scale_item lsi;
-		ttrenderstate rs;
-
-		// compiler warning mitigation
-		UNUSED(rs);
 
 		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
 		tg = gglobal();
 		p = (ppComponent_Layout)tg->Component_Layout.prv;
-		rs = renderstate();
 
 		//my understanding of layoutgroup: its a child of a) LayoutLayer or b) (another) LayoutGroup
 		//except not a normal child, by my interpretation, it has its own layout scales
