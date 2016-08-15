@@ -25,7 +25,8 @@
 ****************************************************************************/
 
 #include <config.h>
-#if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
+// OLD_IPHONE_AQUA  #if !(defined(IPHONE) || defined(_ANDROID) || defined(AQUA))
+#if !(defined(_ANDROID))
 
 #include <system.h>
 #include <display.h>

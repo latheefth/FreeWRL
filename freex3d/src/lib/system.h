@@ -46,8 +46,9 @@ Internal header: system dependencies.
 
 
 /* do we have JavaScript? */
-#if defined(IPHONE) || defined(_ANDROID) || defined (AQUA) || defined(NO_JAVASCRIPT)
-	//really? aqua has no javascript? that's bizarre.
+// OLD_IPHONE_AQUA  #if defined(IPHONE) || defined(_ANDROID) || defined (AQUA) || defined(NO_JAVASCRIPT)
+#if defined(_ANDROID) || defined(NO_JAVASCRIPT)
+
 	//QNX port had javascript. I think you could do it in android and iphone too
 	//there's some confusion when they say 'no scripting' for those mobile platforms
 	//I think its OK to have our type of scripting because BB/QNX said no scripting, and

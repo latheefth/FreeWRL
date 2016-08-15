@@ -749,11 +749,14 @@ void initFont(void)
 void printString(char *s){}
 FXY screen2normalizedScreen( GLfloat x, GLfloat y);
 FXY screen2normalizedScreenScale( GLfloat x, GLfloat y);
-#ifdef AQUA
-#include <malloc/malloc.h>
-#else
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA #include <malloc/malloc.h>
+// OLD_IPHONE_AQUA #else
+
 #include <malloc.h>
-#endif
+
+// OLD_IPHONE_AQUA #endif
+
 void printString3(GLfloat sx, GLfloat sy, char *s, int len)
 {
 	int i, j;

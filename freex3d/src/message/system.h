@@ -53,7 +53,7 @@ char *strchr (), *strrchr ();
 #endif
 
 
-#if !defined(TARGET_AQUA)
+// OLD_IPHONE_AQUA #if !defined(TARGET_AQUA)
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
 #include <X11/Xaw/AsciiText.h>
@@ -66,6 +66,6 @@ char *strchr (), *strrchr ();
 #include <X11/Xaw/SmeBSB.h>
 #include <X11/Xaw/SmeLine.h>
 #include <X11/Xaw/Sme.h>
-#endif
+// OLD_IPHONE_AQUA #endif
 
 #endif /* FREEWRL_MESSAGE_SYSTEM_H */

@@ -272,7 +272,7 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 
 	case 'c': /* --fullscreen, no argument */
 
-#if !defined(TARGET_AQUA) 
+// OLD_IPHONE_AQUA  #if !defined(TARGET_AQUA) 
 #ifdef _MSC_VER
 		fv_params->fullscreen = TRUE; //win32 will look at this in its internal code
 #else
@@ -287,7 +287,8 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 	    fv_params->fullscreen = FALSE;
 #endif /* HAVE_XF86_VMODE */
 #endif
-#endif /* TARGET_AQUA */
+
+// OLD_IPHONE_AQUA #endif /* TARGET_AQUA */
 
 
 	    break;

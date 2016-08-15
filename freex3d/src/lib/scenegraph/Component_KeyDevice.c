@@ -379,7 +379,7 @@ void sendKeyToKeySensor(const char key, int upDown) {
         if (checkNode(node,__FILE__,__LINE__)) {
 			if(upDown%10 == KEYDOWN || upDown%10 == KEYUP) //2 down, or 3 up
 				if (node->_nodeType == NODE_KeySensor ) sendToKS(node, (int)key&0xFFFF, upDown);
-			if(upDown == KEYPRESS) //LINUX,WIN32 PRESS=1, AQUA PRESS=2
+			if(upDown == KEYPRESS) //LINUX,WIN32 PRESS=1, aqua apple PRESS=2
 				if (node->_nodeType == NODE_StringSensor ) sendToSS(node, (int)key&0xFFFF, upDown);
 		}
     }
@@ -499,7 +499,8 @@ static void sendToSS(struct X3D_Node *wsk, int key, int upDown) {
 
 	//actionKey = platform2web3dActionKey(key);
 	//translation moved to handle_XEvents
-	//#if !defined(AQUA) && !defined(_MSC_VER)
+	//#if !defined(AQUA) && !defined(_MSC_VER) // OLD_IPHONE_AQUA
+
 	///* on Unix, we have to handle control/shift keys ourselves. OSX handles this
 	//   by itself */
 	//if (actionKey == SFT_KEY) {

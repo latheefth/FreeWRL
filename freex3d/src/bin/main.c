@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 
-#if !defined(TARGET_AQUA)
+// OLD_IPHONE_AQUA #if !defined(TARGET_AQUA)
 
 
 #include <config.h>
@@ -273,4 +273,4 @@ void fv_catch_SIGALRM(int sig)
 
 #endif
 
-#endif // AQUA
+// OLD_IPHONE_AQUA #endif // AQUA
