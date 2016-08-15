@@ -2208,7 +2208,8 @@ VrmlBrowserPrint(JSContext *context, uintN argc, jsval *vp) {
 #else
 			_id_c = JS_EncodeString(context,_str);
 #endif
-			#if defined(AQUA) || defined(_MSC_VER)
+			// OLD_IPHONE_AQUA #if defined(AQUA) || defined(_MSC_VER)
+			#if defined(_MSC_VER)
 			ConsoleMessage(_id_c); /* statusbar hud */
 			gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 			#else
@@ -2229,7 +2230,8 @@ VrmlBrowserPrint(JSContext *context, uintN argc, jsval *vp) {
 	}
 	/* the \n should be done with println below, or in javascript print("\n"); 
 	  except web3d V3 specs don't have Browser.println so print will do \n like the old days*/
-	#if defined(AQUA)  || defined(_MSC_VER)
+	// OLD_IPHONE_AQUA  #if defined(AQUA)  || defined(_MSC_VER)
+	#if defined(_MSC_VER)
 	ConsoleMessage("\n"); /* statusbar hud */
 	gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 	#elif !defined(_MSC_VER)
@@ -2254,7 +2256,8 @@ VrmlBrowserPrintln(JSContext *context, uintN argc, jsval *vp) {
 	/* note, vp holds rval, since it is set in here we should be good */
 	VrmlBrowserPrint(context,argc,vp); 
 #endif
-	#if defined(AQUA) || defined(_MSC_VER)
+	// OLD_IPHONE_AQUA  #if defined(AQUA) || defined(_MSC_VER)
+	#if defined(_MSC_VER)
 		//ConsoleMessage("\n"); /* statusbar hud */
 		gglobal()->ConsoleMessage.consMsgCount = 0; /* reset the "Maximum" count */
 	#else

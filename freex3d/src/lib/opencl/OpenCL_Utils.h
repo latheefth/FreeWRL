@@ -29,10 +29,12 @@ Collision ???
 #define __FREEWRL_OPENCL_H__
 
 #ifdef HAVE_OPENCL
-#if defined (__APPLE__) || defined(MACOSX) || defined(TARGET_AQUA)
-        #include <OpenCL/opencl.h>
-        #include <OpenGL/CGLDevice.h>
-#elif defined(_MSC_VER)
+// OLD_IPHONE_AQUA #if defined (__APPLE__) || defined(MACOSX) || defined(TARGET_AQUA)
+// OLD_IPHONE_AQUA         #include <OpenCL/opencl.h>
+// OLD_IPHONE_AQUA         #include <OpenGL/CGLDevice.h>
+// OLD_IPHONE_AQUA #elif defined(_MSC_VER)
+
+#if (defined(_MSC_VER)
     #include <windows.h>  //WGL prototyped in wingdi.h
     #include <CL/opencl.h>
         #define DEBUG

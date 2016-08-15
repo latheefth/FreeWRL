@@ -6003,10 +6003,10 @@ void sendKeyToKeySensor(const char key, int upDown);
 #define KEYUP 3
 // OLD_IPHONE_AQUA #ifdef AQUA
 // OLD_IPHONE_AQUA #define KEYPRESS 2
-// OLD_IPHONE_AQUA #define isAQUA 1
+// OLD_IPHONE_AQUA #define isAqua 1
 // OLD_IPHONE_AQUA #else
 #define KEYPRESS 1
-#define isAQUA 0
+#define isAqua 0
 // OLD_IPHONE_AQUA #endif
 
 char lookup_fly_key(int key);
@@ -6028,7 +6028,7 @@ void fwl_do_keyPress0(int key, int type) {
 	if (p->keySensorMode && KeySensorNodePresent()) {
 		sendKeyToKeySensor(key,type); //some keysensor test files show no opengl graphics, so we need a logfile
 	} else {
-		int handled = isAQUA;
+		int handled = isAqua;
 
 		if(p->keywait){
 			if(type == KEYPRESS){

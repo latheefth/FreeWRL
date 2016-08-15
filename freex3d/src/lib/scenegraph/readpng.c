@@ -27,7 +27,8 @@ FreeWRL now only uses this on Linux machines.
 
 #include <config.h>
 
-#if !defined(AQUA) && !defined(_ANDROID)
+// OLD_IPHONE_AQUA #if !defined(AQUA) && !defined(_ANDROID)
+#if !defined(_ANDROID)
 
 
 #include <png.h>        /* libpng header; includes zlib.h */

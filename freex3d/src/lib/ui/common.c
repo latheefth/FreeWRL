@@ -28,7 +28,8 @@
 #include "../ui/common.h"
 #include <scenegraph/Vector.h>
 
-#if defined (_MSC_VER) || defined (AQUA)  || defined(QNX) || defined(_ANDROID) || defined(ANDROIDNDK)
+// OLD_IPHONE_AQUA #if defined (_MSC_VER) || defined (AQUA)  || defined(QNX) || defined(_ANDROID) || defined(ANDROIDNDK)
+#if defined (_MSC_VER) || defined(QNX) || defined(_ANDROID) || defined(ANDROIDNDK)
 #include "../../buildversion.h"
 #endif
 
@@ -37,7 +38,8 @@
 // on other platforms, we have to have this defined, as we don't have Ian's
 // talents to help us out.
 
-#if defined (AQUA) || defined (_MSC_VER) || defined(QNX) || defined(_ANDROID) || defined(ANDROIDNDK)
+// OLD_IPHONE_AQUA #if defined (AQUA) || defined (_MSC_VER) || defined(QNX) || defined(_ANDROID) || defined(ANDROIDNDK)
+#if defined (_MSC_VER) || defined(QNX) || defined(_ANDROID) || defined(ANDROIDNDK)
 const char *libFreeWRL_get_version(void) {return FW_BUILD_VERSION_STR;}
 //#else desktop linux which has a more complex versioning system
 #endif
@@ -413,11 +415,14 @@ void color_html2rgb(char *html, float *rgb){
 	rgb[2] = (float)ib/255.0f;
 }
 char *hexpermitted = " #0123456789ABCDEFabcdef";
-#ifdef AQUA
-#include <malloc/malloc.h>
-#else
+
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA #include <malloc/malloc.h>
+// OLD_IPHONE_AQUA #else
+
 #include <malloc.h>
-#endif
+
+// OLD_IPHONE_AQUA #endif
 
 #include <string.h>
 int colorsoption2colorscheme(const char *optionstring, colorScheme *cs){

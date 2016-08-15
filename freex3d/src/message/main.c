@@ -27,7 +27,7 @@
 /* our defines for this build */
 #  include <config.h>
 
-#if !defined(TARGET_AQUA)
+// OLD_IPHONE_AQUA #if !defined(TARGET_AQUA)
 #include "system.h"
 
 #define MESG "something strange happened with\nthe FreeWRL console..."
@@ -91,4 +91,4 @@ int main(int argc, char **argv) {
 	XtAppMainLoop(app_context);
 	return 0;
 }
-#endif
+// OLD_IPHONE_AQUA #endif

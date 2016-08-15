@@ -1,221 +1,225 @@
-#include <config.h>
+#ifdef OLDCODE
+OLDCODE
+OLDCODE#include <config.h>
+OLDCODE
+OLDCODE#if !defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2) && !defined(AQUA)
+OLDCODE
+OLDCODE/* DJTRACK_OSCSENSORS */
+OLDCODE
+OLDCODE/* 
+OLDCODE * NOTE -- this file is #include'd into Component_Networking.c , it exists solely to separate out the handler code
+OLDCODE * in order to make it easier to override with custom implementations and not muddle Component_Networking.c itself.
+OLDCODE *
+OLDCODE * Do not add this file into a Makefile or build system's source list.
+OLDCODE */
+OLDCODE
+OLDCODE
+OLDCODEtypedef int (*functions)(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
+OLDCODE
+OLDCODEint nullOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
+OLDCODEint defaultOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
+OLDCODE
+OLDCODEint nullOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+OLDCODE{
+OLDCODE	struct X3D_OSC_Sensor *realnode ;
+OLDCODE	realnode = (struct X3D_OSC_Sensor *) user_data ;
+OLDCODE
+OLDCODE	printf("nullOSC_handler (%s,%d) : description='%s'\n",__FILE__,__LINE__, realnode->description->strptr) ;
+OLDCODE	printf("nullOSC_handler (%s,%d) : filter=%s\n",__FILE__,__LINE__, realnode->filter->strptr) ;
+OLDCODE	printf("nullOSC_handler (%s,%d) : listenfor=%s\n",__FILE__,__LINE__, realnode->listenfor->strptr);
+OLDCODE
+OLDCODE	printf("%s (%d,%s) <-", path, argc,types);
+OLDCODE	int i ;
+OLDCODE	for (i=0 ; i < argc ; i++) {
+OLDCODE		switch (types[i]) {
+OLDCODE			case 'f':
+OLDCODE				printf(" %c:%f", types[i], argv[i]->f) ;
+OLDCODE				break;
+OLDCODE			case 'i':
+OLDCODE				printf(" %c:%d", types[i], argv[i]->i) ;
+OLDCODE				break;
+OLDCODE			default:
+OLDCODE				printf(" %c:??", types[i]) ;
+OLDCODE				break;
+OLDCODE		}
+OLDCODE	}
+OLDCODE	printf("\n\n") ;
+OLDCODE	fflush(stdout);
+OLDCODE
+OLDCODE	return 0;
+OLDCODE}
+OLDCODEint defaultOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+OLDCODE{
+OLDCODE	struct X3D_OSC_Sensor *realnode ;
+OLDCODE	realnode = (struct X3D_OSC_Sensor *) user_data ;
+OLDCODE
+OLDCODE	int willOverflow = 0;
+OLDCODE	int freeCount;
+OLDCODE	int iFltCount;
+OLDCODE	int iIntCount;
+OLDCODE	int iStrCount;
+OLDCODE	int iBlobCount;
+OLDCODE	int iMidiCount;
+OLDCODE	int iOtherCount;
+OLDCODE	/* Get the incoming counts */
+OLDCODE	utilOSCcounts((char*) types,&iIntCount,&iFltCount,&iStrCount,&iBlobCount,&iMidiCount,&iOtherCount);
+OLDCODE
+OLDCODE	/*
+OLDCODE	 * If we have FIFOs operative, then use them...
+OLDCODE	 * We need to do an atomic transaction, ie do not push
+OLDCODE	 * any values unless there is space for all the values.
+OLDCODE	 */
+OLDCODE	if (realnode->FIFOsize > 0) {
+OLDCODE		freeCount = RingBuffer_freeLen(realnode->_floatInpFIFO) ;
+OLDCODE		if (iFltCount > freeCount) {willOverflow++;}
+OLDCODE
+OLDCODE		freeCount = RingBuffer_freeLen(realnode->_int32InpFIFO ) ;
+OLDCODE		if ((iIntCount+iMidiCount) > freeCount) {willOverflow++;}
+OLDCODE
+OLDCODE		freeCount = RingBuffer_freeLen(realnode->_stringInpFIFO) ;
+OLDCODE		if ((iStrCount+iBlobCount+iOtherCount) > freeCount) {willOverflow++;}
+OLDCODE	}
+OLDCODE
+OLDCODE/*
+OLDCODE	printf("defaultOSC_handler : description='%s'\n", realnode->description->strptr) ;
+OLDCODE	printf("defaultOSC_handler : filter=%s\n", realnode->filter->strptr) ;
+OLDCODE	printf("defaultOSC_handler : listenfor=%s (got %s)\n", realnode->listenfor->strptr,types);
+OLDCODE	printf("defaultOSC_handler : enabled=%d\n", realnode->enabled);
+OLDCODE	printf("defaultOSC_handler : gotEvents=%d\n", realnode->gotEvents);
+OLDCODE	printf("defaultOSC_handler : FIFOsize=%d\n", realnode->FIFOsize);
+OLDCODE	printf("defaultOSC_handler : _status=%d\n", realnode->_status);
+OLDCODE*/
+OLDCODE
+OLDCODE/*
+OLDCODE	printf("defaultOSC_handler int _renderFlags=%d\n", realnode->_renderFlags);
+OLDCODE	printf("defaultOSC_handler int _hit=%d\n", realnode->_hit);
+OLDCODE	printf("defaultOSC_handler int _change=%d\n", realnode->_change);
+OLDCODE	printf("defaultOSC_handler int _nparents=%d\n", realnode->_nparents);
+OLDCODE	printf("defaultOSC_handler int _nparalloc=%d\n", realnode->_nparalloc);
+OLDCODE	printf("defaultOSC_handler int _ichange=%d\n", realnode->_ichange);
+OLDCODE	printf("defaultOSC_handler int _nodeType=%d\n", realnode->_nodeType);
+OLDCODE	printf("defaultOSC_handler int referenceCount=%d\n", realnode->referenceCount);
+OLDCODE	printf("defaultOSC_handler int _defaultContainer=%d\n", realnode->_defaultContainer);
+OLDCODE*/
+OLDCODE
+OLDCODE/*
+OLDCODE	printf("defaultOSC_handler struct Multi_Float _floatInpFIFO;
+OLDCODE	printf("defaultOSC_handler struct Multi_Float _floatOutFIFO;
+OLDCODE	printf("defaultOSC_handler struct Multi_Int32 _int32InpFIFO;
+OLDCODE	printf("defaultOSC_handler struct Multi_Int32 _int32OutFIFO;
+OLDCODE	printf("defaultOSC_handler struct Multi_Node _nodeInpFIFO;
+OLDCODE	printf("defaultOSC_handler struct Multi_Node _nodeOutFIFO;
+OLDCODE	printf("defaultOSC_handler struct Multi_String _stringInpFIFO;
+OLDCODE	printf("defaultOSC_handler struct Multi_String _stringOutFIFO;
+OLDCODE*/
+OLDCODE	if (willOverflow > 0) {
+OLDCODE		printf("defaultOSC_handler would overflow in %s,%d\n", __FILE__,__LINE__);
+OLDCODE	} else {
+OLDCODE                /* stringInp */
+OLDCODE		#if TRACK_OSC_MSG
+OLDCODE		printf("%s (%d,%s) <-", path, argc,types);
+OLDCODE		#endif
+OLDCODE		int i ;
+OLDCODE		int pushBuffError = 0 ;
+OLDCODE		for (i=0 ; i < argc ; i++) {
+OLDCODE			switch (types[i]) {
+OLDCODE				case 'f':
+OLDCODE					#if TRACK_OSC_MSG
+OLDCODE					printf(" %c:%f", types[i], argv[i]->f) ;
+OLDCODE					#endif
+OLDCODE					realnode->floatInp = (argv[i]->f) ;
+OLDCODE					if (realnode->FIFOsize > 0) {
+OLDCODE						#if TRACK_OSC_MSG
+OLDCODE						printf("_floatInpFIFO = %p\n",realnode->_floatInpFIFO) ;
+OLDCODE						#endif
+OLDCODE						pushBuffError =  RingBuffer_pushFloat(realnode->_floatInpFIFO, argv[i]->f) ;
+OLDCODE					}
+OLDCODE					break;
+OLDCODE				case 'i':
+OLDCODE					#if TRACK_OSC_MSG
+OLDCODE					printf(" %c:%d", types[i], argv[i]->i) ;
+OLDCODE					#endif
+OLDCODE					realnode->int32Inp = (argv[i]->i) ;
+OLDCODE					if (realnode->FIFOsize > 0) {
+OLDCODE						#if TRACK_OSC_MSG
+OLDCODE						printf("_int32InpFIFO = %p\n",realnode->_int32InpFIFO) ;
+OLDCODE						#endif
+OLDCODE						pushBuffError =  RingBuffer_pushInt(realnode->_int32InpFIFO, argv[i]->i) ;
+OLDCODE					}
+OLDCODE					break;
+OLDCODE				case 's':
+OLDCODE					#if TRACK_OSC_MSG
+OLDCODE					printf(" %c:%s", types[i], (char *)argv[i]) ;
+OLDCODE					#endif
+OLDCODE					if (realnode->stringInp != NULL) {FREE(realnode->stringInp);}
+OLDCODE					realnode->stringInp = newASCIIString((char *)argv[i]);
+OLDCODE					if (realnode->FIFOsize > 0) {
+OLDCODE						#if TRACK_OSC_MSG
+OLDCODE						printf("_stringInpFIFO = %p\n",realnode->_stringInpFIFO) ;
+OLDCODE						#endif
+OLDCODE						pushBuffError =  RingBuffer_pushPointer(realnode->_stringInpFIFO, (newASCIIString((char *)argv[i]))->strptr);
+OLDCODE					}
+OLDCODE					break;
+OLDCODE				default:
+OLDCODE					printf(" %c:??", types[i]) ;
+OLDCODE					lo_arg_pp(types[i], argv[i]);
+OLDCODE					break;
+OLDCODE			}
+OLDCODE			#if TRACK_OSC_MSG
+OLDCODE			printf(" ");
+OLDCODE			#endif
+OLDCODE		}
+OLDCODE		#if TRACK_OSC_MSG
+OLDCODE		printf("\n\n") ;
+OLDCODE		#endif
+OLDCODE		fflush(stdout);
+OLDCODE
+OLDCODE		if (realnode->enabled) {
+OLDCODE			realnode->gotEvents += 1;
+OLDCODE			MARK_EVENT (X3D_NODE(realnode), offsetof(struct X3D_OSC_Sensor, gotEvents));
+OLDCODE		}
+OLDCODE	}
+OLDCODE	#if TRACK_OSC_MSG
+OLDCODE	printf("\n");
+OLDCODE	printf("defaultOSC_handler : description='%s'\n", realnode->description->strptr) ;
+OLDCODE	printf("defaultOSC_handler : int32Inp=%d\n", realnode->int32Inp);
+OLDCODE	printf("defaultOSC_handler : floatInp=%f\n", realnode->floatInp);
+OLDCODE	printf("defaultOSC_handler : stringInp=%s\n", realnode->stringInp->strptr);
+OLDCODE	printf("\n");
+OLDCODE
+OLDCODE	if (realnode->FIFOsize > 0) {
+OLDCODE		int qLen , iTemp ;
+OLDCODE		float fTemp ;
+OLDCODE		char * sTemp ;
+OLDCODE		
+OLDCODE		qLen = RingBuffer_qLen(realnode->_floatInpFIFO) ;
+OLDCODE		if (qLen > 0) {
+OLDCODE			fTemp = RingBuffer_peekUnion(realnode->_floatInpFIFO)->f ;
+OLDCODE			printf("%d : float length=%d , head=%f\n",__LINE__,qLen,fTemp);
+OLDCODE		}
+OLDCODE
+OLDCODE		qLen = RingBuffer_qLen(realnode->_int32InpFIFO) ;
+OLDCODE		if (qLen > 0) {
+OLDCODE			iTemp = RingBuffer_peekUnion(realnode->_int32InpFIFO)->i ;
+OLDCODE			printf("%d : int length=%d , head=%d\n",__LINE__,qLen,iTemp);
+OLDCODE		}
+OLDCODE
+OLDCODE		qLen = RingBuffer_qLen(realnode->_stringInpFIFO) ;
+OLDCODE		if (qLen > 0) {
+OLDCODE			sTemp = (char *)RingBuffer_peekUnion(realnode->_stringInpFIFO)->p ;
+OLDCODE			printf("%d : string length=%d , head=%s\n",__LINE__,qLen,sTemp);
+OLDCODE		}
+OLDCODE	}
+OLDCODE	printf("\n");
+OLDCODE	#endif
+OLDCODE
+OLDCODE	return 0; /* Tell OSC we have swallowed the packet and that it should NOT try any other handlers */
+OLDCODE}
+OLDCODE
+OLDCODE#define OSCfuncCount  2
+OLDCODEfunctions OSCcallbacks[OSCfuncCount] = {nullOSC_handler,defaultOSC_handler};
+OLDCODEchar *OSCfuncNames[OSCfuncCount] = { "", "default" };
+OLDCODE
+OLDCODE#endif /* IPHONE */
+#endif //OLDCODE
 
-#if !defined(IPHONE) && !defined(_ANDROID) && !defined(GLES2) && !defined(AQUA)
-
-/* DJTRACK_OSCSENSORS */
-
-/* 
- * NOTE -- this file is #include'd into Component_Networking.c , it exists solely to separate out the handler code
- * in order to make it easier to override with custom implementations and not muddle Component_Networking.c itself.
- *
- * Do not add this file into a Makefile or build system's source list.
- */
-
-
-typedef int (*functions)(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
-
-int nullOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
-int defaultOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data) ;
-
-int nullOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
-{
-	struct X3D_OSC_Sensor *realnode ;
-	realnode = (struct X3D_OSC_Sensor *) user_data ;
-
-	printf("nullOSC_handler (%s,%d) : description='%s'\n",__FILE__,__LINE__, realnode->description->strptr) ;
-	printf("nullOSC_handler (%s,%d) : filter=%s\n",__FILE__,__LINE__, realnode->filter->strptr) ;
-	printf("nullOSC_handler (%s,%d) : listenfor=%s\n",__FILE__,__LINE__, realnode->listenfor->strptr);
-
-	printf("%s (%d,%s) <-", path, argc,types);
-	int i ;
-	for (i=0 ; i < argc ; i++) {
-		switch (types[i]) {
-			case 'f':
-				printf(" %c:%f", types[i], argv[i]->f) ;
-				break;
-			case 'i':
-				printf(" %c:%d", types[i], argv[i]->i) ;
-				break;
-			default:
-				printf(" %c:??", types[i]) ;
-				break;
-		}
-	}
-	printf("\n\n") ;
-	fflush(stdout);
-
-	return 0;
-}
-int defaultOSC_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
-{
-	struct X3D_OSC_Sensor *realnode ;
-	realnode = (struct X3D_OSC_Sensor *) user_data ;
-
-	int willOverflow = 0;
-	int freeCount;
-	int iFltCount;
-	int iIntCount;
-	int iStrCount;
-	int iBlobCount;
-	int iMidiCount;
-	int iOtherCount;
-	/* Get the incoming counts */
-	utilOSCcounts((char*) types,&iIntCount,&iFltCount,&iStrCount,&iBlobCount,&iMidiCount,&iOtherCount);
-
-	/*
-	 * If we have FIFOs operative, then use them...
-	 * We need to do an atomic transaction, ie do not push
-	 * any values unless there is space for all the values.
-	 */
-	if (realnode->FIFOsize > 0) {
-		freeCount = RingBuffer_freeLen(realnode->_floatInpFIFO) ;
-		if (iFltCount > freeCount) {willOverflow++;}
-
-		freeCount = RingBuffer_freeLen(realnode->_int32InpFIFO ) ;
-		if ((iIntCount+iMidiCount) > freeCount) {willOverflow++;}
-
-		freeCount = RingBuffer_freeLen(realnode->_stringInpFIFO) ;
-		if ((iStrCount+iBlobCount+iOtherCount) > freeCount) {willOverflow++;}
-	}
-
-/*
-	printf("defaultOSC_handler : description='%s'\n", realnode->description->strptr) ;
-	printf("defaultOSC_handler : filter=%s\n", realnode->filter->strptr) ;
-	printf("defaultOSC_handler : listenfor=%s (got %s)\n", realnode->listenfor->strptr,types);
-	printf("defaultOSC_handler : enabled=%d\n", realnode->enabled);
-	printf("defaultOSC_handler : gotEvents=%d\n", realnode->gotEvents);
-	printf("defaultOSC_handler : FIFOsize=%d\n", realnode->FIFOsize);
-	printf("defaultOSC_handler : _status=%d\n", realnode->_status);
-*/
-
-/*
-	printf("defaultOSC_handler int _renderFlags=%d\n", realnode->_renderFlags);
-	printf("defaultOSC_handler int _hit=%d\n", realnode->_hit);
-	printf("defaultOSC_handler int _change=%d\n", realnode->_change);
-	printf("defaultOSC_handler int _nparents=%d\n", realnode->_nparents);
-	printf("defaultOSC_handler int _nparalloc=%d\n", realnode->_nparalloc);
-	printf("defaultOSC_handler int _ichange=%d\n", realnode->_ichange);
-	printf("defaultOSC_handler int _nodeType=%d\n", realnode->_nodeType);
-	printf("defaultOSC_handler int referenceCount=%d\n", realnode->referenceCount);
-	printf("defaultOSC_handler int _defaultContainer=%d\n", realnode->_defaultContainer);
-*/
-
-/*
-	printf("defaultOSC_handler struct Multi_Float _floatInpFIFO;
-	printf("defaultOSC_handler struct Multi_Float _floatOutFIFO;
-	printf("defaultOSC_handler struct Multi_Int32 _int32InpFIFO;
-	printf("defaultOSC_handler struct Multi_Int32 _int32OutFIFO;
-	printf("defaultOSC_handler struct Multi_Node _nodeInpFIFO;
-	printf("defaultOSC_handler struct Multi_Node _nodeOutFIFO;
-	printf("defaultOSC_handler struct Multi_String _stringInpFIFO;
-	printf("defaultOSC_handler struct Multi_String _stringOutFIFO;
-*/
-	if (willOverflow > 0) {
-		printf("defaultOSC_handler would overflow in %s,%d\n", __FILE__,__LINE__);
-	} else {
-                /* stringInp */
-		#if TRACK_OSC_MSG
-		printf("%s (%d,%s) <-", path, argc,types);
-		#endif
-		int i ;
-		int pushBuffError = 0 ;
-		for (i=0 ; i < argc ; i++) {
-			switch (types[i]) {
-				case 'f':
-					#if TRACK_OSC_MSG
-					printf(" %c:%f", types[i], argv[i]->f) ;
-					#endif
-					realnode->floatInp = (argv[i]->f) ;
-					if (realnode->FIFOsize > 0) {
-						#if TRACK_OSC_MSG
-						printf("_floatInpFIFO = %p\n",realnode->_floatInpFIFO) ;
-						#endif
-						pushBuffError =  RingBuffer_pushFloat(realnode->_floatInpFIFO, argv[i]->f) ;
-					}
-					break;
-				case 'i':
-					#if TRACK_OSC_MSG
-					printf(" %c:%d", types[i], argv[i]->i) ;
-					#endif
-					realnode->int32Inp = (argv[i]->i) ;
-					if (realnode->FIFOsize > 0) {
-						#if TRACK_OSC_MSG
-						printf("_int32InpFIFO = %p\n",realnode->_int32InpFIFO) ;
-						#endif
-						pushBuffError =  RingBuffer_pushInt(realnode->_int32InpFIFO, argv[i]->i) ;
-					}
-					break;
-				case 's':
-					#if TRACK_OSC_MSG
-					printf(" %c:%s", types[i], (char *)argv[i]) ;
-					#endif
-					if (realnode->stringInp != NULL) {FREE(realnode->stringInp);}
-					realnode->stringInp = newASCIIString((char *)argv[i]);
-					if (realnode->FIFOsize > 0) {
-						#if TRACK_OSC_MSG
-						printf("_stringInpFIFO = %p\n",realnode->_stringInpFIFO) ;
-						#endif
-						pushBuffError =  RingBuffer_pushPointer(realnode->_stringInpFIFO, (newASCIIString((char *)argv[i]))->strptr);
-					}
-					break;
-				default:
-					printf(" %c:??", types[i]) ;
-					lo_arg_pp(types[i], argv[i]);
-					break;
-			}
-			#if TRACK_OSC_MSG
-			printf(" ");
-			#endif
-		}
-		#if TRACK_OSC_MSG
-		printf("\n\n") ;
-		#endif
-		fflush(stdout);
-
-		if (realnode->enabled) {
-			realnode->gotEvents += 1;
-			MARK_EVENT (X3D_NODE(realnode), offsetof(struct X3D_OSC_Sensor, gotEvents));
-		}
-	}
-	#if TRACK_OSC_MSG
-	printf("\n");
-	printf("defaultOSC_handler : description='%s'\n", realnode->description->strptr) ;
-	printf("defaultOSC_handler : int32Inp=%d\n", realnode->int32Inp);
-	printf("defaultOSC_handler : floatInp=%f\n", realnode->floatInp);
-	printf("defaultOSC_handler : stringInp=%s\n", realnode->stringInp->strptr);
-	printf("\n");
-
-	if (realnode->FIFOsize > 0) {
-		int qLen , iTemp ;
-		float fTemp ;
-		char * sTemp ;
-		
-		qLen = RingBuffer_qLen(realnode->_floatInpFIFO) ;
-		if (qLen > 0) {
-			fTemp = RingBuffer_peekUnion(realnode->_floatInpFIFO)->f ;
-			printf("%d : float length=%d , head=%f\n",__LINE__,qLen,fTemp);
-		}
-
-		qLen = RingBuffer_qLen(realnode->_int32InpFIFO) ;
-		if (qLen > 0) {
-			iTemp = RingBuffer_peekUnion(realnode->_int32InpFIFO)->i ;
-			printf("%d : int length=%d , head=%d\n",__LINE__,qLen,iTemp);
-		}
-
-		qLen = RingBuffer_qLen(realnode->_stringInpFIFO) ;
-		if (qLen > 0) {
-			sTemp = (char *)RingBuffer_peekUnion(realnode->_stringInpFIFO)->p ;
-			printf("%d : string length=%d , head=%s\n",__LINE__,qLen,sTemp);
-		}
-	}
-	printf("\n");
-	#endif
-
-	return 0; /* Tell OSC we have swallowed the packet and that it should NOT try any other handlers */
-}
-
-#define OSCfuncCount  2
-functions OSCcallbacks[OSCfuncCount] = {nullOSC_handler,defaultOSC_handler};
-char *OSCfuncNames[OSCfuncCount] = { "", "default" };
-
-#endif /* IPHONE */

@@ -47,7 +47,8 @@
 char consoleBuffer[200];
 
 void new_root();
-#if defined (TARGET_AQUA) || defined(_ANDROID)
+// OLD_IPHONE_AQUA #if defined (TARGET_AQUA) || defined(_ANDROID)
+#if defined(_ANDROID)
 
 /* put some config stuff here, as that way the Objective-C Standalone OSX front end does not
  need to worry about specific structures and calls */
@@ -135,7 +136,7 @@ void fwl_OSX_initializeParameters(const char* initialURL) {
 	}
 }
 
-#endif // TARGET_AQUA || _ANDROID
+#endif // _ANDROID
 
 
 

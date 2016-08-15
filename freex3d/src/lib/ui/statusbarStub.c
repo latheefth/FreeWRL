@@ -23,7 +23,7 @@
 
 #include <config.h>
 
-#if !defined(AQUA)
+// OLD_IPHONE_AQUA  #if !defined(AQUA)
 #ifdef OLDCODE
 void kill_status (void) {
 }
@@ -57,4 +57,4 @@ void drawStatusBar()
 {
 }
 
-#endif //AQUA
+// OLD_IPHONE_AQUA #endif //AQUA

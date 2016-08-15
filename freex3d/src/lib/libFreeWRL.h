@@ -201,32 +201,35 @@ void PRINTF_ALL( const char*pFmtStr, ...);
 // OLD_IPHONE_AQUA #ifdef AQUA
 // OLD_IPHONE_AQUA 	#define MC_DEF_AQUA 1
 // OLD_IPHONE_AQUA #else
-	#define MC_DEF_AQUA 0
+// OLD_IPHONE_AQUA 	#define MC_DEF_AQUA 0
 // OLD_IPHONE_AQUA #endif
 
 // OLD_IPHONE_AQUA #ifdef TARGET_AQUA
 // OLD_IPHONE_AQUA 	#define MC_TARGET_AQUA 1
 // OLD_IPHONE_AQUA #else
-	#define MC_TARGET_AQUA 0
+// OLD_IPHONE_AQUA 	#define MC_TARGET_AQUA 0
 // OLD_IPHONE_AQUA #endif
 
-#ifdef HAVE_MOTIF
-	#define MC_HAVE_MOTIF 1
-#else
-	#define MC_HAVE_MOTIF 0
-#endif
+#ifdef OLDCODE 
+OLDCODE#ifdef HAVE_MOTIF
+OLDCODE	#define MC_HAVE_MOTIF 1
+OLDCODE#else
+OLDCODE	#define MC_HAVE_MOTIF 0
+OLDCODE#endif
+OLDCODE
+OLDCODE#ifdef TARGET_MOTIF
+OLDCODE	#define MC_TARGET_MOTIF 1
+OLDCODE#else
+OLDCODE	#define MC_TARGET_MOTIF 0
+OLDCODE#endif
+OLDCODE
+OLDCODE#ifdef _MSC_VER
+OLDCODE	#define MC_MSC_HAVE_VER 1
+OLDCODE#else
+OLDCODE	#define MC_MSC_HAVE_VER 0
+OLDCODE#endif
+#endif // OLDCODE
 
-#ifdef TARGET_MOTIF
-	#define MC_TARGET_MOTIF 1
-#else
-	#define MC_TARGET_MOTIF 0
-#endif
-
-#ifdef _MSC_VER
-	#define MC_MSC_HAVE_VER 1
-#else
-	#define MC_MSC_HAVE_VER 0
-#endif
 
 
 int fwl_StringConsoleMessage(char* message);

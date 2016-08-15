@@ -2928,11 +2928,15 @@ static BOOL parser_interfaceDeclarationB(struct VRMLParser* me, struct ProtoDefi
 
 BOOL find_anyfield_by_name(struct VRMLLexer* lexer, struct X3D_Node* node, union anyVrml **anyptr, int *imode, int *itype, char* nodeFieldName, int *isource, void **fdecl, int *ifield);
 void scriptFieldDecl_jsFieldInit(struct ScriptFieldDecl* me, int num);
-#ifdef AQUA
-#include <malloc/malloc.h>
-#else
+
+// OLD_IPHONE_AQUA #ifdef AQUA
+// OLD_IPHONE_AQUA #include <malloc/malloc.h>
+// OLD_IPHONE_AQUA #else
+
 #include <malloc.h>
-#endif
+
+// OLD_IPHONE_AQUA #endif
+
 static BOOL parser_field_user(struct VRMLParser* me, struct X3D_Node *node) {
     int mode;
     int type;
