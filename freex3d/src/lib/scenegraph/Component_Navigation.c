@@ -45,6 +45,7 @@ X3D Navigation Component
 #include "../opengl/Frustum.h"
 #include "Children.h"
 #include "../opengl/OpenGL_Utils.h"
+#include "../scenegraph/RenderFuncs.h"
 
 
 struct X3D_Node *getActiveLayerBoundViewpoint();

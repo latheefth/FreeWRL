@@ -439,7 +439,7 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 void clear_Cylinder (struct X3D_Node *node) {
 	struct X3D_Cylinder *tnode = (struct X3D_Cylinder *)node;
 	if(tnode->__cylinderVBO)
-		glDeleteBuffers(1,&tnode->__cylinderVBO);
+		glDeleteBuffers(1, (const GLuint *) &tnode->__cylinderVBO);
 }
 
 void render_Cylinder (struct X3D_Cylinder * node) {
@@ -615,7 +615,7 @@ void compile_Cone (struct X3D_Cone *node) {
 void clear_Cone (struct X3D_Node *node) {
 	struct X3D_Cone *tnode = (struct X3D_Cone *)node;
 	if(tnode->__coneVBO)
-		glDeleteBuffers(1,&tnode->__coneVBO);
+		glDeleteBuffers(1, (const GLuint *) &tnode->__coneVBO);
 }
 
 void render_Cone (struct X3D_Cone *node) {
@@ -800,9 +800,9 @@ void compile_Sphere (struct X3D_Sphere *node) {
 void clear_Sphere (struct X3D_Node *node) {
 	struct X3D_Sphere *tnode = (struct X3D_Sphere *)node;
 	if(tnode->_sideVBO)
-		glDeleteBuffers(1,&tnode->_sideVBO);
+		glDeleteBuffers(1, (const GLuint *) &tnode->_sideVBO);
 	if(tnode->__SphereIndxVBO)
-		glDeleteBuffers(1,&tnode->__SphereIndxVBO);
+		glDeleteBuffers(1, (const GLuint *) &tnode->__SphereIndxVBO);
 }
 
 
@@ -2063,7 +2063,7 @@ void rendray_Sphere (struct X3D_Sphere *node) {
 	struct point_XYZ t_r1,t_r2;
 	float r = node->radius;
 	/* Center is at zero. t_r1 to t_r2 and t_r1 to zero are the vecs */
-	ttglobal tg = gglobal();
+
 	float tr1sq;// = (float) VECSQ(t_r1);
 	struct point_XYZ dr2r1;
 	float dlen;
@@ -2114,9 +2114,10 @@ void rendray_Sphere (struct X3D_Sphere *node) {
 void rendray_Box (struct X3D_Box *node) {
 	float x,y,z;
 	struct point_XYZ t_r1,t_r2;
-	ttglobal tg = gglobal();
+
 	//VECCOPY(t_r1,tg->RenderFuncs.t_r1);
 	//VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+
 	get_current_ray(&t_r1, &t_r2);
 
 	x = ((node->size).c[0])/2;
@@ -2212,7 +2213,6 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
 
 	float h,r,y;
 	struct point_XYZ t_r1,t_r2;
-	ttglobal tg = gglobal();
 	//VECCOPY(t_r1,tg->RenderFuncs.t_r1);
 	//VECCOPY(t_r2,tg->RenderFuncs.t_r2);
 	get_current_ray(&t_r1, &t_r2);
@@ -2274,9 +2274,10 @@ void rendray_Cylinder (struct X3D_Cylinder *node) {
 void rendray_Cone (struct X3D_Cone *node) {
 	float h,y,r,dx,dy,dz,a,b,c,tmp,und;
 	struct point_XYZ t_r1,t_r2;
-	ttglobal tg = gglobal();
-	//VECCOPY(t_r1,tg->RenderFuncs.t_r1);
-	//VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+
+	// VECCOPY(t_r1,tg->RenderFuncs.t_r1);
+	// VECCOPY(t_r2,tg->RenderFuncs.t_r2);
+
 	get_current_ray(&t_r1, &t_r2);
 
 	h = (node->height) /*cget*//2; /* pos and neg dir. */

@@ -53,6 +53,7 @@ X3D Geospatial Component
 #include "Component_Shape.h" /* for appearance properties */
 #include "Component_Geospatial.h"
 #include "Children.h"
+#include "../scenegraph/RenderFuncs.h"
 
 /*
 Coordinate Conversion algorithms were taken from 2 locations after
@@ -1809,27 +1810,6 @@ void fin_GeoLocation (struct X3D_GeoLocation *node) {
 /* GeoLOD								*/
 /************************************************************************/
 void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
-
-#define LOAD_CHILD_OLD(childNode,childUrl) \
-		/* printf ("start of LOAD_CHILD, url has %d strings\n",node->childUrl.n); */ \
-		if (node->childUrl.n > 0) { \
-			/* create new inline node, link it in */ \
-			if (node->childNode == NULL) { \
-				node->childNode = createNewX3DNode(NODE_Inline); \
-				if(node->_executionContext) \
-					add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->childNode)); \
-				ADD_PARENT(X3D_NODE(node->childNode), X3D_NODE(node)); \
- 			}\
-			/* copy over the URL from parent */ \
-			X3D_INLINE(node->childNode)->url.p = MALLOC(struct Uni_String **, sizeof(struct Uni_String)*node->childUrl.n); \
-			for (i=0; i<node->childUrl.n; i++) { \
-				/* printf ("copying over url %s\n",node->childUrl.p[i]->strptr); */ \
-				X3D_INLINE(node->childNode)->url.p[i] = newASCIIString(node->childUrl.p[i]->strptr); \
-			} \
-			/* printf ("loading, and urlCount is %d\n",node->childUrl.n); */ \
-			X3D_INLINE(node->childNode)->url.n = node->childUrl.n; \
-			X3D_INLINE(node->childNode)->load = TRUE; \
-		}  
 
 void deleteMallocedFieldValue(int type,union anyVrml *fieldPtr);
 void LOAD_CHILD(struct X3D_GeoLOD *node, struct X3D_Node **childNode, struct Multi_String *childUrl) {

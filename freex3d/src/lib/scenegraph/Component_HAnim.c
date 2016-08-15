@@ -40,6 +40,7 @@ X3D H-Anim Component
 #include "../opengl/Material.h"
 #include "../opengl/OpenGL_Utils.h"
 #include "Children.h"
+#include "../scenegraph/RenderFuncs.h"
 
 /* #include "OpenFW_GL_Utils.h" */
 
@@ -185,11 +186,11 @@ void Component_HAnim_init(struct tComponent_HAnim *t){
 
 void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
 
+#ifdef HANIMHANIM
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
 
 //return;
-#ifdef HANIMHANIM
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */
 
@@ -257,11 +258,11 @@ void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
 void prep_HAnimSite (struct X3D_HAnimSite *node) {
 
 
+#ifdef HANIMHANIM
 	GLfloat my_rotation;
 	GLfloat my_scaleO=0;
 
 //return;
-#ifdef HANIMHANIM
 
         /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
          * so we do nothing here in that case -ncoder */

@@ -44,6 +44,7 @@ X3D Networking Component
 
 #include "Component_Networking.h"
 #include "Children.h"
+#include "../scenegraph/RenderFuncs.h"
 
 #include <libFreeWRL.h>
 #include <list.h>
@@ -299,7 +300,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 	int nowLoading;
 	int nowFinished;
 	struct X3D_Node *cnode;
-	struct X3D_MovieTexture *mnode;
+	// HAVE TO RECODE MovieTexture struct X3D_MovieTexture *mnode;
 	
 	/* if not enabled, do nothing */
 	if (!node) return;

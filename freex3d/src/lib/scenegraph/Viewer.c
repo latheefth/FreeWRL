@@ -146,7 +146,7 @@ void Viewer_init(struct tViewer *t){
 
 
 //static void handle_tick_walk(void);
-static void handle_tick_walk2(double dtime);
+//static void handle_tick_walk2(double dtime);
 static void handle_tick_fly(void);
 static void handle_tick_exfly(void);
 static void handle_tick_fly2(double dtime);
@@ -155,9 +155,9 @@ static void handle_tick_fly2(double dtime);
 /* we DO NOT return as a float, as some gccs have trouble with this causing segfaults */
 void getCurrentSpeed() {
 	X3D_Viewer *viewer;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	ttglobal tg = gglobal();
-	p =  (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED p =  (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	tg->Mainloop.BrowserSpeed = tg->Mainloop.BrowserFPS * (fabs(viewer->VPvelocity.x) + fabs(viewer->VPvelocity.y) + fabs(viewer->VPvelocity.z));
 }
@@ -219,9 +219,9 @@ X3D_Viewer *ViewerByLayerId(int layerid)
 	X3D_Viewer *viewer;
 	bindablestack *bstack;
 	ttglobal tg;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	//per-layer viewer
 	bstack = getBindableStacksByLayer(tg,layerid);
 	if(!bstack->viewer){
@@ -339,7 +339,7 @@ print_viewer()
 	X3D_Viewer *viewer;
 
 	struct orient_XYZA ori;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	quaternion_to_vrmlrot(&(viewer->Quat), &(ori.x),&(ori.y),&(ori.z), &(ori.a));
@@ -359,7 +359,7 @@ int fwl_get_headlight() {
 
 void fwl_toggle_headlight() {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	if (viewer->headlight == TRUE) {
@@ -375,7 +375,7 @@ void fwl_toggle_headlight() {
 	so its like headlight and navmode */
 void setNoCollision() {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	viewer->collision = 0;
 	//fwl_setp_collision(0);
@@ -386,7 +386,7 @@ int get_collision() {
 }
 void toggle_collision() {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	viewer->collision = 1 - viewer->collision;
 
@@ -396,13 +396,13 @@ void toggle_collision() {
 
 int fwl_getCollision(){
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	return viewer->collision;
 }
 void fwl_setCollision(int state) {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	viewer->collision = state;
 }
@@ -420,7 +420,7 @@ void fwl_init_StereoDefaults()
 
 void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	viewer->eyehalf = eyehalf;
@@ -430,7 +430,7 @@ void set_eyehalf(const double eyehalf, const double eyehalfangle) {
 void resolve_pos2();
 void fwl_set_viewer_type0(X3D_Viewer *viewer, const int type) {
 	ttglobal tg = gglobal();
-	ppViewer p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)tg->Viewer.prv;
 
 	if(viewer->type != type){
 		tg->Mainloop.CTRL = FALSE; //turn off any leftover 3-state toggle
@@ -535,14 +535,17 @@ void fwl_set_viewer_type(const int type) {
 
 
 
-//#define VIEWER_STRING(type) ( \
-//	type == VIEWER_NONE ? "NONE" : ( \
-//	type == VIEWER_EXAMINE ? "EXAMINE" : ( \
-//	type == VIEWER_WALK ? "WALK" : ( \
-//	type == VIEWER_EXFLY ? "EXFLY" : ( \
-//	type == VIEWER_SPHERICAL ? "SPHERICAL" : (\
-//	type == VIEWER_TURNTABLE ? "TURNTABLE" : (\
-//	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
+#ifdef VERBOSE
+#define VIEWER_STRING(type) ( \
+	type == VIEWER_NONE ? "NONE" : ( \
+	type == VIEWER_EXAMINE ? "EXAMINE" : ( \
+	type == VIEWER_WALK ? "WALK" : ( \
+	type == VIEWER_EXFLY ? "EXFLY" : ( \
+	type == VIEWER_SPHERICAL ? "SPHERICAL" : (\
+	type == VIEWER_TURNTABLE ? "TURNTABLE" : (\
+	type == VIEWER_FLY ? "FLY" : "UNKNOWN"))))))
+#endif //VERBOSE
+
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #endif
@@ -602,8 +605,8 @@ int lookup_navmode(char *cmode){
 char* fwl_getNavModeStr()
 {
 	X3D_Viewer *viewer;
-	ttglobal tg = gglobal();
-	ppViewer p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg = gglobal();
+	// OLDCODE UNUSED ppViewer p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	return lookup_navmodestring(viewer->type);
 	//switch(viewer->type) {
@@ -641,8 +644,8 @@ char* fwl_getNavModeStr()
 int fwl_getNavMode()
 {
 	X3D_Viewer *viewer;
-	ttglobal tg = gglobal();
-	ppViewer p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg = gglobal();
+	// OLDCODE UNUSED ppViewer p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	return viewer->type;
 }
@@ -667,7 +670,7 @@ void resolve_pos20(X3D_Viewer *viewer) {
 	struct point_XYZ rot, z_axis = { 0, 0, 1 };
 	Quaternion q_inv;
 	//double dist = 0;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	X3D_Viewer_Examine *examine = &viewer->examine;
 
@@ -732,7 +735,7 @@ void avatar2BoundViewpointVerticalAvatar(GLDOUBLE *matA2BVVA, GLDOUBLE *matBVVA2
 	X3D_Viewer *viewer;
 	struct point_XYZ tilted;
 	struct point_XYZ downvec = {0.0,-1.0,0.0};
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	//downvec is in bound viewpoint space
@@ -794,7 +797,7 @@ ViewerUpVector computation - see RenderFuncs.c L595
 	double angle;
 	X3D_Viewer *viewer;
 	struct point_XYZ downvec = {0.0,-1.0,0.0};
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	viewer = Viewer();
 	Quat = viewer->Quat;
@@ -836,10 +839,10 @@ void viewer_togl(double fieldofview)
 				leaving the .Pos, .Quat -initially with .position, .orientation- in the modelview matrix stack
     */
 	X3D_Viewer *viewer;
-	ttglobal tg;
-	ppViewer p;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg;
+	// OLDCODE UNUSED ppViewer p;
+	// OLDCODE UNUSED tg = gglobal();
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 
 	viewer = Viewer();
 	if (viewer->isStereo) /* buffer != GL_BACK)  */
@@ -908,7 +911,7 @@ void getCurrentPosInModel (int addInAntiPos) {
 
 	GLDOUBLE modelMatrix[16];
 	GLDOUBLE inverseMatrix[16];
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	/* "Matrix Quaternion FAQ: 8.050
@@ -1001,13 +1004,13 @@ static void handle_walk(const int mev, const unsigned int button, const float x,
  * walk.rd is an angle in the global/scene horizontal plane (around vertical axis)
 */
 	ttglobal tg;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	X3D_Viewer *viewer;
 
 	X3D_Viewer_Walk *walk; 
 	double frameRateAdjustment = 1.0;
 	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	walk = &viewer->walk;
 
@@ -1069,10 +1072,10 @@ void handle_examine(const int mev, const unsigned int button, float x, float y) 
 	Quaternion q, q_i, arc;
 	struct point_XYZ pp = { 0, 0, 0};
 	double squat_norm;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	X3D_Viewer *viewer;
 	X3D_Viewer_Examine *examine;
-	p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	examine = &viewer->examine;
 	pp.z=viewer->Dist;
@@ -1154,9 +1157,9 @@ void handle_dist(const int mev, const unsigned int button, float x, float y) {
 	struct point_XYZ pp = { 0, 0, 0};
 	double yy;
 	X3D_Viewer *viewer;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	X3D_Viewer_Examine *examine;
-	p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	examine = &viewer->examine;
 	pp.z=viewer->Dist;
@@ -1200,9 +1203,9 @@ void handle_turntable(const int mev, const unsigned int button, float x, float y
 	double frameRateAdjustment;
 	X3D_Viewer_Spherical *ypz;
 	X3D_Viewer *viewer;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	ttglobal tg = gglobal();
-	p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	ypz = &viewer->ypz; //just a place to store last mouse xy during drag
 
@@ -1329,9 +1332,9 @@ void handle_spherical(const int mev, const unsigned int button, float x, float y
 	/* unused double dzoom; */
 	X3D_Viewer *viewer;
 	X3D_Viewer_Spherical *ypz;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	ttglobal tg = gglobal();
-	p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	ypz = &viewer->ypz;
 	ibutton = button;
@@ -1402,11 +1405,11 @@ void handle_fly2(const int mev, const unsigned int button, float x, float y) {
 		tick action based on mev (mouse up/down/move)
 	*/
 	X3D_Viewer *viewer;
-	ttglobal tg;
-	ppViewer p;
+	// OLDCODE UNUSED ttglobal tg;
+	// OLDCODE UNUSED ppViewer p;
 	X3D_Viewer_InPlane *inplane;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED tg = gglobal();
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	inplane = &viewer->inplane;
 	
@@ -1429,14 +1432,14 @@ void handle_fly2(const int mev, const unsigned int button, float x, float y) {
 
 void handle_tick_fly2(double dtime) {
 	ttglobal tg;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	X3D_Viewer_InPlane *inplane;
 	double frameRateAdjustment, xx, yy, zz, rot;
 	struct point_XYZ xyz;
 	Quaternion q, nq;
 	X3D_Viewer *viewer;
 	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	inplane = &viewer->inplane;
 
@@ -1475,10 +1478,10 @@ void handle_lookat(const int mev, const unsigned int button, float x, float y) {
 		on mouse up, trigger node picking action in mainloop
 	*/
 	X3D_Viewer *viewer;
-	ttglobal tg;
-	ppViewer p;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg;
+	// OLDCODE UNUSED ppViewer p;
+	// OLDCODE UNUSED tg = gglobal();
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	
 	switch(mev){
@@ -1506,10 +1509,10 @@ void handle_lookat(const int mev, const unsigned int button, float x, float y) {
 }
 void handle_tick_lookat() {
 	X3D_Viewer *viewer;
-	ttglobal tg;
-	ppViewer p;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg;
+	// OLDCODE UNUSED ppViewer p;
+	// OLDCODE UNUSED tg = gglobal();
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	//stub in case we need the viewer or viewpoint transition here	
 	viewer = Viewer();
 	switch(viewer->LookatMode){
@@ -1528,13 +1531,13 @@ void handle_explore(const int mev, const unsigned int button, float x, float y) 
 	move the viewer->Pos in the opposite direction from where we are looking
 	*/
 	int ctrl;
-	X3D_Viewer_Spherical *ypz;
+	// OLDCODE UNUSED X3D_Viewer_Spherical *ypz;
 	X3D_Viewer *viewer;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	ttglobal tg = gglobal();
-	p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
-	ypz = &viewer->ypz; //just a place to store last mouse xy during drag
+	// OLDCODE UNUSED ypz = &viewer->ypz; //just a place to store last mouse xy during drag
 	ctrl = tg->Mainloop.CTRL;
 
 
@@ -1561,9 +1564,9 @@ void handle_tplane(const int mev, const unsigned int button, float x, float y) {
 	X3D_Viewer_InPlane *inplane;
 	//double frameRateAdjustment;//,xx,yy;
 	//struct point_XYZ xyz;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	//ttglobal tg = gglobal();
-	p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	inplane = &viewer->inplane;
 
@@ -1590,10 +1593,10 @@ void handle_tick_tplane(double dtime){
 	X3D_Viewer_InPlane *inplane;
 	//Quaternion quatr, quatt, quat;
 	struct point_XYZ pp;
-	ttglobal tg;
-	ppViewer p;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg;
+	// OLDCODE UNUSED ppViewer p;
+	// OLDCODE UNUSED tg = gglobal();
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 
 	inplane = &viewer->inplane;
@@ -1616,9 +1619,9 @@ void handle_rtplane(const int mev, const unsigned int button, float x, float y) 
 	X3D_Viewer_InPlane *inplane;
 	Quaternion nq, q_v;
 	double xx,yy, frameRateAdjustment;
-	ppViewer p;
+	// OLDCODE UNUSED ppViewer p;
 	ttglobal tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	inplane = &viewer->inplane;
 
@@ -1662,10 +1665,10 @@ void handle_tick_rplane(double dtime){
 	Quaternion quatr;
 	//struct point_XYZ pp;
 	double roll;
-	ttglobal tg;
-	ppViewer p;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg;
+	// OLDCODE UNUSED ppViewer p;
+	// OLDCODE UNUSED tg = gglobal();
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 
 	inplane = &viewer->inplane;
@@ -1683,10 +1686,10 @@ void handle_tick_tilt(double dtime) {
 	Quaternion quatt;
 	//struct point_XYZ pp;
 	double yaw, pitch;
-	ttglobal tg;
-	ppViewer p;
-	tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg;
+	// OLDCODE UNUSED ppViewer p;
+	// OLDCODE UNUSED tg = gglobal();
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 
 	inplane = &viewer->inplane;
@@ -1707,7 +1710,7 @@ void handle_tick_tilt(double dtime) {
 void handle0(const int mev, const unsigned int button, const float x, const float yup)
 {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	/* ConsoleMessage("Viewer handle: viewer_type %s, mouse event %d, button %u, x %f, y %f\n", 
 	   lookup_navmodestring(viewer->type), mev, button, x, yup); */
@@ -1980,7 +1983,7 @@ void handle_key(const char key, double keytime)
 	X3D_Viewer *viewer;
 	X3D_Viewer_Fly *fly; 
 	struct flykey_lookup_type *flykey;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	fly = &viewer->fly;
@@ -2013,7 +2016,7 @@ void handle_keyrelease(const char key, double keytime)
 	X3D_Viewer *viewer;
 	X3D_Viewer_Fly *fly;
 	struct flykey_lookup_type *flykey;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLD UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	/* my($this,$time,$key) = @_; */
 
@@ -2103,7 +2106,7 @@ static void handle_tick_walk()
 	X3D_Viewer_Walk *walk; 
 	Quaternion q, nq;
 	struct point_XYZ pp;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLD UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	walk = &viewer->walk;
 
@@ -2235,8 +2238,8 @@ void viewer_setpose( double *quat4, double *vec3){
 	*/
 	X3D_Viewer *viewer;
 	double vec[3];
-	ttglobal tg = (ttglobal) gglobal();
-	ppViewer p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg = (ttglobal) gglobal();
+	// OLDCODE UNUSED ppViewer p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	veccopyd(vec,vec3);
 	if(negate_pos) vecnegated(vec,vec);
@@ -2250,8 +2253,8 @@ void viewer_getpose( double *quat4, double *vec3){
 		Viewer.Pos = vp.position //remains in x3d sense vp2world
 	*/
 	X3D_Viewer *viewer;
-	ttglobal tg = (ttglobal) gglobal();
-	ppViewer p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg = (ttglobal) gglobal();
+	// OLDCODE UNUSED ppViewer p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	pointxyz2double(vec3,&viewer->Pos);
 	if(negate_pos)
@@ -2266,8 +2269,8 @@ void viewer_getbindpose( double *quat4, double *vec3){
 */
 	X3D_Viewer *viewer;
 	Quaternion q_i;
-	ttglobal tg = (ttglobal) gglobal();
-	ppViewer p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ttglobal tg = (ttglobal) gglobal();
+	//OLDCODE UNUSED ppViewer p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	pointxyz2double(vec3,&viewer->AntiPos); //.Pos
 	if(negate_pos)
@@ -2422,7 +2425,7 @@ static void handle_tick_fly()
 	struct point_XYZ v;
 	double changed = 0.0, time_diff = -1.0;
 	int i;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	fly = &viewer->fly;
@@ -2766,7 +2769,7 @@ void fwl_set_AnaglyphParameter(const char *optArg) {
 	X3D_Viewer *viewer;
 	const char* glasses;
 	int len;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	glasses = optArg;
@@ -2816,9 +2819,9 @@ void fwl_init_Shutter (void)
 	  second: post_gl_init - we'll know haveQuadbuffer which might = 1 (if not it goes into flutter mode)
     */
 	X3D_Viewer *viewer;
-	ppViewer p; 
+	// OLDCODE UNUSED ppViewer p; 
 	ttglobal tg = gglobal();
-	p= (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED p= (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 
 	tg->display.shutterGlasses = 2;
@@ -2837,7 +2840,7 @@ void fwl_init_Shutter (void)
 void fwl_init_SideBySide()
 {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	setStereoBufferStyle(1); 
@@ -2849,7 +2852,7 @@ void fwl_init_SideBySide()
 void fwl_init_UpDown()
 {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	setStereoBufferStyle(1); 
@@ -2863,7 +2866,7 @@ void clear_shader_table();
 void setAnaglyph()
 {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	/* called from post_gl_init and hud/options (option.c calls fwl_set_AnaglyphParameter above) */
@@ -2875,9 +2878,9 @@ void setAnaglyph()
 void setMono()
 {
 	X3D_Viewer *viewer;
-	ppViewer p; 
+	// OLDCODE UNUSED ppViewer p; 
 	ttglobal tg = gglobal();
-	p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 
 	viewer->isStereo = 0;
@@ -2925,7 +2928,7 @@ void toggleOrSetStereo(int type)
 	if it's not active, then it should be set active*/
 	X3D_Viewer *viewer;
 	int curtype, shut;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	shut = viewer->shutterGlasses ? 1 : 0;
@@ -2940,7 +2943,7 @@ void toggleOrSetStereo(int type)
 }
 void fwl_setPickraySide(int ipreferredSide, int either){
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	viewer->dominantEye = ipreferredSide;
 	viewer->eitherDominantEye = either;
@@ -2948,7 +2951,7 @@ void fwl_setPickraySide(int ipreferredSide, int either){
 }
 void fwl_getPickraySide(int *ipreferredSide, int *either){
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	*ipreferredSide = viewer->dominantEye ;
 	*either = viewer->eitherDominantEye;
@@ -2956,7 +2959,7 @@ void fwl_getPickraySide(int *ipreferredSide, int *either){
 void updateEyehalf()
 {
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 	if( viewer->screendist != 0.0)
 	{
@@ -2992,7 +2995,7 @@ void viewer_postGLinit_init(void)
 	int type;
 	s_renderer_capabilities_t *rdr_caps;
     ttglobal tg = gglobal();
-	ppViewer p = (ppViewer)tg->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)tg->Viewer.prv;
 	viewer = Viewer();
 	rdr_caps = tg->display.rdr_caps;
     
@@ -3033,7 +3036,7 @@ void fwl_set_StereoParameter (const char *optArg) {
 
 	//if(Viewer.isStereo == 0)
 	//	initStereoDefaults();
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	i = sscanf(optArg,"%lf",&viewer->stereoParameter);
@@ -3046,7 +3049,7 @@ void fwl_set_EyeDist (const char *optArg) {
 	//if(Viewer.isStereo == 0)
 	//	initStereoDefaults();
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	i= sscanf(optArg,"%lf",&viewer->eyedist);
@@ -3059,7 +3062,7 @@ void fwl_set_ScreenDist (const char *optArg) {
 	//if(Viewer.isStereo == 0)
 	//	initStereoDefaults();
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	i= sscanf(optArg,"%lf",&viewer->screendist);
@@ -3072,7 +3075,7 @@ void set_stereo_offset0() /*int iside, double eyehalf, double eyehalfangle)*/
 {
 	double x = 0.0, angle = 0.0;
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	if (viewer->iside == 0) {
@@ -3093,7 +3096,7 @@ void increment_pos(struct point_XYZ *vec) {
 	struct point_XYZ nv;
 	Quaternion q_i;
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = Viewer();
 
 	viewer_lastP_add(vec);
@@ -3122,7 +3125,7 @@ void bind_OrthoViewpoint (struct X3D_OrthoViewpoint *vp) {
 	Quaternion q_i;
 	float xd, yd,zd;
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 	viewer = ViewerByLayerId(vp->_layerId);
 
 
@@ -3320,7 +3323,7 @@ void setup_viewpoint_slerp(double* center, double pivot_radius, double vp_radius
 	struct point_XYZ PC;
 
 	X3D_Viewer *viewer;
-	ppViewer p = (ppViewer)gglobal()->Viewer.prv;
+	// OLDCODE UNUSED ppViewer p = (ppViewer)gglobal()->Viewer.prv;
 
 	double  pos[3] = {0.0,0.0,0.0}; //rpos[3],
 	struct point_XYZ pp,qq;

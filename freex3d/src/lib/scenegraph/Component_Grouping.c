@@ -44,6 +44,7 @@ X3D Grouping Component
 
 #include "LinearAlgebra.h"
 #include "Children.h"
+#include "../scenegraph/RenderFuncs.h"
 
 void compile_Transform (struct X3D_Transform *node) { 
 	INITIALIZE_EXTENT;
@@ -249,7 +250,7 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 }
 
 void child_Group (struct X3D_Group *node) {
-	int renderFirstProtoChildOnlyAsPerSpecs = 1;
+	// UNUSED int renderFirstProtoChildOnlyAsPerSpecs = 1;
 	CHILDREN_COUNT
 	LOCAL_LIGHT_SAVE
 
@@ -322,7 +323,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
 	/* now, just render the non-directionalLight children */
-	renderFirstProtoChildOnlyAsPerSpecs = 0; //flux/vivaty render all children
+	// UNUSED renderFirstProtoChildOnlyAsPerSpecs = 0; //flux/vivaty render all children
 	normalChildren(node->_sortedChildren);
 
 
