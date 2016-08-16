@@ -662,17 +662,37 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 			// --to get to get max channels or hasAlpha, or need channels for each one?
 			// H0: if nay of the multitextures has an alpha, then its alpha replaces material alpha
 			// H1: multitexture alpha is only for composing textures, assumed to take material alpha 
-			//single texture:
-			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
-			haveTexture = 1;
-			if(tti){
-				//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
-				//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
-				//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
-				channels = tti->channels; 
-				imgalpha = tti->hasAlpha;
-				if(tti->status < TEX_NEEDSBINDING) 
-					printf("."); //should Unmark node compiled
+			if(appearance->texture->_nodeType == NODE_MultiTexture){
+				int k;
+				struct X3D_MultiTexture * mtex = (struct X3D_MultiTexture*)appearance->texture;
+				channels = 0;
+				imgalpha = 0;
+				for(k=0;k<mtex->texture.n;k++){
+					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(mtex->texture.p[k]);
+					haveTexture = 1;
+					if(tti){
+						//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+						//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+						//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
+						channels = max(channels,tti->channels);
+						imgalpha = max(tti->hasAlpha,imgalpha);
+						//if(tti->status < TEX_NEEDSBINDING) 
+						//	printf("."); //should Unmark node compiled
+					}
+				}
+			}else{
+				//single texture:
+				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
+				haveTexture = 1;
+				if(tti){
+					//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+					//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+					//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
+					channels = tti->channels; 
+					imgalpha = tti->hasAlpha;
+					//if(tti->status < TEX_NEEDSBINDING) 
+					//	printf("."); //should Unmark node compiled
+				}
 			}
 		}
 	}
@@ -701,10 +721,18 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 			else colorSourceC = Drgb;
 		}
 	}
-	if(!(colorSourceC == colorSourceB && colorSourceB == colorSourceA)) 
-		printf("ouch - colorsource confusion\n");
-	if(alphaSourceA != alphaSourceB)
-		printf("ouch - alphasource confusione\n");
+	if(!(colorSourceC == colorSourceB && colorSourceB == colorSourceA)){
+		static int once = 0;
+		if(!once) 
+			printf("ouch - colorsource confusion\n");
+		once = 1;
+	}
+	if(alphaSourceA != alphaSourceB){
+		static int once = 0;
+		if(!once)
+			printf("ouch - alphasource confusione\n");
+		once = 1;
+	}
 	*colorSource = colorSourceA;
 	*alphaSource = alphaSourceA;
 	*imgchannels = haveTexture ? channels : -1;
