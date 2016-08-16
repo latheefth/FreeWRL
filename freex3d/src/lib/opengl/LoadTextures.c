@@ -115,6 +115,39 @@ void LoadTextures_init(struct tLoadTextures *t)
 //bool loader_waiting = false;
 
 
+static int sniffImageChannels_bruteForce(unsigned char *imageblob, int width, int height){
+	//iterates over entire 4byte-per-pixel RGBA image blob, or until it knows the answer,
+	// and returns number of channels 1=Luminance, 2=Lum-alpha 3=rgb 4=rgba
+	//detects by comparing alpha != 1 to detect alpha, and r != g != b to detect color
+	int i,ii4,j,jj4, hasAlpha, hasColor, channels;
+	hasAlpha = 0;
+	hasColor = 0;
+	channels = 4;
+	for(i=0;i<height;i++){
+		ii4 = i*width*4;
+		if(!hasColor){
+			//for gray-scale images, will need to scan the whole image looking for r != g != b
+			//not tested with lossy compression ie jpeg, but jpeg is usually RGB -not gray, and no alpha- 
+			// - so jpeg should exit color detection early anyway
+			for(j=0;j<width;j++){
+				jj4 = ii4 + j*4;
+				hasAlpha = hasAlpha || imageblob[jj4+3] != 255;
+				hasColor = hasColor || imageblob[jj4] != imageblob[jj4+1] || imageblob[jj4+1] != imageblob[jj4+2];
+			}
+		}else{
+			//color found, can stop looking for color. now just look for alpha
+			//- this is likely the most work, because if Alpha all 1s, it won't know until it scans whole image
+			for(j=3;j<width*4;j+=4){
+				hasAlpha = hasAlpha || imageblob[ii4 + j] != 255;
+			}
+		}
+		if(hasAlpha && hasColor)break; //got the maximum possible answer, can exit early
+	}
+	channels = hasColor ? 3 : 1;
+	channels = hasAlpha ? channels + 1 : channels;
+}
+
+
 /* All functions here works with the array of 'textureTableIndexStruct'.
  * In the future we may want to refactor this struct.
  * In the meantime lets make it work :).
@@ -910,26 +943,6 @@ static void __reallyloadImageTexture(textureTableIndexStruct_s* this_tex, char *
 #endif // ANDROIDNDK
 
 
-static int sniffImageChannels_bruteForce(unsigned char *imageblob, int width, int height){
-	//iterates over entire 4byte-per-pixel RGBA image blob, or until it knows the answer,
-	// and returns number of channels 1=Luminance, 2=Lum-alpha 3=rgb 4=rgba
-	//detects by comparing alpha != 1 to detect alpha, and r != g != b to detect color
-	int i,ii4,j,jj4, hasAlpha, hasColor, channels;
-	hasAlpha = 0;
-	hasColor = 0;
-	channels = 4;
-	for(i=0;i<height;i++){
-		ii4 = i*width*4;
-		for(j=0;j<width;j++){
-			jj4 = ii4 + j*4;
-			hasAlpha = hasAlpha || imageblob[jj4+3] != 255;
-			hasColor = hasColor || imageblob[jj4] != imageblob[jj4+1] || imageblob[jj4+1] != imageblob[jj4+2];
-		}
-		if(hasAlpha && hasColor)break; //got the maximum answer
-	}
-	channels = hasColor ? 3 : 1;
-	channels = hasAlpha ? channels + 1 : channels;
-}
 
 /**
  *   texture_load_from_file: a local filename has been found / downloaded,
