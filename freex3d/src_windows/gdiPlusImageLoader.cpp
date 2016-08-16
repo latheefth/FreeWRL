@@ -69,7 +69,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	// convert to wide char http://msdn.microsoft.com/en-us/library/ms235631(VS.80).aspx   
 	//fname = "C:/source2/freewrl/freex3d/tests/helpers/brick.png";  
     //fname = "junk.jpg"; //test failure condition
-	GUID format;
+	int format;
 	int channels;
 	size_t origsize = strlen(fname) + 1;
 	char* fname2 = (char*) malloc(origsize);
@@ -138,9 +138,11 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    //switch(format){
    //}
    //https://msdn.microsoft.com/en-us/library/vs/alm/ms534412(v=vs.85).aspx
-   switch(bitmap->GetPixelFormat()){
+   format = bitmap->GetPixelFormat();
+   switch(format){
 	   case PixelFormat16bppGrayScale: channels = 1; break;
 	   //no intensity alpha?
+	   //case 2498570: channels = 2; break;
 	   case PixelFormat24bppRGB: channels = 3; break;
 	   case PixelFormat32bppARGB: channels = 4; break;
 	   default:
