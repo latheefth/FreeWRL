@@ -880,6 +880,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
    if(textureCount>=3) \n\
      finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,v_texC.st); \n\
 	#endif //MTEX \n\
+	//clamp here or outside? \n\
   \n\
 }\n";
 

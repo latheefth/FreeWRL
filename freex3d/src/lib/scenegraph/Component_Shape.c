@@ -846,7 +846,7 @@ void child_Shape (struct X3D_Shape *node) {
 			//Aug 6, 2016, dug9: OK here now we have the parameters for where builtin shader
 			//should get some things.
 			isLit = color_alpha_source(node->appearance,tmpNG,&colorSource,&alphaSource,&channels);
-			//printf("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
+			printf("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
 			//if shader is builtin
 		}
 		//_shaderTableEntry has bit flags for things like:
@@ -854,7 +854,9 @@ void child_Shape (struct X3D_Shape *node) {
 		shader_requirements = node->_shaderTableEntry;  
 		
 		//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
-		shader_requirements |= channels == 1 || channels == 2 ? WANT_LUMINANCE : 0;
+		//shader_requirements |= channels == 1 || channels == 2 ? WANT_LUMINANCE : 0;
+		if(channels == 1 || channels == 2)
+			shader_requirements |= WANT_LUMINANCE;
 
 		//getShaderFlags() are from non-leaf-node shader influencers: 
 		//   fog, local_lights, clipplane, Effect/EffectPart (for CastlePlugs) ...

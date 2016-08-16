@@ -909,8 +909,146 @@ static void __reallyloadImageTexture(textureTableIndexStruct_s* this_tex, char *
 
 #endif // ANDROIDNDK
 
+//FOURCC network endien to host endian
+uint32_t ChangeEndianness(uint32_t value)
+{
+    uint32_t result = 0;
+    result |= (value & 0x000000FF) << 24;
+    result |= (value & 0x0000FF00) << 8;
+    result |= (value & 0x00FF0000) >> 8;
+    result |= (value & 0xFF000000) >> 24;
+    return result;
+}
 
 
+typedef struct snif_IHDR {
+	uint32_t Width;           //   4 bytes
+	uint32_t Height;         //    4 bytes
+	char Bitdepth;         // 1 byte
+	char Colortype;        //1 byte
+	char Compressionmethod; //1 byte
+	char Filtermethod;      //1 byte
+	char Interlacemethod;  // 1 byte
+};
+static int sniff_png(char *fname){
+	//https://en.wikipedia.org/wiki/Portable_Network_Graphics#Technical_details
+	//http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html
+	//https://www.w3.org/TR/PNG/#11IHDR
+	//https://www.w3.org/TR/PNG/#5DataRep
+	// x chunks are compressed, including IHDR?
+	int channels = -1, ct;
+	uint32_t clen, clenl;
+	struct snif_IHDR ihdr;
+	char buf[100];
+	FILE *fp = fopen(fname,"r");
+	fread(buf,8,1,fp); //assume already sniffed, just skip
+	fread(&clen,4,1,fp);
+	clenl = ChangeEndianness(clen); //stored in network (bigendian) byte order
+	fread(buf,4,1,fp); //chunk descriptor
+	//first chunk must be IHDR
+	fread(&ihdr,min(clen,sizeof(struct snif_IHDR)),1,fp);
+	fclose(fp);
+	ihdr.Width = ChangeEndianness(ihdr.Width);
+	ihdr.Height = ChangeEndianness(ihdr.Height);
+	/*
+Color    Allowed    Interpretation
+   Type    Bit Depths
+   
+   0       1,2,4,8,16  Each pixel is a grayscale sample.
+   
+   2       8,16        Each pixel is an R,G,B triple.
+   
+   3       1,2,4,8     Each pixel is a palette index;
+                       a PLTE chunk must appear.
+   
+   4       8,16        Each pixel is a grayscale sample,
+                       followed by an alpha sample.
+   
+   6       8,16        Each pixel is an R,G,B triple,
+                       followed by an alpha sample.
+*/
+	ct = ihdr.Colortype;
+	switch(ct){
+		case 0: channels = 0; break;
+		case 2: channels = 3; break;
+		case 3: channels = 3; break;
+		case 4: channels = 2; break;
+		case 6: channels = 4; break;
+		default:
+		channels = 4;
+	}
+	return channels;
+}
+static int sniff_jpeg(char *fname){
+	int channels = -1;
+	channels = 3; //jpg doesn't normally have alpha, usually rgb
+	return channels;
+}
+struct sniff_gifhead {
+	char signature[6];
+	unsigned short width;
+	unsigned short height;
+	unsigned char packed;
+	unsigned char backindex;
+};
+static int sniff_gif(char *fname){
+	//https://www.w3.org/Graphics/GIF/spec-gif89a.txt
+	struct sniff_gifhead head;
+	int channels = -1;
+	FILE *fp = fopen(fname,"r");
+	//gif can have 'indexed' alpha ie one color index represents transparent
+	channels = 4;
+	fread(&head,sizeof(struct sniff_gifhead),1,fp); //skip header, already sniffed
+	if(head.packed & 1 << 8){
+		//if(head.backindex == )
+	}
+	return channels;
+}
+// SIMPLER, MORE RELIABLE, BRUTE FORCE: go through each image 
+// if R=G=B for every pixel, then gray/lum
+// if alpha = 1 for every pixel, then no alpha
+static int sniffImageChannels(char *filename) {
+//filenames coming in can be temp file names - scrambled
+//there are 3 ways to tell in the backend what type of image file:
+//a) .xxx original filename suffix
+//b) MIME type 
+//c) file signature https://en.wikipedia.org/wiki/List_of_file_signatures
+// right now we aren't passing in the .xxx or mime or signature bytes
+// except through the file conents we can get the signature
+	int channels = -1;
+	char header[20];
+	FILE* fp = fopen(filename,"rb");
+	fread(header,20,1,fp);
+	fclose(fp);
+
+
+	if(!strncmp(&header[1],"PNG",3)){
+		channels = sniff_png(filename);
+	}else if(!strncmp(header,"ÿØÿ",3)){
+		channels = sniff_jpeg(filename);
+	}else if(!strncmp(header,"GIF",3)){
+		channels = sniff_gif(filename);
+	}
+	return channels;
+}
+static int sniffImageChannels_bruteForce(unsigned char *imageblob, int width, int height){
+	int i,ii4,j,jj4, hasAlpha, hasColor, channels;
+	hasAlpha = 0;
+	hasColor = 0;
+	channels = 4;
+	for(i=0;i<height;i++){
+		ii4 = i*width*4;
+		for(j=0;j<width;j++){
+			jj4 = ii4 + j*4;
+			hasAlpha = hasAlpha || imageblob[jj4+3] != 255;
+			hasColor = hasColor || imageblob[jj4] != imageblob[jj4+1] || imageblob[jj4+1] != imageblob[jj4+2];
+			//if(hasColor) printf("[%d %d %d]",imageblob[ii+j],imageblob[],imageblob[])
+		}
+		if(hasAlpha && hasColor)break; //got the maximum answer
+	}
+	channels = hasColor ? 3 : 1;
+	channels = hasAlpha ? channels + 1 : channels;
+}
 
 /**
  *   texture_load_from_file: a local filename has been found / downloaded,
@@ -1019,6 +1157,12 @@ ConsoleMessage(me);}
 				}
 			}
 #endif
+	}
+	{
+		int nchan;
+		nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
+		//nchan = sniffImageChannels(fname);
+		if(nchan > -1) this_tex->channels = nchan;
 	}
 	FREE(fname);
 	return (ret != 0);
