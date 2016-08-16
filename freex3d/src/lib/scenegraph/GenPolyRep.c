@@ -647,8 +647,9 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	int norin;
 	//Aug 11, 2016 there are some complainers on web3d-public -TriangleSet too smoothed
 	// and nodes like TriangleSet don't officially have a creaseangle field like IndexedFaceSet or ElevationGrid
+	// should be if normalPerVertex = TRUE, then smooth, else no smooth and in direction according to ccw
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#TriangleSet
-	float creaseAngle = (float) PI * .25; // PI*2; //PI will make some happy, because ccw can control, but TriangleSet->creaseAngle would be better
+	float creaseAngle = (float) PI * 2; // PI*2 == smooth
 	int ccw = TRUE;
 
 	int ntri = 0;
@@ -779,6 +780,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLEFANSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->coord;
+			if(!npv) creaseAngle = 0.0; //disable smoothing according to specs "if npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, coord));
@@ -798,6 +800,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLESET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLESET(node)->coord;
+			if(!npv) creaseAngle = 0.0; //disable smoothing according to specs "if npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, coord));
@@ -817,6 +820,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLESTRIPSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->coord;
+			if(!npv) creaseAngle = 0.0; //disable smoothing according to specs "if npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, coord));
@@ -836,6 +840,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_TRIANGLEFANSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLEFANSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLEFANSET(node)->coord;
+			if(!nc && !npv) creaseAngle = 0.0; //disable smoothing according to specs "if normals are not provided, and npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, coord));
@@ -872,6 +877,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_TRIANGLESTRIPSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLESTRIPSET(node)->coord;
+			if(!nc && !npv) creaseAngle = 0.0; //disable smoothing according to specs "if normals are not provided, and npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, coord));

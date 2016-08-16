@@ -658,16 +658,41 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 		isLit = isUnlitGeometry ? 0 : isLit;
 		//do I need possible proto expansione of texture, or will compile_appearance have done that?
 		if(appearance->texture){
-			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
-			haveTexture = 1;
-			if(tti){
-				//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
-				//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
-				//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
-				channels = tti->channels; 
-				imgalpha = tti->hasAlpha;
-				if(tti->status < TEX_NEEDSBINDING) 
-					printf("."); //should Unmark node compiled
+			//mutli-texture? should loop over multitexture->texture nodes? 
+			// --to get to get max channels or hasAlpha, or need channels for each one?
+			// H0: if nay of the multitextures has an alpha, then its alpha replaces material alpha
+			// H1: multitexture alpha is only for composing textures, assumed to take material alpha 
+			if(appearance->texture->_nodeType == NODE_MultiTexture){
+				int k;
+				struct X3D_MultiTexture * mtex = (struct X3D_MultiTexture*)appearance->texture;
+				channels = 0;
+				imgalpha = 0;
+				for(k=0;k<mtex->texture.n;k++){
+					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(mtex->texture.p[k]);
+					haveTexture = 1;
+					if(tti){
+						//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+						//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+						//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
+						channels = max(channels,tti->channels);
+						imgalpha = max(tti->hasAlpha,imgalpha);
+						//if(tti->status < TEX_NEEDSBINDING) 
+						//	printf("."); //should Unmark node compiled
+					}
+				}
+			}else{
+				//single texture:
+				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(appearance->texture);
+				haveTexture = 1;
+				if(tti){
+					//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+					//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+					//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
+					channels = tti->channels; 
+					imgalpha = tti->hasAlpha;
+					//if(tti->status < TEX_NEEDSBINDING) 
+					//	printf("."); //should Unmark node compiled
+				}
 			}
 		}
 	}
@@ -696,10 +721,18 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 			else colorSourceC = Drgb;
 		}
 	}
-	if(!(colorSourceC == colorSourceB && colorSourceB == colorSourceA)) 
-		printf("ouch - colorsource confusion\n");
-	if(alphaSourceA != alphaSourceB)
-		printf("ouch - alphasource confusione\n");
+	if(!(colorSourceC == colorSourceB && colorSourceB == colorSourceA)){
+		static int once = 0;
+		if(!once) 
+			printf("ouch - colorsource confusion\n");
+		once = 1;
+	}
+	if(alphaSourceA != alphaSourceB){
+		static int once = 0;
+		if(!once)
+			printf("ouch - alphasource confusione\n");
+		once = 1;
+	}
 	*colorSource = colorSourceA;
 	*alphaSource = alphaSourceA;
 	*imgchannels = haveTexture ? channels : -1;
@@ -708,7 +741,8 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 unsigned int getShaderFlags();
 struct X3D_Node *getFogParams();
 void child_Shape (struct X3D_Shape *node) {
-	struct X3D_Node *tmpN;    
+	struct X3D_Node *tmpNG;  
+	int channels;
 	ppComponent_Shape p;
     	ttglobal tg = gglobal();
 	struct fw_MaterialParameters defaultMaterials = {
@@ -730,8 +764,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 	if((renderstate()->render_collision) || (renderstate()->render_sensitive)) {
 		/* only need to forward the call to the child */
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpN);
-		render_node(tmpN);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,node->geometry,tmpNG);
+		render_node(tmpNG);
 		return;
 	}
 
@@ -747,7 +781,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-        int colorSource, alphaSource, isLit;  
+		int colorSource, alphaSource, isLit;  
 		unsigned int shader_requirements;
 
 		RENDER_MATERIAL_SUBNODES(node->appearance);
@@ -771,13 +805,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 		/* enable the shader for this shape */
 		//ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
-		shader_requirements = node->_shaderTableEntry;
-		//getShaderFlags() are from non-leaf-node shader influencers: fog, local_lights, clipplane ...
-		// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
-		shader_requirements |= getShaderFlags(); 
-		//if(shader_requirements & FOG_APPEARANCE_SHADER)
-		//	printf("halleluja - fog in child_shape\n");
-		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
+
 
 
 		if (p->userShaderNode != NULL) {
@@ -809,17 +837,33 @@ void child_Shape (struct X3D_Shape *node) {
 			}
 		}
 
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpN);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpNG);
 
 		//if(node->_shaderTableEntry == builtinShader ){
-		if(0){
+
+		channels = 0;
+		if(1){
 			//Aug 6, 2016, dug9: OK here now we have the parameters for where builtin shader
 			//should get some things.
-			int channels;
-			isLit = color_alpha_source(node->appearance,tmpN,&colorSource,&alphaSource,&channels);
-			printf("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
+			isLit = color_alpha_source(node->appearance,tmpNG,&colorSource,&alphaSource,&channels);
+			//printf("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
 			//if shader is builtin
 		}
+		//_shaderTableEntry has bit flags for things like:
+		// isLit, haveMaterial, one/twoMats, haveTexture, MultiTexture, TextureAlpha, hatching, LinePoints
+		shader_requirements = node->_shaderTableEntry;  
+		
+		//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
+		shader_requirements |= channels == 1 || channels == 2 ? WANT_LUMINANCE : 0;
+
+		//getShaderFlags() are from non-leaf-node shader influencers: 
+		//   fog, local_lights, clipplane, Effect/EffectPart (for CastlePlugs) ...
+		// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
+		// - so they are ORd here before selecting a shader permutation
+		shader_requirements |= getShaderFlags(); 
+		//if(shader_requirements & FOG_APPEARANCE_SHADER)
+		//	printf("halleluja - fog in child_shape\n");
+		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
 
 		//see if we have to set up a TextureCoordinateGenerator type here
 		if (node->geometry->_intern) {
@@ -832,8 +876,19 @@ void child_Shape (struct X3D_Shape *node) {
 		#ifdef SHAPEOCCLUSION
 		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
 		#endif
+		//call stack to get from child_shape to sendMaterialsToShader and sendLightInfo as of Aug 13, 2016
+		//child_shape
+		//- render_node
+		//-- render_indexedfaceset (or other specific shape)
+		//--- render_polyrep
+		//---- sendArraysToGPU
+		//----- setupShader
+		//------ sendMaterialsToShader
+		//          Uniforms being sent for materials and hatching
+		//--------- sendLightInfo
+		//           Uniforms sent for lights
 
-		render_node(tmpN);
+		render_node(tmpNG);
 
 		#ifdef SHAPEOCCLUSION
 		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;

@@ -62,7 +62,7 @@ Proximity sensor macro.
 #define HAVE_CUBEMAP_TEXTURE 0x00400
 #define FOG_APPEARANCE_SHADER 0X00800
 #define WANT_ANAGLYPH 0x01000
-
+#define WANT_LUMINANCE 0x02000
 /* Component_Shader - user-specified shaders. Currently limited in number */
 /* note we start at 0x1000 and count up by 1 for (currently) 255 shaders per program */
 
@@ -74,12 +74,12 @@ Proximity sensor macro.
 
 
 struct fw_MaterialParameters {
-		float emission[4];   
-		float ambient[4];    
-		float diffuse[4];    
-		float specular[4];   
-		float shininess; 
-	};
+	float emission[4];
+	float ambient[4];
+	float diffuse[4];
+	float specular[4];
+	float shininess; 
+};
 
 struct matpropstruct {
 	/* material properties for current shape */
@@ -91,23 +91,23 @@ struct matpropstruct {
 
 	float	transparency;
 	GLfloat	emissionColour[3];
-	GLint   cubeFace;		/* for cubemapping, if 0, not cube mapping */
-    	int 	cullFace;	       /* is this single-sided or two-sided? Simply used to reduce calls to
-					  GL_ENABLE(GL_CULL_FACE), etc */
-    
-    /* for FillProperties, and LineProperties, line type (NOT pointsize) */
-    int algorithm;
-    bool hatchedBool;
-    bool filledBool;
-    GLfloat hatchPercent[2];
-    GLfloat hatchScale[2];
-    GLfloat hatchColour[4];
+	GLint	cubeFace;	/* for cubemapping, if 0, not cube mapping */
+	int 	cullFace;	/* is this single-sided or two-sided? Simply used to reduce calls to
+						GL_ENABLE(GL_CULL_FACE), etc */
+
+	/* for FillProperties, and LineProperties, line type (NOT pointsize) */
+	int algorithm;
+	bool hatchedBool;
+	bool filledBool;
+	GLfloat hatchPercent[2];
+	GLfloat hatchScale[2];
+	GLfloat hatchColour[4];
 
 	// points now specified in shader, not via an opengl call 
 	GLfloat pointSize;   
-    
-    //TextureCoordinateGenerator value - a "TCGT_XXX" type
-    int texCoordGeneratorType;
+
+	//TextureCoordinateGenerator value - a "TCGT_XXX" type
+	int texCoordGeneratorType;
 };
 
 struct matpropstruct* getAppearanceProperties();
@@ -119,7 +119,7 @@ void setUserShaderNode(struct X3D_Node *me);
 #define RENDER_MATERIAL_SUBNODES(which) \
 	{ struct X3D_Node *tmpN;   \
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, which,tmpN) \
-       		if(tmpN) { \
+		if(tmpN) { \
 			render_node(tmpN); \
 		} \
 	}
