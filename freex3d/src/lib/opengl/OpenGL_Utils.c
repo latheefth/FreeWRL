@@ -2552,7 +2552,7 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], 
 		unsigned int whichOne, int usePhongShading) {
-	int iret, userDefined, usingCastlePlugs = 0;
+	int iret, userDefined, usingCastlePlugs = 1;
 	userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
 
 	if(usingCastlePlugs && !userDefined){

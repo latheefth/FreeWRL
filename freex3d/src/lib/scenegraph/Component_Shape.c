@@ -806,6 +806,53 @@ void child_Shape (struct X3D_Shape *node) {
 		/* enable the shader for this shape */
 		//ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
 
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpNG);
+
+		//if(node->_shaderTableEntry == builtinShader ){
+
+		channels = 0;
+		if(1){
+			static int once = 0;
+			//Aug 6, 2016, dug9: OK here now we have the parameters for where builtin shader
+			//should get some things.
+			isLit = color_alpha_source(node->appearance,tmpNG,&colorSource,&alphaSource,&channels);
+			if(channels > -1 && !once){
+				//handy for debugging simple flies, but too noisy for production
+				ConsoleMessage("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
+				once = 1;
+			}
+			//if shader is builtin
+		}
+		//_shaderTableEntry has bit flags for things like:
+		// isLit, haveMaterial, one/twoMats, haveTexture, MultiTexture, TextureAlpha, hatching, LinePoints
+		shader_requirements = node->_shaderTableEntry;  
+		
+		if(!p->userShaderNode){
+			//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
+			if(channels == 1 || channels == 2)
+				shader_requirements |= WANT_LUMINANCE;
+			//if the image has a real alpha, we may want to turn off alpha modulation, 
+			// see comment about modulate in Compositing_Shaders.c
+			if(channels == 2 || channels == 4)
+				shader_requirements |= WANT_TEXALPHA;
+
+			//getShaderFlags() are from non-leaf-node shader influencers: 
+			//   fog, local_lights, clipplane, Effect/EffectPart (for CastlePlugs) ...
+			// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
+			// - so they are ORd here before selecting a shader permutation
+			shader_requirements |= getShaderFlags(); 
+			//if(shader_requirements & FOG_APPEARANCE_SHADER)
+			//	printf("halleluja - fog in child_shape\n");
+		}
+		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
+
+		//see if we have to set up a TextureCoordinateGenerator type here
+		if (node->geometry->_intern) {
+			if (node->geometry->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
+				getAppearanceProperties()->texCoordGeneratorType = node->geometry->_intern->texgentype;
+				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
+			}
+		}
 
 
 		if (p->userShaderNode != NULL) {
@@ -837,51 +884,6 @@ void child_Shape (struct X3D_Shape *node) {
 			}
 		}
 
-		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpNG);
-
-		//if(node->_shaderTableEntry == builtinShader ){
-
-		channels = 0;
-		if(1){
-			static int once = 0;
-			//Aug 6, 2016, dug9: OK here now we have the parameters for where builtin shader
-			//should get some things.
-			isLit = color_alpha_source(node->appearance,tmpNG,&colorSource,&alphaSource,&channels);
-			if(channels > -1 && !once){
-				//handy for debugging simple flies, but too noisy for production
-				ConsoleMessage("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
-				once = 1;
-			}
-			//if shader is builtin
-		}
-		//_shaderTableEntry has bit flags for things like:
-		// isLit, haveMaterial, one/twoMats, haveTexture, MultiTexture, TextureAlpha, hatching, LinePoints
-		shader_requirements = node->_shaderTableEntry;  
-		
-		//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
-		if(channels == 1 || channels == 2)
-			shader_requirements |= WANT_LUMINANCE;
-		//if the image has a real alpha, we may want to turn off alpha modulation, 
-		// see comment about modulate in Compositing_Shaders.c
-		if(channels == 2 || channels == 4)
-			shader_requirements |= WANT_TEXALPHA;
-
-		//getShaderFlags() are from non-leaf-node shader influencers: 
-		//   fog, local_lights, clipplane, Effect/EffectPart (for CastlePlugs) ...
-		// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
-		// - so they are ORd here before selecting a shader permutation
-		shader_requirements |= getShaderFlags(); 
-		//if(shader_requirements & FOG_APPEARANCE_SHADER)
-		//	printf("halleluja - fog in child_shape\n");
-		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
-
-		//see if we have to set up a TextureCoordinateGenerator type here
-		if (node->geometry->_intern) {
-			if (node->geometry->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
-				getAppearanceProperties()->texCoordGeneratorType = node->geometry->_intern->texgentype;
-				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
-			}
-		}
 
 		#ifdef SHAPEOCCLUSION
 		beginOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //BEGINOCCLUSIONQUERY;
