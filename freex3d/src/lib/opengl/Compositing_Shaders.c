@@ -334,6 +334,23 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	CompleteCode[EffectPartType] = strdup(Code);
 } //end
 
+void AddVersion( int EffectPartType, int versionNumber, char **CompleteCode){
+	//puts #version <number> at top of shader, first line
+	char Code[SBUFSIZE], line[1000];
+	char *found;
+	int err;
+
+	if (!CompleteCode[EffectPartType]) return;
+	err = fw_strcpy_s(Code, SBUFSIZE, CompleteCode[EffectPartType]);
+
+	found = Code;
+	if (found) {
+		sprintf(line, "#version %d \n", versionNumber);
+		insertBefore(found, line, Code, SBUFSIZE);
+		FREE_IF_NZ(CompleteCode[EffectPartType]);
+		CompleteCode[EffectPartType] = strdup(Code);
+	}
+}
 void AddDefine0( int EffectPartType, const char *defineName, int defineValue, char **CompleteCode)
 {
 	//same as AddDEfine but you can say a number other than 1
@@ -449,7 +466,6 @@ define MAT if material is valid
 
 
 static const GLchar *genericVertexGLES2 = "\
-#version 110\n\
 /* DEFINES */ \n\
 /* Generic GLSL vertex shader, used on OpenGL ES. */ \n\
  \n\
@@ -666,14 +682,13 @@ void main(void) \n\
   HAS_GEOMETRY_SHADER - version 3+ gles
 */
 static const GLchar *genericFragmentGLES2 = "\
-#version 110\n\
 /* DEFINES */ \n\
-/* Generic GLSL fragment shader, used on OpenGL ES. */ \n\
- \n\
-#ifdef GL_ES_VERSION_2_0 \n\
+#ifdef MOBILE \n\
 //precision highp float; \n\
 precision mediump float; \n\
-#endif \n\
+#endif //MOBILE \n\
+/* Generic GLSL fragment shader, used on OpenGL ES. */ \n\
+ \n\
  \n\
 #ifdef TEX \n\
 uniform sampler2D fw_Texture_unit0; \n\
@@ -1018,7 +1033,11 @@ if (backFacing) { \n\
 }\n\
 ";
 
-
+#if defined(GL_ES_VERSION_2_0)
+static int isMobile = TRUE;
+#else
+static int isMobile = FALSE;
+#endif
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
@@ -1048,8 +1067,15 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	// CastlePlugs: allows users to add effects on to uberShader with PLUGs
 	// - and internally, we can do a few permutations with PLUGs too
 
-	if(FALSE) //mobile)
-		AddDefine(SHADERPART_FRAGMENT,"GL_ES_VERSION_2_0",CompleteCode); //lower precision floats
+	if(isMobile){
+		AddVersion(SHADERPART_VERTEX, 100, CompleteCode); //lower precision floats
+		AddVersion(SHADERPART_FRAGMENT, 100, CompleteCode); //lower precision floats
+		AddDefine(SHADERPART_FRAGMENT,"MOBILE",CompleteCode); //lower precision floats
+	}else{
+		//desktop, emulating GLES2
+		AddVersion(SHADERPART_VERTEX, 110, CompleteCode); //lower precision floats
+		AddVersion(SHADERPART_FRAGMENT, 110, CompleteCode); //lower precision floats
+	}
 
 	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG point
 	//Add in:

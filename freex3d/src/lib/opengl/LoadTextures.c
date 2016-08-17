@@ -624,9 +624,9 @@ typedef struct {
 	const int color_type;
 } PngInfo;
 static GLenum get_gl_color_format(const int png_color_format) {
-	assert(png_color_format == PNG_COLOR_TYPE_GRAY
-		|| png_color_format == PNG_COLOR_TYPE_RGB_ALPHA
-		|| png_color_format == PNG_COLOR_TYPE_GRAY_ALPHA);
+	//assert(png_color_format == PNG_COLOR_TYPE_GRAY
+	//	|| png_color_format == PNG_COLOR_TYPE_RGB_ALPHA
+	//	|| png_color_format == PNG_COLOR_TYPE_GRAY_ALPHA);
 
 	switch (png_color_format) {
 	case PNG_COLOR_TYPE_GRAY:
@@ -635,6 +635,8 @@ static GLenum get_gl_color_format(const int png_color_format) {
 		return GL_RGBA;
 	case PNG_COLOR_TYPE_GRAY_ALPHA:
 		return GL_LUMINANCE_ALPHA;
+	case PNG_COLOR_TYPE_RGB:
+		return GL_RGB;
 	}
 
 	return 0;
@@ -726,6 +728,7 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	unsigned long image_height = 0;
 	unsigned long image_rowbytes = 0;
 	int image_channels = 0;
+	int glcolortype = 0;
 	double display_exponent = 0.0;
 	char * png_data;
 	int png_data_size;
@@ -784,15 +787,27 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	png_read_end(png_ptr, info_ptr);
 	this_tex->x = png_info.width;
 	this_tex->y = png_info.height;
-	this_tex->hasAlpha = png_info.color_type == GL_RGBA || png_info.color_type == GL_LUMINANCE_ALPHA;
-	switch(png_info.color_type){
-		case GL_LUMINANCE: this_tex->channels = 1; break;
-		case GL_LUMINANCE_ALPHA: this_tex->channels = 2; break;
-		case GL_RGB: this_tex->channels = 3; break;
-		case GL_RGBA: this_tex->channels = 4; break;
+	//glcolortype = get_gl_color_format(png_info.color_type);
+	//this_tex->hasAlpha = png_info.color_type == GL_RGBA || png_info.color_type == GL_LUMINANCE_ALPHA;
+	//switch(glcolortype) { //png_info.color_type){
+	//	case GL_LUMINANCE: this_tex->channels = 1; break;
+	//	case GL_LUMINANCE_ALPHA: this_tex->channels = 2; break;
+	//	case GL_RGB: this_tex->channels = 3; break;
+	//	case GL_RGBA: this_tex->channels = 4; break;
+	//	default:
+	//		this_tex->channels = 4; break;
+	//}
+	image_channels = 4;
+	switch (png_info.color_type) {
+		case PNG_COLOR_TYPE_GRAY:		image_channels = 1; break;
+		case PNG_COLOR_TYPE_GRAY_ALPHA:	image_channels = 2; break;
+		case PNG_COLOR_TYPE_RGB:		image_channels = 3; break;
+		case PNG_COLOR_TYPE_RGB_ALPHA:	image_channels = 4; break;
 		default:
-			this_tex->channels = 4; break;
+			image_channels = 4;
 	}
+	this_tex->channels = image_channels;
+	this_tex->hasAlpha = this_tex->channels == 2 || this_tex->channels == 4;
 	//int bpp = this_tex->hasAlpha ? 4 :  3; //bytes per pixel
 	int bpp = 4;
 	char *dataflipped = flipImageVerticallyB(raw_image.data, this_tex->y, this_tex->x, bpp);
