@@ -1531,8 +1531,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		case TEX_NEEDSBINDING:
 			DEBUG_TEX("texture loaded into memory... now lets load it into OpenGL...\n");
 			move_texture_to_opengl(myTableIndex);
-			//Aug 6, 2016 should we trigger a compile_shape 
-			if(myTableIndex->scenegraphNode){
+			//Aug 6, 2016 should we trigger a compile_shape? Depends on if we can compile new shader as needed in child_shape as channels show up 
+			if(1) if(myTableIndex->scenegraphNode){
 				//myTableIndex->scenegraphNode->_ichange++;  //problem: this causes the image file to be reloaded, a new opengl texture mipmapped etc.
 				int i,j;
 				struct X3D_Node *texnode = myTableIndex->scenegraphNode;

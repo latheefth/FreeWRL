@@ -334,6 +334,23 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	CompleteCode[EffectPartType] = strdup(Code);
 } //end
 
+void AddVersion( int EffectPartType, int versionNumber, char **CompleteCode){
+	//puts #version <number> at top of shader, first line
+	char Code[SBUFSIZE], line[1000];
+	char *found;
+	int err;
+
+	if (!CompleteCode[EffectPartType]) return;
+	err = fw_strcpy_s(Code, SBUFSIZE, CompleteCode[EffectPartType]);
+
+	found = Code;
+	if (found) {
+		sprintf(line, "#version %d \n", versionNumber);
+		insertBefore(found, line, Code, SBUFSIZE);
+		FREE_IF_NZ(CompleteCode[EffectPartType]);
+		CompleteCode[EffectPartType] = strdup(Code);
+	}
+}
 void AddDefine0( int EffectPartType, const char *defineName, int defineValue, char **CompleteCode)
 {
 	//same as AddDEfine but you can say a number other than 1
@@ -449,7 +466,6 @@ define MAT if material is valid
 
 
 static const GLchar *genericVertexGLES2 = "\
-#version 110\n\
 /* DEFINES */ \n\
 /* Generic GLSL vertex shader, used on OpenGL ES. */ \n\
  \n\
@@ -554,12 +570,19 @@ void main(void) \n\
 { \n\
   #ifdef LIT \n\
   castle_MaterialDiffuseAlpha = fw_FrontMaterial.diffuse.a; \n\
+  #ifdef TEX \n\
+  #ifdef TAT \n\
+  //to modulate or not to modulate, this is the question \n\
+  //in here, we turn off modulation and use image alpha \n\
+  castle_MaterialDiffuseAlpha = 1.0; \n\
+  #endif //TAT \n\
+  #endif //TEX \n\
   castle_MaterialShininess =	fw_FrontMaterial.shininess; \n\
   castle_SceneColor = fw_FrontMaterial.ambient.rgb; \n\
   castle_Specular =	fw_FrontMaterial.specular; \n\
   castle_Emissive = fw_FrontMaterial.emission.rgb; \n\
   #ifdef LINE \n\
-   castle_SceneColor = fw_FrontMaterial.emission.rgb; \n\
+   castle_SceneColor = vec3(0.0,0.0,0.0); //line gets color from castle_Emissive \n\
   #endif //LINE\n\
   #else //LIT \n\
   castle_UnlitColor = vec4(1.0,1.0,1.0,1.0); \n\
@@ -598,12 +621,12 @@ void main(void) \n\
    \n\
   /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */ \n\
   castle_Color.rgb = min(castle_Color.rgb, 1.0); \n\
-#else \n\
+#else //LIT \n\
   castle_Color = castle_UnlitColor; \n\
   #ifdef CPV //color per vertex \n\
    castle_Color *= fw_Color; \n\
   #endif \n\
-#endif \n\
+#endif //LIT \n\
  \n\
   #ifdef TEX \n\
   #ifdef TGEN  \n\
@@ -637,7 +660,7 @@ void main(void) \n\
   castle_vertex_eye = temp_castle_vertex_eye; \n\
   castle_normal_eye = temp_castle_normal_eye; \n\
   castle_Color      = temp_castle_Color; \n\
-  #endif \n\
+  #endif //CASTLE_BUGGY_GLSL_READ_VARYING \n\
 } \n";
 
 
@@ -659,14 +682,13 @@ void main(void) \n\
   HAS_GEOMETRY_SHADER - version 3+ gles
 */
 static const GLchar *genericFragmentGLES2 = "\
-#version 110\n\
 /* DEFINES */ \n\
-/* Generic GLSL fragment shader, used on OpenGL ES. */ \n\
- \n\
-#ifdef GL_ES_VERSION_2_0 \n\
+#ifdef MOBILE \n\
 //precision highp float; \n\
 precision mediump float; \n\
-#endif \n\
+#endif //MOBILE \n\
+/* Generic GLSL fragment shader, used on OpenGL ES. */ \n\
+ \n\
  \n\
 #ifdef TEX \n\
 uniform sampler2D fw_Texture_unit0; \n\
@@ -880,6 +902,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
    if(textureCount>=3) \n\
      finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,v_texC.st); \n\
 	#endif //MTEX \n\
+	//clamp here or outside? \n\
   \n\
 }\n";
 
@@ -1010,7 +1033,11 @@ if (backFacing) { \n\
 }\n\
 ";
 
-
+#if defined(GL_ES_VERSION_2_0)
+static int isMobile = TRUE;
+#else
+static int isMobile = FALSE;
+#endif
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
@@ -1040,8 +1067,15 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	// CastlePlugs: allows users to add effects on to uberShader with PLUGs
 	// - and internally, we can do a few permutations with PLUGs too
 
-	if(FALSE) //mobile)
-		AddDefine(SHADERPART_FRAGMENT,"GL_ES_VERSION_2_0",CompleteCode); //lower precision floats
+	if(isMobile){
+		AddVersion(SHADERPART_VERTEX, 100, CompleteCode); //lower precision floats
+		AddVersion(SHADERPART_FRAGMENT, 100, CompleteCode); //lower precision floats
+		AddDefine(SHADERPART_FRAGMENT,"MOBILE",CompleteCode); //lower precision floats
+	}else{
+		//desktop, emulating GLES2
+		AddVersion(SHADERPART_VERTEX, 110, CompleteCode); //lower precision floats
+		AddVersion(SHADERPART_FRAGMENT, 110, CompleteCode); //lower precision floats
+	}
 
 	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG point
 	//Add in:
@@ -1077,6 +1111,20 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//one tex appearance
 	//multi tex appearance
 	//cubemap tex
+	/*	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingon
+		"The Material's transparency field modulates the alpha in the texture. Hence, 
+		a transparency of 0 will result in an alpha equal to that of the texture. 
+		A transparency of 1 will result in an alpha of 0 regardless of the value in the texture."
+		That doesn't seem to me to be what browsers Octaga, InstantReality, or Cortona are doing, 
+		and its not what table 17-3 and the Lighting equation say is happening. 
+		In the table, alpha is never 'modulated' ie there's never an alpha= AT * (1-TM) term.
+		- freewrl version 3 and vivaty do modulate.
+		I've put a define to set if you don't want modulation ie table 17-3.
+		If you do want to modulate ie the above quote "to modulate", comment out the define
+		I put a mantis issue to web3d.org for clarification Aug 16, 2016
+	*/
+	#define NOT_MODULATE_IMG_AND_MAT_ALPHAS 1  
+
 	if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
 		DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ||
 		DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ||
@@ -1091,6 +1139,8 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
 		if(DESIRE(whichOne,WANT_LUMINANCE) )
 			AddDefine(SHADERPART_VERTEX,"LUM",CompleteCode);
+		if(DESIRE(whichOne,WANT_TEXALPHA) && NOT_MODULATE_IMG_AND_MAT_ALPHAS)
+			AddDefine(SHADERPART_VERTEX,"TAT",CompleteCode);
 
 		Plug(SHADERPART_FRAGMENT,plug_fragment_texture_apply,CompleteCode,&unique_int);
 

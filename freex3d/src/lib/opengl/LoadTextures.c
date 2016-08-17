@@ -115,6 +115,39 @@ void LoadTextures_init(struct tLoadTextures *t)
 //bool loader_waiting = false;
 
 
+static int sniffImageChannels_bruteForce(unsigned char *imageblob, int width, int height){
+	//iterates over entire 4byte-per-pixel RGBA image blob, or until it knows the answer,
+	// and returns number of channels 1=Luminance, 2=Lum-alpha 3=rgb 4=rgba
+	//detects by comparing alpha != 1 to detect alpha, and r != g != b to detect color
+	int i,ii4,j,jj4, hasAlpha, hasColor, channels;
+	hasAlpha = 0;
+	hasColor = 0;
+	channels = 4;
+	for(i=0;i<height;i++){
+		ii4 = i*width*4;
+		if(!hasColor){
+			//for gray-scale images, will need to scan the whole image looking for r != g != b
+			//not tested with lossy compression ie jpeg, but jpeg is usually RGB -not gray, and no alpha- 
+			// - so jpeg should exit color detection early anyway
+			for(j=0;j<width;j++){
+				jj4 = ii4 + j*4;
+				hasAlpha = hasAlpha || imageblob[jj4+3] != 255;
+				hasColor = hasColor || imageblob[jj4] != imageblob[jj4+1] || imageblob[jj4+1] != imageblob[jj4+2];
+			}
+		}else{
+			//color found, can stop looking for color. now just look for alpha
+			//- this is likely the most work, because if Alpha all 1s, it won't know until it scans whole image
+			for(j=3;j<width*4;j+=4){
+				hasAlpha = hasAlpha || imageblob[ii4 + j] != 255;
+			}
+		}
+		if(hasAlpha && hasColor)break; //got the maximum possible answer, can exit early
+	}
+	channels = hasColor ? 3 : 1;
+	channels = hasAlpha ? channels + 1 : channels;
+}
+
+
 /* All functions here works with the array of 'textureTableIndexStruct'.
  * In the future we may want to refactor this struct.
  * In the meantime lets make it work :).
@@ -591,9 +624,9 @@ typedef struct {
 	const int color_type;
 } PngInfo;
 static GLenum get_gl_color_format(const int png_color_format) {
-	assert(png_color_format == PNG_COLOR_TYPE_GRAY
-		|| png_color_format == PNG_COLOR_TYPE_RGB_ALPHA
-		|| png_color_format == PNG_COLOR_TYPE_GRAY_ALPHA);
+	//assert(png_color_format == PNG_COLOR_TYPE_GRAY
+	//	|| png_color_format == PNG_COLOR_TYPE_RGB_ALPHA
+	//	|| png_color_format == PNG_COLOR_TYPE_GRAY_ALPHA);
 
 	switch (png_color_format) {
 	case PNG_COLOR_TYPE_GRAY:
@@ -602,6 +635,8 @@ static GLenum get_gl_color_format(const int png_color_format) {
 		return GL_RGBA;
 	case PNG_COLOR_TYPE_GRAY_ALPHA:
 		return GL_LUMINANCE_ALPHA;
+	case PNG_COLOR_TYPE_RGB:
+		return GL_RGB;
 	}
 
 	return 0;
@@ -693,6 +728,7 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	unsigned long image_height = 0;
 	unsigned long image_rowbytes = 0;
 	int image_channels = 0;
+	int glcolortype = 0;
 	double display_exponent = 0.0;
 	char * png_data;
 	int png_data_size;
@@ -751,15 +787,27 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	png_read_end(png_ptr, info_ptr);
 	this_tex->x = png_info.width;
 	this_tex->y = png_info.height;
-	this_tex->hasAlpha = png_info.color_type == GL_RGBA || png_info.color_type == GL_LUMINANCE_ALPHA;
-	switch(png_info.color_type){
-		case GL_LUMINANCE: this_tex->channels = 1; break;
-		case GL_LUMINANCE_ALPHA: this_tex->channels = 2; break;
-		case GL_RGB: this_tex->channels = 3; break;
-		case GL_RGBA: this_tex->channels = 4; break;
+	//glcolortype = get_gl_color_format(png_info.color_type);
+	//this_tex->hasAlpha = png_info.color_type == GL_RGBA || png_info.color_type == GL_LUMINANCE_ALPHA;
+	//switch(glcolortype) { //png_info.color_type){
+	//	case GL_LUMINANCE: this_tex->channels = 1; break;
+	//	case GL_LUMINANCE_ALPHA: this_tex->channels = 2; break;
+	//	case GL_RGB: this_tex->channels = 3; break;
+	//	case GL_RGBA: this_tex->channels = 4; break;
+	//	default:
+	//		this_tex->channels = 4; break;
+	//}
+	image_channels = 4;
+	switch (png_info.color_type) {
+		case PNG_COLOR_TYPE_GRAY:		image_channels = 1; break;
+		case PNG_COLOR_TYPE_GRAY_ALPHA:	image_channels = 2; break;
+		case PNG_COLOR_TYPE_RGB:		image_channels = 3; break;
+		case PNG_COLOR_TYPE_RGB_ALPHA:	image_channels = 4; break;
 		default:
-			this_tex->channels = 4; break;
+			image_channels = 4;
 	}
+	this_tex->channels = image_channels;
+	this_tex->hasAlpha = this_tex->channels == 2 || this_tex->channels == 4;
 	//int bpp = this_tex->hasAlpha ? 4 :  3; //bytes per pixel
 	int bpp = 4;
 	char *dataflipped = flipImageVerticallyB(raw_image.data, this_tex->y, this_tex->x, bpp);
@@ -911,7 +959,6 @@ static void __reallyloadImageTexture(textureTableIndexStruct_s* this_tex, char *
 
 
 
-
 /**
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
@@ -1019,6 +1066,12 @@ ConsoleMessage(me);}
 				}
 			}
 #endif
+	}
+	{
+		int nchan;
+		nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
+		//nchan = sniffImageChannels(fname);
+		if(nchan > -1) this_tex->channels = nchan;
 	}
 	FREE(fname);
 	return (ret != 0);

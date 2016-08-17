@@ -2552,8 +2552,10 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], 
 		unsigned int whichOne, int usePhongShading) {
-	int iret, usingCastlePlugs = 0;
-	if(usingCastlePlugs){
+	int iret, userDefined, usingCastlePlugs = 1;
+	userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
+
+	if(usingCastlePlugs && !userDefined){
 		//new Aug 2016 castle plugs
 		if(Viewer()->anaglyph || Viewer()->anaglyphB)
 			whichOne |= WANT_ANAGLYPH;  //in theory, this bitflag could be set in render_hier in the new Aug2016 shaderFlags stack 

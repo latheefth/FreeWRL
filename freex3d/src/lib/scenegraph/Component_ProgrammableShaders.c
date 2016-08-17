@@ -163,7 +163,7 @@ struct myArgs {
 							haveFragShaderText = TRUE; \
 						} \
 						/* printf ("Shader text for type %s is  %s\n",prog->type->strptr,myText); */ \
-						FREE_IF_NZ(cptr); }\
+						/*FREE_IF_NZ(cptr);*/ }\
 					} else { \
 						ConsoleMessage ("%s, invalid Type, got \"%s\"",stringNodeType(NODE_##myNodeType), prog->type->strptr); \
 						node->isValid = FALSE; \

@@ -51,6 +51,8 @@ http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/
 - BoxMan.x3d					good				doesn't animate
 - AllenDutton.x3d				skin stuck			good
 - NancyStandShootRifleM24.x3d	good				anim good, skin bad
+HAnim Prototypes:
+http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/_pages/page11.html
 
 Specs:
 http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/hanim.html

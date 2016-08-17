@@ -256,6 +256,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 	BOOL hasAlpha = TRUE;
 	if (SUCCEEDED(hr))
 	{
+		WICPixelFormatGUID pPixelFormat;
 		//this pallet and pixelformat crap doesn't work for finding if image has alpha
 		//- just hardwire all the images to hasAlpha =true
 		//WICPixelFormatGUID pPixelFormat;
@@ -265,6 +266,13 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
 		//hr = m_pIWICFactory->CreatePalette(&pIPallet);
 		//m_pOriginalBitmapSource->CopyPalette(pIPallet);
 		//pIPallet->HasAlpha(&hasAlpha);
+		//https://msdn.microsoft.com/en-us/library/windows/desktop/ee690181(v=vs.85).aspx
+		//https://msdn.microsoft.com/en-us/library/windows/desktop/ee719797(v=vs.85).aspx#grayscale_pixel_formats
+		//to complex for now, use bruteForce channel detection
+		//m_pOriginalBitmapSource->GetPixelFormat(&pPixelFormat);
+		//switch(pPixelFormat){
+		//	default:
+		//}
 		hr = ConvertBitmapSource(m_pOriginalBitmapSource, &pToRenderBitmapSource);
 	}
 
@@ -296,7 +304,8 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    tti->texdata = blob; 
    if(!blob)
 	   printf("ouch in %s L.%d - no image data\n",__FILE__,__LINE__);
-   tti->hasAlpha = 1; //the townsite_withHud.x3d scene's HUD image transparency slidebar makes terrain transparent with hasAlpha. hasAlpha; Not now though.
+   tti->hasAlpha = 1; //over-ridden with _bruteForce channel counter
+
 
 #ifdef verbose
    for(UINT row = 0; row < 23; ++row)
