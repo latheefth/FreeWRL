@@ -1311,10 +1311,11 @@ void popShaderFlags(){
 }
 struct X3D_Node *getFogParams(){
 	//return top-of-stack Fog or LocalFog
-	struct X3D_Node *retval;
+	struct X3D_Node *retval = NULL;
 	ttglobal tg = gglobal();
 	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
-	retval = stack_top(struct X3D_Node*,p->fog_stack);
+	if(p->fog_stack->n)
+		retval = stack_top(struct X3D_Node*,p->fog_stack);
 	return retval;
 }
 void pushFogParams(struct X3D_Node *fogparams){
