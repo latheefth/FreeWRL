@@ -180,14 +180,15 @@ FOG - state as of July 2016:
 #include "../scenegraph/Component_Shape.h"
 #include "../ui/common.h"
 #include "../scenegraph/LinearAlgebra.h"
-
+#define FOGTYPE_LINEAR 1
+#define FOGTYPE_EXPONENTIAL 2
 unsigned int getShaderFlags();
 void pushShaderFlags(unsigned int flags);
 void popShaderFlags();
 struct X3D_Node *getFogParams();
 void pushFogParams(struct X3D_Node *fogparams);
 void popFogParams();
-
+struct X3D_Node *getFogParams(); //see renderfuncs.c
 //in child_shape or in general in renderable-leaf-nodes, 
 // you would call getShaderFlags() and |= to node->_shaderIndex requirement bits before requesting a shader
 // and check the fog bit
@@ -208,7 +209,7 @@ double calculateFogScale(){
 	transformAFFINEd(eyeLocal,fogLocal,modelviewMatrix);
 	eyeDepth = veclengthd(eyeLocal);
 	if(eyeDepth != 0.0)
-		fogScale = 1.0/eyeDepth;
+		fogScale = 1.0/eyeDepth; 
 	else
 		fogScale = 1.0;
 	return fogScale;
@@ -236,7 +237,9 @@ void fin_LocalFog(struct X3D_Node *node){
 		popShaderFlags();
 	}
 }
-
+struct X3D_Fog * getFog(){
+	
+}
 
 void push_boundFog(){
 	//call before render_hier for geom or blend
@@ -270,5 +273,11 @@ void render_Fog(struct X3D_Fog *node) {
 	//this can be done on either a prep pass, or rendering pass in render_hier, or all passes
 	// - its just to get the fog scale
 	//if Fog DEF/USED (multiple scales possible) we use the last one calculated
+	int fogType = 0;
 	node->__fogScale = calculateFogScale();
+	if(node->fogType->strptr){
+		if(!strcmp(node->fogType->strptr,"LINEAR")) fogType = FOGTYPE_LINEAR; //1
+		if(!strcmp(node->fogType->strptr,"EXPONENTIAL")) fogType = FOGTYPE_EXPONENTIAL; //2
+	}
+	node->__fogType = fogType;
 }

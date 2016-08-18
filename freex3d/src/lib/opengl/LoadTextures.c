@@ -145,6 +145,7 @@ static int sniffImageChannels_bruteForce(unsigned char *imageblob, int width, in
 	}
 	channels = hasColor ? 3 : 1;
 	channels = hasAlpha ? channels + 1 : channels;
+	return channels;
 }
 
 

@@ -2555,7 +2555,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	int iret, userDefined, usingCastlePlugs = 1;
 	userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
 
-	if(usingCastlePlugs && !userDefined){
+	if(usingCastlePlugs && !userDefined && !usePhongShading){
 		//new Aug 2016 castle plugs
 		if(Viewer()->anaglyph || Viewer()->anaglyphB)
 			whichOne |= WANT_ANAGLYPH;  //in theory, this bitflag could be set in render_hier in the new Aug2016 shaderFlags stack 
@@ -2915,6 +2915,11 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->filledBool = GET_UNIFORM(myProg,"filled");
 	me->hatchedBool = GET_UNIFORM(myProg,"hatched");
 	me->algorithm = GET_UNIFORM(myProg,"algorithm");
+
+	me->fogColor = GET_UNIFORM(myProg,"fw_fogparams.fogColor");
+	me->fogvisibilityRange = GET_UNIFORM(myProg,"fw_fogparams.visibilityRange");
+	me->fogScale = GET_UNIFORM(myProg,"fw_fogparams.fogScale");
+	me->fogType = GET_UNIFORM(myProg,"fw_fogparams.fogType");
 
 	/* TextureCoordinateGenerator */
 	me->texCoordGenType = GET_UNIFORM(myProg,"fw_textureCoordGenType");
@@ -6159,6 +6164,39 @@ if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
 if (me->myMat != -1) { GLUNIFORM1I(me->myMat,myVal);}
 
 
+//struct fogParams \n\
+//{  \n\
+//  vec4 fogColor; \n\
+//  float visibilityRange; \n\
+//  float fogScale; \n\
+//  int fogType; // 0 None, 1= FOGTYPE_LINEAR, 2 = FOGTYPE_EXPONENTIAL \n\
+//  // ifdefed int haveFogCoords; \n\
+//} fogParams; \n\
+//uniform fogParams fw_fogparams; \n\
+//#ifdef FOGCOORD \n\
+//attribute vec3 fw_FogCoords; \n\
+	//GLint fogColor;  //Aug 2016
+	//GLint fogvisibilityRange;
+	//GLint fogScale;
+	//GLint fogType;
+	//GLint fogHaveCoords;
+struct X3D_Node *getFogParams();
+void sendFogToShader(s_shader_capabilities_t *me) {
+	float color4[4];
+	struct X3D_Fog *fog = (struct X3D_Fog*) getFogParams(); //gets it from the fog stack, LocalFog and Fog are upcast to Fog: perl first fields in same order
+	if(!fog) return;
+
+	profile_start("sendvec");
+	memcpy(color4,fog->color.c,sizeof(float)*3);
+	color4[3] = 1.0;
+	SEND_VEC4(fogColor,color4);
+	SEND_FLOAT(fogvisibilityRange,fog->visibilityRange);
+	SEND_FLOAT(fogScale,fog->__fogScale);
+	SEND_INT(fogType,fog->__fogType);
+	//SEND_INT(fogHaveCoords,fogparams->haveCoords);
+	profile_end("sendvec");
+
+}
 
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
 	struct matpropstruct *myap = getAppearanceProperties();

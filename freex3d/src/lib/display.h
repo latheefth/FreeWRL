@@ -375,6 +375,7 @@ typedef struct s_shader_capabilities{
 	GLint Normals;
 	GLint Colours;
 	GLint TexCoords;
+	GLint FogCoords; //Aug 2016
 
     GLint TextureUnit[MAX_MULTITEXTURE];
     GLint TextureMode[MAX_MULTITEXTURE];
@@ -390,6 +391,13 @@ typedef struct s_shader_capabilities{
     
     /* TextureCoordinateGenerator type */
     GLint texCoordGenType;
+
+	GLint fogColor;  //Aug 2016
+	GLint fogvisibilityRange;
+	GLint fogScale;
+	GLint fogType;
+	GLint fogHaveCoords;
+
 
 /* attributes - reduce redundant state chage calls on GPU */
 /*
