@@ -203,13 +203,22 @@ struct X3D_Node *getFogParams(); //see renderfuncs.c
 //} fogParams;
 double calculateFogScale(){
 	//call this when scenegraph render_hier() visiting a Fog or LocalFog node to update its fogScale
-	GLDOUBLE modelviewMatrix[16], fogLocal[3], eyeLocal[3], eyeDepth, fogScale;
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/enveffects.html#Fog
+	// "The distances are calculated in the coordinate space of the Fog node."
+	// H: that's mathemeatically/numerically equivalent to scaling visibilityRange into the viewpoint system
+	// via the transform stack or more precisely the scale effects of the transform stack at the Fog/LocalFog node 
+	// in the scenegraph ie:
+	// Transform { scale 10 10 10 children [Fog { visibilityRange 2, then fogScale is 10, and viewspace visrange is 10*2 = 20
+	GLDOUBLE modelviewMatrix[16], fogLocal[3], eyeLocal[3], eyeLocalB[3], eyeDepth, fogScale;
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-	fogLocal[0] = 0.0; fogLocal[1] = 0.0; fogLocal[2] = 1.0; //unit vector in fog-local
+	fogLocal[0] = 0.0; fogLocal[1] = 0.0; fogLocal[2] = 0.0; //point in fog-local
 	transformAFFINEd(eyeLocal,fogLocal,modelviewMatrix);
+	fogLocal[2] = 1.0; //second point in fog local, just 1 unit away from first point
+	transformAFFINEd(eyeLocalB,fogLocal,modelviewMatrix);
+	vecdifd(eyeLocal,eyeLocal,eyeLocalB); //get transformed unit vector (how long a unit vector in Fog coords is in View system)
 	eyeDepth = veclengthd(eyeLocal);
 	if(eyeDepth != 0.0)
-		fogScale = 1.0/eyeDepth; 
+		fogScale = eyeDepth; //in shader or before sending to shader, effectively multiplies visibility range by fogScale to get in view scale
 	else
 		fogScale = 1.0;
 	return fogScale;
@@ -236,9 +245,6 @@ void fin_LocalFog(struct X3D_Node *node){
 		popFogParams();
 		popShaderFlags();
 	}
-}
-struct X3D_Fog * getFog(){
-	
 }
 
 void push_boundFog(){

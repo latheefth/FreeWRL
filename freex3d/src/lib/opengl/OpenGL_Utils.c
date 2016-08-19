@@ -6190,8 +6190,8 @@ void sendFogToShader(s_shader_capabilities_t *me) {
 	memcpy(color4,fog->color.c,sizeof(float)*3);
 	color4[3] = 1.0;
 	SEND_VEC4(fogColor,color4);
-	SEND_FLOAT(fogvisibilityRange,fog->visibilityRange);
-	SEND_FLOAT(fogScale,fog->__fogScale);
+	SEND_FLOAT(fogvisibilityRange,fog->visibilityRange*fog->__fogScale);
+	SEND_FLOAT(fogScale,1.0f); //fog->__fogScale); 
 	SEND_INT(fogType,fog->__fogType);
 	//SEND_INT(fogHaveCoords,fogparams->haveCoords);
 	profile_end("sendvec");

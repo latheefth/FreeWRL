@@ -561,7 +561,7 @@ struct fogParams \n\
 {  \n\
   vec4 fogColor; \n\
   float visibilityRange; \n\
-  float fogScale; \n\
+  float fogScale; //applied on cpu side to visrange \n\
   int fogType; // 0 None, 1= FOGTYPE_LINEAR, 2 = FOGTYPE_EXPONENTIAL \n\
   // ifdefed int haveFogCoords; \n\
 }; \n\
@@ -629,7 +629,6 @@ void main(void) \n\
   #ifdef FOGCOORDS \n\
 	castle_vertex_eye.z = fogCoord; \n\
   #endif //FOGCOORDS \n\
-  castle_vertex_eye *= fw_fogparams.fogScale; \n\
   #endif //FOG \n\
    \n\
 #ifdef LIT \n\
