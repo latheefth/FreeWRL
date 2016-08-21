@@ -131,11 +131,14 @@ void proximity_ProximitySensor (struct X3D_ProximitySensor *node) {
  
 	if(fabs(cx) > ((node->size).c[0])/2 || 
 	   fabs(cy) > ((node->size).c[1])/2 || 
-	   fabs(cz) > ((node->size).c[2])/2) return; 
-	/* printf ("within (Geo)ProximitySensor\n"); */ 
+	   fabs(cz) > ((node->size).c[2])/2) {
+	   //printf ("outside (Geo)ProximitySensor\n"); 
+	   return; 
+	}
+	//printf ("within (Geo)ProximitySensor\n"); 
  
 	/* Ok, we now have to compute... */ 
-	(node->__hit) /*cget*/ = 1; 
+	(node->__hit) = 1; 
  
 	/* Position */ 
 	((node->__t1).c[0]) = (float)t_center.x; 
@@ -240,6 +243,7 @@ void do_ProximitySensorTick( void *ptr) {
 
 	/* did we get a signal? */
 	if (node->__hit) {
+		//avatar inside proximity sensor
 		if (!node->isActive) {
 			#ifdef SEVERBOSE
 			printf ("PROX - initial defaults\n");
@@ -271,6 +275,7 @@ void do_ProximitySensorTick( void *ptr) {
 			MARK_EVENT (ptr, offsetof(struct X3D_ProximitySensor, orientation_changed));
 		}
 	} else {
+		//avatar outside proximity sensor or not enabled
 		if (node->isActive) {
 			#ifdef SEVERBOSE
 			printf ("PROX - stopping\n");

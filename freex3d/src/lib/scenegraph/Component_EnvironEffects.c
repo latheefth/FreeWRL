@@ -240,7 +240,7 @@ void prep_LocalFog(struct X3D_Node *node){
 	//LocalFog applies to siblings and descendents of parent Group
 	//Q. how do we handle sibling effects in freewrl?
 	struct X3D_LocalFog *fog = (struct X3D_LocalFog*)node;
-	if(fog->enabled){
+	if(fog->enabled && fog->visibilityRange > 0.0f){
 		unsigned int shaderflags;
 		//compute fogScale
 		render_Fog((struct X3D_Fog*)node);
@@ -254,7 +254,7 @@ void prep_LocalFog(struct X3D_Node *node){
 }
 void fin_LocalFog(struct X3D_Node *node){
 	struct X3D_LocalFog *fog = (struct X3D_LocalFog*)node;
-	if(fog->enabled){
+	if(fog->enabled && fog->visibilityRange > 0.0f){
 		popFogParams();
 		popShaderFlags();
 	}
@@ -279,23 +279,30 @@ void push_boundFog(){
 		unsigned int shaderflags;
 		//there's a bound fog, bound fogs are enabled
 		struct X3D_Fog *fog = stack_top(struct X3D_Fog*,getActiveBindableStacks(tg)->fog);
-		//copy and push renderflags
-		shaderflags = getShaderFlags();
-		//set fog bit in renderflags
-		shaderflags |= FOG_APPEARANCE_SHADER;
-		pushShaderFlags(shaderflags);
-		//push fogparams
-		pushFogParams((struct X3D_Node*)fog);
+		if(fog->visibilityRange > 0.0f){
+			//enabled
+			//copy and push renderflags
+			shaderflags = getShaderFlags();
+			//set fog bit in renderflags
+			shaderflags |= FOG_APPEARANCE_SHADER;
+			pushShaderFlags(shaderflags);
+			//push fogparams
+			pushFogParams((struct X3D_Node*)fog);
+		}
 	}
 }
 void pop_boundFog(){
 	//call after render_hier for geom or blend
 	ttglobal tg = gglobal();
 	if(vectorSize(getActiveBindableStacks(tg)->fog) > 0){
-		//pop fogParms
-		popFogParams();
-		//pop renderflags
-		popShaderFlags();
+		struct X3D_Fog *fog = stack_top(struct X3D_Fog*,getActiveBindableStacks(tg)->fog);
+		if(fog->visibilityRange > 0.0f){
+			//enabled
+			//pop fogParms
+			popFogParams();
+			//pop renderflags
+			popShaderFlags();
+		}
 	}
 }
 

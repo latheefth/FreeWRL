@@ -2792,8 +2792,7 @@ struct X3D_Virt virt_MultiTextureCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_MultiTextureTransform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-void render_NavigationInfo(struct X3D_NavigationInfo *);
-struct X3D_Virt virt_NavigationInfo = { NULL,(void *)render_NavigationInfo,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_NavigationInfo = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_Normal = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 

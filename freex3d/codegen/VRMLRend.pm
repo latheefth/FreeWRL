@@ -354,7 +354,6 @@ our %defaultContainerType = (
 # All of these will have a render_xxx name associated with them.
 
 our %RendC = map {($_=>1)} qw/
-	NavigationInfo
 	Fog
 	Background
 	TextureBackground

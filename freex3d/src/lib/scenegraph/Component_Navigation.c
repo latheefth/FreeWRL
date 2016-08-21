@@ -290,16 +290,16 @@ void  child_Billboard (struct X3D_Billboard *node) {
 
 /******************************************************************************************/
 
-
-void render_NavigationInfo (struct X3D_NavigationInfo *node) {
-	/* check the set_bind eventin to see if it is TRUE or FALSE */
-	ttglobal tg = gglobal();
-	if (node->set_bind < 100) {
-		if (node->set_bind == 1) set_naviinfo(node);
-		bind_node (X3D_NODE(node), getActiveBindableStacks(tg)->navigation);
-	}
-	if(!node->isBound) return;
-}
+//
+//void render_NavigationInfo (struct X3D_NavigationInfo *node) {
+//	/* check the set_bind eventin to see if it is TRUE or FALSE */
+//	ttglobal tg = gglobal();
+//	if (node->set_bind < 100) {
+//		if (node->set_bind == 1) set_naviinfo(node);
+//		bind_node (X3D_NODE(node), getActiveBindableStacks(tg)->navigation);
+//	}
+//	if(!node->isBound) return;
+//}
 
 
 

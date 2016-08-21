@@ -2902,6 +2902,7 @@ void bind_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	calculateViewingSpeed();
 
 	calculateExamineModeDistance();
+	setMenuStatusVP (node->description->strptr);
 
 }
 

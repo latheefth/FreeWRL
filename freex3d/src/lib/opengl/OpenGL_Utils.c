@@ -4326,10 +4326,10 @@ void zeroVisibilityFlag(void) {
 			/* make THIS Sensitive - most nodes make the parents sensitive, Anchors have children...*/ \
 			anchorPtr = (struct X3D_Anchor *)node;
 
-#ifdef VIEWPOINT
-#undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
-#endif
-#define VIEWPOINT(thistype) \
+//#ifdef VIEWPOINT
+//#undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
+//#endif
+#define BINDABLE(thistype) \
 			setBindPtr = (int *)(((char*)(node))+offsetof (struct X3D_##thistype, set_bind)); \
 			if ((*setBindPtr) == 100) {setBindPtr = NULL; } //else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */
 
@@ -4920,12 +4920,13 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				/* maybe this is the current Viewpoint? */
-				BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
-				BEGIN_NODE(OrthoViewpoint) VIEWPOINT(OrthoViewpoint) END_NODE
-				BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
+				BEGIN_NODE(Viewpoint) BINDABLE(Viewpoint) END_NODE
+				BEGIN_NODE(OrthoViewpoint) BINDABLE(OrthoViewpoint) END_NODE
+				BEGIN_NODE(GeoViewpoint) BINDABLE(GeoViewpoint) END_NODE
 
 				BEGIN_NODE(NavigationInfo)
-					render_NavigationInfo ((struct X3D_NavigationInfo *)node);
+					//render_NavigationInfo ((struct X3D_NavigationInfo *)node);
+					BINDABLE(NavigationInfo)
 				END_NODE
 
 				BEGIN_NODE(StaticGroup)
@@ -5030,15 +5031,18 @@ void startOfLoopNodeUpdates(void) {
 
 				/* Backgrounds, Fog */
 				BEGIN_NODE(Background)
-					if (X3D_BACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
+					BINDABLE(Background)
+					//if (X3D_BACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 				BEGIN_NODE(TextureBackground)
-					if (X3D_TEXTUREBACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
+					BINDABLE(TextureBackground)
+					//if (X3D_TEXTUREBACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 				BEGIN_NODE(Fog)
-					if (X3D_FOG(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
+					BINDABLE(Fog)
+					//if (X3D_FOG(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 
@@ -5168,24 +5172,27 @@ void startOfLoopNodeUpdates(void) {
 			if (*setBindPtr < 100) {
 				/* up_vector is reset after a bind */
 				//if (*setBindPtr==1) reset_upvector();
-				bind_node (node, getActiveBindableStacks(tg)->viewpoint);
+				send_bind_to(node,*setBindPtr);
+				//if(0){
+				//bind_node (node, getActiveBindableStacks(tg)->viewpoint);
 
-				//dug9 added July 24, 2009: when you bind, it should set the
-				//avatar to the newly bound viewpoint pose and forget any
-				// cumulative avatar navigation from the last viewpoint parent
-				if (node->_nodeType==NODE_Viewpoint) {
-					struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
-					bind_Viewpoint(vp);
-					setMenuStatusVP (vp->description->strptr);
-				} else if (node->_nodeType==NODE_OrthoViewpoint) {
-					struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
-					bind_OrthoViewpoint(ovp);
-					setMenuStatusVP (ovp->description->strptr);
-				} else {
-					struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
-					bind_GeoViewpoint(gvp);
-					setMenuStatusVP (gvp->description->strptr);
-				}
+				////dug9 added July 24, 2009: when you bind, it should set the
+				////avatar to the newly bound viewpoint pose and forget any
+				//// cumulative avatar navigation from the last viewpoint parent
+				//if (node->_nodeType==NODE_Viewpoint) {
+				//	struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
+				//	bind_Viewpoint(vp);
+				//	setMenuStatusVP (vp->description->strptr);
+				//} else if (node->_nodeType==NODE_OrthoViewpoint) {
+				//	struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
+				//	bind_OrthoViewpoint(ovp);
+				//	setMenuStatusVP (ovp->description->strptr);
+				//} else {
+				//	struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
+				//	bind_GeoViewpoint(gvp);
+				//	setMenuStatusVP (gvp->description->strptr);
+				//}
+				//}
 			}
 			setBindPtr = NULL;
 		}
