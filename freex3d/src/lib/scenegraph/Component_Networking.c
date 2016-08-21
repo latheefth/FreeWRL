@@ -470,7 +470,7 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 
 void child_Anchor (struct X3D_Anchor *node) {
 	int nc = (node->children).n;
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 
 	/* printf ("child_Anchor node %u, vis %d\n",node,node->_renderFlags & VF_hasVisibleChildren); */
 
@@ -485,7 +485,8 @@ void child_Anchor (struct X3D_Anchor *node) {
 	#endif
 
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
+	//LOCAL_LIGHT_CHILDREN(node->children);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -493,8 +494,8 @@ void child_Anchor (struct X3D_Anchor *node) {
 	#ifdef CHILDVERBOSE
 	printf("RENDER ANCHOR END %d\n",node);
 	#endif
-
-	LOCAL_LIGHT_OFF
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+	//LOCAL_LIGHT_OFF
 }
 
 struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
@@ -806,14 +807,16 @@ void child_Inline (struct X3D_Inline *node) {
 	//struct Multi_Node * kids;
 	CHILDREN_COUNT
 	//int nc = node->__children.n; //_sortedChildren.n;
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
-	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+	//LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
 	normalChildren(node->_sortedChildren);
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
 
 }

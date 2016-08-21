@@ -223,6 +223,19 @@ double calculateFogScale(){
 		fogScale = 1.0;
 	return fogScale;
 }
+void render_Fog(struct X3D_Fog *node) {
+	//this can be done on either a prep pass, or rendering pass in render_hier, or all passes
+	// - its just to get the fog scale
+	//if Fog DEF/USED (multiple scales possible) we use the last one calculated
+	int fogType = 0;
+	node->__fogScale = calculateFogScale();
+	if(node->fogType->strptr){
+		if(!strcmp(node->fogType->strptr,"LINEAR")) fogType = FOGTYPE_LINEAR; //1
+		if(!strcmp(node->fogType->strptr,"EXPONENTIAL")) fogType = FOGTYPE_EXPONENTIAL; //2
+	}
+	node->__fogType = fogType;
+}
+
 void prep_LocalFog(struct X3D_Node *node){
 	//LocalFog applies to siblings and descendents of parent Group
 	//Q. how do we handle sibling effects in freewrl?
@@ -230,7 +243,7 @@ void prep_LocalFog(struct X3D_Node *node){
 	if(fog->enabled){
 		unsigned int shaderflags;
 		//compute fogScale
-		fog->__fogScale = calculateFogScale();
+		render_Fog((struct X3D_Fog*)node);
 		//push fog parameters on fogParams stack
 		//copy and push shader requirements stack with fog bit set
 		shaderflags = getShaderFlags();
@@ -246,7 +259,18 @@ void fin_LocalFog(struct X3D_Node *node){
 		popShaderFlags();
 	}
 }
-
+void sib_prep_LocalFog(struct X3D_Node *parent, struct X3D_Node *node){
+	ttrenderstate rs = renderstate();
+	if(rs->render_blend || rs->render_geom){
+		prep_LocalFog(node);
+	}
+}
+void sib_fin_LocalFog(struct X3D_Node *parent, struct X3D_Node *node){
+	ttrenderstate rs = renderstate();
+	if(rs->render_blend || rs->render_geom){
+		fin_LocalFog(node);
+	}
+}
 void push_boundFog(){
 	//call before render_hier for geom or blend
 	//if there's a bound fog, copy its state to fog_state
@@ -275,15 +299,3 @@ void pop_boundFog(){
 	}
 }
 
-void render_Fog(struct X3D_Fog *node) {
-	//this can be done on either a prep pass, or rendering pass in render_hier, or all passes
-	// - its just to get the fog scale
-	//if Fog DEF/USED (multiple scales possible) we use the last one calculated
-	int fogType = 0;
-	node->__fogScale = calculateFogScale();
-	if(node->fogType->strptr){
-		if(!strcmp(node->fogType->strptr,"LINEAR")) fogType = FOGTYPE_LINEAR; //1
-		if(!strcmp(node->fogType->strptr,"EXPONENTIAL")) fogType = FOGTYPE_EXPONENTIAL; //2
-	}
-	node->__fogType = fogType;
-}

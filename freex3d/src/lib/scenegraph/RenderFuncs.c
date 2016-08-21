@@ -114,7 +114,7 @@ typedef struct pRenderFuncs{
 	Stack *ray_stack;
 	Stack *shaderflags_stack;
 	Stack *fog_stack;
-
+	Stack *localLight_stack;
 
 	//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
 	struct point_XYZ3 t_r123;
@@ -170,6 +170,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->usehits_stack = newStack(usehit);
 		p->shaderflags_stack = newStack(unsigned int);
 		p->fog_stack = newStack(struct X3D_Node*);
+		p->localLight_stack = newStack(int);
 		//t->t_r123 = (void *)&p->t_r123;
 		t->hp = (void *)&p->hp;
 	}
@@ -241,6 +242,7 @@ void RenderFuncs_clear(struct tRenderFuncs *t){
 	deleteVector(usehit,p->usehits_stack);
 	deleteVector(unsigned int,p->shaderflags_stack);
 	deleteVector(struct X3D_Node*,p->fog_stack);
+	deleteVector(int,p->localLight_stack);
 }
 void unload_libraryscenes(){
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -340,6 +342,31 @@ int numberOfLights(){
 	int rv = p->nextFreeLight;
 	return rv;
 }
+
+int getLocalLight(){
+	//return top-of-stack Fog or LocalFog
+	int retval = NULL;
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	if(p->localLight_stack->n)
+		retval = stack_top(int,p->localLight_stack);
+	return retval;
+}
+void pushLocalLight(int lastlight){
+	//at root level, before render_hier, any bound Fog node
+	//and pop after render_hier
+	//for prep_LocalFog you would call this to push (and pop in fin_LocalFog)
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_push(int,p->localLight_stack,lastlight);
+}
+void popLocalLight(){
+	//
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_pop(int,p->localLight_stack);
+}
+
 
 void transformLightToEye(float *pos, float* dir)
 {

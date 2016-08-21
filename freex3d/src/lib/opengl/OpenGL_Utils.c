@@ -4405,6 +4405,13 @@ void zeroVisibilityFlag(void) {
 		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
 	} \
 }
+#define ADD_TO_PARENT_SIBAFFECTORS \
+{ int i; \
+	for (i = 0; i < vectorSize(pnode->_parentVector); i++) { \
+		struct X3D_Node *n = vector_get(struct X3D_Node*, pnode->_parentVector, i); \
+		if( n != 0 ) AddToSibAffectors(n,pnode); \
+	} \
+}
 
 #define  CHECK_MATERIAL_TRANSPARENCY \
 if (((struct X3D_Material *)node)->transparency > 0.0001) { \
@@ -4508,6 +4515,93 @@ void killNodes()
 			//else{
 			//	printf("%d ", i);
 			//}
+		}
+	}
+}
+//will have sibprep_ and sibfin_ functions:
+int isSiblingAffector(struct X3D_Node *node){
+	int ret = 0;
+	switch(node->_nodeType){
+		case NODE_DirectionalLight: //lights are always added, then global is checked on the local pass and skipped if not local
+		case NODE_SpotLight:
+		case NODE_PointLight:
+		case NODE_LocalFog:
+		case NODE_ClipPlane:
+		//case NODE_Effect: //not implemented yet
+		//case NODE_EffectPart: // "
+			ret = 1; break;
+		default:
+			ret = 0; break;
+	}
+	return ret;
+}
+//has _siblingAffector field:
+//(in perl VRMLNodes.pm, __sibAffectors was added after all removeChildren)
+// Proto (scene), Inline, Group, Transform, Anchor, Billboard, Collision,
+// GeoLocation, GeoTransform, HAnimHumanoid, HAnimSite, EspduTransform, CADAssembly, CADLayer, CADPart, 
+// Viewport, Layer, LayoutLayer, LayoutGroup, ScreenGroup, PickableGroup
+// siblingAffector action, but no add/remove children: staticGroup
+//might have _siblingAffector field, but not used: LOD, Switch, HAnimJoint, HAnimSegment, CADLayer
+
+
+int hasSiblingAffectorField(struct X3D_Node *node){
+	//assume everything with AddChildren, RemoveChildren fields qualifies 
+	// and this filter has already been applied ie we are inside AddRemoveChildren
+	int ret = 0;
+	// except:
+	switch(node->_nodeType){
+		case NODE_Proto:
+		case NODE_Inline:
+		case NODE_Group:
+		case NODE_Transform:
+		case NODE_Anchor:
+		case NODE_Billboard:
+		case NODE_Collision:
+		case NODE_GeoLocation:
+		case NODE_GeoTransform:
+		case NODE_HAnimSite:
+		case NODE_HAnimHumanoid:
+		//case NODE_HAnimSegment:
+		//case NODE_HAnimJoint:
+		case NODE_EspduTransform:
+		case NODE_CADAssembly:
+		//case NODE_CADLayer:
+		case NODE_CADPart:
+		case NODE_Viewport:
+		case NODE_Layer:
+		case NODE_LayoutLayer:
+		case NODE_LayoutGroup:
+		case NODE_ScreenGroup:
+		case NODE_PickableGroup:
+		case NODE_StaticGroup:
+			ret = 1; break;
+		default:
+			ret = 0; break;
+	}
+	return ret;
+}
+void *sibAffectorPtr(struct X3D_Node *node){
+	void *fieldPtr;
+	int *fieldOffsetsPtr;
+	fieldOffsetsPtr = (int*) NODE_OFFSETS[node->_nodeType];
+	fieldPtr = NULL;
+	while(fieldOffsetsPtr[0] > -1){
+		//printf("foff[0]=%d ft_sas=%d\n",fieldOffsetsPtr[0],FIELDNAMES___sibAffectors);
+		if(fieldOffsetsPtr[0] == FIELDNAMES___sibAffectors){
+			fieldPtr = offsetPointer_deref(char *, node,fieldOffsetsPtr[1]);
+			break;
+		}
+		fieldOffsetsPtr += 5; // &fieldOffsetsPtr[5]; //5 ints per table entry
+	}
+	return fieldPtr;
+}
+void AddToSibAffectors(struct X3D_Node *parent, struct X3D_Node *affector){
+	if(hasSiblingAffectorField(parent) && isSiblingAffector(affector)){
+		struct Multi_Node *safs = sibAffectorPtr(parent);
+		if(safs){
+			safs->p = REALLOC(safs->p,(safs->n+1)*sizeof(struct X3D_Node*));
+			safs->p[safs->n] = affector;
+			safs->n += 1;
 		}
 	}
 }
@@ -4673,6 +4767,13 @@ void startOfLoopNodeUpdates(void) {
 					LOCK_MEMORYTABLE
 					node = getTypeNode(pnode);
 				}
+			if (node != NULL){
+				if(hasSiblingAffectorField(node)){
+					//we clear on each frame, then re-populate
+					struct Multi_Node* saf = sibAffectorPtr(node);
+					saf->n = 0; //not freeing p, will realloc below in ADD_TO_SIBLING_AFFECTORS (fragging? Multi_Node.nalloc needed?)
+				}
+			}
 			if (node != NULL)
 			//switch (node->_nodeType) { //- dug9 dec 13
 			switch (node->_nodeType) { //+ dug9 dec 13
@@ -4695,26 +4796,44 @@ void startOfLoopNodeUpdates(void) {
 					if (X3D_DIRECTIONALLIGHT(node)->on) {
 						if (X3D_DIRECTIONALLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
-						else
-							LOCAL_LIGHT_PARENT_FLAG
+						else{
+							//LOCAL_LIGHT_PARENT_FLAG
+							ADD_TO_PARENT_SIBAFFECTORS
+						}
 					}
 				END_NODE
 				BEGIN_NODE(SpotLight)
 					if (X3D_SPOTLIGHT(node)->on) {
 						if (X3D_SPOTLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
-						else
-							LOCAL_LIGHT_PARENT_FLAG
+						else{
+							//LOCAL_LIGHT_PARENT_FLAG
+							ADD_TO_PARENT_SIBAFFECTORS
+						}
 					}
 				END_NODE
 				BEGIN_NODE(PointLight)
 					if (X3D_POINTLIGHT(node)->on) {
 						if (X3D_POINTLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
-						else
-							LOCAL_LIGHT_PARENT_FLAG
+						else{
+							//LOCAL_LIGHT_PARENT_FLAG
+							ADD_TO_PARENT_SIBAFFECTORS
+						}
 					}
 				END_NODE
+				BEGIN_NODE(LocalFog)
+					ADD_TO_PARENT_SIBAFFECTORS
+				END_NODE
+				BEGIN_NODE(ClipPlane)
+					ADD_TO_PARENT_SIBAFFECTORS
+				END_NODE
+				//BEGIN_NODE(Effect)
+				//	ADD_TO_PARENT_SIBAFFECTORS
+				//END_NODE
+				//BEGIN_NODE(EffectPart)
+				//	ADD_TO_PARENT_SIBAFFECTORS
+				//END_NODE
 
 
 				/* some nodes, like Extrusions, have "set_" fields same as normal internal fields,

@@ -444,20 +444,21 @@ void restoreLightState(int *);
 		restoreLightState(savedlight); }
 */
 
-#define LOCAL_LIGHT_CHILDREN(a) \
-	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight){ \
-	  saveLightState2(&lastlight);\
-	  localLightChildren(a);}
-
-#define LOCAL_LIGHT_OFF \
-	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight) { \
-		if(numberOfLights() > lastlight) {\
-			setLightChangedFlag(numberOfLights()-1); \
-			refreshLightUniforms();\
-		}\
-		restoreLightState2(lastlight); \
-	}
-
+//#define LOCAL_LIGHT_CHILDREN(a) \
+//	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight){ \
+//	  saveLightState2(&lastlight);\
+//	  localLightChildren(a);}
+//
+//#define LOCAL_LIGHT_OFF \
+//	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight) { \
+//		if(numberOfLights() > lastlight) {\
+//			setLightChangedFlag(numberOfLights()-1); \
+//			refreshLightUniforms();\
+//		}\
+//		restoreLightState2(lastlight); \
+//	}
+void prep_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors);
+void fin_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors);
 
 void normalize_ifs_face (float *point_normal,
                          struct point_XYZ *facenormals,

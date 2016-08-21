@@ -474,7 +474,6 @@ our %PrepC = map {($_=>1)} qw/
 	LayoutLayer
 	CollidableOffset
 	CollidableShape
-	LocalFog
 /;
 
 #######################################################################
@@ -502,7 +501,6 @@ our %FinC = map {($_=>1)} qw/
 	LayoutLayer	
 	CollidableOffset
 	CollidableShape	
-	LocalFog
 /;
 
 

@@ -516,6 +516,7 @@ bool resource_load(resource_item_t *res)
 
 
 	case ress_downloaded:
+		//if(1) printf("[%s]\n",res->parsed_request);  //to print successfully downloaded urls
 		of = load_file(res->actual_file);
 
 		if (of) {

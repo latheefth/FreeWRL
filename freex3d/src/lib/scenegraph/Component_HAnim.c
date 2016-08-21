@@ -342,7 +342,7 @@ return;
 
 void child_HAnimHumanoid(struct X3D_HAnimHumanoid *node) {
 	int nc;
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 
 	/* any segments at all? */
 /*
@@ -374,7 +374,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	/* Lets do sites third */
 	/* do we have to sort this node? */
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->sites);
+	//LOCAL_LIGHT_CHILDREN(node->sites);
 	/* now, just render the non-directionalLight sites */
 	normalChildren(node->sites);
 
@@ -386,16 +386,23 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	/* Lets do skin fifth */
 	/* do we have to sort this node? */
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->skin);
+	//LOCAL_LIGHT_CHILDREN(node->skin);
+
 	/* now, just render the non-directionalLight skin */
+	// dug9 Aug 2016: I think its just the skin that would/should get lights
+	// because the other ones -site, segment etc- will have their own children field 
+	// and can put its local lights there, but skin can't
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 	normalChildren(node->skin);
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 
 	/* Lets do viewpoints last */
 	normalChildren(node->segments);
 
 	/* did we have that directionalLight? */
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
+
 }
 
 
@@ -443,18 +450,21 @@ void child_HAnimSite(struct X3D_HAnimSite *node) {
 return;
 #ifdef HANIMHANIM
 	//CHILDREN_COUNT
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 	//RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have to sort this node? */
 
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
+	//LOCAL_LIGHT_CHILDREN(node->children);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
 	LOCAL_LIGHT_OFF
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+
 #endif
 }
 

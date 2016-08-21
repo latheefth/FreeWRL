@@ -146,7 +146,9 @@ void child_Layer(struct X3D_Node * _node){
 	if(ivpvis){
 		if (rs->render_geom == VF_Geom)
 			glClear(GL_DEPTH_BUFFER_BIT); //if another layer has already drawn, don't clear it, just its depth fingerprint
+		prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 		normalChildren(node->children);
+		fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 	}
 }
 void fin_Layer(struct X3D_Node * _node){
@@ -432,7 +434,9 @@ void child_Viewport(struct X3D_Node * node){
 		vportstack = (Stack *)tg->Mainloop._vportstack;
 
 		if(currentviewportvisible(vportstack)){
+			prep_sibAffectors((struct X3D_Node*)node,&viewport->__sibAffectors);
 			normalChildren(viewport->children);
+			fin_sibAffectors((struct X3D_Node*)node,&viewport->__sibAffectors);
 		}
 	}
 }
