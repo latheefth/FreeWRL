@@ -763,7 +763,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		if(res->whereToPlaceData){
 			nRn = X3D_NODE(res->whereToPlaceData);
 			//if(nRn->_nodeType == NODE_Inline){
-				shouldBind = TRUE; 
+				//shouldBind = TRUE; 
 				shouldUnBind = FALSE; //brotos > Inlines > additively bind (not sure about other things like externProto 17.wrl)
 			//}
 		}else{
