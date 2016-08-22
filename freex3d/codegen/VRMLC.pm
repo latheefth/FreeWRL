@@ -1565,7 +1565,7 @@ struct X3D_Virt {
 	void (*proximity)(void *);
 	void (*other)(void *);
 	void (*collision)(void *);
-	void (*compile)(void *, void *, void *, void *, void *);
+	void (*compile)(void *, void *, void *, void *, void *, void *);
 };
 
 /* a string is stored as a pointer, and a length of that mallocd pointer */
@@ -1589,12 +1589,13 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	GLuint *cindex;   /* triples (per triangle) */
 	GLuint *colindex;   /* triples (per triangle) */
 	GLuint *norindex;
-        GLuint *tcindex; /* triples or null */
+	GLuint *tcindex; /* triples or null */
 
 	float *actualCoord; /* triples (per point) */
+	float *actualFog; /* float (per point) */
 	float *color; /* triples or null */
 	float *normal; /* triples or null */
-        float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
+	float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
 	int texgentype; /* if we do have a TextureCoordinateGenerator, what "TCGT_XXX" type is it? */
 	GLfloat minVals[3];		/* for collision and default texture coord generation */

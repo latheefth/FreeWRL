@@ -1656,7 +1656,7 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 	INITIALIZE_GEOSPATIAL(node)
-	COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord) 
+	COMPILE_POLY_IF_REQUIRED (NULL, NULL, node->color, node->normal, node->texCoord) 
 	CULL_FACE(node->solid)
 	render_polyrep(node);
 }

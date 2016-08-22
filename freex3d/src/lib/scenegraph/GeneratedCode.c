@@ -8945,7 +8945,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_FogCoordinate *) tmp;
 			tmp2->depth.n=0; tmp2->depth.p=0;
 			tmp2->metadata = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_coord;
+			tmp2->_defaultContainer = FIELDNAMES_fogCoord;
 		break;
 		}
 		case NODE_FontStyle : {

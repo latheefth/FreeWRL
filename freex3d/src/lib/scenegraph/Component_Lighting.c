@@ -340,7 +340,7 @@ void sib_prep_PointLight(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 	if ( renderstate()->render_light != VF_globalLight){
 	  saveLightState2(&lastlight);
 	  pushLocalLight(lastlight);
-	  render_PointLight((struct X3D_SpotLight*)sibAffector);
+	  render_PointLight((struct X3D_PointLight*)sibAffector);
 	}
 }
 

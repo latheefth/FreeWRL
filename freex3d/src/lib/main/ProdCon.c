@@ -1619,6 +1619,7 @@ void kill_bindables (void) {
 	// so if unbinding all layers ie new scene, we can do it from bstack,
 	// but don't forget to zero the oldstyle copy.
     //printf ("kill_bindables called\n");
+	ib = 0; //unbind
 	for(i=0;i<vectorSize(tg->Bindable.bstacks);i++){
 		bindablestack *bstack = getBindableStacksByLayer(tg,i);
 		if (vectorSize(bstack->navigation) > 0) {

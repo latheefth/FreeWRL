@@ -638,7 +638,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 	*/
 }
 
-void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode);
+void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode);
 void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node *trim){
 	MARK_NODE_COMPILED
 #ifdef NURBS_LIB
@@ -937,7 +937,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			convert_strips_to_polyrep(strips,node->_intern);
 			if(node->_intern->ntri != 0){
 				//void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode)
-				stream_polyrep(node, NULL, NULL, NULL, NULL);
+				stream_polyrep(node, NULL, NULL, NULL, NULL, NULL);
 			}
 			/* and, tell the rendering process that this shape is now compiled */
 			node->_intern->irep_change = node->_change;

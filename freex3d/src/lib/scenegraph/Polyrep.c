@@ -833,6 +833,10 @@ void render_polyrep(void *node) {
 		FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
     } 
 
+	if (pr->VBO_buffers[FOG_VBO]!=0) {
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[FOG_VBO]);
+		FW_GL_FOG_POINTER(GL_FLOAT,0,0);
+    } 
 
 	/* colours? */
 	if (hasc) {
@@ -1064,7 +1068,7 @@ void render_ray_polyrep(void *node) {
 }
 
 /* make the internal polyrep structure - this will contain the actual RUNTIME parameters for OpenGL */
-void compile_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoord) {
+void compile_polyrep(void *innode, void *coord, void *fogCoord, void *color, void *normal, struct X3D_TextureCoordinate *texCoord) {
 	struct X3D_Virt *virt;
 	struct X3D_Node *node;
 	struct X3D_PolyRep *polyrep;
@@ -1136,7 +1140,8 @@ void compile_polyrep(void *innode, void *coord, void *color, void *normal, struc
 	/* now, put the generic internal structure into OpenGL arrays for faster rendering */
 	/* if there were errors, then rep->ntri should be 0 */
 	if (polyrep->ntri != 0) {
-		stream_polyrep(node, coord, color, normal, texCoord);
+		//float *fogCoord = NULL;
+		stream_polyrep(node, coord, fogCoord, color, normal, texCoord);
 		/* and, tell the rendering process that this shape is now compiled */
 	}
 	//else wait for set_coordIndex to be converted to coordIndex
@@ -1166,6 +1171,7 @@ void delete_polyrep(struct X3D_Node *node){
 		FREE_IF_NZ(pr->tcindex); /* triples or null */
 
 		FREE_IF_NZ(pr->actualCoord); /* triples (per point) */
+		FREE_IF_NZ(pr->actualFog); /* float (per point) */
 		FREE_IF_NZ(pr->color); /* triples or null */
 		FREE_IF_NZ(pr->normal); /* triples or null */
 		FREE_IF_NZ(pr->GeneratedTexCoords);	/* triples (per triangle) of texture coords if there is no texCoord node */

@@ -345,7 +345,7 @@ int numberOfLights(){
 
 int getLocalLight(){
 	//return top-of-stack Fog or LocalFog
-	int retval = NULL;
+	int retval = 0;
 	ttglobal tg = gglobal();
 	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
 	if(p->localLight_stack->n)
@@ -713,6 +713,13 @@ ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSi
 			glVertexAttribPointer(me->Normals, 3, dataType, normalized, stride, pointer);
 		}
 			break;
+		case FW_FOG_POINTER_TYPE:
+		if (me->FogCoords != -1) {
+			glEnableVertexAttribArray(me->FogCoords);
+			glVertexAttribPointer(me->FogCoords, 1, dataType, normalized, stride, pointer);
+		}
+			break;
+
 		case FW_VERTEX_POINTER_TYPE:
 		if (me->Vertices != -1) {
 			glEnableVertexAttribArray(me->Vertices);
@@ -1824,16 +1831,17 @@ render_hier(struct X3D_Node *g, int rwhat) {
  *
  ******************************************************************************/
 
-void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *Icoord, void *Icolor, void *Inormal, void *ItexCoord) {
-	void *coord; void *color; void *normal; void *texCoord;
+void compileNode (void (*nodefn)(void *, void *, void *, void *, void *, void *), void *node, void *Icoord, void *IfogCoord, void *Icolor, void *Inormal, void *ItexCoord) {
+	void *coord; void *fogCoord; void *color; void *normal; void *texCoord;
 
 	/* are any of these SFNodes PROTOS? If so, get the underlying real node, as PROTOS are handled like Groups. */
 	POSSIBLE_PROTO_EXPANSION(void *, Icoord,coord)
-		POSSIBLE_PROTO_EXPANSION(void *, Icolor,color)
-		POSSIBLE_PROTO_EXPANSION(void *, Inormal,normal)
-		POSSIBLE_PROTO_EXPANSION(void *, ItexCoord,texCoord)
+	POSSIBLE_PROTO_EXPANSION(void *, IfogCoord,fogCoord)
+	POSSIBLE_PROTO_EXPANSION(void *, Icolor,color)
+	POSSIBLE_PROTO_EXPANSION(void *, Inormal,normal)
+	POSSIBLE_PROTO_EXPANSION(void *, ItexCoord,texCoord)
 
-	nodefn(node, coord, color, normal, texCoord);
+	nodefn(node, coord, fogCoord, color, normal, texCoord);
 }
 
 void do_NurbsPositionInterpolator (void *node);

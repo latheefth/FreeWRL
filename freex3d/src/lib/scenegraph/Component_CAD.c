@@ -272,9 +272,9 @@ void fin_CADPart (struct X3D_CADPart *node) {
 
 
 void render_IndexedQuadSet (struct X3D_IndexedQuadSet *node) {
-                COMPILE_POLY_IF_REQUIRED( node->coord, node->color, node->normal, node->texCoord)
-		CULL_FACE(node->solid)
-		render_polyrep(node);
+	COMPILE_POLY_IF_REQUIRED( node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
+	CULL_FACE(node->solid)
+	render_polyrep(node);
 }
 
 /************************************************************************/
@@ -285,8 +285,8 @@ void render_IndexedQuadSet (struct X3D_IndexedQuadSet *node) {
 /************************************************************************/
 
 void render_QuadSet (struct X3D_QuadSet *node) {
-                COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
-		CULL_FACE(node->solid)
-		render_polyrep(node);
+	COMPILE_POLY_IF_REQUIRED(node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
+	CULL_FACE(node->solid)
+	render_polyrep(node);
 }
 

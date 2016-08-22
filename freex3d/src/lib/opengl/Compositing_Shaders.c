@@ -567,7 +567,7 @@ struct fogParams \n\
 }; \n\
 uniform fogParams fw_fogparams; \n\
 #ifdef FOGCOORD \n\
-attribute vec3 fw_FogCoords; \n\
+attribute float fw_FogCoords; \n\
 #endif \n\
 #endif //FOG \n\
 float castle_MaterialDiffuseAlpha; \n\
@@ -625,11 +625,6 @@ void main(void) \n\
   castle_normal_eye = normalize(fw_NormalMatrix * normal_object); \n\
    \n\
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */ \n\
-  #ifdef FOG \n\
-  #ifdef FOGCOORDS \n\
-	castle_vertex_eye.z = fogCoord; \n\
-  #endif //FOGCOORDS \n\
-  #endif //FOG \n\
    \n\
 #ifdef LIT \n\
   castle_ColorES = castle_Emissive; \n\
@@ -680,6 +675,11 @@ void main(void) \n\
   castle_normal_eye = temp_castle_normal_eye; \n\
   castle_Color      = temp_castle_Color; \n\
   #endif //CASTLE_BUGGY_GLSL_READ_VARYING \n\
+  #ifdef FOG \n\
+  #ifdef FOGCOORD \n\
+	castle_vertex_eye.z = fw_FogCoords; \n\
+  #endif //FOGCOORD \n\
+  #endif //FOG \n\
 } \n";
 
 

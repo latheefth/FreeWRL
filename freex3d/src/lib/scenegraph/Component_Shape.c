@@ -312,6 +312,14 @@ void compile_Material (struct X3D_Material *node) {
 		else return COLOUR_MATERIAL_SHADER; \
 		break; \
 	} 
+#define CHECK_FOGCOORD_FIELD(aaa) \
+	case NODE_##aaa: { \
+		struct X3D_##aaa *me = (struct X3D_##aaa *)realNode; \
+		if (me->fogCoord == NULL) return NOTHING; /* do not add any properties here */\
+		else return HAVE_FOG_COORDS; \
+		break; \
+	} 
+
 
 /* if this is a LineSet, PointSet, etc... */
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingoff
@@ -384,6 +392,37 @@ static int getShapeColourShader (struct X3D_Node *myGeom) {
 		CHECK_COLOUR_FIELD(GeoElevationGrid);
 		CHECK_COLOUR_FIELD(QuadSet);
 		CHECK_COLOUR_FIELD(IndexedQuadSet);
+	}
+
+	/* if we are down here, we KNOW we do not have a color field */
+	return NOTHING; /* do not add any capabilites here */
+}
+/* Some shapes have Color nodes - if so, then we have other shaders */
+static int getShapeFogShader (struct X3D_Node *myGeom) {
+	struct X3D_Node *realNode;
+
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,myGeom,realNode);
+
+	if (realNode == NULL) return NOTHING;
+
+	/* go through each node type that can have a Color node, and if it is not NULL
+	   we know we have a Color node */
+
+	switch (realNode->_nodeType) {
+		CHECK_FOGCOORD_FIELD(IndexedFaceSet);
+		CHECK_FOGCOORD_FIELD(IndexedLineSet);
+		CHECK_FOGCOORD_FIELD(IndexedTriangleFanSet);
+		CHECK_FOGCOORD_FIELD(IndexedTriangleSet);
+		CHECK_FOGCOORD_FIELD(IndexedTriangleStripSet);
+		CHECK_FOGCOORD_FIELD(LineSet);
+		CHECK_FOGCOORD_FIELD(PointSet);
+		CHECK_FOGCOORD_FIELD(TriangleFanSet);
+		CHECK_FOGCOORD_FIELD(TriangleStripSet);
+		CHECK_FOGCOORD_FIELD(TriangleSet);
+		CHECK_FOGCOORD_FIELD(ElevationGrid);
+		//CHECK_FOGCOORD_FIELD(GeoElevationGrid);
+		CHECK_FOGCOORD_FIELD(QuadSet);
+		CHECK_FOGCOORD_FIELD(IndexedQuadSet);
 	}
 
 	/* if we are down here, we KNOW we do not have a color field */
@@ -650,6 +689,7 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 	appearance = (struct X3D_Appearance*)appearanceNode;
 	isUnlitGeometry = getIfLinePoints(geometry);
 	whichShapeColorShader = getShapeColourShader(geometry);
+	//whichShapeFogShader = getShapeFogShader(geometry);
 	// colorNode = geometry && geometry.color ? TRUE : FALSE
 	hasColorNode = whichShapeColorShader == NOTHING ? 0 : 1;
 
@@ -942,6 +982,7 @@ void child_Shape (struct X3D_Shape *node) {
 void compile_Shape (struct X3D_Shape *node) {
 	int whichAppearanceShader = 0;
 	int whichShapeColorShader = 0;
+	int whichShapeFogShader = 0;
 	bool isUnlitGeometry = false;
 	int hasTextureCoordinateGenerator = 0;
 	int whichUnlitGeometry = 0;
@@ -957,6 +998,7 @@ void compile_Shape (struct X3D_Shape *node) {
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpG);
 	whichShapeColorShader = getShapeColourShader(tmpG);
+	whichShapeFogShader = getShapeFogShader(tmpG);
 
 	isUnlitGeometry = getIfLinePoints(tmpG);
 	hasTextureCoordinateGenerator = getShapeTextureCoordGen(tmpG);
@@ -1031,7 +1073,7 @@ void compile_Shape (struct X3D_Shape *node) {
 
 
 		/* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */
-	node->_shaderTableEntry= (whichShapeColorShader | whichAppearanceShader | 
+	node->_shaderTableEntry= (whichShapeColorShader | whichShapeFogShader | whichAppearanceShader | 
 				hasTextureCoordinateGenerator | whichUnlitGeometry | userDefinedShader);
 
 

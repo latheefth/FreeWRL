@@ -142,9 +142,9 @@ extern double geoHeightinZAxis;
 
 
 #define NODE_CHANGE_INIT_VAL 153	/* node->_change is set to this when created */
-#define COMPILE_POLY_IF_REQUIRED(a,b,c,d) \
+#define COMPILE_POLY_IF_REQUIRED(a,b,c,d,e) \
                 if(!node->_intern || node->_change != (node->_intern)->irep_change) { \
-                        compileNode ((void *)compile_polyrep, node, a,b,c,d); \
+                        compileNode ((void *)compile_polyrep, node, a,b,c,d,e); \
 		} \
 		if (!node->_intern) return;
 
@@ -152,7 +152,7 @@ extern double geoHeightinZAxis;
 	if (node->_ichange != node->_change) { \
 		v = virtTable[node->_nodeType]; \
 		if (v->compile) { \
-			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
+			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL, NULL); \
 		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(node->_nodeType),__FILE__,__LINE__);} \
 		} \
 		if (node->_ichange == 0) return; \
@@ -162,7 +162,7 @@ extern double geoHeightinZAxis;
 	if (node->_ichange != node->_change) { \
 		v = virtTable[node->_nodeType]; \
 		if (v->compile) { \
-			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL); \
+			compileNode (v->compile, (void *)node, NULL, NULL, NULL, NULL, NULL); \
 		} else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(node->_nodeType),__FILE__,__LINE__);} \
 		} \
 		if (node->_ichange == 0) return NULL; \
@@ -173,7 +173,7 @@ extern double geoHeightinZAxis;
     if (myTCnode->_ichange != myTCnode->_change) { \
         v = virtTable[myTCnode->_nodeType]; \
         if (v->compile) { \
-            compileNode (v->compile, (void *)myTCnode, NULL, NULL, NULL, NULL); \
+            compileNode (v->compile, (void *)myTCnode, NULL, NULL, NULL, NULL, NULL); \
             myTCnode->_ichange = myTCnode->_change; \
         } else {printf ("huh - have COMPIFREQD, but v->compile null for %s at %s:%d\n",stringNodeType(myTCnode->_nodeType),__FILE__,__LINE__);} \
     } \
@@ -853,7 +853,7 @@ void zeroAllBindables(void);
 int inputParse(unsigned type, char *inp, int bind, int returnifbusy,
                         void *ptr, unsigned ofs, int *complete,
                         int zeroBind);
-void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *a, void *b, void *c, void *d);
+void compileNode (void (*nodefn)(void *, void *, void *, void *, void *, void *), void *node, void *a, void *b, void *c, void *d, void *e);
 void destroyCParserData();
 //extern struct VRMLParser* savedParser;
 
