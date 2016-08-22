@@ -73,16 +73,18 @@ void prep_CADAssembly (struct X3D_CADAssembly *node) {
 /*child_CADAssembly - check with child_Group for detailed explanations */
 void child_CADAssembly (struct X3D_CADAssembly *node) {
     CHILDREN_COUNT
-    LOCAL_LIGHT_SAVE
+    //LOCAL_LIGHT_SAVE
     
     RETURN_FROM_CHILD_IF_NOT_FOR_ME
     
     /* do we have a DirectionalLight for a child? */
-    LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+    //LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
     
     normalChildren(node->_sortedChildren);
     
-    LOCAL_LIGHT_OFF
+    //LOCAL_LIGHT_OFF
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 }
 
 /* we compile the CADAssembly so that children are not continuously sorted */
@@ -180,7 +182,7 @@ void prep_CADPart (struct X3D_CADPart *node) {
 
 
 void child_CADPart (struct X3D_CADPart *node) {
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 	CHILDREN_COUNT
 	OCCLUSIONTEST
 
@@ -190,7 +192,8 @@ void child_CADPart (struct X3D_CADPart *node) {
 	if (nc==0) return;
 
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	//LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* now, just render the non-directionalLight children */
 
@@ -207,7 +210,8 @@ void child_CADPart (struct X3D_CADPart *node) {
 		printf ("transform - done normalChildren\n");
 	#endif
 
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 }
 
 void compile_CADPart (struct X3D_CADPart *node) {
@@ -268,9 +272,9 @@ void fin_CADPart (struct X3D_CADPart *node) {
 
 
 void render_IndexedQuadSet (struct X3D_IndexedQuadSet *node) {
-                COMPILE_POLY_IF_REQUIRED( node->coord, node->color, node->normal, node->texCoord)
-		CULL_FACE(node->solid)
-		render_polyrep(node);
+	COMPILE_POLY_IF_REQUIRED( node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
+	CULL_FACE(node->solid)
+	render_polyrep(node);
 }
 
 /************************************************************************/
@@ -281,8 +285,8 @@ void render_IndexedQuadSet (struct X3D_IndexedQuadSet *node) {
 /************************************************************************/
 
 void render_QuadSet (struct X3D_QuadSet *node) {
-                COMPILE_POLY_IF_REQUIRED(node->coord, node->color, node->normal, node->texCoord)
-		CULL_FACE(node->solid)
-		render_polyrep(node);
+	COMPILE_POLY_IF_REQUIRED(node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
+	CULL_FACE(node->solid)
+	render_polyrep(node);
 }
 

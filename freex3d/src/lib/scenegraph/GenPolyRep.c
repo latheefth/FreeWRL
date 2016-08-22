@@ -649,6 +649,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	// and nodes like TriangleSet don't officially have a creaseangle field like IndexedFaceSet or ElevationGrid
 	// should be if normalPerVertex = TRUE, then smooth, else no smooth and in direction according to ccw
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#TriangleSet
+	// to smooth, we set creaseAngle high -2PI keeps smoothing on- and if we detect normalPerVertex=False we put a PI/4 creaseangle 
 	float creaseAngle = (float) PI * 2; // PI*2 == smooth
 	int ccw = TRUE;
 
@@ -663,12 +664,14 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	struct SFVec3f *c1;
     
 	struct SFVec3f *points = NULL;
+	float *fogdepths = NULL;
 	struct X3D_PolyRep *rep_ = node->_intern;
 
 	struct Multi_Int32 *orig_coordIndex = NULL;
 	struct Multi_Int32 *orig_texCoordIndex = NULL;
 	struct Multi_Int32 *orig_normalIndex = NULL;
 	struct Multi_Int32 *orig_colorIndex = NULL;
+
 
 	GLuint *cindex;		/* Coordinate Index	*/
 	GLuint *colindex;		/* Color Index		*/
@@ -695,6 +698,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 	struct X3D_Normal *nc = NULL;
 	struct X3D_TextureCoordinate *tc = NULL;
 	struct X3D_Coordinate *co = NULL;
+	struct X3D_FogCoordinate *fc = NULL;
 	ttglobal tg = gglobal();
 
 	if (node->_nodeType == NODE_IndexedFaceSet) {
@@ -733,6 +737,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) node->normal;
 			tc = (struct X3D_TextureCoordinate *) node->texCoord;
 			co = (struct X3D_Coordinate *) node->coord;
+			fc = (struct X3D_FogCoordinate *) node->fogCoord;
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedFaceSet, coord));
@@ -750,6 +755,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			cc = (struct X3D_Color *) X3D_ELEVATIONGRID(node)->color;
 			nc = (struct X3D_Normal *) X3D_ELEVATIONGRID(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_ELEVATIONGRID(node)->texCoord;
+			fc = (struct X3D_FogCoordinate *) X3D_ELEVATIONGRID(node)->fogCoord;
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_ElevationGrid, fogCoord));
@@ -780,6 +786,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLEFANSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->coord;
+			fc = (struct X3D_FogCoordinate *) X3D_INDEXEDTRIANGLEFANSET(node)->fogCoord;
 			if(!npv) creaseAngle = 0.0; //disable smoothing according to specs "if npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, color));
@@ -800,6 +807,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLESET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLESET(node)->coord;
+			fc = (struct X3D_FogCoordinate *) X3D_INDEXEDTRIANGLESET(node)->fogCoord;
 			if(!npv) creaseAngle = 0.0; //disable smoothing according to specs "if npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleSet, color));
@@ -820,6 +828,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDTRIANGLESTRIPSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->coord;
+			fc = (struct X3D_FogCoordinate *) X3D_INDEXEDTRIANGLESTRIPSET(node)->fogCoord;
 			if(!npv) creaseAngle = 0.0; //disable smoothing according to specs "if npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedTriangleStripSet, color));
@@ -840,6 +849,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_TRIANGLEFANSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLEFANSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLEFANSET(node)->coord;
+			fc = (struct X3D_FogCoordinate *) X3D_TRIANGLEFANSET(node)->fogCoord;
 			if(!nc && !npv) creaseAngle = 0.0; //disable smoothing according to specs "if normals are not provided, and npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleFanSet, color));
@@ -859,6 +869,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_TRIANGLESET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLESET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLESET(node)->coord;
+			fc = (struct X3D_FogCoordinate *) X3D_TRIANGLESET(node)->fogCoord;
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleSet, coord));
@@ -877,6 +888,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_TRIANGLESTRIPSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_TRIANGLESTRIPSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_TRIANGLESTRIPSET(node)->coord;
+			fc = (struct X3D_FogCoordinate *) X3D_TRIANGLESTRIPSET(node)->fogCoord;
 			if(!nc && !npv) creaseAngle = 0.0; //disable smoothing according to specs "if normals are not provided, and npv is false, don't smooth
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_TriangleStripSet, color));
@@ -897,6 +909,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_INDEXEDQUADSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_INDEXEDQUADSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_INDEXEDQUADSET(node)->coord;
+			fc = (struct X3D_FogCoordinate *) X3D_INDEXEDQUADSET(node)->fogCoord;
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_IndexedQuadSet, coord));
@@ -917,6 +930,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 			nc = (struct X3D_Normal *) X3D_QUADSET(node)->normal;
 			tc = (struct X3D_TextureCoordinate *) X3D_QUADSET(node)->texCoord;
 			co = (struct X3D_Coordinate *) X3D_QUADSET(node)->coord;
+			fc = (struct X3D_FogCoordinate *) X3D_QUADSET(node)->fogCoord;
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, attrib));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, color));
 			MARK_EVENT (X3D_NODE(node), offsetof (struct X3D_QuadSet, coord));
@@ -973,7 +987,21 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 		npoints = dtmp->n;
 		points = dtmp->p;
 	}
+	if(fc != NULL){
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/enveffects.html#FogCoordinate
+		//we have one fog per co (or if we are short, then duplicate last
+		struct X3D_FogCoordinate *fc2;
+		POSSIBLE_PROTO_EXPANSION (struct X3D_FogCoordinate *,(struct X3D_Node*) fc,fc2)
 
+		if(fc2->depth.n < npoints){
+			fc2->depth.p = REALLOC(fc2->depth.p, npoints * sizeof(float));
+			for(i=fc2->depth.n; i<npoints; i++){
+				fc2->depth.p[i] = fc2->depth.p[fc->depth.n-1];
+			}
+			fc2->depth.n = npoints;
+		}
+		fogdepths = fc2->depth.p;
+	}
 
 	/* just check this parameter here for correctness and, whether to generate other nodes. We
 	   will check it better in stream_polyrep. */
@@ -1127,8 +1155,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 
 			/* If we have concave, tesselate! */
 			// July 2016 dug9 changed Tess.c combiner callback so it works for Text
-			// but did not fix combiner scenarios here, wich were not working right 
-			// and now bomb due to using Text-based combiner
+			// but did not fix combiner scenarios here, wich were not working right when face edges intersect (which specs say don't worry about)
 			if (!convex) {
 				//register_Polyrep_combiner(); //default, Component_Text resets to this after compiling its text
 				//FW_GLU_BEGIN_POLYGON(tg->Tess.global_tessobj);
@@ -1309,6 +1336,7 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 					tcindex[vert_ind] = (orig_coordIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]]);
 					/* printf ("ntexcoords, notcin, vertex %d point %d\n",vert_ind,tcindex[vert_ind]); */
 				}
+				// just use cindex: fogindex[vert_ind] = (orig_coordIndex->p[this_coord+tg->Tess.global_IFS_Coords[i]]);
 
 				/* increment index, but check for baaad errors.	 */
 				if (vert_ind < (ntri*3-1)) vert_ind++;

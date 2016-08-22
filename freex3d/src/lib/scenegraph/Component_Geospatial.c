@@ -1656,7 +1656,7 @@ void compile_GeoElevationGrid (struct X3D_GeoElevationGrid * node) {
 
 void render_GeoElevationGrid (struct X3D_GeoElevationGrid *node) {
 	INITIALIZE_GEOSPATIAL(node)
-	COMPILE_POLY_IF_REQUIRED (NULL, node->color, node->normal, node->texCoord) 
+	COMPILE_POLY_IF_REQUIRED (NULL, NULL, node->color, node->normal, node->texCoord) 
 	CULL_FACE(node->solid)
 	render_polyrep(node);
 }
@@ -1714,7 +1714,7 @@ void compile_GeoLocation (struct X3D_GeoLocation * node) {
 
 void child_GeoLocation (struct X3D_GeoLocation *node) {
 	CHILDREN_COUNT
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 
@@ -1737,7 +1737,8 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
 	/* do we have a local for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
+	//LOCAL_LIGHT_CHILDREN(node->children);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* now, just render the non-directionalLight children */
 
@@ -1754,7 +1755,9 @@ void child_GeoLocation (struct X3D_GeoLocation *node) {
 		printf ("GeoLocation - done normalChildren\n");
 	#endif
 
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+
 }
 
 /* do transforms, calculate the distance */
@@ -2899,6 +2902,7 @@ void bind_GeoViewpoint (struct X3D_GeoViewpoint *node) {
 	calculateViewingSpeed();
 
 	calculateExamineModeDistance();
+	setMenuStatusVP (node->description->strptr);
 
 }
 
@@ -3054,7 +3058,7 @@ void fin_GeoTransform (struct X3D_GeoTransform *node) {
 
 void child_GeoTransform (struct X3D_GeoTransform *node) {
 	CHILDREN_COUNT
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 	INITIALIZE_GEOSPATIAL(node)
 	COMPILE_IF_REQUIRED
 	OCCLUSIONTEST
@@ -3076,7 +3080,8 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 
 
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
+	//LOCAL_LIGHT_CHILDREN(node->children);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* now, just render the non-directionalLight children */
 
@@ -3093,5 +3098,7 @@ void child_GeoTransform (struct X3D_GeoTransform *node) {
 		printf ("transform - done normalChildren\n");
 	#endif
 
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+
 }

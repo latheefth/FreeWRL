@@ -259,7 +259,7 @@ printf ("\n");
 /* DJTRACK_PICKSENSORS - modelled on child_Group above */
 void child_PickableGroup (struct X3D_Group *node) {
 	CHILDREN_COUNT
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 /*
 printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
 if ((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) printf ("VF_Viewpoint ");
@@ -295,7 +295,8 @@ printf ("\n");
 	}
 
 	/* do we have a DirectionalLight for a child? */
-	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	//LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* printf ("chld_PickableGroup, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
@@ -309,6 +310,8 @@ printf ("\n");
 	}
 
 	LOCAL_LIGHT_OFF
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+
 }
 
 

@@ -310,7 +310,8 @@ GLEWContext * glewGetContext();
 #define TEXTURE_VBO 2
 #define INDEX_VBO 3
 #define COLOR_VBO 4
-#define VBO_COUNT 5
+#define FOG_VBO 5
+#define VBO_COUNT 6
 
 void fv_setScreenDim(int wi, int he);
 
@@ -375,6 +376,7 @@ typedef struct s_shader_capabilities{
 	GLint Normals;
 	GLint Colours;
 	GLint TexCoords;
+	GLint FogCoords; //Aug 2016
 
     GLint TextureUnit[MAX_MULTITEXTURE];
     GLint TextureMode[MAX_MULTITEXTURE];
@@ -390,6 +392,13 @@ typedef struct s_shader_capabilities{
     
     /* TextureCoordinateGenerator type */
     GLint texCoordGenType;
+
+	GLint fogColor;  //Aug 2016
+	GLint fogvisibilityRange;
+	GLint fogScale;
+	GLint fogType;
+	GLint fogHaveCoords;
+
 
 /* attributes - reduce redundant state chage calls on GPU */
 /*
@@ -716,11 +725,13 @@ void resetGeometry();
 	/* geometry rendering - varies on whether we are using appearance shaders, etc */
 	#define FW_VERTEX_POINTER_TYPE 44354
 	#define FW_NORMAL_POINTER_TYPE 5434
+	#define FW_FOG_POINTER_TYPE 33888 //?? how geenerate these numbers
 	#define FW_COLOR_POINTER_TYPE 12453
 	#define FW_TEXCOORD_POINTER_TYPE 67655
 	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
 	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
 	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,__FILE__,__LINE__); }
+	#define FW_GL_FOG_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_FOG_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,__FILE__,__LINE__); }
 	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
 	#define FW_GL_BINDBUFFER(xxx,yyy) {sendBindBufferToGPU(xxx,yyy,__FILE__,__LINE__); }
 

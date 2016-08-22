@@ -258,7 +258,7 @@ void fin_Billboard (struct X3D_Billboard *node) {
 
 void  child_Billboard (struct X3D_Billboard *node) {
     int nc = node->children.n;
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 
 
 	/* any children at all? */
@@ -269,7 +269,8 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	#endif
 
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->children);
+	//LOCAL_LIGHT_CHILDREN(node->children);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
@@ -281,23 +282,24 @@ void  child_Billboard (struct X3D_Billboard *node) {
 	#ifdef CHILDVERBOSE
 	printf("RENDER BILLBOARD END %d\n",node);
 	#endif
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
 }
 
 
 /******************************************************************************************/
 
-
-void render_NavigationInfo (struct X3D_NavigationInfo *node) {
-	/* check the set_bind eventin to see if it is TRUE or FALSE */
-	ttglobal tg = gglobal();
-	if (node->set_bind < 100) {
-		if (node->set_bind == 1) set_naviinfo(node);
-		bind_node (X3D_NODE(node), getActiveBindableStacks(tg)->navigation);
-	}
-	if(!node->isBound) return;
-}
+//
+//void render_NavigationInfo (struct X3D_NavigationInfo *node) {
+//	/* check the set_bind eventin to see if it is TRUE or FALSE */
+//	ttglobal tg = gglobal();
+//	if (node->set_bind < 100) {
+//		if (node->set_bind == 1) set_naviinfo(node);
+//		bind_node (X3D_NODE(node), getActiveBindableStacks(tg)->navigation);
+//	}
+//	if(!node->isBound) return;
+//}
 
 
 
@@ -342,14 +344,15 @@ void child_Collision (struct X3D_Collision *node) {
 		}
 
 	} else { /*standard group behaviour*/
-		LOCAL_LIGHT_SAVE
+		//LOCAL_LIGHT_SAVE
 
 		#ifdef CHILDVERBOSE
 		printf("RENDER COLLISIONCHILD START %d (%d)\n",node, nc);
 		#endif
 
 		/* do we have a local light for a child? */
-		LOCAL_LIGHT_CHILDREN(node->children);
+		//LOCAL_LIGHT_CHILDREN(node->children);
+		prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 		/* now, just render the non-directionalLight children */
 		normalChildren(node->children);
@@ -357,7 +360,9 @@ void child_Collision (struct X3D_Collision *node) {
 		#ifdef CHILDVERBOSE
 		printf("RENDER COLLISIONCHILD END %d\n",node);
 		#endif
-		LOCAL_LIGHT_OFF
+		//LOCAL_LIGHT_OFF
+		fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+
 	}
 }
 

@@ -198,8 +198,9 @@ void child_LayoutGroup(struct X3D_Node *_node){
 			// UNUSED struct X3D_Layout *layout = NULL;
 			// UNUSED if(node->layout && node->layout->_nodeType == NODE_Layout)
 			// UNUSED  		layout = (struct X3D_Layout*) node->layout;
-
+			prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 			normalChildren(node->children);
+			fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 		}
 	}		
 }
@@ -464,7 +465,9 @@ void prep_ScreenGroup(struct X3D_Node *node){
 }
 void child_ScreenGroup(struct X3D_Node *_node){
 	struct X3D_ScreenGroup *node = (struct X3D_ScreenGroup*)_node;
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 	normalChildren(node->children);
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 }
 void fin_ScreenGroup(struct X3D_Node *node){
 	if(node && node->_nodeType == NODE_ScreenGroup){

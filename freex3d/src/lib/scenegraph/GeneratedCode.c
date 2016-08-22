@@ -107,6 +107,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__externProtoDeclares",
 	"__finishedloading",
 	"__fogScale",
+	"__fogType",
 	"__frontTexture",
 	"__geoSystem",
 	"__highest",
@@ -162,6 +163,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__scriptObj",
 	"__scripts",
 	"__segCount",
+	"__sibAffectors",
 	"__sidepoints",
 	"__simpleDisk",
 	"__solid",
@@ -2627,9 +2629,7 @@ struct X3D_Virt virt_LineSet = { NULL,(void *)render_LineSet,NULL,NULL,NULL,NULL
 void render_LoadSensor(struct X3D_LoadSensor *);
 struct X3D_Virt virt_LoadSensor = { NULL,(void *)render_LoadSensor,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-void prep_LocalFog(struct X3D_LocalFog *);
-void fin_LocalFog(struct X3D_LocalFog *);
-struct X3D_Virt virt_LocalFog = { (void *)prep_LocalFog,NULL,NULL,(void *)fin_LocalFog,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_LocalFog = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_Material(struct X3D_Material *);
 void compile_Material(struct X3D_Material *);
@@ -2792,8 +2792,7 @@ struct X3D_Virt virt_MultiTextureCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_MultiTextureTransform = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-void render_NavigationInfo(struct X3D_NavigationInfo *);
-struct X3D_Virt virt_NavigationInfo = { NULL,(void *)render_NavigationInfo,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+struct X3D_Virt virt_NavigationInfo = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_Normal = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -3375,6 +3374,7 @@ struct X3D_Virt* virtTable[] = {
 
 
 const int OFFSETS_Anchor[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Anchor, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Anchor, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Anchor, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Anchor, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3492,6 +3492,7 @@ const int OFFSETS_BallJoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Billboard[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Billboard, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__rotationAngle, (int) offsetof (struct X3D_Billboard, _rotationAngle),  (int) FIELDTYPE_SFDouble, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Billboard, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_axisOfRotation, (int) offsetof (struct X3D_Billboard, axisOfRotation),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3568,6 +3569,7 @@ const int OFFSETS_Box[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CADAssembly[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_CADAssembly, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_CADAssembly, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_CADAssembly, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CADAssembly, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3587,6 +3589,7 @@ const int OFFSETS_CADFace[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CADLayer[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_CADLayer, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_CADLayer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CADLayer, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CADLayer, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3604,6 +3607,7 @@ const int OFFSETS_CADPart[] = {
 	(int) FIELDNAMES___do_scale, (int) offsetof (struct X3D_CADPart, __do_scale),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_scaleO, (int) offsetof (struct X3D_CADPart, __do_scaleO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CADPart, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_CADPart, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_CADPart, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_CADPart, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CADPart, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3680,6 +3684,7 @@ const int OFFSETS_CollidableShape[] = {
 
 const int OFFSETS_Collision[] = {
 	(int) FIELDNAMES___hit, (int) offsetof (struct X3D_Collision, __hit),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Collision, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Collision, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Collision, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Collision, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3874,6 +3879,7 @@ const int OFFSETS_Contact[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Contour2D[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Contour2D, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Contour2D, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_children, (int) offsetof (struct X3D_Contour2D, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Contour2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4103,6 +4109,7 @@ const int OFFSETS_ElevationGrid[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_EspduTransform[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_EspduTransform, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_EspduTransform, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_address, (int) offsetof (struct X3D_EspduTransform, address),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_applicationID, (int) offsetof (struct X3D_EspduTransform, applicationID),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4240,6 +4247,7 @@ const int OFFSETS_FloatVertexAttribute[] = {
 
 const int OFFSETS_Fog[] = {
 	(int) FIELDNAMES___fogScale, (int) offsetof (struct X3D_Fog, __fogScale),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___fogType, (int) offsetof (struct X3D_Fog, __fogType),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__layerId, (int) offsetof (struct X3D_Fog, _layerId),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bindTime, (int) offsetof (struct X3D_Fog, bindTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_Fog, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4344,6 +4352,7 @@ const int OFFSETS_GeoLocation[] = {
 	(int) FIELDNAMES___movedCoords, (int) offsetof (struct X3D_GeoLocation, __movedCoords),  (int) FIELDTYPE_SFVec3d, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___oldChildren, (int) offsetof (struct X3D_GeoLocation, __oldChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___oldgeoCoords, (int) offsetof (struct X3D_GeoLocation, __oldgeoCoords),  (int) FIELDTYPE_SFVec3d, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_GeoLocation, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_GeoLocation, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_GeoLocation, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_GeoLocation, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4446,6 +4455,7 @@ const int OFFSETS_GeoTransform[] = {
 	(int) FIELDNAMES___movedCoords, (int) offsetof (struct X3D_GeoTransform, __movedCoords),  (int) FIELDTYPE_SFVec3d, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___oldChildren, (int) offsetof (struct X3D_GeoTransform, __oldChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___oldGeoCenter, (int) offsetof (struct X3D_GeoTransform, __oldGeoCenter),  (int) FIELDTYPE_SFVec3d, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_GeoTransform, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_GeoTransform, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_GeoTransform, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_GeoTransform, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D33),
@@ -4492,6 +4502,7 @@ const int OFFSETS_GeoViewpoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Group[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Group, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Group, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Group, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Group, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4510,6 +4521,7 @@ const int OFFSETS_HAnimDisplacer[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_HAnimHumanoid[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_HAnimHumanoid, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_HAnimHumanoid, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_HAnimHumanoid, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_center, (int) offsetof (struct X3D_HAnimHumanoid, center),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4537,6 +4549,7 @@ const int OFFSETS_HAnimJoint[] = {
 	(int) FIELDNAMES___do_scale, (int) offsetof (struct X3D_HAnimJoint, __do_scale),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_scaleO, (int) offsetof (struct X3D_HAnimJoint, __do_scaleO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_HAnimJoint, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_HAnimJoint, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_HAnimJoint, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_HAnimJoint, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_HAnimJoint, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4559,6 +4572,7 @@ const int OFFSETS_HAnimJoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_HAnimSegment[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_HAnimSegment, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_HAnimSegment, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_HAnimSegment, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_HAnimSegment, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4579,6 +4593,7 @@ const int OFFSETS_HAnimSite[] = {
 	(int) FIELDNAMES___do_scale, (int) offsetof (struct X3D_HAnimSite, __do_scale),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_scaleO, (int) offsetof (struct X3D_HAnimSite, __do_scaleO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_HAnimSite, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_HAnimSite, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_HAnimSite, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_HAnimSite, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_HAnimSite, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4768,6 +4783,7 @@ const int OFFSETS_Inline[] = {
 	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Inline, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Inline, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___scripts, (int) offsetof (struct X3D_Inline, __scripts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Inline, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___subcontexts, (int) offsetof (struct X3D_Inline, __subcontexts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___typename, (int) offsetof (struct X3D_Inline, __typename),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Inline, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -4827,6 +4843,7 @@ const int OFFSETS_KeySensor[] = {
 
 const int OFFSETS_LOD[] = {
 	(int) FIELDNAMES___isX3D, (int) offsetof (struct X3D_LOD, __isX3D),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_LOD, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__selected, (int) offsetof (struct X3D_LOD, _selected),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_LOD, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_LOD, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4842,6 +4859,7 @@ const int OFFSETS_LOD[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Layer[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Layer, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Layer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_children, (int) offsetof (struct X3D_Layer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isPickable, (int) offsetof (struct X3D_Layer, isPickable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4873,6 +4891,7 @@ const int OFFSETS_Layout[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_LayoutGroup[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_LayoutGroup, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_LayoutGroup, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_LayoutGroup, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_LayoutGroup, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4884,6 +4903,7 @@ const int OFFSETS_LayoutGroup[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_LayoutLayer[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_LayoutLayer, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_LayoutLayer, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_children, (int) offsetof (struct X3D_LayoutLayer, children),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isPickable, (int) offsetof (struct X3D_LayoutLayer, isPickable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4964,6 +4984,7 @@ const int OFFSETS_LoadSensor[] = {
 
 const int OFFSETS_LocalFog[] = {
 	(int) FIELDNAMES___fogScale, (int) offsetof (struct X3D_LocalFog, __fogScale),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) 0,
+	(int) FIELDNAMES___fogType, (int) offsetof (struct X3D_LocalFog, __fogType),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_color, (int) offsetof (struct X3D_LocalFog, color),  (int) FIELDTYPE_SFColor, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_LocalFog, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_fogType, (int) offsetof (struct X3D_LocalFog, fogType),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5695,6 +5716,7 @@ const int OFFSETS_ParticleSystem[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PickableGroup[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_PickableGroup, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_PickableGroup, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_PickableGroup, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_PickableGroup, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5973,6 +5995,7 @@ const int OFFSETS_Proto[] = {
 	(int) FIELDNAMES___protoFlags, (int) offsetof (struct X3D_Proto, __protoFlags),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___prototype, (int) offsetof (struct X3D_Proto, __prototype),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___scripts, (int) offsetof (struct X3D_Proto, __scripts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Proto, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___subcontexts, (int) offsetof (struct X3D_Proto, __subcontexts),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___typename, (int) offsetof (struct X3D_Proto, __typename),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_Proto, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -6168,6 +6191,7 @@ const int OFFSETS_ScreenFontStyle[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ScreenGroup[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_ScreenGroup, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_ScreenGroup, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_ScreenGroup, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_ScreenGroup, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6417,6 +6441,7 @@ const int OFFSETS_SquadOrientationInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_StaticGroup[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_StaticGroup, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___solid, (int) offsetof (struct X3D_StaticGroup, __solid),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___transparency, (int) offsetof (struct X3D_StaticGroup, __transparency),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_StaticGroup, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
@@ -6450,6 +6475,7 @@ const int OFFSETS_SurfaceEmitter[] = {
 
 const int OFFSETS_Switch[] = {
 	(int) FIELDNAMES___isX3D, (int) offsetof (struct X3D_Switch, __isX3D),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Switch, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Switch, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Switch, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Switch, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6661,6 +6687,7 @@ const int OFFSETS_Transform[] = {
 	(int) FIELDNAMES___do_scale, (int) offsetof (struct X3D_Transform, __do_scale),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_scaleO, (int) offsetof (struct X3D_Transform, __do_scaleO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_Transform, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Transform, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__sortedChildren, (int) offsetof (struct X3D_Transform, _sortedChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Transform, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Transform, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6861,6 +6888,7 @@ const int OFFSETS_ViewpointGroup[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Viewport[] = {
+	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_Viewport, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_Viewport, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Viewport, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Viewport, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7760,6 +7788,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Anchor : {
 			struct X3D_Anchor * tmp2;
 			tmp2 = (struct X3D_Anchor *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -7906,6 +7935,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Billboard : {
 			struct X3D_Billboard * tmp2;
 			tmp2 = (struct X3D_Billboard *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_rotationAngle = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->axisOfRotation.c[0] = 0.0f;tmp2->axisOfRotation.c[1] = 1.0f;tmp2->axisOfRotation.c[2] = 0.0f;
@@ -8009,6 +8039,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADAssembly : {
 			struct X3D_CADAssembly * tmp2;
 			tmp2 = (struct X3D_CADAssembly *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -8034,6 +8065,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CADLayer : {
 			struct X3D_CADLayer * tmp2;
 			tmp2 = (struct X3D_CADLayer *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -8054,6 +8086,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_scale = FALSE;
 			tmp2->__do_scaleO = FALSE;
 			tmp2->__do_trans = FALSE;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -8151,6 +8184,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_Collision * tmp2;
 			tmp2 = (struct X3D_Collision *) tmp;
 			tmp2->__hit = 0;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -8396,6 +8430,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Contour2D : {
 			struct X3D_Contour2D * tmp2;
 			tmp2 = (struct X3D_Contour2D *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->metadata = NULL;
@@ -8712,6 +8747,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_EspduTransform : {
 			struct X3D_EspduTransform * tmp2;
 			tmp2 = (struct X3D_EspduTransform *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->address = newASCIIString("localhost");
 			tmp2->applicationID = 1;
@@ -8892,6 +8928,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_Fog * tmp2;
 			tmp2 = (struct X3D_Fog *) tmp;
 			tmp2->__fogScale = 1.0f;
+			tmp2->__fogType = 1;
 			tmp2->_layerId = 0;
 			tmp2->bindTime = -1;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
@@ -8908,7 +8945,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_FogCoordinate *) tmp;
 			tmp2->depth.n=0; tmp2->depth.p=0;
 			tmp2->metadata = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_coord;
+			tmp2->_defaultContainer = FIELDNAMES_fogCoord;
 		break;
 		}
 		case NODE_FontStyle : {
@@ -9020,6 +9057,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__movedCoords.c[0] = 0;tmp2->__movedCoords.c[1] = 0;tmp2->__movedCoords.c[2] = 0;;
 			tmp2->__oldChildren.n=0; tmp2->__oldChildren.p=0;
 			tmp2->__oldgeoCoords.c[0] = 0;tmp2->__oldgeoCoords.c[1] = 0;tmp2->__oldgeoCoords.c[2] = 0;;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -9140,6 +9178,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__movedCoords.c[0] = 0;tmp2->__movedCoords.c[1] = 0;tmp2->__movedCoords.c[2] = 0;;
 			tmp2->__oldChildren.n=0; tmp2->__oldChildren.p=0;
 			tmp2->__oldGeoCenter.c[0] = 0;tmp2->__oldGeoCenter.c[1] = 0;tmp2->__oldGeoCenter.c[2] = 0;;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -9192,6 +9231,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Group : {
 			struct X3D_Group * tmp2;
 			tmp2 = (struct X3D_Group *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -9216,6 +9256,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimHumanoid : {
 			struct X3D_HAnimHumanoid * tmp2;
 			tmp2 = (struct X3D_HAnimHumanoid *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
@@ -9246,6 +9287,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_scale = 0;
 			tmp2->__do_scaleO = 0;
 			tmp2->__do_trans = 0;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -9275,6 +9317,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimSegment : {
 			struct X3D_HAnimSegment * tmp2;
 			tmp2 = (struct X3D_HAnimSegment *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -9308,6 +9351,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_scale = 0;
 			tmp2->__do_scaleO = 0;
 			tmp2->__do_trans = 0;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -9530,6 +9574,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__protoFlags = 0;
 			tmp2->__prototype = NULL;
 			tmp2->__scripts = 0;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->__subcontexts = 0;
 			tmp2->__typename = 0;
 			tmp2->_parentResource = getInputResource();
@@ -9604,6 +9649,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_LOD * tmp2;
 			tmp2 = (struct X3D_LOD *) tmp;
 			tmp2->__isX3D = (inputFileVersion[0]==3);
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_selected = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -9622,6 +9668,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Layer : {
 			struct X3D_Layer * tmp2;
 			tmp2 = (struct X3D_Layer *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->isPickable = TRUE;
@@ -9685,6 +9732,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LayoutGroup : {
 			struct X3D_LayoutGroup * tmp2;
 			tmp2 = (struct X3D_LayoutGroup *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = 0.0f;tmp2->bboxSize.c[1] = 0.0f;tmp2->bboxSize.c[2] = 0.0f;
@@ -9699,6 +9747,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_LayoutLayer : {
 			struct X3D_LayoutLayer * tmp2;
 			tmp2 = (struct X3D_LayoutLayer *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->children.n=0; tmp2->children.p=0;
 			tmp2->isPickable = TRUE;
@@ -9797,6 +9846,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_LocalFog * tmp2;
 			tmp2 = (struct X3D_LocalFog *) tmp;
 			tmp2->__fogScale = 1.0f;
+			tmp2->__fogType = 1;
 			tmp2->color.c[0] = 1.0f;tmp2->color.c[1] = 1.0f;tmp2->color.c[2] = 1.0f;;
 			tmp2->enabled = TRUE;
 			tmp2->fogType = newASCIIString("LINEAR");
@@ -10789,6 +10839,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PickableGroup : {
 			struct X3D_PickableGroup * tmp2;
 			tmp2 = (struct X3D_PickableGroup *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -11129,6 +11180,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__protoFlags = 0;
 			tmp2->__prototype = NULL;
 			tmp2->__scripts = 0;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->__subcontexts = 0;
 			tmp2->__typename = 0;
 			tmp2->_parentResource = getInputResource();
@@ -11357,6 +11409,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ScreenGroup : {
 			struct X3D_ScreenGroup * tmp2;
 			tmp2 = (struct X3D_ScreenGroup *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -11663,6 +11716,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_StaticGroup : {
 			struct X3D_StaticGroup * tmp2;
 			tmp2 = (struct X3D_StaticGroup *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->__solid = -1;
 			tmp2->__transparency = -1;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
@@ -11707,6 +11761,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_Switch * tmp2;
 			tmp2 = (struct X3D_Switch *) tmp;
 			tmp2->__isX3D = (inputFileVersion[0]==3);
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -11997,6 +12052,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_scale = FALSE;
 			tmp2->__do_scaleO = FALSE;
 			tmp2->__do_trans = FALSE;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_sortedChildren.n=0; tmp2->_sortedChildren.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
@@ -12268,6 +12324,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Viewport : {
 			struct X3D_Viewport * tmp2;
 			tmp2 = (struct X3D_Viewport *) tmp;
+			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -12400,6 +12457,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Anchor *tmp;
 			tmp = (struct X3D_Anchor *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," description (SFString) \t%s\n",tmp->description->strptr);
@@ -12555,6 +12616,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Billboard *tmp;
 			tmp = (struct X3D_Billboard *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," axisOfRotation (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->axisOfRotation.c[i]); }
 			fprintf (fp,"\n");
@@ -12665,6 +12730,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			tmp = (struct X3D_CADAssembly *) node;
 			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
@@ -12691,6 +12760,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_CADLayer *tmp;
 			tmp = (struct X3D_CADLayer *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
@@ -12705,6 +12778,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_CADPart *tmp;
 			tmp = (struct X3D_CADPart *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
@@ -12822,6 +12899,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
 			spacer fprintf (fp," __hit (SFInt32) \t%d\n",tmp->__hit);
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
 		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
@@ -13072,6 +13153,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Contour2D *tmp;
 			tmp = (struct X3D_Contour2D *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
@@ -13329,6 +13414,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_EspduTransform *tmp;
 			tmp = (struct X3D_EspduTransform *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," address (SFString) \t%s\n",tmp->address->strptr);
 			spacer fprintf (fp," applicationID (SFInt32) \t%d\n",tmp->applicationID);
 			spacer fprintf (fp," articulationParameterArray (MFFloat):\n");
@@ -13624,6 +13713,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
@@ -13790,6 +13883,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			fprintf (fp,"\n");
 		    }
 		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
@@ -13862,6 +13959,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			tmp = (struct X3D_Group *) node;
 			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
@@ -13889,6 +13990,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_HAnimHumanoid *tmp;
 			tmp = (struct X3D_HAnimHumanoid *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
@@ -13929,6 +14034,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_HAnimJoint *tmp;
 			tmp = (struct X3D_HAnimJoint *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
@@ -13971,6 +14080,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_HAnimSegment *tmp;
 			tmp = (struct X3D_HAnimSegment *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," centerOfMass (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->centerOfMass.c[i]); }
 			fprintf (fp,"\n");
@@ -13992,6 +14105,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_HAnimSite *tmp;
 			tmp = (struct X3D_HAnimSite *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
@@ -14175,6 +14292,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->__children.n; i++) { dump_scene(fp,level+1,tmp->__children.p[i]); }
 		    }
 		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
@@ -14245,6 +14366,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_LOD *tmp;
 			tmp = (struct X3D_LOD *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," center (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->center.c[i]); }
 			fprintf (fp,"\n");
@@ -14261,6 +14386,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Layer *tmp;
 			tmp = (struct X3D_Layer *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," isPickable (SFBool) \t%d\n",tmp->isPickable);
@@ -14309,6 +14438,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_LayoutGroup *tmp;
 			tmp = (struct X3D_LayoutGroup *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," layout (SFNode):\n"); dump_scene(fp,level+1,tmp->layout); 
@@ -14322,6 +14455,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_LayoutLayer *tmp;
 			tmp = (struct X3D_LayoutLayer *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," isPickable (SFBool) \t%d\n",tmp->isPickable);
@@ -15318,6 +15455,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_PickableGroup *tmp;
 			tmp = (struct X3D_PickableGroup *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
@@ -15612,6 +15753,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->__children.n; i++) { dump_scene(fp,level+1,tmp->__children.p[i]); }
 		    }
 		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
@@ -15839,6 +15984,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_ScreenGroup *tmp;
 			tmp = (struct X3D_ScreenGroup *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 		    if(allFields) {
@@ -16159,6 +16308,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			tmp = (struct X3D_StaticGroup *) node;
 			UNUSED(tmp); // compiler warning mitigation
 		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
+		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
 		    }
@@ -16199,6 +16352,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Switch *tmp;
 			tmp = (struct X3D_Switch *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," choice (MFNode):\n");
@@ -16470,6 +16627,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Transform *tmp;
 			tmp = (struct X3D_Transform *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 		    if(allFields) {
 			spacer fprintf (fp," _sortedChildren (MFNode):\n");
 			for (i=0; i<tmp->_sortedChildren.n; i++) { dump_scene(fp,level+1,tmp->_sortedChildren.p[i]); }
@@ -16748,6 +16909,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Viewport *tmp;
 			tmp = (struct X3D_Viewport *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __sibAffectors (MFNode):\n");
+			for (i=0; i<tmp->__sibAffectors.n; i++) { dump_scene(fp,level+1,tmp->__sibAffectors.p[i]); }
+		    }
 			spacer fprintf (fp," children (MFNode):\n");
 			for (i=0; i<tmp->children.n; i++) { dump_scene(fp,level+1,tmp->children.p[i]); }
 			spacer fprintf (fp," clipBoundary (MFFloat):\n");

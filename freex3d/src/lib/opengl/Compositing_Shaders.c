@@ -556,6 +556,20 @@ vec3 castle_Emissive; \n\
 uniform fw_MaterialParameters fw_BackMaterial; \n\
 #endif //TWO \n\
 #endif //LIT \n\
+#ifdef FOG \n\
+struct fogParams \n\
+{  \n\
+  vec4 fogColor; \n\
+  float visibilityRange; \n\
+  float fogScale; //applied on cpu side to visrange \n\
+  int fogType; // 0 None, 1= FOGTYPE_LINEAR, 2 = FOGTYPE_EXPONENTIAL \n\
+  // ifdefed int haveFogCoords; \n\
+}; \n\
+uniform fogParams fw_fogparams; \n\
+#ifdef FOGCOORD \n\
+attribute float fw_FogCoords; \n\
+#endif \n\
+#endif //FOG \n\
 float castle_MaterialDiffuseAlpha; \n\
 float castle_MaterialShininess; \n\
 vec3 castle_SceneColor; \n\
@@ -661,6 +675,11 @@ void main(void) \n\
   castle_normal_eye = temp_castle_normal_eye; \n\
   castle_Color      = temp_castle_Color; \n\
   #endif //CASTLE_BUGGY_GLSL_READ_VARYING \n\
+  #ifdef FOG \n\
+  #ifdef FOGCOORD \n\
+	castle_vertex_eye.z = fw_FogCoords; \n\
+  #endif //FOGCOORD \n\
+  #endif //FOG \n\
 } \n";
 
 
@@ -671,10 +690,6 @@ void main(void) \n\
    in program's binary.
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
-
-
-
-
 /* 
 	started with: http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/src/x3d/opengl/glsl/template_mobile.fs
   defines:
@@ -815,6 +830,17 @@ if (hatched) { \n\
  prevColour = colour; \n\
 } \n\
 #endif //FILL \n\
+#ifdef FOG \n\
+struct fogParams \n\
+{  \n\
+  vec4 fogColor; \n\
+  float visibilityRange; \n\
+  float fogScale; \n\
+  int fogType; // 0 None, 1= FOGTYPE_LINEAR, 2 = FOGTYPE_EXPONENTIAL \n\
+  // ifdefed int haveFogCoords; \n\
+}; \n\
+uniform fogParams fw_fogparams; \n\
+#endif //FOG \n\
  \n\
 /* PLUG-DECLARATIONS */ \n\
  \n\
@@ -1033,6 +1059,29 @@ if (backFacing) { \n\
 }\n\
 ";
 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#t-foginterpolant
+// PLUG: fog_apply (fragment_color, normal_eye_fragment)
+static const GLchar *plug_fog_apply =	"\
+void PLUG_fog_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+  float ff = 1.0; \n\
+  float depth = abs(castle_vertex_eye.z/castle_vertex_eye.w); \n\
+  if(fw_fogparams.fogType > 0){ \n\
+    ff = 0.0;  \n\
+    if(fw_fogparams.fogType == 1){ //FOGTYPE_LINEAR \n\
+      if(depth < fw_fogparams.visibilityRange) \n\
+        ff = (fw_fogparams.visibilityRange-depth)/fw_fogparams.visibilityRange; \n\
+    } else { //FOGTYPE_EXPONENTIAL \n\
+        if(depth < fw_fogparams.visibilityRange){ \n\
+          ff = exp(-depth/(fw_fogparams.visibilityRange -depth) ); \n\
+          ff = clamp(ff, 0.0, 1.0);  \n\
+        } \n\
+	} \n\
+    finalFrag = mix(finalFrag,fw_fogparams.fogColor,1.0 - ff);  \n\
+  } \n\
+} \n\
+";
+
+
 #if defined(GL_ES_VERSION_2_0)
 static int isMobile = TRUE;
 #else
@@ -1154,6 +1203,14 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	if(DESIRE(whichOne,FILL_PROPERTIES_SHADER)) {
 		AddDefine(SHADERPART_VERTEX,"FILL",CompleteCode);		
 		AddDefine(SHADERPART_FRAGMENT,"FILL",CompleteCode);		
+	}
+	//FOG
+	if(DESIRE(whichOne,FOG_APPEARANCE_SHADER)){
+		AddDefine(SHADERPART_VERTEX,"FOG",CompleteCode);		
+		AddDefine(SHADERPART_FRAGMENT,"FOG",CompleteCode);	
+		if(DESIRE(whichOne,HAVE_FOG_COORDS))
+			AddDefine(SHADERPART_VERTEX,"FOGCOORD",CompleteCode);
+		Plug(SHADERPART_FRAGMENT,plug_fog_apply,CompleteCode,&unique_int);	
 	}
 
 	// stripUnusedDefines(CompleteCode);

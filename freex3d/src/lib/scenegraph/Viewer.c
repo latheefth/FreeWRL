@@ -3208,6 +3208,8 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 
 	viewer_lastP_clear();
 	resolve_pos();
+	setMenuStatusVP (vp->description->strptr);
+
 }
 
 /* called from main, after the new viewpoint is setup */
@@ -3640,6 +3642,7 @@ world coords > [Transform stack] > bound Viewpoint > [Viewer.Pos,.Quat] > avatar
 
 	viewer_lastP_clear();
 	resolve_pos();
+	setMenuStatusVP (vp->description->strptr);
 }
 
 int fwl_getAnaglyphSide(int whichSide) {

@@ -482,7 +482,8 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 		printf("%p already bound\n",node);
 		#endif
 		*setBindPtr = 100;
-	return; } /* It has to be at the top of the stack so return */
+		return; /* It has to be at the top of the stack so return */
+	} 
  
 
 	 /* we either have a setBind of 1, which is a push, or 0, which
@@ -561,25 +562,7 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 			} else {
 				/* we are top of stack... */
 				/* get myself off of the stack */
-//if (node->_nodeType == NODE_Viewpoint) {
-//int j;
-//printf ("%p Viewpoint, description :%s:\n",node,X3D_VIEWPOINT(node)->description->strptr);
-//printf("stacksize before popping=%d ",vectorSize(thisStack));
-//for(j=0;j<vectorSize(thisStack);j++){
-//struct X3D_Viewpoint *vp = vector_get(struct X3D_Viewpoint *,thisStack,j);
-//printf ("index= %d %p Viewpoint, description :%s:\n",j,node,vp->description->strptr);
-//}
-//}
 				vector_popBack(struct X3D_Node *,thisStack);
-//if (node->_nodeType == NODE_Viewpoint) {
-//printf("stacksize after popping=%d ",vectorSize(thisStack));
-//				if(removeNodeFromVector(0, thisStack, node)){
-//					printf("but still found and removed from stack\n");
-//				}else{
-//					printf("and now not found in stack\n");
-//				}
-//
-//}
 				removeNodeFromVector(0, thisStack, node); //sometimes there are duplicates further down the stack. for unloading inlines, we need to get rid of all occurrances
 				if (vectorSize(thisStack)>0) {
 					/* get the older one back */
@@ -601,6 +584,7 @@ void bind_node (struct X3D_Node *node, struct Vector *thisStack) {
 	} else {
 		printf ("setBindPtr %d\n",*setBindPtr);
 	}
+#undef BINDVERBOSE
 }
 
 //fog: see also notes in Component_EnvironEffects.c
@@ -620,8 +604,8 @@ void bind_Fog(struct X3D_Fog *node){
 	//glEnable(GL_FOG);
 
 	//if(!node->isBound) return;
-	if(node->isBound)
-		printf("bound global fog\n");
+	//if(node->isBound)
+	//	printf("bound global fog\n");
 }
 
 void render_Fog_OLD (struct X3D_Fog *node) {

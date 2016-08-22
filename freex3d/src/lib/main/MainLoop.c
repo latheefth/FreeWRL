@@ -5814,7 +5814,7 @@ void setup_viewpoint_part2() {
 	//freewrl adds the 2 positions together - weird no one else does
 	//so we'll set a flag on the viewpoint node, and if its already updated, we'll skip 2nd, third etc instances.
 	//printf("\npart2>>>\n");
-	boundvp = getActiveLayerBoundViewpoint();
+	boundvp = (struct X3D_Viewpoint*)getActiveLayerBoundViewpoint();
 	if(boundvp)
 		boundvp->_donethispass = 0; //used in prep_Viewpoint
 	render_hier(rootNode(), VF_Viewpoint);
@@ -6104,7 +6104,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case 's': {fwl_toggleSnapshot(); break;}
 				case 'x': {Snapshot(); break;} /* thanks to luis dias mas dec16,09 */
 #endif //FRONTEND_DOES_SNAPSHOTS
-
+				//case '[': resource_dump(gglobal()->resources.root_res); break; //doesn't show 'tree', just rootres
 				default:
 					printf("didn't handle key=[%c][%d] type=%d\n",lkp,(int)lkp,type);
 					handled = 0;

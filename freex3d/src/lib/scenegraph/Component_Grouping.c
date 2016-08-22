@@ -227,9 +227,80 @@ void child_Switch (struct X3D_Switch *node) {
 }
 
 
+
+void sib_prep_LocalFog(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+void sib_prep_DirectionalLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+void sib_prep_SpotlLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+void sib_prep_PointLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+
+void sib_prep(struct X3D_Node *parent, struct X3D_Node *sibAffector){
+	switch(sibAffector->_nodeType){
+		case NODE_DirectionalLight:
+			sib_prep_DirectionalLight(parent,sibAffector); break;
+		case NODE_SpotLight:
+			sib_prep_SpotlLight(parent,sibAffector); break;
+		case NODE_PointLight:
+			sib_prep_PointLight(parent,sibAffector); break;
+		case NODE_LocalFog:
+			sib_prep_LocalFog(parent,sibAffector); break;
+		//case NODE_ClipPlane:
+		//	sib_prep_ClipPlane(parent,sibAffector); break;
+		//case NODE_Effect: //not implemented yet
+		//	sib_prep_Effect(parent,sibAffector); break;
+		//case NODE_EffectPart: // "
+		//	sib_prep_EffectPart(parent,sibAffector); break;
+		default:
+			break;
+	}
+}
+
+void sib_fin_LocalFog(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+void sib_fin_DirectionalLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+void sib_fin_SpotlLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+void sib_fin_PointLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+
+void sib_fin(struct X3D_Node *parent, struct X3D_Node *sibAffector){
+	switch(sibAffector->_nodeType){
+		case NODE_DirectionalLight:
+			sib_fin_DirectionalLight(parent,sibAffector); break;
+		case NODE_SpotLight:
+			sib_fin_SpotlLight(parent,sibAffector); break;
+		case NODE_PointLight:
+			sib_fin_PointLight(parent,sibAffector); break;
+		case NODE_LocalFog:
+			sib_fin_LocalFog(parent,sibAffector); break;
+		//case NODE_ClipPlane:
+		//	sib_fin_ClipPlane(parent,sibAffector); break;
+		//case NODE_Effect: //not implemented yet
+		//	sib_fin_Effect(parent,sibAffector); break;
+		//case NODE_EffectPart: // "
+		//	sib_fin_EffectPart(parent,sibAffector); break;
+		default:
+			break;
+	}
+}
+void prep_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors){
+	if(affectors->n){
+		int j;
+		for(j=0;j<affectors->n;j++){
+			struct X3D_Node *sa = affectors->p[j];
+			sib_prep(parent,sa);
+		}
+	}
+}
+void fin_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors){
+	if(affectors->n){
+		int j;
+		for(j=0;j<affectors->n;j++){
+			struct X3D_Node *sa = affectors->p[j];
+			sib_fin(parent,sa);
+		}
+	}
+}
+
 void child_StaticGroup (struct X3D_StaticGroup *node) {
 	CHILDREN_COUNT
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 
@@ -241,18 +312,21 @@ void child_StaticGroup (struct X3D_StaticGroup *node) {
 	}
 
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	//LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->_sortedChildren);
 
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+
 }
 
 void child_Group (struct X3D_Group *node) {
 	// UNUSED int renderFirstProtoChildOnlyAsPerSpecs = 1;
 	CHILDREN_COUNT
-	LOCAL_LIGHT_SAVE
+//	LOCAL_LIGHT_SAVE
 
 	/*
 printf ("chldGroup %p (root %p), flags %x children %d ",node,rootNode,node->_renderFlags,node->children.n);
@@ -286,6 +360,7 @@ printf ("\n");
 			} 
 		} 
 	}
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 
 #ifdef VERBOSE
@@ -318,7 +393,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 
 		
 	/* do we have a DirectionalLight for a child? */
-	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+//	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 
 	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
@@ -327,7 +402,10 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	normalChildren(node->_sortedChildren);
 
 
-	LOCAL_LIGHT_OFF
+//	LOCAL_LIGHT_OFF
+	
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+
 }
 
 
@@ -350,13 +428,16 @@ void child_Transform (struct X3D_Transform *node) {
 			} 
 		} 
 	}
+	//if(node->__sibAffectors.n)
+	//	printf("have transform sibaffectors\n");
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 	/* any children at all? */
 	if (nc==0) return;
 
 	//profile_start("local_light_kids");
 	/* do we have a local light for a child? */
-	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+//	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
 	//profile_end("local_light_kids");
 	/* now, just render the non-directionalLight children */
 
@@ -373,7 +454,8 @@ void child_Transform (struct X3D_Transform *node) {
 		printf ("transform - done normalChildren\n");
 	#endif
 
-	LOCAL_LIGHT_OFF
+//	LOCAL_LIGHT_OFF
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 }
 
 
@@ -405,12 +487,14 @@ void compile_Proto(struct X3D_Proto *node) {
 	}
 	MARK_NODE_COMPILED
 }
-/* render the first node only */
+
+
+/* render the first node only unless scene (see component_networking.c child_inline for scene-similar*/
 void child_Proto (struct X3D_Proto *node) {
 	int nc;
 	unsigned char sceneflag;
 	int renderFirstProtoChildOnlyAsPerSpecs;
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 	if(0)printf("in child_proto\n");
 	//CHILDREN_COUNT
 	nc = node->__children.n; //_sortedChildren.n;
@@ -433,7 +517,6 @@ printf ("\n");
 */
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME
 	//if(node->__loadstatus != LOAD_STABLE) return; #define LOAD_STABLE 10
-
 
 
 #ifdef VERBOSE
@@ -464,13 +547,14 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 
 
 
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 		
 	/* do we have a DirectionalLight for a child? */
-	if(nc){
-		LOCAL_LIGHT_CHILDREN(node->__children);
-	}else{
-		LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
-	}
+	//if(nc){
+	//	LOCAL_LIGHT_CHILDREN(node->__children);
+	//}else{
+	//	LOCAL_LIGHT_CHILDREN(node->_sortedChildren);
+	//}
 
 	/* printf ("chld_Group, for %u, protodef %d and FreeWRL_PROTOInterfaceNodes.n %d\n",
 		node, node->FreeWRL__protoDef, node->FreeWRL_PROTOInterfaceNodes.n); */
@@ -483,20 +567,24 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 	//	normalChildren(node->_sortedChildren);
 	//}
 	sceneflag = ciflag_get(node->__protoFlags,2);
-	renderFirstProtoChildOnlyAsPerSpecs = FALSE;  //FALSE is like flux / vivaty
+	renderFirstProtoChildOnlyAsPerSpecs = TRUE;  //FALSE is like flux / vivaty
 	//I don't think inline.children comes through here, just scene and protoInstance
 	if(sceneflag == 2 ){ 
 		normalChildren(node->_sortedChildren);
 	}else{
-		if(renderFirstProtoChildOnlyAsPerSpecs && renderstate()->render_geom) {
+		if(renderFirstProtoChildOnlyAsPerSpecs && (renderstate()->render_geom || renderstate()->render_blend)) {
+			//H: its just when rendering drawable geometry that we take only the first node
 			(node->__children).n = 1;
 			normalChildren(node->__children);
 			(node->__children).n = nc;
 		} else {
+			//H: else even for Protobodies, we may visit all rootnodes & descendants
+			//  in case they need some updating on a non-draw scenegraph pass?
 			normalChildren(node->__children);
 		}
 	}
 
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 }

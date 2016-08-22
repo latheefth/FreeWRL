@@ -115,6 +115,38 @@ void LoadTextures_init(struct tLoadTextures *t)
 //bool loader_waiting = false;
 
 
+static int sniffImageFileHeader(char *filename) {
+// return value:
+// 0 unknown
+// 1 png
+// 2 jpeg
+// 3 gif
+//filenames coming in can be temp file names - scrambled
+//there are 3 ways to tell in the backend what type of image file:
+//a) .xxx original filename suffix
+//b) MIME type 
+//c) file signature https://en.wikipedia.org/wiki/List_of_file_signatures
+// right now we aren't passing in the .xxx or mime or signature bytes
+// except through the file conents we can get the signature
+	char header[20];
+	int iret;
+	FILE* fp = fopen(filename,"rb");
+	fread(header,20,1,fp);
+	fclose(fp);
+
+	iret = 0;
+	if(!strncmp(&header[1],"PNG",3))
+		iret = 1;
+
+	if(!strncmp(header,"ÿØÿ",3))
+		iret = 2;
+
+	if(!strncmp(header,"GIF",3))
+		iret = 3;
+
+	return iret;
+}
+
 static int sniffImageChannels_bruteForce(unsigned char *imageblob, int width, int height){
 	//iterates over entire 4byte-per-pixel RGBA image blob, or until it knows the answer,
 	// and returns number of channels 1=Luminance, 2=Lum-alpha 3=rgb 4=rgba
@@ -145,6 +177,7 @@ static int sniffImageChannels_bruteForce(unsigned char *imageblob, int width, in
 	}
 	channels = hasColor ? 3 : 1;
 	channels = hasAlpha ? channels + 1 : channels;
+	return channels;
 }
 
 
@@ -1068,8 +1101,12 @@ ConsoleMessage(me);}
 #endif
 	}
 	{
-		int nchan;
-		nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
+		int nchan, imtype;
+		imtype = sniffImageFileHeader(filename);
+		if(imtype == 2)
+			nchan = 3; //jpeg always rgb, no alpha
+		else
+			nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
 		//nchan = sniffImageChannels(fname);
 		if(nchan > -1) this_tex->channels = nchan;
 	}
@@ -1129,6 +1166,16 @@ ConsoleMessage(me);}
 	this_tex->y = imlib_image_get_height();
 
 	this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
+	{
+		int nchan, imtype;
+		imtype = sniffImageFileHeader(filename);
+		if(imtype == 2)
+			nchan = 3; //jpeg always rgb, no alpha
+		else
+			nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
+		//nchan = sniffImageChannels(fname);
+		if(nchan > -1) this_tex->channels = nchan;
+	}
 	return TRUE;
 #endif
 

@@ -114,7 +114,7 @@ typedef struct pRenderFuncs{
 	Stack *ray_stack;
 	Stack *shaderflags_stack;
 	Stack *fog_stack;
-
+	Stack *localLight_stack;
 
 	//struct point_XYZ t_r1,t_r2,t_r3; /* transformed ray */
 	struct point_XYZ3 t_r123;
@@ -170,6 +170,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->usehits_stack = newStack(usehit);
 		p->shaderflags_stack = newStack(unsigned int);
 		p->fog_stack = newStack(struct X3D_Node*);
+		p->localLight_stack = newStack(int);
 		//t->t_r123 = (void *)&p->t_r123;
 		t->hp = (void *)&p->hp;
 	}
@@ -241,6 +242,7 @@ void RenderFuncs_clear(struct tRenderFuncs *t){
 	deleteVector(usehit,p->usehits_stack);
 	deleteVector(unsigned int,p->shaderflags_stack);
 	deleteVector(struct X3D_Node*,p->fog_stack);
+	deleteVector(int,p->localLight_stack);
 }
 void unload_libraryscenes(){
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -340,6 +342,31 @@ int numberOfLights(){
 	int rv = p->nextFreeLight;
 	return rv;
 }
+
+int getLocalLight(){
+	//return top-of-stack Fog or LocalFog
+	int retval = 0;
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	if(p->localLight_stack->n)
+		retval = stack_top(int,p->localLight_stack);
+	return retval;
+}
+void pushLocalLight(int lastlight){
+	//at root level, before render_hier, any bound Fog node
+	//and pop after render_hier
+	//for prep_LocalFog you would call this to push (and pop in fin_LocalFog)
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_push(int,p->localLight_stack,lastlight);
+}
+void popLocalLight(){
+	//
+	ttglobal tg = gglobal();
+	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	stack_pop(int,p->localLight_stack);
+}
+
 
 void transformLightToEye(float *pos, float* dir)
 {
@@ -686,6 +713,13 @@ ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSi
 			glVertexAttribPointer(me->Normals, 3, dataType, normalized, stride, pointer);
 		}
 			break;
+		case FW_FOG_POINTER_TYPE:
+		if (me->FogCoords != -1) {
+			glEnableVertexAttribArray(me->FogCoords);
+			glVertexAttribPointer(me->FogCoords, 1, dataType, normalized, stride, pointer);
+		}
+			break;
+
 		case FW_VERTEX_POINTER_TYPE:
 		if (me->Vertices != -1) {
 			glEnableVertexAttribArray(me->Vertices);
@@ -754,6 +788,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
 
         
         /* send along lighting, material, other visible properties */
+		sendFogToShader(mysp);
         sendMaterialsToShader(mysp);
         sendMatriciesToShader(mysp);
     
@@ -1310,10 +1345,11 @@ void popShaderFlags(){
 }
 struct X3D_Node *getFogParams(){
 	//return top-of-stack Fog or LocalFog
-	struct X3D_Node *retval;
+	struct X3D_Node *retval = NULL;
 	ttglobal tg = gglobal();
 	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
-	retval = stack_top(struct X3D_Node*,p->fog_stack);
+	if(p->fog_stack->n)
+		retval = stack_top(struct X3D_Node*,p->fog_stack);
 	return retval;
 }
 void pushFogParams(struct X3D_Node *fogparams){
@@ -1795,16 +1831,17 @@ render_hier(struct X3D_Node *g, int rwhat) {
  *
  ******************************************************************************/
 
-void compileNode (void (*nodefn)(void *, void *, void *, void *, void *), void *node, void *Icoord, void *Icolor, void *Inormal, void *ItexCoord) {
-	void *coord; void *color; void *normal; void *texCoord;
+void compileNode (void (*nodefn)(void *, void *, void *, void *, void *, void *), void *node, void *Icoord, void *IfogCoord, void *Icolor, void *Inormal, void *ItexCoord) {
+	void *coord; void *fogCoord; void *color; void *normal; void *texCoord;
 
 	/* are any of these SFNodes PROTOS? If so, get the underlying real node, as PROTOS are handled like Groups. */
 	POSSIBLE_PROTO_EXPANSION(void *, Icoord,coord)
-		POSSIBLE_PROTO_EXPANSION(void *, Icolor,color)
-		POSSIBLE_PROTO_EXPANSION(void *, Inormal,normal)
-		POSSIBLE_PROTO_EXPANSION(void *, ItexCoord,texCoord)
+	POSSIBLE_PROTO_EXPANSION(void *, IfogCoord,fogCoord)
+	POSSIBLE_PROTO_EXPANSION(void *, Icolor,color)
+	POSSIBLE_PROTO_EXPANSION(void *, Inormal,normal)
+	POSSIBLE_PROTO_EXPANSION(void *, ItexCoord,texCoord)
 
-	nodefn(node, coord, color, normal, texCoord);
+	nodefn(node, coord, fogCoord, color, normal, texCoord);
 }
 
 void do_NurbsPositionInterpolator (void *node);

@@ -73,6 +73,8 @@ Links:
 				b) F() spatial functions - edge sharpening ie sobel or smoothing also from image processing
 			B. Gray to RGBA - lookup table
 		2. do your raycasting on RGBA
+	http://demos.vicomtech.org/
+	- uses webgl and x3dom
 	https://www.slicer.org/
 	- Uses teem
 	http://teem.sourceforge.net/mite/opts.html

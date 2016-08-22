@@ -78,7 +78,7 @@ our %defaultContainerType = (
 	ColorRGBA 		=>"color",
 	Cone 			=>"geometry",
 	Coordinate 		=>"coord",
-	FogCoordinate 		=>"coord",
+	FogCoordinate 		=>"fogCoord",
 	CoordinateDeformer 	=>"children",
 	CoordinateInterpolator 	=>"children",
 	CoordinateInterpolator2D 	=>"children",
@@ -354,7 +354,6 @@ our %defaultContainerType = (
 # All of these will have a render_xxx name associated with them.
 
 our %RendC = map {($_=>1)} qw/
-	NavigationInfo
 	Fog
 	Background
 	TextureBackground
@@ -474,7 +473,6 @@ our %PrepC = map {($_=>1)} qw/
 	LayoutLayer
 	CollidableOffset
 	CollidableShape
-	LocalFog
 /;
 
 #######################################################################
@@ -502,7 +500,6 @@ our %FinC = map {($_=>1)} qw/
 	LayoutLayer	
 	CollidableOffset
 	CollidableShape	
-	LocalFog
 /;
 
 

@@ -311,3 +311,74 @@ void prep_SpotLight (struct X3D_SpotLight *node) {
 	if (!renderstate()->render_light) return;
 	render_SpotLight(node);
 }
+
+int getLocalLight();
+void pushLocalLight(int lastlight);
+void popLocalLight();
+
+
+void sib_prep_DirectionalLight(struct X3D_Node *parent, struct X3D_Node *sibAffector){
+	int lastlight;
+	//if ((parent->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight){
+	if ( renderstate()->render_light != VF_globalLight){
+	  saveLightState2(&lastlight);
+	  pushLocalLight(lastlight);
+	  render_DirectionalLight((struct X3D_DirectionalLight*)sibAffector);
+	}
+}
+void sib_prep_SpotlLight(struct X3D_Node *parent, struct X3D_Node *sibAffector){
+	int lastlight;
+	if ( renderstate()->render_light != VF_globalLight){
+	  saveLightState2(&lastlight);
+	  pushLocalLight(lastlight);
+	  render_SpotLight((struct X3D_SpotLight*)sibAffector);
+	}
+
+}
+void sib_prep_PointLight(struct X3D_Node *parent, struct X3D_Node *sibAffector){
+	int lastlight;
+	if ( renderstate()->render_light != VF_globalLight){
+	  saveLightState2(&lastlight);
+	  pushLocalLight(lastlight);
+	  render_PointLight((struct X3D_PointLight*)sibAffector);
+	}
+}
+
+
+void sib_fin_DirectionalLight(struct X3D_Node *parent, struct X3D_Node *sibAffector){
+	int lastlight;
+	if ( renderstate()->render_light != VF_globalLight) {
+		lastlight = getLocalLight();
+		if(numberOfLights() > lastlight) {
+			setLightChangedFlag(numberOfLights()-1);
+			refreshLightUniforms();
+		}
+		restoreLightState2(lastlight);
+		popLocalLight();
+	}
+}
+void sib_fin_SpotlLight(struct X3D_Node *parent, struct X3D_Node *sibAffector){
+	int lastlight;
+	if (renderstate()->render_light != VF_globalLight) {
+		lastlight = getLocalLight();
+		if(numberOfLights() > lastlight) {
+			setLightChangedFlag(numberOfLights()-1);
+			refreshLightUniforms();
+		}
+		restoreLightState2(lastlight);
+		popLocalLight();
+	}
+}
+void sib_fin_PointLight(struct X3D_Node *parent, struct X3D_Node *sibAffector){
+	int lastlight;
+	if (renderstate()->render_light != VF_globalLight) {
+		lastlight = getLocalLight();
+		if(numberOfLights() > lastlight) {
+			setLightChangedFlag(numberOfLights()-1);
+			refreshLightUniforms();
+		}
+		popLocalLight();
+		restoreLightState2(lastlight);
+	}
+}
+

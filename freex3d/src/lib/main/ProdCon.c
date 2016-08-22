@@ -331,10 +331,10 @@ int offsetofChildren(struct X3D_Node *node){
 				break;
 			case NODE_Proto:
 				//offs = offsetof(struct X3D_Proto,__children); //addRemoveChildren reallocs p, so mfnode .p field not stable enough for rendering thread
-				offs = offsetof(struct X3D_Proto,addChildren); //this is the designed way to add
+				offs = offsetof(struct X3D_Proto,__children); //addChildren); //this is the designed way to add
 				break;
 			case NODE_Inline:  //Q. do I need this in here? Saw code in x3dparser.
-				offs = offsetof(struct X3D_Inline,addChildren); //__children);
+				offs = offsetof(struct X3D_Inline,__children); //addChildren); //__children);
 				break;
 			case NODE_GeoLOD:  //Q. do I need this in here? Saw code in x3dparser.
 				offs = offsetof(struct X3D_GeoLOD,rootNode);
@@ -684,12 +684,12 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	offsetInNode = 0;
 	insert_node = NULL;
 	nRnfree = NULL;
-	shouldBind = FALSE;
+	shouldBind = TRUE; //FALSE aug 2016
 	shouldUnBind = FALSE;
-	origFogNodes = vectorSize(p->fogNodes);
-	origBackgroundNodes = vectorSize(p->backgroundNodes);
-	origNavigationNodes = vectorSize(p->navigationNodes);
-	origViewpointNodes = vectorSize(t->viewpointNodes);
+	//origFogNodes = vectorSize(p->fogNodes);
+	//origBackgroundNodes = vectorSize(p->backgroundNodes);
+	//origNavigationNodes = vectorSize(p->navigationNodes);
+	//origViewpointNodes = vectorSize(t->viewpointNodes);
 
     //ConsoleMessage ("parser_process_res_VRML_X3D, url %s",res->parsed_request);
 	/* save the current URL so that any local-url gets are relative to this */
@@ -747,8 +747,8 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 			kill_bindables();
 			//kill_oldWorld(TRUE, TRUE, TRUE, __FILE__, __LINE__);
 			shouldBind = TRUE;
-			shouldUnBind = TRUE;
-			origFogNodes = origBackgroundNodes = origNavigationNodes = origViewpointNodes = 0;
+			shouldUnBind = FALSE; //aug 2016, done now in kill_bindables TRUE;
+			//origFogNodes = origBackgroundNodes = origNavigationNodes = origViewpointNodes = 0;
 			//ConsoleMessage ("pc - shouldBind");
 		} else {
 			if (!((resource_item_t*)tg->resources.root_res)->complete) {
@@ -762,10 +762,25 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		/* create a container so that the parser has a place to put the nodes */
 		if(res->whereToPlaceData){
 			nRn = X3D_NODE(res->whereToPlaceData);
-			//if(nRn->_nodeType == NODE_Inline){
-				shouldBind = TRUE; 
+			if(nRn->_nodeType == NODE_Inline){
+				// Problem: - PULL technique of downloading nearly empty main scene with Inline to big scene
+				// as a way to fix the problem of browsers downloading rather than running plugin, 
+				// and losing the http in the process
+				// but specs say "bindables from Inlines are not eligible to be the first node bound'
+				// Solutions:
+				// 1. Component Networking > Browser Options has something about allowing Inlines to bind bindables
+				//   - we could add a browser option on commandline (Launcher in win32)
+				// 2. we could detect if the main scene found any of its own bindables, and for 
+				//    the bindable types it doesn't have, use the Inlines'
+				//    In freewrl, the main scene is completely parsed first
+				//    Then ExternProtos and Inlines are parsed. So if we are in here, in theory we already
+				//    know what bindables the main scene has.
+				// 3. above, if treat_as_root, always unbind everything there so nothing on bindables stacks
+				//    Then after parsing, always bind to first one in each bindable list, if exists 
+				//    - #3 IMPLEMENTED AUG 22, 2016
+				shouldBind = TRUE; //TRUE; 
 				shouldUnBind = FALSE; //brotos > Inlines > additively bind (not sure about other things like externProto 17.wrl)
-			//}
+			}
 		}else{
 			// we do a kind of hot-swap: we parse into a new broto,
 			// then delete the old rootnode broto, then register the new one
@@ -799,6 +814,28 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 		}
 
 		if (shouldBind) {
+			/* Aug 22, 2016 
+				New theory of operation of parsing and binding stacks:
+				1. when parsing, add to end of binding lists
+				2. when determining which is bound, use the start of the binding list 
+					ie top-of-stack is p[0], bottom is p[n-1]
+					Vector add and  Stack push both add to the end of the vector, so new functions are needed
+					to work from the start
+				3. after parsing anything, bind to the first in each list
+					since freewrl parses the main scene completely before parsing inlines, 
+					main scene bindables will be at the start of the list if they exist
+					and if mainscene has none then the first Inline will be bound
+				How (I think) Layers and binding stacks work (dug9):
+					A layer is conceptually like a scene, and has its own binding stacks
+					on each draw, we may draw the main scene and a number of layers
+					the scene is treated like a layer for the purpose of switching binding stacks
+					when switching layers, the bstacks[layerId] are pointer-copied to p-> and t-> viewpointNodes,
+					navigationNodes, backgroundNodes, fogNodes (called xxxNodes) so old code can run against these
+					arrays without knowing about layers. Therefore its possible to read from bstacks or xxxNodes,
+					and -due to being pointer copies of the Vectors- we and read and write to eihter xxxNodes 
+					or bstacks[layerId] when in the current layer, which is normal
+			*/
+			/*
 			if(shouldUnBind){
 				struct X3D_Node* tmp;
 				bindablestack *bstack;
@@ -835,20 +872,20 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 					//tg->Bindable.activeLayer = 1; //test during debugging force to test scene's activelayer=1 since parsing doesn't detect it early enough
 					bstack = getActiveBindableStacks(tg);
 					if (vectorSize(bstack->fog) > 0) {
-						/* Initialize binding info */
+						// Initialize binding info 
 						t->setFogBindInRender = vector_get(struct X3D_Node*, bstack->fog,0);
 					}
 					if (vectorSize(bstack->background) > 0) {
-						/* Initialize binding info */
+						// Initialize binding info 
 						t->setBackgroundBindInRender = vector_get(struct X3D_Node*, bstack->background,0);
 					}
 					if (vectorSize(bstack->navigation) > 0) {
-						/* Initialize binding info */
+						// Initialize binding info 
 						t->setNavigationBindInRender = vector_get(struct X3D_Node*, bstack->navigation,0);
 					}
 					if (vectorSize(bstack->viewpoint) > 0) {
 
-						/* Initialize binding info */
+						// Initialize binding info 
 						t->setViewpointBindInRender = vector_get(struct X3D_Node*, bstack->viewpoint,0);
 						if (res->afterPoundCharacters)
 							fwl_gotoViewpoint(res->afterPoundCharacters);
@@ -862,7 +899,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 							tmp = vector_get(struct X3D_Node*,p->fogNodes,i);
 							send_bind_to(tmp, ib);
 						}
-						/* Initialize binding info */
+						// Initialize binding info 
 						t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
 					}
 					if (vectorSize(p->backgroundNodes) > 0) {
@@ -870,7 +907,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 							tmp = vector_get(struct X3D_Node*,p->backgroundNodes,i);
 							send_bind_to(tmp, ib);
 						}
-						/* Initialize binding info */
+						// Initialize binding info 
 						t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
 					}
 					if (vectorSize(p->navigationNodes) > 0) {
@@ -878,7 +915,7 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 							tmp = vector_get(struct X3D_Node*,p->navigationNodes,i);
 							send_bind_to(tmp, ib);
 						}
-						/* Initialize binding info */
+						// Initialize binding info 
 						t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
 					}
 					if (vectorSize(t->viewpointNodes) > 0) {
@@ -887,14 +924,16 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 							send_bind_to(tmp, ib);
 						}
 
-						/* Initialize binding info */
+						// Initialize binding info 
 						t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0);
 						if (res->afterPoundCharacters)
 							fwl_gotoViewpoint(res->afterPoundCharacters);
 					}
 				}
+				
 
-			}else{
+			}else
+			{
 				// for broto inlines, we want to add to what's in the main scene, and bind to the last item if its new
 				if (vectorSize(p->fogNodes) > origFogNodes) {
 					t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,origFogNodes);
@@ -913,6 +952,21 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 				}
 
 			}
+			*/
+			//Aug 22, 2016 new interpretation: always rebind to first bindable
+			if(vectorSize(p->fogNodes))
+				t->setFogBindInRender = vector_get(struct X3D_Node*, p->fogNodes,0);
+			if (vectorSize(p->backgroundNodes))
+				t->setBackgroundBindInRender = vector_get(struct X3D_Node*, p->backgroundNodes,0);
+			if (vectorSize(p->navigationNodes))
+				t->setNavigationBindInRender = vector_get(struct X3D_Node*, p->navigationNodes,0);
+			if (vectorSize(t->viewpointNodes) ){
+				// dont take vp from inline
+				t->setViewpointBindInRender = vector_get(struct X3D_Node*, t->viewpointNodes,0); 
+				if (res->afterPoundCharacters)
+					fwl_gotoViewpoint(res->afterPoundCharacters);
+			}
+
 		}
 
 		/* we either put things at the rootNode (ie, a new world) or we put them as a children to another node */
@@ -1552,25 +1606,57 @@ OLDCODE 	}
 
 
 void kill_bindables (void) {
-	int i;
+	int i, ib;
+	struct X3D_Node *tmp;
 	ppProdCon p;
     ttglobal tg = gglobal();
 
 	struct tProdCon *t = &gglobal()->ProdCon;
 	p = (ppProdCon)t->prv;
 
+	//H: we have per-layer binding stacks, and when we switch to a layer
+	// we copy from bstack to the old-style p-> or t-> viewpointNodes, backgroundNodes ...
+	// so if unbinding all layers ie new scene, we can do it from bstack,
+	// but don't forget to zero the oldstyle copy.
     //printf ("kill_bindables called\n");
-    ((struct Vector *)t->viewpointNodes)->n=0;
-    p->backgroundNodes->n=0;
-    p->navigationNodes->n=0;
-    p->fogNodes->n=0;
+	ib = 0; //unbind
 	for(i=0;i<vectorSize(tg->Bindable.bstacks);i++){
 		bindablestack *bstack = getBindableStacksByLayer(tg,i);
+		if (vectorSize(bstack->navigation) > 0) {
+			for (i=0; i < vectorSize(bstack->navigation);i++){
+				tmp = vector_get(struct X3D_Node*,bstack->navigation,i);
+				send_bind_to(tmp, ib);
+			}
+		}
+		if (vectorSize(bstack->background) > 0) {
+			for (i=0; i < vectorSize(bstack->background);i++){
+				tmp = vector_get(struct X3D_Node*,bstack->background,i);
+				send_bind_to(tmp, ib);
+			}
+		}
+		if (vectorSize(bstack->viewpoint) > 0) {
+			for (i=0; i < vectorSize(bstack->viewpoint);i++){
+				tmp = vector_get(struct X3D_Node*,bstack->viewpoint,i);
+				send_bind_to(tmp, ib);
+			}
+		}
+		if (vectorSize(bstack->fog) > 0) {
+			for (i=0; i < vectorSize(bstack->fog);i++){
+				tmp = vector_get(struct X3D_Node*,bstack->fog,i);
+				send_bind_to(tmp, ib);
+			}
+		}
 		((struct Vector *)bstack->navigation)->n=0;
 		((struct Vector *)bstack->background)->n=0;
 		((struct Vector *)bstack->viewpoint)->n=0;
 		((struct Vector *)bstack->fog)->n=0;
 	}
+	//do we still use these?
+    ((struct Vector *)t->viewpointNodes)->n=0;
+    p->backgroundNodes->n=0;
+    p->navigationNodes->n=0;
+    p->fogNodes->n=0;
+
     return;
 
 	/*

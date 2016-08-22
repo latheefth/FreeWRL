@@ -2555,7 +2555,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	int iret, userDefined, usingCastlePlugs = 1;
 	userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
 
-	if(usingCastlePlugs && !userDefined){
+	if(usingCastlePlugs && !userDefined && !usePhongShading){
 		//new Aug 2016 castle plugs
 		if(Viewer()->anaglyph || Viewer()->anaglyphB)
 			whichOne |= WANT_ANAGLYPH;  //in theory, this bitflag could be set in render_hier in the new Aug2016 shaderFlags stack 
@@ -2889,6 +2889,8 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
 	me->Colours = GET_ATTRIB(myProg,"fw_Color");
+	me->FogCoords = GET_ATTRIB(myProg,"fw_FogCoords");
+
 
 	me->TexCoords = GET_ATTRIB(myProg,"fw_MultiTexCoord0");
 
@@ -2915,6 +2917,11 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->filledBool = GET_UNIFORM(myProg,"filled");
 	me->hatchedBool = GET_UNIFORM(myProg,"hatched");
 	me->algorithm = GET_UNIFORM(myProg,"algorithm");
+
+	me->fogColor = GET_UNIFORM(myProg,"fw_fogparams.fogColor");
+	me->fogvisibilityRange = GET_UNIFORM(myProg,"fw_fogparams.visibilityRange");
+	me->fogScale = GET_UNIFORM(myProg,"fw_fogparams.fogScale");
+	me->fogType = GET_UNIFORM(myProg,"fw_fogparams.fogType");
 
 	/* TextureCoordinateGenerator */
 	me->texCoordGenType = GET_UNIFORM(myProg,"fw_textureCoordGenType");
@@ -4321,10 +4328,10 @@ void zeroVisibilityFlag(void) {
 			/* make THIS Sensitive - most nodes make the parents sensitive, Anchors have children...*/ \
 			anchorPtr = (struct X3D_Anchor *)node;
 
-#ifdef VIEWPOINT
-#undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
-#endif
-#define VIEWPOINT(thistype) \
+//#ifdef VIEWPOINT
+//#undef VIEWPOINT /* defined for the EAI,SAI, does not concern us uere */
+//#endif
+#define BINDABLE(thistype) \
 			setBindPtr = (int *)(((char*)(node))+offsetof (struct X3D_##thistype, set_bind)); \
 			if ((*setBindPtr) == 100) {setBindPtr = NULL; } //else {printf ("OpenGL, BINDING %d\n",*setBindPtr);}/* already done */
 
@@ -4398,6 +4405,13 @@ void zeroVisibilityFlag(void) {
 	for (i = 0; i < vectorSize(pnode->_parentVector); i++) { \
 		struct X3D_Node *n = vector_get(struct X3D_Node*, pnode->_parentVector, i); \
 		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
+	} \
+}
+#define ADD_TO_PARENT_SIBAFFECTORS \
+{ int i; \
+	for (i = 0; i < vectorSize(pnode->_parentVector); i++) { \
+		struct X3D_Node *n = vector_get(struct X3D_Node*, pnode->_parentVector, i); \
+		if( n != 0 ) AddToSibAffectors(n,pnode); \
 	} \
 }
 
@@ -4506,6 +4520,112 @@ void killNodes()
 		}
 	}
 }
+//will have sibprep_ and sibfin_ functions:
+int isSiblingAffector(struct X3D_Node *node){
+	int ret = 0;
+	switch(node->_nodeType){
+		case NODE_DirectionalLight: //lights are always added, then global is checked on the local pass and skipped if not local
+		case NODE_SpotLight:
+		case NODE_PointLight:
+		case NODE_LocalFog:
+		case NODE_ClipPlane:
+		//case NODE_Effect: //not implemented yet
+		//case NODE_EffectPart: // "
+			ret = 1; break;
+		default:
+			ret = 0; break;
+	}
+	return ret;
+}
+//has _siblingAffector field:
+//(in perl VRMLNodes.pm, __sibAffectors was added after all removeChildren)
+// Proto (scene), Inline, Group, Transform, Anchor, Billboard, Collision,
+// GeoLocation, GeoTransform, HAnimHumanoid, HAnimSite, EspduTransform, CADAssembly, CADLayer, CADPart, 
+// Viewport, Layer, LayoutLayer, LayoutGroup, ScreenGroup, PickableGroup
+// siblingAffector action, but no add/remove children: staticGroup
+//might have _siblingAffector field, but not used: LOD, Switch, HAnimJoint, HAnimSegment, CADLayer
+
+
+int hasSiblingAffectorField(struct X3D_Node *node){
+	//assume everything with AddChildren, RemoveChildren fields qualifies 
+	// and this filter has already been applied ie we are inside AddRemoveChildren
+	int ret = 0;
+	// except:
+	switch(node->_nodeType){
+		case NODE_Proto:
+		case NODE_Inline:
+		case NODE_Group:
+		case NODE_Transform:
+		case NODE_Anchor:
+		case NODE_Billboard:
+		case NODE_Collision:
+		case NODE_GeoLocation:
+		case NODE_GeoTransform:
+		case NODE_HAnimSite:
+		case NODE_HAnimHumanoid:
+		//case NODE_HAnimSegment:
+		//case NODE_HAnimJoint:
+		case NODE_EspduTransform:
+		case NODE_CADAssembly:
+		//case NODE_CADLayer:
+		case NODE_CADPart:
+		case NODE_Viewport:
+		case NODE_Layer:
+		case NODE_LayoutLayer:
+		case NODE_LayoutGroup:
+		case NODE_ScreenGroup:
+		case NODE_PickableGroup:
+		case NODE_StaticGroup:
+			ret = 1; break;
+		default:
+			ret = 0; break;
+	}
+	return ret;
+}
+void *sibAffectorPtr(struct X3D_Node *node){
+	//gets the sibAffectors field from the X3DGrouping node (plus staticGroup)
+	// or returns null if not found
+	void *fieldPtr;
+	int *fieldOffsetsPtr;
+	fieldOffsetsPtr = (int*) NODE_OFFSETS[node->_nodeType];
+	fieldPtr = NULL;
+	while(fieldOffsetsPtr[0] > -1){
+		//printf("foff[0]=%d ft_sas=%d\n",fieldOffsetsPtr[0],FIELDNAMES___sibAffectors);
+		if(fieldOffsetsPtr[0] == FIELDNAMES___sibAffectors){
+			fieldPtr = offsetPointer_deref(char *, node,fieldOffsetsPtr[1]);
+			break;
+		}
+		fieldOffsetsPtr += 5; // &fieldOffsetsPtr[5]; //5 ints per table entry
+	}
+	return fieldPtr;
+}
+void AddToSibAffectors(struct X3D_Node *parent, struct X3D_Node *affector){
+	//called from 2nd, big loop in startofloopnodeupdates to accumulate 
+	// a list of nodes that affect their siblings, to store in parent
+	// as alternate to VK_ flagging parent, and doing 3 full loops over children[] in X3DGrouping child_ functions
+	// - a kind of short list so child_ functions do:
+	//   a short loop (prep_sibAffectors), full loop (normalChildren), short loop (fin_sibAffectors)
+	if(hasSiblingAffectorField(parent) && isSiblingAffector(affector)){
+		struct Multi_Node *safs = sibAffectorPtr(parent);
+		if(safs){
+			safs->p = REALLOC(safs->p,(safs->n+1)*sizeof(struct X3D_Node*));
+			safs->p[safs->n] = affector;
+			safs->n += 1;
+		}
+	}
+}
+void zeroSibAffectors(struct X3D_Node *node){
+	//called from first loop in startofloopnodeupdates
+	//we clear on each frame, then re-populate
+	struct Multi_Node* saf = sibAffectorPtr(node);
+	saf->n = 0; //not freeing p, will realloc in AddToSibAffectors
+	// Q. fragging/memory fragmentation? Multi_Node.nalloc needed?
+	// alternate to reallocs and MF.nalloc: 
+	// 1. here go through p[] and set each one to NULL, but leave n.
+	// 2. then in Add, look for first null, realloc only if too short.
+	// 3. then in prep_sibAffectors and fin_sibAffectors check if entry is null and skip.
+}
+
 //dug9 dec 13 <<
 int needs_updating_Inline(struct X3D_Node *node);
 void update_Inline(struct X3D_Inline *node);
@@ -4571,6 +4691,9 @@ void startOfLoopNodeUpdates(void) {
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_localLight);
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_globalLight);
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Blend);
+			}
+			if(hasSiblingAffectorField(node)){
+				zeroSibAffectors(node);
 			}
 		}
 	}
@@ -4690,26 +4813,44 @@ void startOfLoopNodeUpdates(void) {
 					if (X3D_DIRECTIONALLIGHT(node)->on) {
 						if (X3D_DIRECTIONALLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
-						else
-							LOCAL_LIGHT_PARENT_FLAG
+						else{
+							//LOCAL_LIGHT_PARENT_FLAG
+							ADD_TO_PARENT_SIBAFFECTORS
+						}
 					}
 				END_NODE
 				BEGIN_NODE(SpotLight)
 					if (X3D_SPOTLIGHT(node)->on) {
 						if (X3D_SPOTLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
-						else
-							LOCAL_LIGHT_PARENT_FLAG
+						else{
+							//LOCAL_LIGHT_PARENT_FLAG
+							ADD_TO_PARENT_SIBAFFECTORS
+						}
 					}
 				END_NODE
 				BEGIN_NODE(PointLight)
 					if (X3D_POINTLIGHT(node)->on) {
 						if (X3D_POINTLIGHT(node)->global)
 							update_renderFlag(pnode,VF_globalLight);
-						else
-							LOCAL_LIGHT_PARENT_FLAG
+						else{
+							//LOCAL_LIGHT_PARENT_FLAG
+							ADD_TO_PARENT_SIBAFFECTORS
+						}
 					}
 				END_NODE
+				BEGIN_NODE(LocalFog)
+					ADD_TO_PARENT_SIBAFFECTORS
+				END_NODE
+				BEGIN_NODE(ClipPlane)
+					ADD_TO_PARENT_SIBAFFECTORS
+				END_NODE
+				//BEGIN_NODE(Effect)
+				//	ADD_TO_PARENT_SIBAFFECTORS
+				//END_NODE
+				//BEGIN_NODE(EffectPart)
+				//	ADD_TO_PARENT_SIBAFFECTORS
+				//END_NODE
 
 
 				/* some nodes, like Extrusions, have "set_" fields same as normal internal fields,
@@ -4796,12 +4937,13 @@ void startOfLoopNodeUpdates(void) {
 				END_NODE
 
 				/* maybe this is the current Viewpoint? */
-				BEGIN_NODE(Viewpoint) VIEWPOINT(Viewpoint) END_NODE
-				BEGIN_NODE(OrthoViewpoint) VIEWPOINT(OrthoViewpoint) END_NODE
-				BEGIN_NODE(GeoViewpoint) VIEWPOINT(GeoViewpoint) END_NODE
+				BEGIN_NODE(Viewpoint) BINDABLE(Viewpoint) END_NODE
+				BEGIN_NODE(OrthoViewpoint) BINDABLE(OrthoViewpoint) END_NODE
+				BEGIN_NODE(GeoViewpoint) BINDABLE(GeoViewpoint) END_NODE
 
 				BEGIN_NODE(NavigationInfo)
-					render_NavigationInfo ((struct X3D_NavigationInfo *)node);
+					//render_NavigationInfo ((struct X3D_NavigationInfo *)node);
+					BINDABLE(NavigationInfo)
 				END_NODE
 
 				BEGIN_NODE(StaticGroup)
@@ -4906,15 +5048,18 @@ void startOfLoopNodeUpdates(void) {
 
 				/* Backgrounds, Fog */
 				BEGIN_NODE(Background)
-					if (X3D_BACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
+					BINDABLE(Background)
+					//if (X3D_BACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 				BEGIN_NODE(TextureBackground)
-					if (X3D_TEXTUREBACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
+					BINDABLE(TextureBackground)
+					//if (X3D_TEXTUREBACKGROUND(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 				BEGIN_NODE(Fog)
-					if (X3D_FOG(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
+					BINDABLE(Fog)
+					//if (X3D_FOG(node)->isBound) update_renderFlag (X3D_NODE(pnode),VF_hasVisibleChildren);
 				END_NODE
 
 
@@ -5044,24 +5189,27 @@ void startOfLoopNodeUpdates(void) {
 			if (*setBindPtr < 100) {
 				/* up_vector is reset after a bind */
 				//if (*setBindPtr==1) reset_upvector();
-				bind_node (node, getActiveBindableStacks(tg)->viewpoint);
+				send_bind_to(node,*setBindPtr);
+				//if(0){
+				//bind_node (node, getActiveBindableStacks(tg)->viewpoint);
 
-				//dug9 added July 24, 2009: when you bind, it should set the
-				//avatar to the newly bound viewpoint pose and forget any
-				// cumulative avatar navigation from the last viewpoint parent
-				if (node->_nodeType==NODE_Viewpoint) {
-					struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
-					bind_Viewpoint(vp);
-					setMenuStatusVP (vp->description->strptr);
-				} else if (node->_nodeType==NODE_OrthoViewpoint) {
-					struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
-					bind_OrthoViewpoint(ovp);
-					setMenuStatusVP (ovp->description->strptr);
-				} else {
-					struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
-					bind_GeoViewpoint(gvp);
-					setMenuStatusVP (gvp->description->strptr);
-				}
+				////dug9 added July 24, 2009: when you bind, it should set the
+				////avatar to the newly bound viewpoint pose and forget any
+				//// cumulative avatar navigation from the last viewpoint parent
+				//if (node->_nodeType==NODE_Viewpoint) {
+				//	struct X3D_Viewpoint* vp = (struct X3D_Viewpoint *) node;
+				//	bind_Viewpoint(vp);
+				//	setMenuStatusVP (vp->description->strptr);
+				//} else if (node->_nodeType==NODE_OrthoViewpoint) {
+				//	struct X3D_OrthoViewpoint *ovp = (struct X3D_OrthoViewpoint *) node;
+				//	bind_OrthoViewpoint(ovp);
+				//	setMenuStatusVP (ovp->description->strptr);
+				//} else {
+				//	struct X3D_GeoViewpoint *gvp = (struct X3D_GeoViewpoint *) node;
+				//	bind_GeoViewpoint(gvp);
+				//	setMenuStatusVP (gvp->description->strptr);
+				//}
+				//}
 			}
 			setBindPtr = NULL;
 		}
@@ -6159,6 +6307,39 @@ if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
 if (me->myMat != -1) { GLUNIFORM1I(me->myMat,myVal);}
 
 
+//struct fogParams \n\
+//{  \n\
+//  vec4 fogColor; \n\
+//  float visibilityRange; \n\
+//  float fogScale; \n\
+//  int fogType; // 0 None, 1= FOGTYPE_LINEAR, 2 = FOGTYPE_EXPONENTIAL \n\
+//  // ifdefed int haveFogCoords; \n\
+//} fogParams; \n\
+//uniform fogParams fw_fogparams; \n\
+//#ifdef FOGCOORD \n\
+//attribute vec3 fw_FogCoords; \n\
+	//GLint fogColor;  //Aug 2016
+	//GLint fogvisibilityRange;
+	//GLint fogScale;
+	//GLint fogType;
+	//GLint fogHaveCoords;
+struct X3D_Node *getFogParams();
+void sendFogToShader(s_shader_capabilities_t *me) {
+	float color4[4];
+	struct X3D_Fog *fog = (struct X3D_Fog*) getFogParams(); //gets it from the fog stack, LocalFog and Fog are upcast to Fog: perl first fields in same order
+	if(!fog) return;
+
+	profile_start("sendvec");
+	memcpy(color4,fog->color.c,sizeof(float)*3);
+	color4[3] = 1.0;
+	SEND_VEC4(fogColor,color4);
+	SEND_FLOAT(fogvisibilityRange,fog->visibilityRange*fog->__fogScale);
+	SEND_FLOAT(fogScale,1.0f); //fog->__fogScale); 
+	SEND_INT(fogType,fog->__fogType);
+	//SEND_INT(fogHaveCoords,fogparams->haveCoords);
+	profile_end("sendvec");
+
+}
 
 void sendMaterialsToShader(s_shader_capabilities_t *me) {
 	struct matpropstruct *myap = getAppearanceProperties();
