@@ -4581,6 +4581,8 @@ int hasSiblingAffectorField(struct X3D_Node *node){
 	return ret;
 }
 void *sibAffectorPtr(struct X3D_Node *node){
+	//gets the sibAffectors field from the X3DGrouping node (plus staticGroup)
+	// or returns null if not found
 	void *fieldPtr;
 	int *fieldOffsetsPtr;
 	fieldOffsetsPtr = (int*) NODE_OFFSETS[node->_nodeType];
@@ -4596,6 +4598,11 @@ void *sibAffectorPtr(struct X3D_Node *node){
 	return fieldPtr;
 }
 void AddToSibAffectors(struct X3D_Node *parent, struct X3D_Node *affector){
+	//called from 2nd, big loop in startofloopnodeupdates to accumulate 
+	// a list of nodes that affect their siblings, to store in parent
+	// as alternate to VK_ flagging parent, and doing 3 full loops over children[] in X3DGrouping child_ functions
+	// - a kind of short list so child_ functions do:
+	//   a short loop (prep_sibAffectors), full loop (normalChildren), short loop (fin_sibAffectors)
 	if(hasSiblingAffectorField(parent) && isSiblingAffector(affector)){
 		struct Multi_Node *safs = sibAffectorPtr(parent);
 		if(safs){
@@ -4605,6 +4612,18 @@ void AddToSibAffectors(struct X3D_Node *parent, struct X3D_Node *affector){
 		}
 	}
 }
+void zeroSibAffectors(struct X3D_Node *node){
+	//called from first loop in startofloopnodeupdates
+	//we clear on each frame, then re-populate
+	struct Multi_Node* saf = sibAffectorPtr(node);
+	saf->n = 0; //not freeing p, will realloc in AddToSibAffectors
+	// Q. fragging/memory fragmentation? Multi_Node.nalloc needed?
+	// alternate to reallocs and MF.nalloc: 
+	// 1. here go through p[] and set each one to NULL, but leave n.
+	// 2. then in Add, look for first null, realloc only if too short.
+	// 3. then in prep_sibAffectors and fin_sibAffectors check if entry is null and skip.
+}
+
 //dug9 dec 13 <<
 int needs_updating_Inline(struct X3D_Node *node);
 void update_Inline(struct X3D_Inline *node);
@@ -4670,6 +4689,9 @@ void startOfLoopNodeUpdates(void) {
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_localLight);
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_globalLight);
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Blend);
+			}
+			if(hasSiblingAffectorField(node)){
+				zeroSibAffectors(node);
 			}
 		}
 	}
@@ -4767,13 +4789,6 @@ void startOfLoopNodeUpdates(void) {
 					LOCK_MEMORYTABLE
 					node = getTypeNode(pnode);
 				}
-			if (node != NULL){
-				if(hasSiblingAffectorField(node)){
-					//we clear on each frame, then re-populate
-					struct Multi_Node* saf = sibAffectorPtr(node);
-					saf->n = 0; //not freeing p, will realloc below in ADD_TO_SIBLING_AFFECTORS (fragging? Multi_Node.nalloc needed?)
-				}
-			}
 			if (node != NULL)
 			//switch (node->_nodeType) { //- dug9 dec 13
 			switch (node->_nodeType) { //+ dug9 dec 13

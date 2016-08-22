@@ -53,7 +53,8 @@ http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/
 - NancyStandShootRifleM24.x3d	good				anim good, skin bad
 HAnim Prototypes:
 http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/_pages/page11.html
-
+HAnim examples:
+http://www.web3d.org/x3d/content/examples/Basic/#HumanoidAnimation
 Specs:
 http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/hanim.html
 These specs don't articulate the field meanings, instead point to an ISO doc:
