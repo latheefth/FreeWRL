@@ -816,8 +816,8 @@ void child_Shape (struct X3D_Shape *node) {
 			//Aug 6, 2016, dug9: OK here now we have the parameters for where builtin shader
 			//should get some things.
 			isLit = color_alpha_source(node->appearance,tmpNG,&colorSource,&alphaSource,&channels);
-			if(channels > -1 && !once){
-				//handy for debugging simple flies, but too noisy for production
+			if(channels > 0 && !once){
+				//handy for debugging simple flies, but too noisy for production, so only once per program run
 				ConsoleMessage("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
 				once = 1;
 			}
