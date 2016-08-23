@@ -491,7 +491,7 @@ typedef struct pstatusbar{
 	char messagebar[200];
 	int bmfontsize;// = 2; /* 0,1 or 2 */
 	int optionsLoaded;// = 0;
-	char * optionsVal[25];
+	char * optionsVal[30];
 	int osystem;// = 3; //mac 1btn = 0, mac nbutton = 1, linux game descent = 2, windows =3
 	XY bmWH;// = {10,15}; /* simple bitmap font from redbook above, width and height in pixels */
 	int bmScale; //1 or 2 for the hud pixel fonts, changes between ..ForOptions and ..Regular 
@@ -599,7 +599,7 @@ void initProgramObject(){
    p->textureLoc = glGetUniformLocation ( p->programObject, "Texture0" );
    p->color4fLoc = glGetUniformLocation ( p->programObject, "Color4f" );
 }
-static int lenOptions   = 24;
+static int lenOptions   = 26;
 void statusbar_clear(struct tstatusbar *t){
 	//public
 	//private
@@ -903,6 +903,8 @@ char * optionsText[] = {
 "pickray eye:",
 "  left  right  either",
 "screen orientation \36    \37",
+"shading style:",
+"  flat  gouraud  phong  wire",
 NULL,
 };
 //0123456789012345678901234567890
@@ -931,7 +933,7 @@ int fwl_getOrientation2();
 void fwl_setOrientation2(int degrees);
 void initOptionsVal()
 {
-	int i,j,k, iside, ieither;
+	int i,j,k, iside, ieither, shadingStyle;
 	X3D_Viewer *viewer;
 	ppstatusbar p = (ppstatusbar)gglobal()->statusbar.prv;
 	viewer = Viewer();
@@ -982,6 +984,16 @@ void initOptionsVal()
 	else p->optionsVal[22][7] = 035;
 	if(ieither) p->optionsVal[22][14] = 035;
 	sprintf(p->optionsVal[23],"                    %4d",fwl_getOrientation2());
+	shadingStyle = fwl_getShadingStyle();
+	p->optionsVal[25][1] = p->optionsVal[25][7] = p->optionsVal[25][16] = p->optionsVal[25][23] =034;
+	switch(shadingStyle){
+		case 0: p->optionsVal[25][1]  = 035; break;
+		case 1: p->optionsVal[25][7]  = 035; break;
+		case 2: p->optionsVal[25][16] = 035; break;
+		case 3: p->optionsVal[25][23] = 035; break;
+		default:
+			break;
+	}
 
 	p->optionsLoaded = 1;
 }
@@ -1017,6 +1029,8 @@ char * optionsCase[] = {
 " ",
 "MM    NN     OO",
 "                  PP    QQ",
+" ",
+"RR    SS       TT     UU",
 NULL,
 };
 
@@ -1132,7 +1146,7 @@ int handleOptionPress(int mouseX, int mouseY)
 	/* we're clicking a sensitive area.  */
 	switch(opt) 
 	{
-	case 'T': {
+	case '?': {
 		/* EAI */
 		/* Note, this is actually useless (I suspect) because the EAI would already have started / (or ignored) */
 		printf("toggle EAI");
@@ -1258,6 +1272,16 @@ int handleOptionPress(int mouseX, int mouseY)
 		break;
 	case 'Q':
 		fwl_setOrientation2( (fwl_getOrientation2() + 360 -90) % 360); 
+		break;
+	case 'R':
+	case 'S':
+	case 'T':
+	case 'U':
+		{
+			int shadingStyle;
+			shadingStyle = opt - 'R';
+			fwl_setShadingStyle(shadingStyle);
+		}
 		break;
 	default: 
 		break;

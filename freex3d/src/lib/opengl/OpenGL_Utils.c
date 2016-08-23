@@ -95,7 +95,7 @@ int unload_broto(struct X3D_Proto* node);
 
 static void mesa_Ortho(GLDOUBLE left, GLDOUBLE right, GLDOUBLE bottom, GLDOUBLE top, GLDOUBLE nearZ, GLDOUBLE farZ, GLDOUBLE *m);
 static void getShaderCommonInterfaces (s_shader_capabilities_t *me);
-static void makeAndCompileShader(struct shaderTableEntry *,bool);
+static void makeAndCompileShader(struct shaderTableEntry *);
 
 ///* is this 24 bit depth? 16? 8?? Assume 24, unless set on opening */
 //int displayDepth = 24;
@@ -148,7 +148,8 @@ typedef struct pOpenGL_Utils{
 	char *userDefinedFragmentShader[MAX_USER_DEFINED_SHADERS];
 	char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
 
-	bool usePhongShaders; /* phong shaders == better rendering, but slower */
+	int usePhongShaders; /* phong shaders == better rendering, but slower */
+	int shadingStyle; //0=flat, 1=gouraud, 2=phong 3=wireframe
 	int maxStackUsed;
 }* ppOpenGL_Utils;
 
@@ -261,7 +262,8 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 
 		// usePhongShaders set to false for now. Can be changed
 		// during runtime, then re-build shaders.
-		p->usePhongShaders = false;
+		p->usePhongShaders = FALSE;
+		p->shadingStyle = 1; //0=flat, 1=gouraud (default), 2=phong, 3=wireframe
 		//ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
 		p->maxStackUsed = 0;
 	}
@@ -1294,14 +1296,34 @@ void setglClearColor (float *val) {
 	tg->OpenGL_Utils.cc_changed = TRUE;
 }
 
+void fwl_setShadingStyle(int val) {
+	//0=flat 1=gouraud 2=phong 3=wireframe
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+	p->shadingStyle = val;
+	if(val == 2)
+		p->usePhongShaders = val;
+	else
+		p->usePhongShaders = FALSE;
+}
+
+int fwl_getShadingStyle () {
+	ppOpenGL_Utils p;
+	ttglobal tg = gglobal();
+	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+	return p->shadingStyle;
+}
+
 // use phong shading - better light reflectivity if set to true
 void fwl_set_phongShading (int val) {
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 	p->usePhongShaders = val;
+	if(val) p->shadingStyle = 2;
+	else p->shadingStyle = 1;
 }
-
 
 int fwl_get_phongShading () {
 	ppOpenGL_Utils p;
@@ -1466,7 +1488,7 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
 	new->myCapabilities = MALLOC(s_shader_capabilities_t*, sizeof (s_shader_capabilities_t));
 
 	//ConsoleMessage ("going to compile new shader for %x",rq_cap);
-	makeAndCompileShader(new,p->usePhongShaders);
+	makeAndCompileShader(new);
 
 	vector_pushBack(struct shaderTableEntry*, myShaderTable, new);
 
@@ -2132,7 +2154,7 @@ const static GLchar *pointSizeAss="gl_PointSize = pointSize; \n";
 
 
 static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEndMarker], 
-	const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne, int usePhongShading) {
+	const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne) {
 
 	bool doThis;
 	bool didADSLmaterial;
@@ -2297,7 +2319,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		if(Viewer()->anaglyph || Viewer()->anaglyphB)
 			fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
 		else {
-			if (usePhongShading) fragmentSource[fragmentMainEnd] = discardInFragEnd;
+			if (DESIRE(whichOne,SHADINGSTYLE_PHONG)) fragmentSource[fragmentMainEnd] = discardInFragEnd;
 			else fragmentSource[fragmentMainEnd] = fragEnd;
 			//fragmentSource[fragmentMainEnd] = discardInFragEnd;
 		}
@@ -2328,7 +2350,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		/* One or TWO material no texture shaders - one material, choose between
 			Phong shading (slower) or Gouraud shading (faster). */
 
-		if (usePhongShading) {
+		if (DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
 			doThis = (DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) ||
 				(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER));
 		} else {
@@ -2353,7 +2375,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		/* TWO_MATERIAL_APPEARANCE_SHADER - this does not crop up
 				that often, so just use the PHONG shader. */
 		didADSLmaterial = false;
-		if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!usePhongShading)) {
+		if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!DESIRE(whichOne,SHADINGSTYLE_PHONG))) {
 			vertexSource[vertexNormalDeclare] = vertNormDec;
 			vertexSource[vertexLightDefines] = lightDefines0;
 			vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
@@ -2548,26 +2570,24 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 
 //see Composite_Shading.c for CastlePlugs details.
 int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
-	const GLchar **fragmentSource, unsigned int whichOne, int usePhongShading);
+	const GLchar **fragmentSource, unsigned int whichOne);
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], 
-		unsigned int whichOne, int usePhongShading) {
+		unsigned int whichOne) {
 	int iret, userDefined, usingCastlePlugs = 1;
 	userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
 
-	if(usingCastlePlugs && !userDefined && !usePhongShading){
+	if(usingCastlePlugs && !userDefined && !DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
 		//new Aug 2016 castle plugs
-		if(Viewer()->anaglyph || Viewer()->anaglyphB)
-			whichOne |= WANT_ANAGLYPH;  //in theory, this bitflag could be set in render_hier in the new Aug2016 shaderFlags stack 
-		iret = getSpecificShaderSourceCastlePlugs(vertexSource, fragmentSource, whichOne,usePhongShading);
+		iret = getSpecificShaderSourceCastlePlugs(vertexSource, fragmentSource, whichOne);
 	}else{
-		iret = getSpecificShaderSourceOriginal(vertexSource, fragmentSource, whichOne,usePhongShading);
+		iret = getSpecificShaderSourceOriginal(vertexSource, fragmentSource, whichOne);
 	}
 	return iret;
 }
 
 
-static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading) {
+static void makeAndCompileShader(struct shaderTableEntry *me) {
 
 	GLint success;
 	GLuint myVertexShader = 0;
@@ -2601,7 +2621,7 @@ static void makeAndCompileShader(struct shaderTableEntry *me, bool phongShading)
 	(*myShader).compiledOK = FALSE;
 
 	/* we put the sources in 2 formats, allows for differing GL/GLES prefixes */
-	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne, phongShading)) {
+	if (!getSpecificShaderSource(vertexSource, fragmentSource, me->whichOne)) {
 		return;
 	}
 

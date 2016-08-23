@@ -1761,9 +1761,59 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 			vector_popBack(struct X3D_Node*, child->_parentVector);
 	}
 }
+#include "../x3d_parser/Bindable.h"
+void push_globalRenderFlags(){
+	//call in render_hier for geom or blend passes
+	unsigned int shaderflags;
+	ttglobal tg = gglobal();
+	shaderflags = getShaderFlags(); //take a copy (which should be 0000000 at root level)
 
-void
-render_hier(struct X3D_Node *g, int rwhat) {
+	//modify copy
+	//A. if there's a bound (non local) fog, copy its state to fog_state
+	if(vectorSize(getActiveBindableStacks(tg)->fog) > 0){
+		//there's a bound fog, bound fogs are enabled
+		struct X3D_Fog *fog = stack_top(struct X3D_Fog*,getActiveBindableStacks(tg)->fog);
+		if(fog->visibilityRange > 0.0f){
+			//enabled
+			//set fog bit in renderflags
+			shaderflags |= FOG_APPEARANCE_SHADER;
+			//push fogparams
+			pushFogParams((struct X3D_Node*)fog);
+		}
+	}
+	//B. Anaglyph?
+	if(Viewer()->anaglyph || Viewer()->anaglyphB)
+		shaderflags |= WANT_ANAGLYPH;
+
+	//C. ShadingStyle ie 0 flat, 1 gouraud, 2 phong, 3 wire
+	switch(fwl_getShadingStyle()){
+		case 0: shaderflags |= SHADINGSTYLE_FLAT; break;
+		case 1: shaderflags |= SHADINGSTYLE_GOURAUD; break;
+		case 2: shaderflags |= SHADINGSTYLE_PHONG; break;
+		case 3: shaderflags |= SHADINGSTYLE_WIRE; break;
+		default:
+			shaderflags |= SHADINGSTYLE_GOURAUD; break;
+	}
+
+	pushShaderFlags(shaderflags); //push nodified copy
+}
+void pop_globalRenderFlags(){
+	//call after render_hier for geom or blend passes
+	ttglobal tg = gglobal();
+
+	popShaderFlags(); //pop modified copy
+
+	//A. Fog, pop its stack only if it was pushed in push_globalRenderFlags
+	if(vectorSize(getActiveBindableStacks(tg)->fog) > 0){
+		struct X3D_Fog *fog = stack_top(struct X3D_Fog*,getActiveBindableStacks(tg)->fog);
+		if(fog->visibilityRange > 0.0f){
+			//enabled
+			//pop fogParms
+			popFogParams();
+		}
+	}
+}
+void render_hier(struct X3D_Node *g, int rwhat) {
 	/// not needed now - see below struct point_XYZ upvec = {0,1,0};
 	/// not needed now - see below GLDOUBLE modelMatrix[16];
 
@@ -1811,13 +1861,14 @@ render_hier(struct X3D_Node *g, int rwhat) {
 		upd_ray();
 	}
 	if(rs->render_blend || rs->render_geom){
-		push_boundFog();
+		push_globalRenderFlags();
+
 	}
 	profile_start("render_hier");
 	render_node(X3D_NODE(g));
 	profile_end("render_hier");
 	if(rs->render_blend || rs->render_geom){
-		pop_boundFog();
+		pop_globalRenderFlags();
 	}
 	popShaderFlags();
 
