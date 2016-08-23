@@ -38,6 +38,7 @@
 #include "../opengl/OpenGL_Utils.h"
 #include "../opengl/Textures.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/Component_Shape.h"
 
 #include "Polyrep.h"
 
@@ -465,7 +466,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 
 			do_glNormal3fv(&newnorms[i], r->normal+3*nori);
 		}
-
+		
 		if(hasc) {
 			if(ncolors) {
 				/* ColorMaterial -> these set Material too */
@@ -580,6 +581,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	r->actualCoord = (float *)newpoints;
 	FREE_IF_NZ(r->normal);
 	r->normal = (float *)newnorms;
+	FREE_IF_NZ(r->flat_normal);
 	FREE_IF_NZ(r->cindex);
 	r->cindex = newcindex;
 	FREE_IF_NZ(r->actualFog);
@@ -626,7 +628,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		if (r->VBO_buffers[NORMAL_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[NORMAL_VBO]);
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[NORMAL_VBO]);
 		glBufferData(GL_ARRAY_BUFFER,r->ntri*sizeof(struct SFColor)*3,r->normal, GL_STATIC_DRAW);
-		FREE_IF_NZ(r->normal);
+		//FREE_IF_NZ(r->normal);
 	}
 
 	if (r->color) {
@@ -648,10 +650,11 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 
 	// OpenGL ES can use GL_UNSIGNED_SHORT or GL_UNSIGNED_BYTE for glDrawElements; force the indices to be this way.
 	{
-		GLushort *myindicies = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3);
+		//normal surface triangles
+		r->tri_indices = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3);
 
 		int i;
-		GLushort *to = myindicies;
+		GLushort *to = r->tri_indices;
 		unsigned int *from = r->cindex;
 
 		for (i=0; i<r->ntri*3; i++) {
@@ -659,8 +662,49 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 			*to = (GLushort) *from; to++; from++;
 		}
  
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3,myindicies,GL_STATIC_DRAW); /* OpenGL-ES */
-		FREE_IF_NZ(myindicies);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3,r->tri_indices,GL_STATIC_DRAW); /* OpenGL-ES */
+		//FREE_IF_NZ(myindicies);
+	}
+	{
+		//wireframe lines - prepare in case
+		int i, i3, i6;
+		GLushort *lindex = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3*2);
+		
+		for(i=0;i<r->ntri;i++){
+			i3 = i*3;
+			i6 = i*6;
+			lindex[i6+0] = i3 + 0;
+			lindex[i6+1] = i3 + 1;
+			lindex[i6+2] = i3 + 1;
+			lindex[i6+3] = i3 + 2;
+			lindex[i6+4] = i3 + 2;
+			lindex[i6+5] = i3 + 0;
+		}
+		//we just save them, don't set them here. 
+		r->wire_indices = lindex;
+		//then in Polyrep, when drawing on each frame, if we go into SHADINGSTYLE_WIRE then
+		// we swap in wire indices without coming back here
+		//glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3*2,r->wire_indices,GL_STATIC_DRAW); /* OpenGL-ES */
+		//FREE_IF_NZ(myindicies);
+	}
+	{
+		//prepare flat normals / face normals for SHADINGSTYLE_FLAT
+		int i9;
+		r->flat_normal = MALLOC(GLfloat*,r->ntri*sizeof(struct SFColor)*3);
+		for(i=0;i<r->ntri;i++){
+			float a[3],b[3],c[3],d[3], e[3], f[3], g[3];
+			i9 = i*9; //9 floats per triangle
+			memcpy(a,&r->actualCoord[i9 +0],sizeof(struct SFColor));
+			memcpy(b,&r->actualCoord[i9 +3],sizeof(struct SFColor));
+			memcpy(c,&r->actualCoord[i9 +6],sizeof(struct SFColor));
+			vecdif3f(d,b,a);
+			vecdif3f(e,c,a);
+			veccross3f(f,d,e);
+			vecnormalize3f(g,f);
+			memcpy(&r->flat_normal[i9 +0],g,sizeof(struct SFColor));
+			memcpy(&r->flat_normal[i9 +3],g,sizeof(struct SFColor));
+			memcpy(&r->flat_normal[i9 +6],g,sizeof(struct SFColor));
+		}
 	}
 		// Can we free this here, or do we need it later? FREE_IF_NZ(r->cindex);
 

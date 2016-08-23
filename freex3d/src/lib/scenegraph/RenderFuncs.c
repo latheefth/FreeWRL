@@ -760,68 +760,64 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 
 
 
-static bool setupShader() {
+bool setupShader() {
 
-    s_shader_capabilities_t *mysp = getAppearanceProperties()->currentShaderProperties;
+	s_shader_capabilities_t *mysp = getAppearanceProperties()->currentShaderProperties;
 
 PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
-	if (mysp == NULL) return FALSE;
-        
+	if (mysp == NULL) 
+		return FALSE;
 
-		/* if we had a shader compile problem, do not draw */
-		if (!(mysp->compiledOK)) {
+	/* if we had a shader compile problem, do not draw */
+	if (!(mysp->compiledOK)) {
 #ifdef RENDERVERBOSE
-			printf ("shader compile error\n");
+		printf ("shader compile error\n");
 #endif
-			PRINT_GL_ERROR_IF_ANY("EXIT(false) setupShader");
-			return false;
-		}
-       
+		PRINT_GL_ERROR_IF_ANY("EXIT(false) setupShader");
+		return false;
+	}
+
 #ifdef RENDERVERBOSE
-        printf ("setupShader, we have Normals %d Vertices %d Colours %d TexCoords %d \n",
-                mysp->Normals,
-                mysp->Vertices,
-                mysp->Colours,
-                mysp->TexCoords);
-           
+	printf ("setupShader, we have Normals %d Vertices %d Colours %d TexCoords %d \n",
+		mysp->Normals,
+		mysp->Vertices,
+		mysp->Colours,
+		mysp->TexCoords);
 #endif
 
-        
-        /* send along lighting, material, other visible properties */
-		sendFogToShader(mysp);
-        sendMaterialsToShader(mysp);
-        sendMatriciesToShader(mysp);
-    
-    return true;
-    
+	/* send along lighting, material, other visible properties */
+	sendFogToShader(mysp);
+	sendMaterialsToShader(mysp);
+	sendMatriciesToShader(mysp);
+
+	return true;
 }
 
 
 void sendArraysToGPU (int mode, int first, int count) {
-#ifdef RENDERVERBOSE
+	#ifdef RENDERVERBOSE
 	printf ("sendArraysToGPU start\n"); 
-#endif
-
+	#endif
 
 	// when glDrawArrays bombs it's usually some function left an array
 	// enabled that's not supposed to be - try disabling something
-//glDisableClientState(GL_VERTEX_ARRAY);
-//glDisableClientState(GL_NORMAL_ARRAY);
-//glDisableClientState(GL_INDEX_ARRAY);
-//glDisableClientState(GL_COLOR_ARRAY);
-//glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-//glDisableClientState(GL_FOG_COORDINATE_ARRAY);
-//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-//glDisableClientState(GL_EDGE_FLAG_ARRAY);
+	//glDisableClientState(GL_VERTEX_ARRAY);
+	//glDisableClientState(GL_NORMAL_ARRAY);
+	//glDisableClientState(GL_INDEX_ARRAY);
+	//glDisableClientState(GL_COLOR_ARRAY);
+	//glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+	//glDisableClientState(GL_FOG_COORDINATE_ARRAY);
+	//glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	//glDisableClientState(GL_EDGE_FLAG_ARRAY);
 
 	if (setupShader()){
 		profile_start("draw_arr");
 		glDrawArrays(mode,first,count);
 		profile_end("draw_arr");
 	}
-    #ifdef RENDERVERBOSE
+	#ifdef RENDERVERBOSE
 	printf ("sendArraysToGPU end\n"); 
-    #endif
+	#endif
 }
 
 

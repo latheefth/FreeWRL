@@ -96,6 +96,7 @@ void fv_usage()
 		"  -I|--pin TF             Pin statusbar(T/F) menubar(T/F)\n"	
 		"  -w|--want TF            Want statusbar(T/F) menubar(T/F)\n"	
 		"  -E|--FPS <int>          Target Maximum Frames Per Second\n"	
+		"  =^|--shadingStyle <int> 0=Flat 1=gouraud 2=phong 3=wire\n"
 		"  -N|--nametest <string>  Set name of .fwplay test file\n"
 	    "\nInternal options:\n"
 	    "  -i|--plugin <string>    Called from plugin.\n"
@@ -165,6 +166,7 @@ const char * fv_validate_string_arg(const char *optarg)
 	{"nametest", required_argument, 0, 'N'},
 	{"colorscheme", required_argument, 0, 'G'},
 	{"colors", required_argument, 0, 'H'},
+	{"shadingStyle",required_argument,0,'^'},
 	{0, 0, 0, 0}
     };
 
@@ -423,7 +425,12 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 	case 'w': /* --want TF */
 		fwl_set_sbh_want_option(optarg);
 		break;
-
+	case '^': /* --shadingStyle 0=Flat 1=Gouraud 2=Phong 3=wire */
+		{ 
+			int ival = optarg[0] - '0';
+			fwl_setShadingStyle(max(min(ival,3),0));
+		}
+		break;
 	case 'E': /* --FPS, required argument: int */
 	    sscanf(optarg,"%d", &itmp);
 	    fwl_set_target_fps(itmp);
