@@ -521,9 +521,11 @@ struct X3D_PolyRep * create_polyrep(){
 	polyrep = MALLOC(struct X3D_PolyRep *, sizeof(struct X3D_PolyRep));
 	polyrep->ntri = -1;
 	polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
-	polyrep->norindex = 0; polyrep->normal = 0; polyrep->GeneratedTexCoords = 0;
+	polyrep->norindex = 0; polyrep->normal = 0; polyrep->flat_normal = 0; polyrep->GeneratedTexCoords = 0;
+	polyrep->tri_indices = 0; polyrep->wire_indices = 0; polyrep->actualFog = 0;
 	polyrep->tcindex = 0; 
 	polyrep->tcoordtype = 0;
+	polyrep->last_index_type = 0; polyrep->last_normal_type = 0;
 	polyrep->streamed = FALSE;
 
 	/* for Collision, default texture generation */

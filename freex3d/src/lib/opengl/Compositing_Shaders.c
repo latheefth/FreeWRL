@@ -1144,13 +1144,13 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		//if(isLit)
 		AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
 		AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
-		if(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
-			AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
 		AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
 		Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
+		if(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
+			AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
 	}
 	//lines and points 
-	if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
+	if( DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) ) {
 		AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
 		AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
 		AddDefine(SHADERPART_VERTEX,"LINE",CompleteCode);

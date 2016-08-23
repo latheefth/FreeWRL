@@ -769,6 +769,7 @@ void do_glNormal3fv(struct SFVec3f *dest, GLfloat *param) {
  * for some nodes
  *
  ********************************************************************/
+#define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 
 void render_polyrep(void *node) {
 	//struct X3D_Virt *virt;
@@ -828,10 +829,20 @@ void render_polyrep(void *node) {
     }
 
 	/*  status bar, text do not have normals*/
-	if (pr->VBO_buffers[NORMAL_VBO]!=0) {
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
+	if (pr->VBO_buffers[NORMAL_VBO]!=0 ) { 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[NORMAL_VBO]);
 		FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
-    } 
+		if(DESIRE(getShaderFlags(),SHADINGSTYLE_FLAT) ) {
+			if(pr->last_normal_type != 1) 
+				glBufferData(GL_ARRAY_BUFFER,sizeof (GLfloat)*3*pr->ntri*3,pr->flat_normal,GL_STATIC_DRAW); /* OpenGL-ES */
+			pr->last_normal_type = 1;
+		}else {
+			if(pr->last_normal_type != 0)
+				glBufferData(GL_ARRAY_BUFFER,sizeof (GLfloat)*3*pr->ntri*3,pr->normal,GL_STATIC_DRAW); /* OpenGL-ES */
+			pr->last_normal_type = 0;
+		}
+    }
 
 	if (pr->VBO_buffers[FOG_VBO]!=0) {
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[FOG_VBO]);
@@ -859,7 +870,21 @@ void render_polyrep(void *node) {
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,pr->VBO_buffers[INDEX_VBO]);
 	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
 
-	sendArraysToGPU(GL_TRIANGLES,0,pr->ntri*3);
+	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+		//wireframe triangles
+		if(pr->last_index_type != 1)
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*pr->ntri*3*2,pr->wire_indices,GL_STATIC_DRAW); /* OpenGL-ES */
+		pr->last_index_type = 1;
+		//if (setupShader())
+		//	glDrawElements(GL_LINES, pr->ntri*3*2, GL_UNSIGNED_SHORT, NULL);
+		sendElementsToGPU(GL_LINES,pr->ntri*3*2,NULL);
+	}else{
+		//normal 
+		if(pr->last_index_type != 0)
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*pr->ntri*3,pr->tri_indices,GL_STATIC_DRAW); /* OpenGL-ES */
+		pr->last_index_type = 0;
+		sendArraysToGPU(GL_TRIANGLES,0,pr->ntri*3);
+	}
 
 	/* turn VBOs off for now */
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
@@ -1088,10 +1113,13 @@ void compile_polyrep(void *innode, void *coord, void *fogCoord, void *color, voi
 		polyrep = node->_intern;
 		polyrep->ntri = -1;
 		polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
-		polyrep->norindex = 0; polyrep->normal = 0; polyrep->GeneratedTexCoords = 0;
+		polyrep->norindex = 0; polyrep->normal = 0; polyrep->flat_normal = 0; polyrep->GeneratedTexCoords = 0;
+		polyrep->tri_indices = 0; polyrep->wire_indices = 0; polyrep->actualFog =  0;
 		polyrep->tcindex = 0; 
 		polyrep->tcoordtype = 0;
 		polyrep->streamed = FALSE;
+		polyrep->last_index_type = 0; polyrep->last_normal_type = 0;
+		
 
 		/* for Collision, default texture generation */
 		polyrep->minVals[0] =  999999.9f;
@@ -1101,13 +1129,14 @@ void compile_polyrep(void *innode, void *coord, void *fogCoord, void *color, voi
 		polyrep->maxVals[1] =  -999999.9f;
 		polyrep->maxVals[2] =  -999999.9f;
 
-		for (i=0; i<VBO_COUNT; i++) polyrep->VBO_buffers[i] = 0;
+		for (i=0; i<VBO_COUNT; i++) 
+			polyrep->VBO_buffers[i] = 0;
 
-			/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
-			glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
-			glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
+		/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
+		glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
+		glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
 
-			/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
+		/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
 
 	}
 
@@ -1131,6 +1160,7 @@ void compile_polyrep(void *innode, void *coord, void *fogCoord, void *color, voi
 	FREE_IF_NZ(polyrep->color);
 	FREE_IF_NZ(polyrep->norindex);
 	FREE_IF_NZ(polyrep->normal);
+	FREE_IF_NZ(polyrep->flat_normal);
 	FREE_IF_NZ(polyrep->tcindex);
 
 
@@ -1169,11 +1199,13 @@ void delete_polyrep(struct X3D_Node *node){
 		FREE_IF_NZ(pr->colindex);   /* triples (per triangle) */
 		FREE_IF_NZ(pr->norindex);
 		FREE_IF_NZ(pr->tcindex); /* triples or null */
-
+		FREE_IF_NZ(pr->tri_indices);
+		FREE_IF_NZ(pr->wire_indices);
 		FREE_IF_NZ(pr->actualCoord); /* triples (per point) */
 		FREE_IF_NZ(pr->actualFog); /* float (per point) */
 		FREE_IF_NZ(pr->color); /* triples or null */
 		FREE_IF_NZ(pr->normal); /* triples or null */
+		FREE_IF_NZ(pr->flat_normal);
 		FREE_IF_NZ(pr->GeneratedTexCoords);	/* triples (per triangle) of texture coords if there is no texCoord node */
 		FREE_IF_NZ(pr);
 		node->_intern = NULL;

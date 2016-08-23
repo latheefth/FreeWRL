@@ -271,38 +271,3 @@ void sib_fin_LocalFog(struct X3D_Node *parent, struct X3D_Node *node){
 		fin_LocalFog(node);
 	}
 }
-void push_boundFog(){
-	//call before render_hier for geom or blend
-	//if there's a bound fog, copy its state to fog_state
-	ttglobal tg = gglobal();
-	if(vectorSize(getActiveBindableStacks(tg)->fog) > 0){
-		unsigned int shaderflags;
-		//there's a bound fog, bound fogs are enabled
-		struct X3D_Fog *fog = stack_top(struct X3D_Fog*,getActiveBindableStacks(tg)->fog);
-		if(fog->visibilityRange > 0.0f){
-			//enabled
-			//copy and push renderflags
-			shaderflags = getShaderFlags();
-			//set fog bit in renderflags
-			shaderflags |= FOG_APPEARANCE_SHADER;
-			pushShaderFlags(shaderflags);
-			//push fogparams
-			pushFogParams((struct X3D_Node*)fog);
-		}
-	}
-}
-void pop_boundFog(){
-	//call after render_hier for geom or blend
-	ttglobal tg = gglobal();
-	if(vectorSize(getActiveBindableStacks(tg)->fog) > 0){
-		struct X3D_Fog *fog = stack_top(struct X3D_Fog*,getActiveBindableStacks(tg)->fog);
-		if(fog->visibilityRange > 0.0f){
-			//enabled
-			//pop fogParms
-			popFogParams();
-			//pop renderflags
-			popShaderFlags();
-		}
-	}
-}
-
