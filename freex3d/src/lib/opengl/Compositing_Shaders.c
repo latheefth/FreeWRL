@@ -1142,12 +1142,14 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//phong vs gourard
 	if(DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) || DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER)){
 		//if(isLit)
-		AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
-		AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
+		if(!DESIRE(whichOne,SHADINGSTYLE_FLAT)){
+			AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
+			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
+			AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
+			Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
+		}
 		if(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
 			AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
-		AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
-		Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
 	}
 	//lines and points 
 	if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
