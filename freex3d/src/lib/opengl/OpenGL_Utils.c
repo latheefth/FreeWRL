@@ -148,7 +148,6 @@ typedef struct pOpenGL_Utils{
 	char *userDefinedFragmentShader[MAX_USER_DEFINED_SHADERS];
 	char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
 
-	int usePhongShaders; /* phong shaders == better rendering, but slower */
 	int shadingStyle; //0=flat, 1=gouraud, 2=phong 3=wireframe
 	int maxStackUsed;
 }* ppOpenGL_Utils;
@@ -260,9 +259,6 @@ void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 		// userDefinedShaders - assume 0, unless the user is a geek.
 		p->userDefinedShaderCount = 0;
 
-		// usePhongShaders set to false for now. Can be changed
-		// during runtime, then re-build shaders.
-		p->usePhongShaders = FALSE;
 		p->shadingStyle = 1; //0=flat, 1=gouraud (default), 2=phong, 3=wireframe
 		//ConsoleMessage ("setting usePhongShaders to true"); p->usePhongShaders=true;
 		p->maxStackUsed = 0;
@@ -1302,13 +1298,9 @@ void fwl_setShadingStyle(int val) {
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 	p->shadingStyle = val;
-	if(val == 2)
-		p->usePhongShaders = val;
-	else
-		p->usePhongShaders = FALSE;
 }
 
-int fwl_getShadingStyle () {
+int fwl_getShadingStyle() {
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
@@ -1320,16 +1312,15 @@ void fwl_set_phongShading (int val) {
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
-	p->usePhongShaders = val;
-	if(val) p->shadingStyle = 2;
-	else p->shadingStyle = 1;
+	if(val) fwl_setShadingStyle(2);
+	else fwl_setShadingStyle(1);
 }
 
 int fwl_get_phongShading () {
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
-	return p->usePhongShaders;
+	return fwl_getShadingStyle() == 2 ? TRUE : FALSE;
 }
 
 
