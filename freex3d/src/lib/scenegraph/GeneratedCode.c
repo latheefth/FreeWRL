@@ -148,6 +148,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__oldmetadata",
 	"__oldurl",
 	"__parentProto",
+	"__pindices",
 	"__points",
 	"__protoDeclares",
 	"__protoDef",
@@ -184,6 +185,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__vertexCount",
 	"__vertices",
 	"__visible",
+	"__wireindices",
+	"__wireindicesVBO",
 	"__xcolours",
 	"__xparams",
 	"_align",
@@ -3839,6 +3842,7 @@ const int OFFSETS_Cone[] = {
 	(int) FIELDNAMES___coneVBO, (int) offsetof (struct X3D_Cone, __coneVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___normals, (int) offsetof (struct X3D_Cone, __normals),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___sidepoints, (int) offsetof (struct X3D_Cone, __sidepoints),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___wireindices, (int) offsetof (struct X3D_Cone, __wireindices),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bottom, (int) offsetof (struct X3D_Cone, bottom),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bottomRadius, (int) offsetof (struct X3D_Cone, bottomRadius),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_height, (int) offsetof (struct X3D_Cone, height),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3964,6 +3968,7 @@ const int OFFSETS_Cylinder[] = {
 	(int) FIELDNAMES___cylinderVBO, (int) offsetof (struct X3D_Cylinder, __cylinderVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___normals, (int) offsetof (struct X3D_Cylinder, __normals),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___points, (int) offsetof (struct X3D_Cylinder, __points),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___wireindices, (int) offsetof (struct X3D_Cylinder, __wireindices),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bottom, (int) offsetof (struct X3D_Cylinder, bottom),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_height, (int) offsetof (struct X3D_Cylinder, height),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Cylinder, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6354,7 +6359,9 @@ const int OFFSETS_Sound[] = {
 
 const int OFFSETS_Sphere[] = {
 	(int) FIELDNAMES___SphereIndxVBO, (int) offsetof (struct X3D_Sphere, __SphereIndxVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___pindices, (int) offsetof (struct X3D_Sphere, __pindices),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___points, (int) offsetof (struct X3D_Sphere, __points),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___wireindicesVBO, (int) offsetof (struct X3D_Sphere, __wireindicesVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__sideVBO, (int) offsetof (struct X3D_Sphere, _sideVBO),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Sphere, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_radius, (int) offsetof (struct X3D_Sphere, radius),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8381,6 +8388,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__coneVBO = 0;
 			tmp2->__normals.n=0; tmp2->__normals.p=0;
 			tmp2->__sidepoints.n=0; tmp2->__sidepoints.p=0;
+			tmp2->__wireindices = 0;
 			tmp2->bottom = TRUE;
 			tmp2->bottomRadius = 1.0f;
 			tmp2->height = 2.0f;
@@ -8572,6 +8580,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__cylinderVBO = 0;
 			tmp2->__normals.n=0; tmp2->__normals.p=0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
+			tmp2->__wireindices = 0;
 			tmp2->bottom = TRUE;
 			tmp2->height = 2.0f;
 			tmp2->metadata = NULL;
@@ -11608,7 +11617,9 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_Sphere * tmp2;
 			tmp2 = (struct X3D_Sphere *) tmp;
 			tmp2->__SphereIndxVBO = 0;
+			tmp2->__pindices = 0;
 			tmp2->__points.n=0; tmp2->__points.p=0;
+			tmp2->__wireindicesVBO = 0;
 			tmp2->_sideVBO = 0;
 			tmp2->metadata = NULL;
 			tmp2->radius = 1.0f;

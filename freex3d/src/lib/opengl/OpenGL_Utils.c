@@ -2172,7 +2172,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 	GLint range[2]; GLint precision;
 
 	// see where we are doing the lighting. Use highest precision there, if we can.
-	if (usePhongShading) {
+	if (DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
 		glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
 		if (precision!=0) {
 			haveHighPrecisionFragmentShaders=true;

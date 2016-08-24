@@ -55,6 +55,7 @@ struct MyVertex
    struct SFVec3f vert;        //Vertex
    struct SFVec3f norm;     //Normal
    struct SFVec2f tc;         //Texcoord0
+   struct SFVec3f flat_norm;
  };
 
  typedef int cquad[4];
@@ -198,11 +199,11 @@ void compile_Box (struct X3D_Box *node) {
 #undef PTR0
 #undef PTR1
 #undef PTR2
-
+#define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
-	
+	extern ushort boxwireindices[];
 	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
 
 	float x = ((node->size).c[0])/2;
@@ -226,7 +227,13 @@ void render_Box (struct X3D_Box *node) {
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	sendArraysToGPU (GL_TRIANGLES, 0, 36);
+	//if(fwl_getShadingStyle() == 3){
+	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+		//wireframe triangles
+		sendElementsToGPU(GL_LINES,72,boxwireindices);
+	}else{
+		sendArraysToGPU (GL_TRIANGLES, 0, 36);
+	}
 
 	textureDraw_end();
 	gglobal()->Mainloop.trisThisLoop += 24;
@@ -429,17 +436,55 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 
 		}
 
-		node->__cylinderTriangles = indx;
+		node->__cylinderTriangles = indx; //more precisely, number of vertices, (3 vertices per triangle)
+		{
+			//prepare flat normals for flat shading style
+			int i3;
+			float *flat_normal = MALLOC(GLfloat*,indx*sizeof(struct SFColor));
+			for(i=0;i<indx/3;i++){
+				i3 = i*3;
+				float a[3],b[3],c[3],d[3], e[3], f[3], g[3];
+				memcpy(a,cylVert[i3 +0].vert.c,sizeof(struct SFColor));
+				memcpy(b,cylVert[i3 +1].vert.c,sizeof(struct SFColor));
+				memcpy(c,cylVert[i3 +2].vert.c,sizeof(struct SFColor));
+				vecdif3f(d,b,a);
+				vecdif3f(e,c,a);
+				veccross3f(f,d,e);
+				vecnormalize3f(g,f);
+				memcpy(cylVert[i3 +0].flat_norm.c,g,sizeof(struct SFColor));
+				memcpy(cylVert[i3 +1].flat_norm.c,g,sizeof(struct SFColor));
+				memcpy(cylVert[i3 +2].flat_norm.c,g,sizeof(struct SFColor));
+			}
+		}
+		{
+			//prepare wireframe indices
+			int i3, i6;
+			ushort *lindex = MALLOC(ushort *,indx * 2 * sizeof(ushort));
+			for(i=0;i<indx/3;i++){
+				i3 = i*3;
+				i6 = i*6;
+				lindex[i6+0] = i3 + 0;
+				lindex[i6+1] = i3 + 1;
+				lindex[i6+2] = i3 + 1;
+				lindex[i6+3] = i3 + 2;
+				lindex[i6+4] = i3 + 2;
+				lindex[i6+5] = i3 + 0;
+			}
+			node->__wireindices = lindex;
+		}
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__cylinderVBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(struct MyVertex)*indx, cylVert, GL_STATIC_DRAW);
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+
 }
 void clear_Cylinder (struct X3D_Node *node) {
 	struct X3D_Cylinder *tnode = (struct X3D_Cylinder *)node;
 	if(tnode->__cylinderVBO)
 		glDeleteBuffers(1, (const GLuint *) &tnode->__cylinderVBO);
+	if(tnode->__wireindices)
+		FREE_IF_NZ(tnode->__wireindices);
 }
 
 void render_Cylinder (struct X3D_Cylinder * node) {
@@ -464,9 +509,15 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__cylinderVBO);
 
-		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei)sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
-
+		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei)sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));
+		   //The starting point of the VBO, for the vertices
+		if(DESIRE(getShaderFlags(),SHADINGSTYLE_FLAT)){
+			//The starting point of normals, (3+3+2)*4  = 32 +  bytes away
+			FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(32));   
+		}else{
+			//The starting point of normals, 3*4  = 12 +  bytes away
+			FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   
+		}
 		/* set up texture drawing for this guy */
         mtf.pre_canned_textureCoords = NULL;
 		mtf.TC_size = 2;
@@ -475,11 +526,15 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		mtf.TC_pointer = BUFFER_OFFSET(24);
 		textureDraw_start(&mtf);
 		/* FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
-		sendArraysToGPU(GL_TRIANGLES,0,node->__cylinderTriangles);
 
+		if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+			//wireframe triangles
+			sendElementsToGPU(GL_LINES,node->__cylinderTriangles *2,node->__wireindices);
+		}else{
+			sendArraysToGPU(GL_TRIANGLES,0,node->__cylinderTriangles);
+		}
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);         
 	textureDraw_end();
 }
 
@@ -601,6 +656,41 @@ void compile_Cone (struct X3D_Cone *node) {
 	}
 
 	node->__coneTriangles = indx;
+	{
+		//prepare flat normals for flat shading style
+		int i3;
+		float *flat_normal = MALLOC(GLfloat*,indx*sizeof(struct SFColor));
+		for(i=0;i<indx/3;i++){
+			i3 = i*3;
+			float a[3],b[3],c[3],d[3], e[3], f[3], g[3];
+			memcpy(a,coneVert[i3 +0].vert.c,sizeof(struct SFColor));
+			memcpy(b,coneVert[i3 +1].vert.c,sizeof(struct SFColor));
+			memcpy(c,coneVert[i3 +2].vert.c,sizeof(struct SFColor));
+			vecdif3f(d,b,a);
+			vecdif3f(e,c,a);
+			veccross3f(f,d,e);
+			vecnormalize3f(g,f);
+			memcpy(coneVert[i3 +0].flat_norm.c,g,sizeof(struct SFColor));
+			memcpy(coneVert[i3 +1].flat_norm.c,g,sizeof(struct SFColor));
+			memcpy(coneVert[i3 +2].flat_norm.c,g,sizeof(struct SFColor));
+		}
+	}
+	{
+		//prepare wireframe indices
+		int i3, i6;
+		ushort *lindex = MALLOC(ushort *,indx * 2 * sizeof(ushort));
+		for(i=0;i<indx/3;i++){
+			i3 = i*3;
+			i6 = i*6;
+			lindex[i6+0] = i3 + 0;
+			lindex[i6+1] = i3 + 1;
+			lindex[i6+2] = i3 + 1;
+			lindex[i6+3] = i3 + 2;
+			lindex[i6+4] = i3 + 2;
+			lindex[i6+5] = i3 + 0;
+		}
+		node->__wireindices = lindex;
+	}
 
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->__coneVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(struct MyVertex)*indx, coneVert, GL_STATIC_DRAW);
@@ -641,7 +731,13 @@ void render_Cone (struct X3D_Cone *node) {
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__coneVBO);
 
 	FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-	FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   //The starting point of normals, 12 bytes away
+	if(DESIRE(getShaderFlags(),SHADINGSTYLE_FLAT)){
+		//The starting point of normals, (3+3+2)*4  = 32 +  bytes away
+		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(32));   
+	}else{
+		//The starting point of normals, 3*4  = 12 +  bytes away
+		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(12));   
+	}
 
 	/* set up texture drawing for this guy */
     mtf.pre_canned_textureCoords = NULL;
@@ -651,7 +747,13 @@ void render_Cone (struct X3D_Cone *node) {
 	mtf.TC_pointer = BUFFER_OFFSET(24);
 	textureDraw_start(&mtf);
 PRINT_GL_ERROR_IF_ANY("END1 render_geom");
-	sendArraysToGPU(GL_TRIANGLES,0,node->__coneTriangles);
+	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+		//wireframe triangles
+		sendElementsToGPU(GL_LINES,node->__coneTriangles *2,node->__wireindices);
+	}else{
+		sendArraysToGPU(GL_TRIANGLES,0,node->__coneTriangles);
+	}
+	
 PRINT_GL_ERROR_IF_ANY("END2 render_geom");
 	/* turn off */
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
@@ -694,6 +796,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	float t_aa, t_ab, t_sa, t_ca, t_sa1;
 	float t2_aa, t2_ab, t2_sa, t2_ca, t2_sa1;
 	struct SFVec3f *pts;
+	//ushort *pindices;
 
 	/*  have to regen the shape*/
 	MARK_NODE_COMPILED
@@ -703,7 +806,7 @@ void compile_Sphere (struct X3D_Sphere *node) {
 	if (!node->__points.p) {
 		// malloc points. We seem to never need the ".n" size param, but initialize it
 		// anyway to keep things clean and even.
-		ptr = MALLOC (struct SFVec3f *,sizeof(struct SFVec3f) * SPHDIV * (SPHDIV+1) * 2);
+		ptr = MALLOC (struct SFVec3f *,sizeof(struct SFVec3f) * (SPHDIV+1) * (SPHDIV+1) * 2);
 		node->__points.n = SPHDIV * (SPHDIV+1) * 2;
 	} else ptr = node->__points.p;
 
@@ -718,10 +821,10 @@ void compile_Sphere (struct X3D_Sphere *node) {
 		extern GLfloat spherenorms[];		/*  side normals*/
 		extern float spheretex[];		/*  in CFuncs/statics.c*/
 
-		int myVertexVBOSize = (int) (sizeof(struct SFVec3f) +
-									sizeof(struct SFVec3f) +
-									sizeof(struct SFVec2f)) * SPHDIV * (SPHDIV+1) * 2;
-
+		//int myVertexVBOSize = (int) (sizeof(struct SFVec3f) +
+		//							sizeof(struct SFVec3f) +
+		//							sizeof(struct SFVec2f)) * SPHDIV * (SPHDIV+1) * 2;
+		int myVertexVBOSize = (int) sizeof(struct MyVertex) * SPHDIV * (SPHDIV+1) * 2;
 		struct MyVertex *SphVBO = MALLOC(struct MyVertex *, myVertexVBOSize);
 		struct SFVec3f *myNorms = (struct SFVec3f*)spherenorms;
 		struct SFVec2f *myTex = (struct SFVec2f*)spheretex;
@@ -760,14 +863,16 @@ void compile_Sphere (struct X3D_Sphere *node) {
 			}
 		}
 
+
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_sideVBO);
 		glBufferData(GL_ARRAY_BUFFER, myVertexVBOSize, SphVBO, GL_STATIC_DRAW);
 
 		if (node->__SphereIndxVBO == 0) {
 			ushort pindices[TRISINSPHERE*2];
-			ushort *pind = pindices;
+			ushort *pind; // = pindices;
 			int row;
 			int indx;
+			pind = pindices;
 
 			glGenBuffers(1,(GLuint *)&node->__SphereIndxVBO);
 			//for (count=0; count<TRISINSPHERE*2; count++) pindices[count]=0;
@@ -785,13 +890,39 @@ void compile_Sphere (struct X3D_Sphere *node) {
 					indx+=2;
 				}
 			}
+			node->__pindices = pindices;
  			FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
  			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*TRISINSPHERE*2, pindices, GL_STATIC_DRAW);
+
+			{
+				//prepare wireframe indices - we'll use the pindices from above, still on the stack
+				int i, i3, i6, nlines, ntris;
+				ushort lindex[SPHDIV*SPHDIV*2*3*2];
+				ntris = SPHDIV * SPHDIV * 2;
+				nlines = ntris * 3;
+				//ushort *lindex = MALLOC(ushort *,nlines * 2 * sizeof(ushort));
+				glGenBuffers(1,(GLuint *) &node->__wireindicesVBO);
+				for(i=0;i<ntris;i++){
+					i3 = i*3;
+					i6 = i*6;
+					lindex[i6+0] = pindices[i3 + 0];
+					lindex[i6+1] = pindices[i3 + 1];
+					lindex[i6+2] = pindices[i3 + 1];
+					lindex[i6+3] = pindices[i3 + 2];
+					lindex[i6+4] = pindices[i3 + 2];
+					lindex[i6+5] = pindices[i3 + 0];
+				}
+				//node->__wireindices = lindex;
+ 				FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__wireindicesVBO);
+ 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort)*SPHDIV*SPHDIV*2*3, lindex, GL_STATIC_DRAW);
+			}
 		}
 
 
 		FREE_IF_NZ(SphVBO);
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 	}
 	/* finished - for threading */
 	node->__points.p = ptr;
@@ -843,9 +974,14 @@ void render_Sphere (struct X3D_Sphere *node) {
 	mtf.TC_pointer = BUFFER_OFFSET(24);
 	textureDraw_start(&mtf);
 
-	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
-		
-	sendElementsToGPU (GL_TRIANGLES, TRISINSPHERE, (ushort *)BUFFER_OFFSET(0));   //The starting point of the IBO
+	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+		//wireframe triangles
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__wireindicesVBO);
+		sendElementsToGPU(GL_LINES,TRISINSPHERE *3, (ushort *)BUFFER_OFFSET(0)); //node->__wireindices);
+	}else{
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__SphereIndxVBO);
+		sendElementsToGPU (GL_TRIANGLES, TRISINSPHERE, (ushort *)BUFFER_OFFSET(0));   //The starting point of the IBO
+	}
 
 	/* turn off */
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
