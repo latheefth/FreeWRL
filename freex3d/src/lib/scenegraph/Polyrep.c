@@ -879,9 +879,10 @@ void render_polyrep(void *node) {
 		//	glDrawElements(GL_LINES, pr->ntri*3*2, GL_UNSIGNED_SHORT, NULL);
 		sendElementsToGPU(GL_LINES,pr->ntri*3*2,NULL);
 	}else{
-		//normal 
-		if(pr->last_index_type != 0)
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*pr->ntri*3,pr->tri_indices,GL_STATIC_DRAW); /* OpenGL-ES */
+		//surface triangles 
+		//glDrawArrays(GL_TRIANGLES,,,) doesn't use indices - its glDrawElements that does
+		//if(pr->last_index_type != 0)
+		//	glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*pr->ntri*3,pr->tri_indices,GL_STATIC_DRAW); /* OpenGL-ES */
 		pr->last_index_type = 0;
 		sendArraysToGPU(GL_TRIANGLES,0,pr->ntri*3);
 	}

@@ -670,6 +670,7 @@ our %Nodes = (
 		 __normals =>["MFVec3f",[],"initializeOnly", 0],
 		__cylinderVBO =>["SFInt32",0,"initializeOnly",0],
 		__cylinderTriangles =>["SFInt32",0,"initializeOnly",0],
+		__wireindices => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	],"X3DGeometryNode"),
 
 	"ElevationGrid" => new VRML::NodeType("ElevationGrid", [

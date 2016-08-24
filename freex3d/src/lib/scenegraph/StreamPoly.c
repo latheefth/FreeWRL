@@ -649,8 +649,10 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,r->VBO_buffers[INDEX_VBO]);
 
 	// OpenGL ES can use GL_UNSIGNED_SHORT or GL_UNSIGNED_BYTE for glDrawElements; force the indices to be this way.
-	{
-		//normal surface triangles
+	if(0){
+		//surface triangle indices - dug9 aug 2016: H: we don't need/use these triangle indices
+		//because we do glDrawArrays(GL_TRIANGLES,,,) in Polyrep.c which doesn't use indices. 
+		//(glDrawElements uses indices, used below for wireframe)
 		r->tri_indices = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3);
 
 		int i;
@@ -666,7 +668,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		//FREE_IF_NZ(myindicies);
 	}
 	{
-		//wireframe lines - prepare in case
+		//wireframe lines - prepare in case someone does SHADINGSTYLE_WIRE
 		int i, i3, i6;
 		GLushort *lindex = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3*2);
 		
@@ -683,7 +685,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		//we just save them, don't set them here. 
 		r->wire_indices = lindex;
 		//then in Polyrep, when drawing on each frame, if we go into SHADINGSTYLE_WIRE then
-		// we swap in wire indices without coming back here
+		// we swap in wire indices and call glDrawElements without coming back here
 		//glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*r->ntri*3*2,r->wire_indices,GL_STATIC_DRAW); /* OpenGL-ES */
 		//FREE_IF_NZ(myindicies);
 	}

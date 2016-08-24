@@ -931,6 +931,7 @@ void fwl_getPickraySide(int *ipreferredSide, int *either);
 int fwl_getOrientation();
 int fwl_getOrientation2();
 void fwl_setOrientation2(int degrees);
+int fwl_getShadingStyle();
 void initOptionsVal()
 {
 	int i,j,k, iside, ieither, shadingStyle;
