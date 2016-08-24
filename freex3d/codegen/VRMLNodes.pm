@@ -656,6 +656,7 @@ our %Nodes = (
 		 __normals =>["MFVec3f",[],"initializeOnly", 0],
 		__coneVBO =>["SFInt32",0,"initializeOnly",0],
 		__coneTriangles =>["SFInt32",0,"initializeOnly",0],
+		__wireindices => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	],"X3DGeometryNode"),
 
 	"Cylinder" => new VRML::NodeType ("Cylinder", [
@@ -744,6 +745,8 @@ our %Nodes = (
 		__points =>["MFVec3f",[],"initializeOnly", 0],
 		_sideVBO =>["SFInt32", 0, "initializeOnly", 0],
 		__SphereIndxVBO =>["SFInt32", 0, "initializeOnly", 0],
+		__pindices => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__wireindicesVBO =>["SFInt32", 0, "initializeOnly", 0],
  	],"X3DGeometryNode"),
 
 
