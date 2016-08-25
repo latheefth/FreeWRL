@@ -282,7 +282,7 @@ void render_Polypoint2D (struct X3D_Polypoint2D *node){
 }
 
 /***********************************************************************************/
-
+#define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 void compile_Disk2D (struct X3D_Disk2D *node){
         /*  have to regen the shape*/
 	struct SFVec2f *fp, *tp;
@@ -291,11 +291,12 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 	//GLfloat *stp;
 	struct SFVec2f *ofp, *otp;
 	//GLfloat *otp;
-	int i;
+	int i,j,k;
 	GLfloat id;
 	GLfloat od;
 	int tmpint;
 	int simpleDisc;
+	ushort *lindex;
 
 	MARK_NODE_COMPILED
 
@@ -314,37 +315,59 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 		tmpint = SEGMENTS_PER_CIRCLE+2;
 		fp = sfp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint));
 		tp = stp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint)); //(GLfloat *, sizeof(GLfloat) * 2 * (tmpint));
+		lindex = MALLOC (ushort *, sizeof(ushort) * (tmpint*2)*2); //over malloc by a few. should be nsegs * 2 lines/seg * 2 lineEnds/line
+		//if(!node->_gc) node->_gc = newVector(void *,4); H: FreeWRLPTR gets freed, no need for _gc
+		//vector_pushBack(void*,node->_gc,lindex);
 
 		/* initial TriangleFan point */
 		(*fp).c[0] = 0.0f; (*fp).c[1] = 0.0f; fp++;
 		(*tp).c[0] = 0.5f; (*tp).c[1] = 0.5f; tp++;
 		id = 2.0f;
 
-		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
+		for (i=SEGMENTS_PER_CIRCLE,j=1,k=0; i >= 0; i--,j++,k+=4) {
 			(*fp).c[0] = node->outerRadius * sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
 			(*fp).c[1] = node->outerRadius * cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 			fp++;
+
+			lindex[k + 0] = 0;
+			lindex[k + 1] = j;
+			lindex[k + 2] = j;
+			lindex[k + 3] = j+1;
+
 			(*tp).c[0] = 0.5f + (sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);
 			(*tp).c[1] = 0.5f + (cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	
 			tp++;
 		}
+		node->__wireindices = lindex;
 	} else {
 		tmpint = (SEGMENTS_PER_CIRCLE+1) * 2;
 		fp = sfp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * 2 * tmpint);
 		tp = stp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint)); //MALLOC (GLfloat *, sizeof(GLfloat) * 2 * tmpint);
-
+		lindex = MALLOC (ushort *, sizeof(ushort) * (tmpint*2) *2); //over malloc by a few, should be (nseg-1)*4 lines/seg * 2 lineEnds per line
+		//if(!node->_gc) node->_gc = newVector(void *,4);
+		//vector_pushBack(void*,node->_gc,lindex);
 
 		/* texture scaling params */
 		od = 2.0f;
 		id = node->outerRadius * 2.0f / node->innerRadius;
 
-		for (i=SEGMENTS_PER_CIRCLE; i >= 0; i--) {
+		for (i=SEGMENTS_PER_CIRCLE,j=0,k=0; i >= 0; i--,j+=2,k+=8) {
 			(*fp).c[0] = node->innerRadius * (float) sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
 			(*fp).c[1] = node->innerRadius * (float) cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 			fp++;
 			(*fp).c[0] = node->outerRadius * (float) sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));
 			(*fp).c[1] = node->outerRadius * (float) cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE));	
 			fp++;
+
+			lindex[k + 0] = j;
+			lindex[k + 1] = j+1;
+			lindex[k + 2] = j+1;
+			lindex[k + 3] = j+2;
+			lindex[k + 4] = j+2;
+			lindex[k + 5] = j;
+			lindex[k + 6] = j+1;
+			lindex[k + 7] = j+3;
+
 			(*tp).c[0] = 0.5f + ((float)sinf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);
 			(*tp).c[1] = 0.5f + ((float)cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/id);	
 			tp++;
@@ -352,6 +375,7 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 			(*tp).c[1] = 0.5f + ((float)cosf(((float)PI * 2.0f * (float)i)/((float)SEGMENTS_PER_CIRCLE))/od);
 			tp++;
 		}
+		node->__wireindices = lindex;
 	}
 
 
@@ -389,10 +413,20 @@ void render_Disk2D (struct X3D_Disk2D *node){
 
 		/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 		if (node->__simpleDisk) {
-			sendArraysToGPU (GL_TRIANGLE_FAN, 0, node->__numPoints);
+			if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+				//wireframe triangles
+				sendElementsToGPU(GL_LINES,((node->__numPoints-1)*4 -1 ),node->__wireindices); //should be segs x 2 lines/seg = (pts-1) x 2 lines / pt
+			}else{
+				sendArraysToGPU (GL_TRIANGLE_FAN, 0, node->__numPoints);
+			}
 		}
 		else{
-			sendArraysToGPU (GL_TRIANGLE_STRIP, 0, node->__numPoints);
+			if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+				//wireframe triangles
+				sendElementsToGPU(GL_LINES,(node->__numPoints*4 -4 -1),node->__wireindices); //(nseg -1)*4 = (npts-2)*2 = npts*2 -4
+			}else{
+				sendArraysToGPU (GL_TRIANGLE_STRIP, 0, node->__numPoints);
+			}
 		}
 
 		textureDraw_end();
@@ -408,7 +442,8 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	GLfloat maxX, minX;
 	GLfloat maxY, minY;
 	GLfloat Ssize, Tsize;
-	int i;
+	int i,j;
+	ushort *lindex;
 	struct SFVec2f *fp; //GLfloat *fp;
 	int tmpint;
 
@@ -428,6 +463,7 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	FREE_IF_NZ (node->__texCoords.p);
 	node->__texCoords.p = fp = MALLOC (struct SFVec2f *, sizeof(struct SFVec2f) * (tmpint)); //MALLOC (GLfloat *, sizeof (GLfloat) * tmpint * 2);
 	node->__texCoords.n = tmpint;
+	node->__wireindices = lindex = MALLOC (ushort *, sizeof(ushort)*(tmpint+1)*2); //over malloc a bit, should be: pts = lines, lines * 2 ends/line
 	/* find min/max values for X and Y axes */
 	minY = minX = FLT_MAX;
 	maxY = maxX = -FLT_MAX;
@@ -448,6 +484,17 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	Ssize = maxX - minX;
 	Tsize = maxY - minY;
 	/* printf ("ssize %f tsize %f\n",Ssize, Tsize); */
+
+	for (i=0,j=0; i<tmpint/3; i++,j+=6) {
+		//wireframe indices
+		int i3 = i*3;
+		lindex[j + 0] = i3;
+		lindex[j + 1] = i3+1;
+		lindex[j + 2] = i3+1;
+		lindex[j + 3] = i3+2;
+		lindex[j + 4] = i3+2;
+		lindex[j + 5] = i3;
+	}
 
 	for (i=0; i<tmpint; i++) {
 		(*fp).c[0] = (node->vertices.p[i].c[0] - minX) / Ssize;
@@ -473,7 +520,12 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 
 
-		sendArraysToGPU (GL_TRIANGLES, 0, node->vertices.n);
+		if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+			//wireframe triangles
+			sendElementsToGPU(GL_LINES,(node->vertices.n*2),node->__wireindices); //(nseg -1)*4 = (npts-2)*2 = npts*2 -4
+		}else{
+			sendArraysToGPU (GL_TRIANGLES, 0, node->vertices.n);
+		}
 
 		textureDraw_end();
 
@@ -541,7 +593,13 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	sendArraysToGPU (GL_TRIANGLES, 0, 6);
+	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+		//wireframe triangles
+		static ushort wireindices [] = { 0, 1, 1, 2, 2, 0, 3, 4, 4, 5, 5, 3 };
+		sendElementsToGPU(GL_LINES,6*2,wireindices); //(nseg -1)*4 = (npts-2)*2 = npts*2 -4
+	}else{
+		sendArraysToGPU (GL_TRIANGLES, 0, 6);
+	}
 	textureDraw_end();
 	gglobal()->Mainloop.trisThisLoop += 2;
 }
