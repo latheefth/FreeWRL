@@ -4043,6 +4043,7 @@ struct X3D_Disk2D {
 	struct Multi_Vec2f __texCoords;
 	int __numPoints;
 	int __simpleDisk;
+	void * __wireindices;
 };
 extern struct X3D_Virt virt_Disk2D;
 /***********************/
@@ -9973,6 +9974,7 @@ struct X3D_TriangleSet2D {
 	struct Multi_Vec2f vertices;
 	int solid;
 	struct Multi_Vec2f __texCoords;
+	void * __wireindices;
 };
 extern struct X3D_Virt virt_TriangleSet2D;
 /***********************/

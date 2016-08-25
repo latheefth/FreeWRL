@@ -793,6 +793,7 @@ our %Nodes = (
 		__texCoords  =>["MFVec2f",[],"initializeOnly", 0],
 		__numPoints =>["SFInt32",0,"initializeOnly", 0],
 		__simpleDisk => ["SFBool", "TRUE","initializeOnly", 0],
+		__wireindices => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	],"X3DGeometryNode"),
 
 	"Polyline2D" => new VRML::NodeType("Polyline2D", [
@@ -819,6 +820,7 @@ our %Nodes = (
 	    	vertices => ["MFVec2f", [], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		solid => ["SFBool", "FALSE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__texCoords  =>["MFVec2f",[],"initializeOnly", 0],
+		__wireindices => ["FreeWRLPTR", 0, "initializeOnly", 0],
  	],"X3DGeometryNode"),
 
 	###################################################################################

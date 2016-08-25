@@ -1389,10 +1389,12 @@ char * keyboardShortcutHelp[] = {
 NULL,
 };
 #else
-int lenhelp = 13; 
+int lenhelp = 15; 
 char * keyboardShortcutHelp[] = {
 " ",
 " ",
+"Keyboard Viewpoint change:",
+"  PgDn,PgUp,Home,End = Next,Prev,First,Last",
 "Keyboard commands:",
 "  / Print current viewpoint pose", 
 "  x Snapshot",

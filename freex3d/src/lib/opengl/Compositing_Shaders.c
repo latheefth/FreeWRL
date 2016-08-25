@@ -491,7 +491,7 @@ varying vec3 v_texC; \n\
  #define TCGT_SPHERE_LOCAL    8 \n\
  #define TCGT_SPHERE_REFLECT    9 \n\
  #define TCGT_SPHERE_REFLECT_LOCAL    10 \n\
-  uniform int fw_textureCoordGenType; \n\
+ uniform int fw_textureCoordGenType; \n\
  vec3 vertexNorm; \n\
  vec4 vertexPos; \n\
 #endif //TGEN \n\
@@ -529,11 +529,7 @@ struct fw_LightSourceParameters { \n\
   float spotCutoff; \n\
   float spotCosCutoff; \n\
   vec3 Attenuations; \n\
-  //float constantAttenuation; \n\
-  //float linearAttenuation;  \n\
-  //float quadraticAttenuation; \n\
   float lightRadius; \n\
-  //int lightType; ANGLE doesnt like int in struct array \n\
 }; \n\
 \n\
 uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
@@ -620,53 +616,53 @@ void main(void) \n\
   #define castle_normal_eye temp_castle_normal_eye \n\
   #define castle_Color      temp_castle_Color \n\
   #endif \n\
-   \n\
+  \n\
   castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
   castle_normal_eye = normalize(fw_NormalMatrix * normal_object); \n\
-   \n\
+  \n\
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */ \n\
    \n\
-#ifdef LIT \n\
+  #ifdef LIT \n\
   castle_ColorES = castle_Emissive; \n\
   castle_Color = vec4(castle_SceneColor, 1.0); \n\
   /* PLUG: add_light_contribution2 (castle_Color, castle_ColorES, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */ \n\
   /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */ \n\
   castle_Color.a = castle_MaterialDiffuseAlpha; \n\
-   \n\
+  \n\
   /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */ \n\
   castle_Color.rgb = min(castle_Color.rgb, 1.0); \n\
-#else //LIT \n\
+  #else //LIT \n\
   castle_Color = castle_UnlitColor; \n\
   #ifdef CPV //color per vertex \n\
    castle_Color *= fw_Color; \n\
   #endif \n\
-#endif //LIT \n\
- \n\
+  #endif //LIT \n\
+  \n\
   #ifdef TEX \n\
   #ifdef TGEN  \n\
-    vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
-    vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
-	 \n\
-    /* sphereEnvironMapping Calculation */  \n\
-    vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n\
-    vec3 r= reflect(u,vertexNorm); \n\
-    if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
-      float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
-      v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
-    }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
-      /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
-      float dotResult = 2.0 * dot(u,r); \n\
-      v_texC = vec3(u-r)*dotResult; \n\
-    } else { /* default usage - like default CubeMaps */ \n\
-      vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
-      v_texC =    reflect(u,vertexNorm); \n\
-    } \n\
+  vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
+  vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
+  \n\
+  /* sphereEnvironMapping Calculation */  \n\
+  vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n\
+  vec3 r= reflect(u,vertexNorm); \n\
+  if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
+    float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
+    v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
+  }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
+    /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
+    float dotResult = 2.0 * dot(u,r); \n\
+    v_texC = vec3(u-r)*dotResult; \n\
+  } else { /* default usage - like default CubeMaps */ \n\
+    vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
+    v_texC =    reflect(u,vertexNorm); \n\
+  } \n\
   #else //TGEN \n\
   v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #endif //TGEN \n\
   #endif //TEX \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
-   \n\
+  \n\
   #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
   #undef castle_vertex_eye \n\
   #undef castle_normal_eye \n\
@@ -677,7 +673,7 @@ void main(void) \n\
   #endif //CASTLE_BUGGY_GLSL_READ_VARYING \n\
   #ifdef FOG \n\
   #ifdef FOGCOORD \n\
-	castle_vertex_eye.z = fw_FogCoords; \n\
+  castle_vertex_eye.z = fw_FogCoords; \n\
   #endif //FOGCOORD \n\
   #endif //FOG \n\
 } \n";
@@ -696,6 +692,11 @@ void main(void) \n\
   GL_ES_VERSION_2_0 - non-desktop
   HAS_GEOMETRY_SHADER - version 3+ gles
 */
+
+
+
+
+
 static const GLchar *genericFragmentGLES2 = "\
 /* DEFINES */ \n\
 #ifdef MOBILE \n\
@@ -705,6 +706,28 @@ precision mediump float; \n\
 /* Generic GLSL fragment shader, used on OpenGL ES. */ \n\
  \n\
  \n\
+#ifdef LITE \n\
+#define MAX_LIGHTS 8 \n\
+uniform int lightcount; \n\
+//uniform float lightRadius[MAX_LIGHTS]; \n\
+uniform int lightType[MAX_LIGHTS];//ANGLE like this \n\
+struct fw_LightSourceParameters { \n\
+  vec4 ambient;  \n\
+  vec4 diffuse;   \n\
+  vec4 specular; \n\
+  vec4 position;   \n\
+  vec4 halfVector;  \n\
+  vec4 spotDirection; \n\
+  float spotExponent; \n\
+  float spotCutoff; \n\
+  float spotCosCutoff; \n\
+  vec3 Attenuations; \n\
+  float lightRadius; \n\
+}; \n\
+\n\
+uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
+#endif //LITE \n\
+\n\
 #ifdef TEX \n\
 uniform sampler2D fw_Texture_unit0; \n\
 varying vec3 v_texC; \n\
@@ -734,46 +757,46 @@ uniform int textureCount; \n\
 #define MTMODE_SELECTARG2      16 \n\
 #define MTMODE_SUBTRACT        17 \n\
 void finalColCalc(inout vec4 prevColour, in int mode, in sampler2D tex, in vec2 texcoord) { \n\
- vec4 texel = texture2D(tex,texcoord); \n\
- vec4 rv = vec4(1.,0.,1.,1.);   \n\
- if (mode==MTMODE_OFF) {  \n\
-   rv = vec4(prevColour); \n\
+  vec4 texel = texture2D(tex,texcoord); \n\
+  vec4 rv = vec4(1.,0.,1.,1.);   \n\
+  if (mode==MTMODE_OFF) {  \n\
+    rv = vec4(prevColour); \n\
   } else if (mode==MTMODE_REPLACE) { \n\
-   rv = vec4(texture2D(tex, texcoord)); \n\
+    rv = vec4(texture2D(tex, texcoord)); \n\
   }else if (mode==MTMODE_MODULATE) {  \n\
-   vec3 ct,cf;  \n\
-   float at,af;  \n\
-   cf = prevColour.rgb;  \n\
-   af = prevColour.a;  \n\
-   ct = texel.rgb;  \n\
-   at = texel.a;  \n\
-   rv = vec4(ct*cf, at*af);  \n\
+    vec3 ct,cf;  \n\
+    float at,af;  \n\
+    cf = prevColour.rgb;  \n\
+    af = prevColour.a;  \n\
+    ct = texel.rgb;  \n\
+    at = texel.a;  \n\
+    rv = vec4(ct*cf, at*af);  \n\
   } else if (mode==MTMODE_MODULATE2X) {  \n\
-   vec3 ct,cf;  \n\
-   float at,af;  \n\
-   cf = prevColour.rgb;  \n\
-   af = prevColour.a;  \n\
-   ct = texel.rgb;  \n\
-   at = texel.a;  \n\
-   rv = vec4(vec4(ct*cf, at*af)*vec4(2.,2.,2.,2.));  \n\
+    vec3 ct,cf;  \n\
+    float at,af;  \n\
+    cf = prevColour.rgb;  \n\
+    af = prevColour.a;  \n\
+    ct = texel.rgb;  \n\
+    at = texel.a;  \n\
+    rv = vec4(vec4(ct*cf, at*af)*vec4(2.,2.,2.,2.));  \n\
   }else if (mode==MTMODE_MODULATE4X) {  \n\
-   vec3 ct,cf;  \n\
-   float at,af;  \n\
-   cf = prevColour.rgb; \n\
-   af = prevColour.a;  \n\
-   ct = texel.rgb;  \n\
-   at = texel.a;  \n\
-   rv = vec4(vec4(ct*cf, at*af)*vec4(4.,4.,4.,4.));  \n\
+    vec3 ct,cf;  \n\
+    float at,af;  \n\
+    cf = prevColour.rgb; \n\
+    af = prevColour.a;  \n\
+    ct = texel.rgb;  \n\
+    at = texel.a;  \n\
+    rv = vec4(vec4(ct*cf, at*af)*vec4(4.,4.,4.,4.));  \n\
   }else if (mode== MTMODE_ADDSIGNED) { \n\
-   rv = vec4 (prevColour + texel - vec4 (0.5, 0.5, 0.5, -.5));  \n\
+    rv = vec4 (prevColour + texel - vec4 (0.5, 0.5, 0.5, -.5));  \n\
   } else if (mode== MTMODE_ADDSIGNED2X) { \n\
-   rv = vec4 ((prevColour + texel - vec4 (0.5, 0.5, 0.5, -.5))*vec4(2.,2.,2.,2.));  \n\
+    rv = vec4 ((prevColour + texel - vec4 (0.5, 0.5, 0.5, -.5))*vec4(2.,2.,2.,2.));  \n\
   } else if (mode== MTMODE_ADD) { \n\
-   rv= vec4 (prevColour + texel);  \n\
+    rv= vec4 (prevColour + texel);  \n\
   } else if (mode== MTMODE_SUBTRACT) { \n\
-   rv = vec4 (prevColour - texel);  \n\
+    rv = vec4 (prevColour - texel);  \n\
   } else if (mode==MTMODE_ADDSMOOTH) {  \n\
-   rv = vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texel);  \n\
+    rv = vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texel);  \n\
   } \n\
   prevColour = rv;  \n\
 } \n\
@@ -787,47 +810,47 @@ uniform vec2 HatchPct; \n\
 uniform int algorithm; \n\
 varying vec2 hatchPosition; \n\
 void fillPropCalc(inout vec4 prevColour, vec2 MCposition, int algorithm) { \n\
-vec4 colour; \n\
-vec2 position, useBrick; \n\
-\n\
-position = MCposition / HatchScale; \n\
-\n\
-if (algorithm == 0) {/* bricking  */ \n\
+  vec4 colour; \n\
+  vec2 position, useBrick; \n\
+  \n\
+  position = MCposition / HatchScale; \n\
+  \n\
+  if (algorithm == 0) {/* bricking  */ \n\
     if (fract(position.y * 0.5) > 0.5) \n\
-        position.x += 0.5; \n\
-        }\n\
-\n\
-/* algorithm 1, 2 = no futzing required here  */ \n\
-if (algorithm == 3) {/* positive diagonals */ \n\
+      position.x += 0.5; \n\
+  } \n\
+  \n\
+  /* algorithm 1, 2 = no futzing required here  */ \n\
+  if (algorithm == 3) { /* positive diagonals */ \n\
     vec2 curpos = position; \n\
     position.x -= curpos.y; \n\
-} \n\
-\n\
-if (algorithm == 4) {/* negative diagonals */ \n\
+  } \n\
+  \n\
+  if (algorithm == 4) {  /* negative diagonals */ \n\
     vec2 curpos = position; \n\
     position.x += curpos.y; \n\
-} \n\
-\n\
-if (algorithm == 6) {/* diagonal crosshatch */ \n\
+  } \n\
+  \n\
+  if (algorithm == 6) {  /* diagonal crosshatch */ \n\
     vec2 curpos = position; \n\
     if (fract(position.y) > 0.5)  { \n\
-        if (fract(position.x) < 0.5) position.x += curpos.y; \n\
-        else position.x -= curpos.y; \n\
+      if (fract(position.x) < 0.5) position.x += curpos.y; \n\
+      else position.x -= curpos.y; \n\
     } else { \n\
-        if (fract(position.x) > 0.5) position.x += curpos.y; \n\
-        else position.x -= curpos.y; \n\
+      if (fract(position.x) > 0.5) position.x += curpos.y; \n\
+      else position.x -= curpos.y; \n\
     } \n\
-} \n\
-\n\
-position = fract(position); \n\
-\n\
-useBrick = step(position, HatchPct); \n\
-\n\
-    if (filled) {colour = prevColour;} else { colour=vec4(0.,0.,0.,0); }\n\
-if (hatched) { \n\
-    colour = mix(HatchColour, colour, useBrick.x * useBrick.y); \n\
-} \n\
- prevColour = colour; \n\
+  } \n\
+  \n\
+  position = fract(position); \n\
+  \n\
+  useBrick = step(position, HatchPct); \n\
+  \n\
+  if (filled) {colour = prevColour;} else { colour=vec4(0.,0.,0.,0); }\n\
+  if (hatched) { \n\
+      colour = mix(HatchColour, colour, useBrick.x * useBrick.y); \n\
+  } \n\
+  prevColour = colour; \n\
 } \n\
 #endif //FILL \n\
 #ifdef FOG \n\
@@ -845,16 +868,32 @@ uniform fogParams fw_fogparams; \n\
 /* PLUG-DECLARATIONS */ \n\
  \n\
 #ifdef HAS_GEOMETRY_SHADER \n\
-  #define castle_vertex_eye castle_vertex_eye_geoshader \n\
-  #define castle_normal_eye castle_normal_eye_geoshader \n\
+#define castle_vertex_eye castle_vertex_eye_geoshader \n\
+#define castle_normal_eye castle_normal_eye_geoshader \n\
 #endif \n\
  \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec3 castle_normal_eye; \n\
 varying vec4 castle_Color; \n\
 #ifdef LIT \n\
+#ifdef LITE \n\
+//per-fragment lighting ie phong \n\
+struct fw_MaterialParameters { \n\
+  vec4 emission; \n\
+  vec4 ambient; \n\
+  vec4 diffuse; \n\
+  vec4 specular; \n\
+  float shininess; \n\
+}; \n\
+uniform fw_MaterialParameters fw_FrontMaterial; \n\
+#ifdef TWO \n\
+uniform fw_MaterialParameters fw_BackMaterial; \n\
+#endif //TWO \n\
+#else //LITE \n\
+//per-vertex lighting - interpolated Emissive-specular \n\
 varying vec3 castle_ColorES; //emissive shininess term \n\
-#endif \n\
+#endif //LITE \n\
+#endif //LIT\n\
  \n\
 /* Wrapper for calling PLUG texture_coord_shift */ \n\
 vec2 texture_coord_shifted(in vec2 tex_coord) \n\
@@ -866,10 +905,17 @@ vec2 texture_coord_shifted(in vec2 tex_coord) \n\
 void main(void) \n\
 { \n\
   vec4 fragment_color = castle_Color; \n\
-   \n\
-/* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
-#define normal_eye_fragment vec3(0.0) \n\
- \n\
+  #ifdef LITE \n\
+  //start over with the color, since we have material and lighting in here \n\
+  fragment_color = vec4(0,0,0,fw_FrontMaterial.diffuse.a); \n\
+  //per-fragment lighting aka PHONG \n\
+  vec3 castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
+  /* PLUG: add_light_contribution2 (fragment_color, castle_ColorES, castle_vertex_eye, castle_normal_eye, fw_FrontMaterial.shininess) */ \n\
+  #endif //LITE \n\
+  \n\
+  /* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
+  #define normal_eye_fragment vec3(0.0) \n\
+  \n\
   #ifdef FILL \n\
   fillPropCalc(fragment_color, hatchPosition, algorithm); \n\
   #endif //FILL \n\
@@ -879,11 +925,11 @@ void main(void) \n\
   #endif //LIT \n\
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */ \n\
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */ \n\
-   \n\
-#undef normal_eye_fragment \n\
- \n\
+  \n\
+  #undef normal_eye_fragment \n\
+  \n\
   gl_FragColor = fragment_color; \n\
-   \n\
+  \n\
   /* PLUG: fragment_end (gl_FragColor) */ \n\
 } \n";
 
@@ -903,18 +949,6 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 	finalFrag = vec4(gray,gray,gray, finalFrag.a); \n\
 }\n";
 
-//add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess)
-// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingequations
-// simplified thoery: lightOut = emissive + f(light_in,material,light_eqn)
-// ADS: Ambient + Diffuse + Specular
-// http://www.matrix44.net/cms/notes/opengl-3d-graphics/the-ads-lighting-model
-// http://http.developer.nvidia.com/CgTutorial/cg_tutorial_chapter05.html
-
-static const GLchar *plug_vertex_lighting_matemissive = "\n\
-void PLUG_add_light_contribution (inout vec4 vertexcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ) {\n\
-	vertexcolor.rgb += fw_FrontMaterial.emissive.rgb; \n\
-";
-
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
 static const GLchar *plug_fragment_texture_apply =	"\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
@@ -932,131 +966,150 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   \n\
 }\n";
 
+
+//add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess)
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingequations
+// simplified thoery: lightOut = emissive + f(light_in,material,light_eqn)
+// ADS: Ambient + Diffuse + Specular
+// http://www.matrix44.net/cms/notes/opengl-3d-graphics/the-ads-lighting-model
+// http://http.developer.nvidia.com/CgTutorial/cg_tutorial_chapter05.html
+// incoming eyeposition and eyenormal are of the surface vertex and normal
+// .. in the view/eye coordinate system (so eye is at 0,0,0 and eye direction is 0,0,-1
+
+static const GLchar *plug_vertex_lighting_matemissive = "\n\
+void PLUG_add_light_contribution (inout vec4 vertexcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ) {\n\
+	vertexcolor.rgb += fw_FrontMaterial.emissive.rgb; \n\
+";
+
 static const GLchar *plug_vertex_lighting_ADSLightModel = "\n\
 /* use ADSLightModel here the ADS colour is returned from the function.  */ \n\
 void PLUG_add_light_contribution2 (inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ) { \n\
+  //working in eye space: eye is at 0,0,0 looking generally in direction 0,0,-1 \n\
+  //myPosition, myNormal - of surface vertex, in eyespace \n\
+  //vertexcolor - diffuse+ambient -will be replaced or modulated by texture color \n\
+  //specularcolor - specular+emissive or non-diffuse (emissive added outside this function) \n\
+  //algo: uses Blinn-Phong specular reflection: half-vector pow(N*H,shininess) \n\
   int i; \n\
   vec4 diffuse = vec4(0., 0., 0., 0.); \n\
   vec4 ambient = vec4(0., 0., 0., 0.); \n\
   vec4 specular = vec4(0., 0., 0., 1.); \n\
-  vec3 normal = normalize (myNormal); \n\
-\n\
-  vec3 viewv = -normalize(myPosition.xyz); \n \
+  vec3 N = normalize (myNormal); \n\
+  \n\
+  vec3 E = -normalize(myPosition.xyz); \n \
   vec4 matdiffuse = vec4(1.0,1.0,1.0,1.0); \n\
   float myAlph = 0.0;\n\
-\n\
+  \n\
   fw_MaterialParameters myMat = fw_FrontMaterial; \n\
-\n\
-/* back Facing materials - flip the normal and grab back materials */ \n\
-  bool backFacing = (dot(normal,viewv) < 0.0); \n\
-if (backFacing) { \n\
-	normal = -normal; \n\
-#ifdef TWO \n\
+  \n\
+  /* back Facing materials - flip the normal and grab back materials */ \n\
+  bool backFacing = (dot(N,E) < 0.0); \n\
+  if (backFacing) { \n\
+	N = -N; \n\
+    #ifdef TWO \n\
 	myMat = fw_BackMaterial; \n\
-#endif //TWO \n\
-} \n\
-\n\
+    #endif //TWO \n\
+  } \n\
+  \n\
   myAlph = myMat.diffuse.a; \n\
   //if(useMatDiffuse) \n\
-    matdiffuse = myMat.diffuse; \n\
-#ifdef TEX \n\
-#ifndef LUM \n\
-	matdiffuse = vec4(1.0,1.0,1.0,1.0); \n\
-#endif //LUM \n\
-#endif //TEX \n\
-\n\
-  /* apply the lights to this material */\n\
+  matdiffuse = myMat.diffuse; \n\
+  #ifdef TEX \n\
+  #ifndef LUM \n\
+  matdiffuse = vec4(1.0,1.0,1.0,1.0); \n\
+  #endif //LUM \n\
+  #endif //TEX \n\
+  \n\
+  /* apply the lights to this material */ \n\
+  /* weird but ANGLE needs constant loop */ \n\
   for (i=0; i<MAX_LIGHTS; i++) {\n\
-    if(i<lightcount) { /*weird but ANGLE needs constant loop*/ \n\
-      vec4 myLightDiffuse = fw_LightSource[i].diffuse;\n\
-      vec4 myLightAmbient = fw_LightSource[i].ambient;\n\
-      vec4 myLightSpecular = fw_LightSource[i].specular;\n\
+    if(i < lightcount) { \n\
+      vec4 myLightDiffuse = fw_LightSource[i].diffuse; \n\
+      vec4 myLightAmbient = fw_LightSource[i].ambient; \n\
+      vec4 myLightSpecular = fw_LightSource[i].specular; \n\
       vec4 myLightPosition = fw_LightSource[i].position; \n\
-      int myLightType = lightType[i]; //fw_LightSource[i].lightType;\n\
+      int myLightType = lightType[i]; \n\
       vec3 myLightDir = fw_LightSource[i].spotDirection.xyz; \n\
-      vec3 eyeVector = normalize(myPosition.xyz);\n\
-      vec3  VP;     /* vector of light direction and distance */\n\
-      VP = myLightPosition.xyz - myPosition.xyz;\n\
+      vec3  VP;     /* vector of light direction and distance */ \n\
+      VP = myLightPosition.xyz - myPosition.xyz; \n\
       vec3 L = myLightDir; /*directional light*/ \n\
       if(myLightType < 2) /*point and spot*/ \n\
-       L = normalize(VP); \n\
-      float nDotL = max(dot(normal, L), 0.0);\n\
-      vec3 halfVector = normalize(L - eyeVector);\n\
-      /* normal dot light half vector */\n\
-      float nDotHV = max(dot(normal,halfVector),0.0);\n\
+        L = normalize(VP); \n\
+      float NdotL = max(dot(N, L), 0.0); //Lambertian diffuse term \n\
+	  /*specular reflection models, phong or blinn-phong*/ \n\
+	  //#define PHONG 1 \n\
+	  #ifdef PHONG \n\
+	  //Phong \n\
+	  vec3 R = normalize(-reflect(L,N)); \n\
+	  float RdotE = max(dot(R,E),0.0); \n\
+	  float specbase = RdotE; \n\
+	  float specpow = .3 * myMat.shininess; //assume shini tuned to blinn, adjust for phong \n\
+	  #else //PHONG \n\
+	  //Blinn-Phong \n\
+      vec3 H = normalize(L + E); //halfvector\n\
+      float NdotH = max(dot(N,H),0.0); \n\
+	  float specbase = NdotH; \n\
+	  float specpow = myMat.shininess; \n\
+	  #endif //PHONG \n\
+      float powerFactor = 0.0; /* for light dropoff */ \n\
+      if (specbase > 0.0) { \n\
+        powerFactor = pow(specbase,specpow); \n\
+        /* tone down the power factor if myMat.shininess borders 0 */ \n\
+        if (myMat.shininess < 1.0) { \n\
+          powerFactor *= myMat.shininess; \n\
+        } \n\
+      } \n\
       \n\
-      if (myLightType==1) {\n\
-        /* SpotLight */\n\
+      if (myLightType==1) { \n\
+        /* SpotLight */ \n\
         float spotDot; \n\
         float spotAttenuation = 0.0; \n\
-        float powerFactor = 0.0; /* for light dropoff */ \n\
-        float attenuation; /* computed attenuation factor */\n\
-        float d;            /* distance to vertex */            \n\
-        d = length(VP);\n\
-        if (nDotL > 0.0) {\n\
-          powerFactor = pow(nDotL,myMat.shininess); \n\
-          /* tone down the power factor if myMat.shininess borders 0 */\n\
-          if (myMat.shininess < 1.0) {\n\
-            powerFactor *= myMat.shininess; \n\
-          } \n\
+        float attenuation; /* computed attenuation factor */ \n\
+        float D; /* distance to vertex */ \n\
+        D = length(VP); \n\
+        attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * D) + (fw_LightSource[i].Attenuations.z *D*D)); \n\
+        spotDot = dot (-L,myLightDir); \n\
+        /* check against spotCosCutoff */ \n\
+        if (spotDot > fw_LightSource[i].spotCutoff) { \n\
+          spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent); \n\
         } \n\
-        attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
-        spotDot = dot (-L,myLightDir);\n\
-        /* check against spotCosCutoff */\n\
-        if (spotDot > fw_LightSource[i].spotCutoff) {\n\
-          spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent);\n\
-        }\n\
-        attenuation *= spotAttenuation;\n\
-        /* diffuse light computation */\n\
-        diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
-        /* ambient light computation */\n\
-        ambient += myMat.ambient*myLightAmbient;\n\
-        /* specular light computation */\n\
-        specular += myLightSpecular * powerFactor * attenuation;\n\
+        attenuation *= spotAttenuation; \n\
+        /* diffuse light computation */ \n\
+        diffuse += NdotL* matdiffuse*myLightDiffuse * attenuation; \n\
+        /* ambient light computation */ \n\
+        ambient += myMat.ambient*myLightAmbient; \n\
+        /* specular light computation */ \n\
+        specular += myLightSpecular * powerFactor * attenuation; \n\
         \n\
       } else if (myLightType == 2) { \n\
         /* DirectionalLight */ \n\
-        float powerFactor = 0.0; /* for light dropoff */\n\
-        if (nDotL > 0.0) {\n\
-          powerFactor = pow(nDotHV, myMat.shininess);\n\
-          /* tone down the power factor if myMat.shininess borders 0 */\n\
-          if (myMat.shininess < 1.0) {\n\
-           powerFactor *= myMat.shininess;\n\
-          }\n\
-        }\n\
-        /* Specular light computation */\n\
-        specular += myMat.specular *myLightSpecular*powerFactor;\n\
-        /* diffuse light computation */\n\
-        diffuse += nDotL*matdiffuse*myLightDiffuse;\n\
-        /* ambient light computation */\n\
+        /* Specular light computation */ \n\
+        specular += myMat.specular *myLightSpecular*powerFactor; \n\
+        /* diffuse light computation */ \n\
+        diffuse += NdotL*matdiffuse*myLightDiffuse; \n\
+        /* ambient light computation */ \n\
         ambient += myMat.ambient*myLightAmbient; \n\
-      } else {\n\
-        /* PointLight */\n\
-        float powerFactor=0.0; /* for light dropoff */\n\
-        float attenuation = 0.0; /* computed attenuation factor */\n\
-        float d = length(VP);  /* distance to vertex */ \n\
-        /* are we within range? */\n\
-        if (d <= fw_LightSource[i].lightRadius) {\n\
-          if (nDotL > 0.0) {\n\
-            powerFactor = pow(nDotL, myMat.shininess);\n\
-            //attenuation = (myMat.shininess-128.0);\n\
-          }\n\
-          /* this is actually the SFVec3f attenuation field */\n\
-          attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * d) + (fw_LightSource[i].Attenuations.z *d *d));\n\
-          /* diffuse light computation */\n\
-          diffuse += nDotL* matdiffuse*myLightDiffuse * attenuation;\n\
-          /* ambient light computation */\n\
-          ambient += myMat.ambient*myLightAmbient;\n\
-          /* specular light computation */\n\
-          attenuation *= (myMat.shininess/128.0);\n\
-          specular += myLightSpecular * powerFactor * attenuation;\n\
-        }\n\
-      }\n\
-    }\n\
-  }\n\
+      } else { \n\
+        /* PointLight */ \n\
+        float attenuation = 0.0; /* computed attenuation factor */ \n\
+        float D = length(VP);  /* distance to vertex */ \n\
+        /* are we within range? */ \n\
+        if (D <= fw_LightSource[i].lightRadius) { \n\
+          /* this is actually the SFVec3f attenuation field */ \n\
+          attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * D) + (fw_LightSource[i].Attenuations.z *D*D)); \n\
+          /* diffuse light computation */ \n\
+          diffuse += NdotL* matdiffuse*myLightDiffuse * attenuation; \n\
+          /* ambient light computation */ \n\
+          ambient += myMat.ambient*myLightAmbient; \n\
+          /* specular light computation */ \n\
+          attenuation *= (myMat.shininess/128.0); \n\
+          specular += myLightSpecular * powerFactor * attenuation; \n\
+        } \n\
+      } \n\
+    } \n\
+  } \n\
   vertexcolor = clamp(vec4(vec3(ambient + diffuse ) + vertexcolor.rgb ,myAlph), 0.0, 1.0); \n\
-  specularcolor = clamp(specular.rgb + specularcolor, 0.0, 1.0);\n\
-}\n\
+  specularcolor = clamp(specular.rgb + specularcolor, 0.0, 1.0); \n\
+} \n\
 ";
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#t-foginterpolant
@@ -1142,12 +1195,25 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//phong vs gourard
 	if(DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) || DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER)){
 		//if(isLit)
-		AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
-		AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
-		AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
-		Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
-		if(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
-			AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
+		if(DESIRE(whichOne,SHADINGSTYLE_PHONG)){
+			//when we say phong in freewrl, we really mean per-fragment lighting
+			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
+			AddDefine(SHADERPART_FRAGMENT,"LITE",CompleteCode);  //add some lights
+			Plug(SHADERPART_FRAGMENT,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
+			if(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
+				AddDefine(SHADERPART_FRAGMENT,"TWO",CompleteCode);
+			//but even if we mean per-fragment, for another dot product per fragment we can upgrade
+			//from blinn-phong to phong and get the real phong reflection model 
+			//(although dug9 can't tell the difference):
+			AddDefine(SHADERPART_FRAGMENT,"PHONG",CompleteCode);
+		}else{
+			AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
+			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
+			AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
+			Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
+			if(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
+				AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
+		}
 	}
 	//lines and points 
 	if( DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) ) {
