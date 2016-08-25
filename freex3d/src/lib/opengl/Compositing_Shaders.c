@@ -886,8 +886,6 @@ struct fw_MaterialParameters { \n\
   float shininess; \n\
 }; \n\
 uniform fw_MaterialParameters fw_FrontMaterial; \n\
-varying vec3 castle_ColorES; //emissive shininess term \n\
-vec3 castle_Emissive; \n\
 #ifdef TWO \n\
 uniform fw_MaterialParameters fw_BackMaterial; \n\
 #endif //TWO \n\
@@ -907,24 +905,24 @@ vec2 texture_coord_shifted(in vec2 tex_coord) \n\
 void main(void) \n\
 { \n\
   vec4 fragment_color = castle_Color; \n\
-  \n\
-  /* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
-  #define normal_eye_fragment vec3(0.0) \n\
-  #ifdef LIT \n\
   #ifdef LITE \n\
-  //per-fragment lighting aka PHONG \n\
   //start over with the color, since we have material and lighting in here \n\
   fragment_color = vec4(0,0,0,fw_FrontMaterial.diffuse.a); \n\
+  //per-fragment lighting aka PHONG \n\
   vec3 castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
   /* PLUG: add_light_contribution2 (fragment_color, castle_ColorES, castle_vertex_eye, castle_normal_eye, fw_FrontMaterial.shininess) */ \n\
   #endif //LITE \n\
-  fragment_color.rgb = clamp(fragment_color.rgb + castle_ColorES, 0.0, 1.0); \n\
-  #endif //LIT \n\
+  \n\
+  /* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
+  #define normal_eye_fragment vec3(0.0) \n\
   \n\
   #ifdef FILL \n\
   fillPropCalc(fragment_color, hatchPosition, algorithm); \n\
   #endif //FILL \n\
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+  #ifdef LIT \n\
+  fragment_color.rgb = clamp(fragment_color.rgb + castle_ColorES, 0.0, 1.0); \n\
+  #endif //LIT \n\
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */ \n\
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */ \n\
   \n\
