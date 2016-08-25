@@ -2568,7 +2568,7 @@ static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker],
 	int iret, userDefined, usingCastlePlugs = 1;
 	userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
 
-	if(usingCastlePlugs && !userDefined && !DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
+	if(usingCastlePlugs && !userDefined) { // && !DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
 		//new Aug 2016 castle plugs
 		iret = getSpecificShaderSourceCastlePlugs(vertexSource, fragmentSource, whichOne);
 	}else{
