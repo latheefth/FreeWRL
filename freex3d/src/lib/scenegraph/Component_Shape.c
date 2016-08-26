@@ -599,103 +599,103 @@ textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *texture
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingmodel
 // colorsources: Crgb, TxCrgb, Trgb, White, TTT, Drgb, TxDrgb
 // alphasources: One, AT, MA
-static enum {
-	Crgb, TxCrgb, Trgb, White, TTT, Drgb, TxDrgb,
-	One, AT, MA,
-} lighting_enum;
-static char* lighting_names [] = {"Crgb", "TxCrgb","Trgb","White","TTT","Drgb","TxDrgb","One","AT","MA"};
-static int lookupColorAlpha[2][2][5][2] = {
-	{	//unlit
-		// unlit geometry, table 17-2
-		// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingoff
-		//table 17-2 UnLit Color and alpha mapping
-		//Texturetype		Color per-vertex		Color Node NULL
-		//					or per face		
-		// No Texture	0	Crgb		1			(1,1,1)		1
-		// Intensity	1	T x Crgb	1			(T,T,T)		1
-		// Intens+Alph	2	T x Crgb	AT			(T,T,T)		AT
-		// RGB			3	Trgb		1			Trgb		1
-		// RGBA			4	Trgb		AT			Trgb		AT
-		//					OutColor	OutAlpha	OutColor	OutAlpha
-		//              ^number of texture channels/compoents 
-		// Crgb - from color node, T-from texture, White = (1,1,1), One = 1.0
-		// MA- Material Alpha (1-Transparency), AT- texture alpha
-		{ //colorNode
-			{Crgb,  One},
-			{TxCrgb,One},
-			{TxCrgb,AT},
-			{Trgb,  One},
-			{Trgb,  AT},
-		},
-		{ //no colorNode
-			{White,One},
-			{TTT  ,One},
-			{TTT,  AT},
-			{Trgb, One},
-			{Trgb, AT},
-		},
-	},
-	{  //lit
-		// Lit geometry, table 17-3
-		// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#t-Litcolourandalpha
-		//table 17-3 Lit Color and alpha mapping
-		//Texturetype		Color per-vertex		Color Node NULL
-		//					or per face		
-		// No Texture	0	Crgb		MA			Drgb		MA
-		// Intensity	1	T x Crgb	MA			T x Drgb	MA
-		// Intens+Alph	2	T x Crgb	AT			T x Drgb	AT
-		// RGB			3	Trgb		MA			Trgb		MA
-		// RGBA			4	Trgb		AT			Trgb		AT
-		//					OutDiffuse	OutAlpha	OutDiffuse	OutAlpha
-		//              ^number of texture channels/compoents 
-		// Crgb - from color node, IT-from texture, Drgb - material diffuse
-		// MA- Material Alpha (1-Transparency), AT- texture alpha
-		{ //colorNode
-			{Crgb,  MA},
-			{TxCrgb,MA},
-			{TxCrgb,AT},
-			{Trgb,  MA},
-			{Trgb,  AT},
-		},
-		{ //no colorNode
-			{Drgb,  MA},
-			{TxDrgb,MA},
-			{TxDrgb,AT},
-			{Trgb,  MA},
-			{Trgb,  AT},
-		},
-	},
-};
+//static enum {
+//	Crgb, TxCrgb, Trgb, White, TTT, Drgb, TxDrgb,
+//	One, AT, MA,
+//} lighting_enum;
+//static char* lighting_names [] = {"Crgb", "TxCrgb","Trgb","White","TTT","Drgb","TxDrgb","One","AT","MA"};
+//static int lookupColorAlpha[2][2][5][2] = {
+//	{	//unlit
+//		// unlit geometry, table 17-2
+//		// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#Lightingoff
+//		//table 17-2 UnLit Color and alpha mapping
+//		//Texturetype		Color per-vertex		Color Node NULL
+//		//					or per face		
+//		// No Texture	0	Crgb		1			(1,1,1)		1
+//		// Intensity	1	T x Crgb	1			(T,T,T)		1
+//		// Intens+Alph	2	T x Crgb	AT			(T,T,T)		AT
+//		// RGB			3	Trgb		1			Trgb		1
+//		// RGBA			4	Trgb		AT			Trgb		AT
+//		//					OutColor	OutAlpha	OutColor	OutAlpha
+//		//              ^number of texture channels/compoents 
+//		// Crgb - from color node, T-from texture, White = (1,1,1), One = 1.0
+//		// MA- Material Alpha (1-Transparency), AT- texture alpha
+//		{ //colorNode
+//			{Crgb,  One},
+//			{TxCrgb,One},
+//			{TxCrgb,AT},
+//			{Trgb,  One},
+//			{Trgb,  AT},
+//		},
+//		{ //no colorNode
+//			{White,One},
+//			{TTT  ,One},
+//			{TTT,  AT},
+//			{Trgb, One},
+//			{Trgb, AT},
+//		},
+//	},
+//	{  //lit
+//		// Lit geometry, table 17-3
+//		// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/lighting.html#t-Litcolourandalpha
+//		//table 17-3 Lit Color and alpha mapping
+//		//Texturetype		Color per-vertex		Color Node NULL
+//		//					or per face		
+//		// No Texture	0	Crgb		MA			Drgb		MA
+//		// Intensity	1	T x Crgb	MA			T x Drgb	MA
+//		// Intens+Alph	2	T x Crgb	AT			T x Drgb	AT
+//		// RGB			3	Trgb		MA			Trgb		MA
+//		// RGBA			4	Trgb		AT			Trgb		AT
+//		//					OutDiffuse	OutAlpha	OutDiffuse	OutAlpha
+//		//              ^number of texture channels/compoents 
+//		// Crgb - from color node, IT-from texture, Drgb - material diffuse
+//		// MA- Material Alpha (1-Transparency), AT- texture alpha
+//		{ //colorNode
+//			{Crgb,  MA},
+//			{TxCrgb,MA},
+//			{TxCrgb,AT},
+//			{Trgb,  MA},
+//			{Trgb,  AT},
+//		},
+//		{ //no colorNode
+//			{Drgb,  MA},
+//			{TxDrgb,MA},
+//			{TxDrgb,AT},
+//			{Trgb,  MA},
+//			{Trgb,  AT},
+//		},
+//	},
+//};
+//void color_alpha_source_B(int channels, int cpv, int *colorSource, int *alphaSource)
+//{
+//	//insight: the specs really did mean modulation. Not full modulation for RGB textures, or luminance. 
+//	//Usually just one modulation, not a chain of them.
+//	//And taking table 17-2 (unlit) and applying these post-table modulation formula:
+//	// ODrgb = Irgb x IDrgb
+//	// A = A x (1-TM)
+//	// will meet the somewhat obscure intention of the specs.
+//	// colorSource = 17-2 column 2
+//	// colorSource = CPV && channels < 3 ? colorSource *= Crgb : colorSource
+//	// Alpha = 1-TM
+//	// Alpha = channels > 0 ? Alpha *= AT : Alpha  //assumes 1,3 channel are padded to 2, 4 with alpha = 1 
+//	int colorSourceA, alphaSourceA, colorSourceB, alphaSourceB;
+//	colorSourceA = lookupColorAlpha[0][1-cpv][channels][0];
+//	alphaSourceA = lookupColorAlpha[0][1-cpv][channels][1];
+//	alphaSourceB = channels == 2 || channels == 4 ? AT : One;
+//	colorSourceB = cpv ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
+//		channels > 2 ? Trgb : channels ? TTT : White ;
+//}
 
-int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometry, int *colorSource, int *alphaSource, int *imgchannels){
-
-	// returns isLit 1/0, *colorSource, *alphaSource see table above
-	// unlit = apearance == NULL || appearance.material == NULL || points || lines
-	//appearance = (struct X3D_Appearance *)tmpN;
-	// channels = appearance && appearance.texture? appearance.texture.channels : 0
-	int channels, imgalpha, isLit, isUnlitGeometry, hasColorNode, whichShapeColorShader;
-	int colorSourceA, colorSourceB, colorSourceC, alphaSourceA, alphaSourceB, haveTexture;
+int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
+	//int channels, imgalpha, isLit, isUnlitGeometry, hasColorNode, whichShapeColorShader;
+	int channels, imgalpha, haveTexture;
 	struct X3D_Appearance *appearance;
 	channels = 0;
 	imgalpha = 0;
-	isLit = 0;
 	haveTexture = 0;
-
-	*colorSource = 0;
-	*alphaSource = 0;
-	*imgchannels = 0; //no texture
-
-	if(!geometry) return 0;
-	appearance = (struct X3D_Appearance*)appearanceNode;
-	isUnlitGeometry = getIfLinePoints(geometry);
-	whichShapeColorShader = getShapeColourShader(geometry);
-	//whichShapeFogShader = getShapeFogShader(geometry);
-	// colorNode = geometry && geometry.color ? TRUE : FALSE
-	hasColorNode = whichShapeColorShader == NOTHING ? 0 : 1;
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance*,appearanceNode,appearance);
 
 	if(appearance){
-		isLit = appearance->material? 1 : 0;
-		isLit = isUnlitGeometry ? 0 : isLit;
 		//do I need possible proto expansione of texture, or will compile_appearance have done that?
 		if(appearance->texture){
 			//mutli-texture? should loop over multitexture->texture nodes? 
@@ -736,53 +736,89 @@ int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometr
 			}
 		}
 	}
-
-	// colorsource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][0=color]
-	// alphasource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][1=alpha]
-	colorSourceA = lookupColorAlpha[isLit][1-hasColorNode][channels][0];
-	alphaSourceA = lookupColorAlpha[isLit][1-hasColorNode][channels][1];
-	//should be the same as (somewhat less readable):
-	alphaSourceB = imgalpha ? AT : isLit ? MA : One;
-	colorSourceB = hasColorNode ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
-		channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? White : Drgb;
-	colorSourceC;
-	if(hasColorNode){
-		if(channels > 2) colorSourceC = Trgb;
-		else if(channels) colorSourceC = TxCrgb;
-		else colorSourceC = Crgb;
-
-	}else{
-		if(channels > 2) colorSourceC = Trgb;
-		else if(channels){
-			if(!isLit) colorSourceC = TTT;
-			else colorSourceC = TxDrgb;
-		}else{
-			if(!isLit) colorSourceC = White;
-			else colorSourceC = Drgb;
-		}
-	}
-	if(!(colorSourceC == colorSourceB && colorSourceB == colorSourceA)){
-		static int once = 0;
-		if(!once) 
-			printf("ouch - colorsource confusion\n");
-		once = 1;
-	}
-	if(alphaSourceA != alphaSourceB){
-		static int once = 0;
-		if(!once)
-			printf("ouch - alphasource confusione\n");
-		once = 1;
-	}
-	*colorSource = colorSourceA;
-	*alphaSource = alphaSourceA;
-	*imgchannels = haveTexture ? channels : -1;
-	return isLit;
+	channels = haveTexture ? channels : 0; //-1;
+	return channels;
 }
+//int color_alpha_source(struct X3D_Node *appearanceNode, struct X3D_Node *geometry, int *colorSource, int *alphaSource, int *imgchannels){
+//
+//	// returns isLit 1/0, *colorSource, *alphaSource see table above
+//	// unlit = apearance == NULL || appearance.material == NULL || points || lines
+//	//appearance = (struct X3D_Appearance *)tmpN;
+//	// channels = appearance && appearance.texture? appearance.texture.channels : 0
+//	int channels, imgalpha, isLit, isUnlitGeometry, hasColorNode, whichShapeColorShader;
+//	int colorSourceA, colorSourceB, colorSourceC, alphaSourceA, alphaSourceB, haveTexture;
+//	struct X3D_Appearance *appearance;
+//	channels = 0;
+//	imgalpha = 0;
+//	isLit = 0;
+//	haveTexture = 0;
+//
+//	*colorSource = 0;
+//	*alphaSource = 0;
+//	*imgchannels = 0; //no texture
+//
+//	if(!geometry) return 0;
+//	appearance = (struct X3D_Appearance*)appearanceNode;
+//	isUnlitGeometry = getIfLinePoints(geometry);
+//	whichShapeColorShader = getShapeColourShader(geometry);
+//	//whichShapeFogShader = getShapeFogShader(geometry);
+//	// colorNode = geometry && geometry.color ? TRUE : FALSE
+//	hasColorNode = whichShapeColorShader == NOTHING ? 0 : 1;
+//
+//	if(appearance){
+//		isLit = appearance->material? 1 : 0;
+//		isLit = isUnlitGeometry ? 0 : isLit;
+//		channels = getImageChannelCountFromTTI(appearanceNode);
+//		channels = channels < 0 ? 0 : channels;
+//	}
+//
+//	// colorsource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][0=color]
+//	// alphasource = lookupColorAlpha[lit/unlit 0/1][colorNode? 0/1][channels 0-4][1=alpha]
+//	colorSourceA = lookupColorAlpha[isLit][1-hasColorNode][channels][0];
+//	alphaSourceA = lookupColorAlpha[isLit][1-hasColorNode][channels][1];
+//	//should be the same as (somewhat less readable):
+//	alphaSourceB = imgalpha ? AT : isLit ? MA : One;
+//	colorSourceB = hasColorNode ? channels > 2 ? Trgb : channels ? TxCrgb : Crgb :
+//		channels > 2 ? Trgb : channels ? !isLit ?  TTT : TxDrgb : !isLit? White : Drgb;
+//	//colorSourceC;
+//	if(hasColorNode){
+//		if(channels > 2) colorSourceC = Trgb;
+//		else if(channels) colorSourceC = TxCrgb;
+//		else colorSourceC = Crgb;
+//
+//	}else{
+//		if(channels > 2) colorSourceC = Trgb;
+//		else if(channels){
+//			if(!isLit) colorSourceC = TTT;
+//			else colorSourceC = TxDrgb;
+//		}else{
+//			if(!isLit) colorSourceC = White;
+//			else colorSourceC = Drgb;
+//		}
+//	}
+//	if(!(colorSourceC == colorSourceB && colorSourceB == colorSourceA)){
+//		static int once = 0;
+//		if(!once) 
+//			printf("ouch - colorsource confusion\n");
+//		once = 1;
+//	}
+//	if(alphaSourceA != alphaSourceB){
+//		static int once = 0;
+//		if(!once)
+//			printf("ouch - alphasource confusione\n");
+//		once = 1;
+//	}
+//	*colorSource = colorSourceA;
+//	*alphaSource = alphaSourceA;
+//	*imgchannels = haveTexture ? channels : -1;
+//	return isLit;
+//}
+
 unsigned int getShaderFlags();
 struct X3D_Node *getFogParams();
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpNG;  
-	int channels;
+	//int channels;
 	ppComponent_Shape p;
     	ttglobal tg = gglobal();
 	struct fw_MaterialParameters defaultMaterials = {
@@ -848,32 +884,41 @@ void child_Shape (struct X3D_Shape *node) {
 
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpNG);
 
-		//if(node->_shaderTableEntry == builtinShader ){
-
-		channels = 0;
-		if(1){
-			static int once = 0;
-			//Aug 6, 2016, dug9: OK here now we have the parameters for where builtin shader
-			//should get some things.
-			isLit = color_alpha_source(node->appearance,tmpNG,&colorSource,&alphaSource,&channels);
-			if(channels > 0 && !once){
-				//handy for debugging simple flies, but too noisy for production, so only once per program run
-				ConsoleMessage("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
-				once = 1;
-			}
-			//if shader is builtin
-		}
-		//_shaderTableEntry has bit flags for things like:
-		// isLit, haveMaterial, one/twoMats, haveTexture, MultiTexture, TextureAlpha, hatching, LinePoints
 		shader_requirements = node->_shaderTableEntry;  
 		
 		if(!p->userShaderNode){
 			//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
-			if(channels == 1 || channels == 2)
-				shader_requirements |= WANT_LUMINANCE;
+			// New concept of operations Aug 26, 2016
+			// in the specs there are some things that can replace other things (but not the reverse)
+			// Texture can repace CPV, diffuse and 111
+			// CPV can replace diffuse and 111
+			// diffuse can replace 111
+			// Texture > CPV > Diffuse > (1,1,1)
+			// so there's a kind of order / sequence to it.
+			// There can be a flag at each step saying if you want to replace the prior value (otherwise modulate)
+			// Diffuse replacing or modulating (111) is the same thing, no flag needed
+			// Therefore we need at most 2 flags for color:
+			// TEXTURE_REPLACE_PRIOR and CPV_REPLACE_PRIOR.
+			// and other flag for alpha: ALPHA_REPLACE_PRIOR (same as ! WANT_TEXALPHA)
+			// if all those are false, then its full modulation.
+			// our WANT_LUMINANCE is really == ! TEXTURE_REPLACE_PRIOR
+			// we are missing a CPV_REPLACE_PRIOR, or more precisely this is a default burned into the shader
+
+			int channels;
+			int fullcolortexturemodulation = FALSE; //TRUE;
+			channels = getImageChannelCountFromTTI(node->appearance);
+			fullcolortexturemodulation = fullcolortexturemodulation && (channels > 0);
+
+			if(shader_requirements & COLOUR_MATERIAL_SHADER){
+				//printf("has a color node\n");
+				//lets turn it off, and see if we get texture
+				//shader_requirements &= ~(COLOUR_MATERIAL_SHADER);
+			}
+			if(channels == 1 || channels == 2 || fullcolortexturemodulation)
+				shader_requirements |= WANT_LUMINANCE; //already (L,L,L), this really means !TEXTURE_REPLACE_PRIOR
 			//if the image has a real alpha, we may want to turn off alpha modulation, 
 			// see comment about modulate in Compositing_Shaders.c
-			if(channels == 2 || channels == 4)
+			if(channels == 2 || channels == 4 || fullcolortexturemodulation)
 				shader_requirements |= WANT_TEXALPHA;
 
 			//getShaderFlags() are from non-leaf-node shader influencers: 
@@ -990,7 +1035,7 @@ void compile_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpG = NULL;
 	struct X3D_Appearance *appearance = NULL;
 	int userDefinedShader = 0;
-	int colorSource, alphaSource, channels, isLit;
+//	int colorSource, alphaSource, channels, isLit;
 
 
 	// ConsoleMessage ("**** Compile Shape ****");
@@ -1009,67 +1054,59 @@ void compile_Shape (struct X3D_Shape *node) {
 	/* first - does appearance have a shader node? */
 	userDefinedShader = hasUserDefinedShader(tmpN);
 	// if(!Appearance.shader) use lightingModel
+//if(0){
+//	if(1){
+//		//Aug 6, 2016, dug9: OK here now we have some parameters for builtin shader
+//		//int colorSource, alphaSource, channels, isLit;
+//		isLit = color_alpha_source(tmpN,tmpG,&colorSource,&alphaSource,&channels);
+//		if(0) printf("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
+//		//PROBLEM: the texture may not loaded or bound yet, so the channels (number of image components ie RGBA=4) will be 0
+//		//colorSource and alphaSource depend on channels count
+//		//therefore values coming out here may not be the final values
+//		//SOLUTION: Textures.c > new_bind_image > about line 1530 in case TEX_NEEDSBINDING > we ichange++ the Shape
+//
+//	}
+//
+//	/* Lines, points - can get the emission colour from an appearance node */
+//	if (isUnlitGeometry) {
+//
+//		int myAppShad =  getAppearanceShader(tmpN);
+//
+//		/* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
+//		if it is zero, we either have an appearance node, or we have no-material. */
+//		//ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
+//		if ((whichShapeColorShader != 0) || (myAppShad != 0)) {
+//			//ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
+//
+//			/* which one first? */
+//			if (whichShapeColorShader != 0) whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
+//			else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
+//		}
+//	} else {
+//
+//		if(0){
+//			/* if we have a Colour field, put this first */
+//			//old way - KelpForest > SharkLefty renders with CPV instead of IMG
+//			if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
+//					whichAppearanceShader = getAppearanceShader(tmpN);
+//			}
+//		}else if(1){
+//			//for late arriving channels > recompile strategy (versus if-else conditional in compound shader)
+//			//SharkLefty renders correctly
+//			if(colorSource != Crgb){
+//				whichAppearanceShader = getAppearanceShader(tmpN);
+//				whichShapeColorShader = NOTHING;
+//			}
+//		}
+//	}
+//}else{
+	//Aug 26 2016 change: don't fiddle around with flags here, rather report the state of the node
+	// - then do any fiddling in child_shape, when we have the channel count, or full_modulation flag
+	if(isUnlitGeometry)
+		whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
+	whichAppearanceShader = getAppearanceShader(tmpN);
 
-	if(1){
-		//Aug 6, 2016, dug9: OK here now we have some parameters for builtin shader
-		//int colorSource, alphaSource, channels, isLit;
-		isLit = color_alpha_source(tmpN,tmpG,&colorSource,&alphaSource,&channels);
-		if(0) printf("isLit = %d chnls %d %s %s\n",isLit,channels,lighting_names[colorSource],lighting_names[alphaSource]);
-		//PROBLEM: the texture may not loaded or bound yet, so the channels (number of image components ie RGBA=4) will be 0
-		//colorSource and alphaSource depend on channels count
-		//therefore values coming out here may not be the final values
-		//SOLUTION: Textures.c > new_bind_image > about line 1530 in case TEX_NEEDSBINDING > we ichange++ the Shape
-
-	}
-
-	/* Lines, points - can get the emission colour from an appearance node */
-	if (isUnlitGeometry) {
-
-		int myAppShad =  getAppearanceShader(tmpN);
-
-		/* Ok. We if whichShapeColorShader is non-zero, we have a Colour node.
-		if it is zero, we either have an appearance node, or we have no-material. */
-		//ConsoleMessage ("unlit geometry, appearance shader is %d whichShapeColorShader is %d",myAppShad,whichShapeColorShader);
-		if ((whichShapeColorShader != 0) || (myAppShad != 0)) {
-			//ConsoleMessage ("Unlit geometry, but with either a Color node, or an appearance node");
-
-			/* which one first? */
-			if (whichShapeColorShader != 0) whichUnlitGeometry = HAVE_LINEPOINTS_COLOR;
-			else whichUnlitGeometry = HAVE_LINEPOINTS_APPEARANCE;
-		}
-	} else {
-
-		if(0){
-			/* if we have a Colour field, put this first */
-			//old way - KelpForest > SharkLefty renders with CPV instead of IMG
-			if (whichShapeColorShader != COLOUR_MATERIAL_SHADER) {
-					whichAppearanceShader = getAppearanceShader(tmpN);
-			}
-		}else if(1){
-			//for late arriving channels > recompile strategy (versus if-else conditional in compound shader)
-			//SharkLefty renders correctly
-			if(colorSource != Crgb){
-				whichAppearanceShader = getAppearanceShader(tmpN);
-				whichShapeColorShader = NOTHING;
-			}
-		}
-		//else{
-		//	//these more ellaborate use permutations dont' work.
-		//	if(colorSource == Trgb){
-		//		whichAppearanceShader = getAppearanceShader(tmpN);
-		//		whichShapeColorShader = NOTHING;
-		//	}
-		//	if(colorSource == Crgb || colorSource == Drgb){
-		//		whichAppearanceShader = NOTHING;
-		//		whichShapeColorShader = whichShapeColorShader;
-		//	}
-		//	if(colorSource == TxCrgb || colorSource == TxDrgb){
-		//		whichAppearanceShader = getAppearanceShader(tmpN);
-		//		whichShapeColorShader = whichShapeColorShader;
-		//	}
-
-		//}
-	}
+//}
 
 
 		/* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */
