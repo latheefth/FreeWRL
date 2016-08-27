@@ -439,23 +439,6 @@ define CPV if colorNode && image_channels < 3
 define MAT if material is valid
 */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* Generic GLSL vertex shader.
    Used by ../castlerendererinternalshader.pas to construct the final shader.
 
@@ -463,7 +446,6 @@ define MAT if material is valid
    in program's binary.
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
-
 
 static const GLchar *genericVertexGLES2 = "\
 /* DEFINES */ \n\
@@ -574,18 +556,19 @@ vec4 castle_Specular; \n\
  \n\
 #ifdef CPV \n\
 attribute vec4 fw_Color; //castle_ColorPerVertex; \n\
-#endif \n\
+varying vec4 cpv_Color; \n\
+#endif //CPV \n\
  \n\
 void main(void) \n\
 { \n\
   #ifdef LIT \n\
   castle_MaterialDiffuseAlpha = fw_FrontMaterial.diffuse.a; \n\
   #ifdef TEX \n\
-  #ifdef TAT \n\
+  #ifdef TAREP \n\
   //to modulate or not to modulate, this is the question \n\
   //in here, we turn off modulation and use image alpha \n\
   castle_MaterialDiffuseAlpha = 1.0; \n\
-  #endif //TAT \n\
+  #endif //TAREP \n\
   #endif //TEX \n\
   castle_MaterialShininess =	fw_FrontMaterial.shininess; \n\
   castle_SceneColor = fw_FrontMaterial.ambient.rgb; \n\
@@ -598,9 +581,11 @@ void main(void) \n\
   castle_UnlitColor = vec4(1.0,1.0,1.0,1.0); \n\
   castle_MaterialDiffuseAlpha = 1.0; \n\
   #endif //LIT \n\
+  \n\
   #ifdef FILL \n\
   hatchPosition = fw_Vertex.xy; \n\
   #endif //FILL \n\
+  \n\
   vec4 vertex_object = fw_Vertex; \n\
   vec3 normal_object = fw_Normal; \n\
   /* PLUG: vertex_object_space_change (vertex_object, normal_object) */ \n\
@@ -615,7 +600,7 @@ void main(void) \n\
   #define castle_vertex_eye temp_castle_vertex_eye \n\
   #define castle_normal_eye temp_castle_normal_eye \n\
   #define castle_Color      temp_castle_Color \n\
-  #endif \n\
+  #endif //CASTLE_BUGGY_GLSL_READ_VARYING \n\
   \n\
   castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
   castle_normal_eye = normalize(fw_NormalMatrix * normal_object); \n\
@@ -628,21 +613,20 @@ void main(void) \n\
   /* PLUG: add_light_contribution2 (castle_Color, castle_ColorES, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */ \n\
   /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */ \n\
   castle_Color.a = castle_MaterialDiffuseAlpha; \n\
-  \n\
   /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */ \n\
   castle_Color.rgb = min(castle_Color.rgb, 1.0); \n\
   #else //LIT \n\
-  castle_Color = castle_UnlitColor; \n\
-  #ifdef CPV //color per vertex \n\
-   castle_Color *= fw_Color; \n\
-  #endif \n\
+  castle_Color.rgb = castle_UnlitColor.rgb; \n\
   #endif //LIT \n\
+  \n\
+  #ifdef CPV //color per vertex \n\
+  cpv_Color = fw_Color; \n\
+  #endif //CPV \n\
   \n\
   #ifdef TEX \n\
   #ifdef TGEN  \n\
   vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
   vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
-  \n\
   /* sphereEnvironMapping Calculation */  \n\
   vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n\
   vec3 r= reflect(u,vertexNorm); \n\
@@ -661,6 +645,7 @@ void main(void) \n\
   v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #endif //TGEN \n\
   #endif //TEX \n\
+  \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
   \n\
   #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
@@ -671,6 +656,7 @@ void main(void) \n\
   castle_normal_eye = temp_castle_normal_eye; \n\
   castle_Color      = temp_castle_Color; \n\
   #endif //CASTLE_BUGGY_GLSL_READ_VARYING \n\
+  \n\
   #ifdef FOG \n\
   #ifdef FOGCOORD \n\
   castle_vertex_eye.z = fw_FogCoords; \n\
@@ -692,6 +678,20 @@ void main(void) \n\
   GL_ES_VERSION_2_0 - non-desktop
   HAS_GEOMETRY_SHADER - version 3+ gles
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -727,6 +727,10 @@ struct fw_LightSourceParameters { \n\
 \n\
 uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
 #endif //LITE \n\
+\n\
+#ifdef CPV \n\
+varying vec4 cpv_Color; \n\
+#endif //CPV \n\
 \n\
 #ifdef TEX \n\
 uniform sampler2D fw_Texture_unit0; \n\
@@ -904,14 +908,38 @@ vec2 texture_coord_shifted(in vec2 tex_coord) \n\
  \n\
 void main(void) \n\
 { \n\
-  vec4 fragment_color = castle_Color; \n\
+  vec4 fragment_color = vec4(1.0,1.0,1.0,1.0); \n\
+  vec4 matdiff_color = castle_Color; \n\
+  float castle_MaterialDiffuseAlpha = castle_Color.a; \n\
+  \n\
   #ifdef LITE \n\
-  //start over with the color, since we have material and lighting in here \n\
-  fragment_color = vec4(0,0,0,fw_FrontMaterial.diffuse.a); \n\
   //per-fragment lighting aka PHONG \n\
+  //start over with the color, since we have material and lighting in here \n\
+  castle_MaterialDiffuseAlpha = fw_FrontMaterial.diffuse.a; \n\
+  matdiff_color = vec4(0,0,0,1.0); \n\
   vec3 castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
-  /* PLUG: add_light_contribution2 (fragment_color, castle_ColorES, castle_vertex_eye, castle_normal_eye, fw_FrontMaterial.shininess) */ \n\
+  /* PLUG: add_light_contribution2 (matdiff_color, castle_ColorES, castle_vertex_eye, castle_normal_eye, fw_FrontMaterial.shininess) */ \n\
   #endif //LITE \n\
+  \n\
+  #ifdef LIT \n\
+  #ifdef MATFIR \n\
+  fragment_color.rgb = matdiff_color.rgb; \n\
+  #endif //MATFIR \n\
+  #endif //LIT \n\
+  \n\
+  #ifdef CPV \n\
+  #ifdef CPVREP \n\
+  fragment_color.rgb = cpv_Color.rgb; //CPV replaces mat.diffuse prior \n\
+  #else \n\
+  fragment_color.rgb *= cpv_Color.rgb; //CPV modulates prior \n\
+  #endif //CPVREP \n\
+  #endif //CPV \n\
+  \n\
+  #ifdef TEX \n\
+  #ifdef TEXREP \n\
+  fragment_color = vec4(1.0,1.0,1.0,1.0); //texture replaces prior \n\
+  #endif //TEXREP \n\
+  #endif //TEX \n\
   \n\
   /* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
   #define normal_eye_fragment vec3(0.0) \n\
@@ -919,10 +947,17 @@ void main(void) \n\
   #ifdef FILL \n\
   fillPropCalc(fragment_color, hatchPosition, algorithm); \n\
   #endif //FILL \n\
+  \n\
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
   #ifdef LIT \n\
+  #ifndef MATFIR \n\
+  //modulate texture with mat.diffuse \n\
+  fragment_color.rgb *= matdiff_color.rgb; \n\
+  fragment_color.a *= castle_MaterialDiffuseAlpha; \n\
+  #endif //MATFIR \n\
   fragment_color.rgb = clamp(fragment_color.rgb + castle_ColorES, 0.0, 1.0); \n\
   #endif //LIT \n\
+  \n\
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */ \n\
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */ \n\
   \n\
@@ -1013,11 +1048,6 @@ void PLUG_add_light_contribution2 (inout vec4 vertexcolor, inout vec3 specularco
   myAlph = myMat.diffuse.a; \n\
   //if(useMatDiffuse) \n\
   matdiffuse = myMat.diffuse; \n\
-  #ifdef TEX \n\
-  #ifndef LUM \n\
-  matdiffuse = vec4(1.0,1.0,1.0,1.0); \n\
-  #endif //LUM \n\
-  #endif //TEX \n\
   \n\
   /* apply the lights to this material */ \n\
   /* weird but ANGLE needs constant loop */ \n\
@@ -1153,7 +1183,8 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	char *CompleteCode[3];
 	char *vs, *fs;
 	retval = FALSE;
-	if(whichOne & USER_DEFINED_SHADER_MASK) return retval; //not supported yet as of Aug 9, 2016
+	if(whichOne & USER_DEFINED_SHADER_MASK) 
+		return retval; //not supported yet as of Aug 9, 2016
 	retval = TRUE;
 
 	//generic
@@ -1189,12 +1220,22 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//color per vertex
 	if DESIRE(whichOne,COLOUR_MATERIAL_SHADER) {
 		AddDefine(SHADERPART_VERTEX,"CPV",CompleteCode);
+		AddDefine(SHADERPART_FRAGMENT,"CPV",CompleteCode);
+		if(DESIRE(whichOne,CPV_REPLACE_PRIOR)){
+			AddDefine(SHADERPART_VERTEX,"CPVREP",CompleteCode);
+			AddDefine(SHADERPART_FRAGMENT,"CPVREP",CompleteCode);
+		}
 	}
 	//material appearance
 	//2 material appearance
 	//phong vs gourard
 	if(DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) || DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER)){
 		//if(isLit)
+		if(DESIRE(whichOne,MAT_FIRST)){
+			//strict table 17-3 with no other modulation means Texture > CPV > mat.diffuse > (111)
+			AddDefine(SHADERPART_VERTEX,"MATFIR",CompleteCode);
+			AddDefine(SHADERPART_FRAGMENT,"MATFIR",CompleteCode);
+		}
 		if(DESIRE(whichOne,SHADINGSTYLE_PHONG)){
 			//when we say phong in freewrl, we really mean per-fragment lighting
 			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
@@ -1252,10 +1293,10 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		}
 		if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
 			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
-		if(DESIRE(whichOne,WANT_LUMINANCE) )
-			AddDefine(SHADERPART_VERTEX,"LUM",CompleteCode);
-		if(DESIRE(whichOne,WANT_TEXALPHA) && NOT_MODULATE_IMG_AND_MAT_ALPHAS)
-			AddDefine(SHADERPART_VERTEX,"TAT",CompleteCode);
+		if(DESIRE(whichOne,TEXTURE_REPLACE_PRIOR) )
+			AddDefine(SHADERPART_FRAGMENT,"TEXREP",CompleteCode);
+		if(DESIRE(whichOne,TEXALPHA_REPLACE_PRIOR))
+			AddDefine(SHADERPART_VERTEX,"TAREP",CompleteCode);
 
 		Plug(SHADERPART_FRAGMENT,plug_fragment_texture_apply,CompleteCode,&unique_int);
 
