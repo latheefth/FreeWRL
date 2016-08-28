@@ -1015,38 +1015,46 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 \n\
   #ifdef MTEX \n\
   vec4 source; \n\
-  finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; \n\
+  //finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; \n\
+  if(textureCount>0){ \n\
+	if(fw_Texture_mode0 != MTMODE_OFF) { \n\
+      if(fw_Texture_source0 == MT_DEFAULT) source = finalFrag; \n\
+      else if(fw_Texture_source0 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+      else if(fw_Texture_source0 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+      else if(fw_Texture_source0 == MTSRC_FACTOR) source = mt_Color; \n\
+      finalColCalc(source,fw_Texture_mode0,fw_Texture_unit0,v_texC.st); \n\
+      finalFrag = source; \n\
+	} \n\
+  } \n\
   if(textureCount>1){ \n\
-    if(fw_Texture_source0 == MT_DEFAULT) source = finalFrag; \n\
-    else if(fw_Texture_source0 == MTSRC_DIFFUSE) source = matdiff_color; \n\
-    else if(fw_Texture_source0 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
-    else if(fw_Texture_source0 == MTSRC_FACTOR) source = mt_Color; \n\
-    finalColCalc(source,fw_Texture_mode0,fw_Texture_unit0,v_texC.st); \n\
-    finalFrag = source; \n\
+	if(fw_Texture_mode1 != MTMODE_OFF) { \n\
+      if(fw_Texture_source1 == MT_DEFAULT) source = finalFrag; \n\
+      else if(fw_Texture_source1 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+      else if(fw_Texture_source1 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+      else if(fw_Texture_source1 == MTSRC_FACTOR) source = mt_Color; \n\
+      finalColCalc(source,fw_Texture_mode1,fw_Texture_unit1,v_texC.st); \n\
+      finalFrag = source; \n\
+	} \n\
   } \n\
-  if(textureCount>=2){ \n\
-    if(fw_Texture_source1 == MT_DEFAULT) source = finalFrag; \n\
-    else if(fw_Texture_source1 == MTSRC_DIFFUSE) source = matdiff_color; \n\
-    else if(fw_Texture_source1 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
-    else if(fw_Texture_source1 == MTSRC_FACTOR) source = mt_Color; \n\
-    finalColCalc(source,fw_Texture_mode1,fw_Texture_unit1,v_texC.st); \n\
-    finalFrag = source; \n\
+  if(textureCount>2){ \n\
+	if(fw_Texture_mode2 != MTMODE_OFF) { \n\
+      if(fw_Texture_source2 == MT_DEFAULT) source = finalFrag; \n\
+      else if(fw_Texture_source2 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+      else if(fw_Texture_source2 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+      else if(fw_Texture_source2 == MTSRC_FACTOR) source = mt_Color; \n\
+      finalColCalc(source,fw_Texture_mode1,fw_Texture_unit2,v_texC.st); \n\
+      finalFrag = source; \n\
+	} \n\
   } \n\
-  if(textureCount>=3){ \n\
-    if(fw_Texture_source2 == MT_DEFAULT) source = finalFrag; \n\
-    else if(fw_Texture_source2 == MTSRC_DIFFUSE) source = matdiff_color; \n\
-    else if(fw_Texture_source2 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
-    else if(fw_Texture_source2 == MTSRC_FACTOR) source = mt_Color; \n\
-    finalColCalc(source,fw_Texture_mode1,fw_Texture_unit2,v_texC.st); \n\
-    finalFrag = source; \n\
-  } \n\
-  if(textureCount>=4){ \n\
-    if(fw_Texture_source3 == MT_DEFAULT) source = finalFrag; \n\
-    else if(fw_Texture_source3 == MTSRC_DIFFUSE) source = matdiff_color; \n\
-    else if(fw_Texture_source3 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
-    else if(fw_Texture_source3 == MTSRC_FACTOR) source = mt_Color; \n\
-    finalColCalc(source,fw_Texture_mode1,fw_Texture_unit3,v_texC.st); \n\
-    finalFrag = source; \n\
+  if(textureCount>3){ \n\
+	if(fw_Texture_mode3 != MTMODE_OFF) { \n\
+      if(fw_Texture_source3 == MT_DEFAULT) source = finalFrag; \n\
+      else if(fw_Texture_source3 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+      else if(fw_Texture_source3 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+      else if(fw_Texture_source3 == MTSRC_FACTOR) source = mt_Color; \n\
+      finalColCalc(source,fw_Texture_mode1,fw_Texture_unit3,v_texC.st); \n\
+      finalFrag = source; \n\
+	} \n\
   } \n\
   #else //MTEX \n\
   /* ONE TEXTURE */ \n\

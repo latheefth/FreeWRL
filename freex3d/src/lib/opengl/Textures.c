@@ -855,7 +855,6 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 
 static void compileMultiTexture (struct X3D_MultiTexture *node) {
     struct multiTexParams *paramPtr;
-    char *param;
     int count;
     int max;
 	s_renderer_capabilities_t *rdr_caps;
@@ -887,35 +886,41 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
     }
     
     /* how many textures can we use? no sense scanning those we cant use */
-    max = node->mode.n; 
+    //max = node->mode.n; 
+	max = node->texture.n;
     if (max > rdr_caps->texture_units) max = rdr_caps->texture_units;
     
     // warn users that function and source parameters not looked at right now 
-    if ((node->source.n>0) || (node->function.n>0)) {
-        ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
-    }
+    //if ((node->source.n>0) || (node->function.n>0)) {
+    //    ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
+    //}
     /* go through the params, and change string name into an int */
     paramPtr = (struct multiTexParams*) node->__xparams;
     for (count = 0; count < max; count++) {
-        param = node->mode.p[count]->strptr;
-        paramPtr->multitex_mode = findFieldInMULTITEXTUREMODE(param);
-        
+		char *smode, *ssource, *sfunc;
+		smode = ssource = sfunc = NULL;
+		if(node->mode.n>count){
+			smode = node->mode.p[count]->strptr;
+			paramPtr->multitex_mode = findFieldInMULTITEXTUREMODE(smode);
+        }
         if(node->source.n>count) {
-            param = node->source.p[count]->strptr;
-            paramPtr->multitex_source = findFieldInMULTITEXTURESOURCE(param);
+            ssource = node->source.p[count]->strptr;
+            paramPtr->multitex_source = findFieldInMULTITEXTURESOURCE(ssource);
         }
         
         if (node->function.n>count) {
-            param = node->function.p[count]->strptr;
-            paramPtr->multitex_function = findFieldInMULTITEXTUREFUNCTION(param);
+            sfunc = node->function.p[count]->strptr;
+            paramPtr->multitex_function = findFieldInMULTITEXTUREFUNCTION(sfunc);
         }
 
-#ifdef TEXVERBOSE
-printf ("compile_MultiTexture, %d of %d, string %s mode %d function %d\n",count,max,param,paramPtr->multitex_mode,paramPtr->multitex_function);
-#endif //TEXVERBOSE
+//#ifdef TEXVERBOSE
+printf ("compile_MultiTexture, %d of %d, mode %d source %d function %d m %s s %s f %s\n",
+count,max,paramPtr->multitex_mode,paramPtr->multitex_source,paramPtr->multitex_function,smode,ssource,sfunc);
+//#endif //TEXVERBOSE
 
         paramPtr++;
     }
+	printf("end of compileMultiTexture\n");
 }
 
 void loadMultiTexture (struct X3D_MultiTexture *node) {
@@ -989,7 +994,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		   stored in boundTextureStack[textureStackTop]; textureStackTop will be 1
 		   for "normal" textures; at least 1 for MultiTextures. */
 
-        	gglobal()->RenderFuncs.textureStackTop++;
+        	tg->RenderFuncs.textureStackTop++;
 			
  
 		
@@ -1000,7 +1005,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		printf ("loadMultiTexture, finished with texture %d\n",count);
 #endif
 	}
-	gglobal()->RenderFuncs.multitexturenode = (void*)node;
+	tg->RenderFuncs.multitexturenode = (void*)node;
 }
 
 #define BOUNDARY_TO_GL(direct) \

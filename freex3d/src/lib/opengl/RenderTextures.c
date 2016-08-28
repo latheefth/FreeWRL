@@ -120,8 +120,8 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 	/* printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source); */
 		if (p->textureParameterStack[c].multitex_source != MTMODE_OFF) {
 		} else {
-			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
-			return FALSE;
+			//glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
+			//return FALSE;
 		}
 	}
 
@@ -226,7 +226,14 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		}
 
 		for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
-			//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
+			static int once = 0;
+			if(once < 10) {
+			printf (" sending in i%d tu %d mode %d src %d fnc %d\n",i,i,
+				p->textureParameterStack[i].multitex_mode,
+				p->textureParameterStack[i].multitex_source,
+				p->textureParameterStack[i].multitex_function);
+				once++;
+			}
 			glUniform1i(me->TextureUnit[i],i);
 			glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode);
 			glUniform1i(me->TextureSource[i],p->textureParameterStack[i].multitex_source);
