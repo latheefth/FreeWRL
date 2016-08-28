@@ -218,11 +218,19 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 
 		if (me->textureCount != -1) 
 		glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
+		if(tg->RenderFuncs.textureStackTop){
+			struct X3D_MultiTexture * mtnode = (struct X3D_MultiTexture *)tg->RenderFuncs.multitexturenode;
+			if(mtnode && mtnode->_nodeType == NODE_MultiTexture){
+				glUniform4f(me->multitextureColor,mtnode->color.c[0],mtnode->color.c[1],mtnode->color.c[2],mtnode->alpha);
+			}
+		}
 
 		for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
 			//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
 			glUniform1i(me->TextureUnit[i],i);
 			glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode);
+			glUniform1i(me->TextureSource[i],p->textureParameterStack[i].multitex_source);
+			glUniform1i(me->TextureFunction[i],p->textureParameterStack[i].multitex_function);
 		}
 	#ifdef TEXVERBOSE
 	} else {

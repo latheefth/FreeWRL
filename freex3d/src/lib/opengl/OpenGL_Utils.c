@@ -2912,11 +2912,16 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 		me->TextureUnit[i]= GET_UNIFORM(myProg,line);
 		sprintf (line,"fw_Texture_mode%d",i);
 		me->TextureMode[i] = GET_UNIFORM(myProg,line);
+		sprintf (line,"fw_Texture_source%d",i);
+		me->TextureSource[i] = GET_UNIFORM(myProg,line);
+		sprintf (line,"fw_Texture_function%d",i);
+		me->TextureFunction[i] = GET_UNIFORM(myProg,line);
 		//printf ("   i %d tu %d mode %d\n",i,me->TextureUnit[i],me->TextureMode[i]);
 
 	}
 
 	me->textureCount = GET_UNIFORM(myProg,"textureCount");
+	me->multitextureColor = GET_UNIFORM(myProg,"mt_Color");
 	//printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
 
 

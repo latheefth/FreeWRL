@@ -348,16 +348,16 @@ typedef struct s_shader_capabilities{
 
 	GLint myPointSize;
     
-    // do we need to send down light information?
-    bool  haveLightInShader; 
-    
+	// do we need to send down light information?
+	bool  haveLightInShader; 
+
 	GLint lightcount;
 	//GLint lightType;
 	GLint lightType[MAX_LIGHTS];
-    GLint lightAmbient[MAX_LIGHTS];
-    GLint lightDiffuse[MAX_LIGHTS];
-    GLint lightSpecular[MAX_LIGHTS];
-    GLint lightPosition[MAX_LIGHTS];
+	GLint lightAmbient[MAX_LIGHTS];
+	GLint lightDiffuse[MAX_LIGHTS];
+	GLint lightSpecular[MAX_LIGHTS];
+	GLint lightPosition[MAX_LIGHTS];
 	GLint lightSpotDir[MAX_LIGHTS];
 	GLint lightAtten[MAX_LIGHTS];
 	//GLint lightConstAtten[MAX_LIGHTS];
@@ -365,7 +365,7 @@ typedef struct s_shader_capabilities{
 	//GLint lightQuadAtten[MAX_LIGHTS];
 	GLint lightSpotCutoffAngle[MAX_LIGHTS];
 	GLint lightSpotBeamWidth[MAX_LIGHTS];
-    //GLint lightRadius;
+	//GLint lightRadius;
 	GLint lightRadius[MAX_LIGHTS];
 
 	GLint ModelViewMatrix;
@@ -378,9 +378,12 @@ typedef struct s_shader_capabilities{
 	GLint TexCoords;
 	GLint FogCoords; //Aug 2016
 
-    GLint TextureUnit[MAX_MULTITEXTURE];
-    GLint TextureMode[MAX_MULTITEXTURE];
-    GLint textureCount;
+	GLint TextureUnit[MAX_MULTITEXTURE];
+	GLint TextureMode[MAX_MULTITEXTURE];
+	GLint TextureSource[MAX_MULTITEXTURE];
+	GLint TextureFunction[MAX_MULTITEXTURE];
+	GLint textureCount;
+	GLint multitextureColor;
 
 	/* fill properties */
 	GLint hatchColour;
@@ -390,8 +393,8 @@ typedef struct s_shader_capabilities{
 	GLint hatchedBool;
 	GLint algorithm;
     
-    /* TextureCoordinateGenerator type */
-    GLint texCoordGenType;
+	/* TextureCoordinateGenerator type */
+	GLint texCoordGenType;
 
 	GLint fogColor;  //Aug 2016
 	GLint fogvisibilityRange;

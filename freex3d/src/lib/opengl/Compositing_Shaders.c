@@ -738,10 +738,21 @@ varying vec3 v_texC; \n\
 #ifdef MTEX \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
+uniform sampler2D fw_Texture_unit3; \n\
 uniform int fw_Texture_mode0;  \n\
 uniform int fw_Texture_mode1;  \n\
 uniform int fw_Texture_mode2;  \n\
+uniform int fw_Texture_mode3;  \n\
+uniform int fw_Texture_source0;  \n\
+uniform int fw_Texture_source1;  \n\
+uniform int fw_Texture_source2;  \n\
+uniform int fw_Texture_source3;  \n\
+uniform int fw_Texture_function0;  \n\
+uniform int fw_Texture_function1;  \n\
+uniform int fw_Texture_function2;  \n\
+uniform int fw_Texture_function3;  \n\
 uniform int textureCount; \n\
+uniform vec4 mt_Color; \n\
 #define MTMODE_ADD     0 \n\
 #define MTMODE_ADDSIGNED       1 \n\
 #define MTMODE_ADDSIGNED2X     2 \n\
@@ -760,6 +771,13 @@ uniform int textureCount; \n\
 #define MTMODE_SELECTARG1      15 \n\
 #define MTMODE_SELECTARG2      16 \n\
 #define MTMODE_SUBTRACT        17 \n\
+#define MTSRC_DIFFUSE	0 \n\
+#define MTSRC_FACTOR	1 \n\
+#define MTSRC_SPECULAR	2 \n\
+#define MTFN_ALPHAREPLICATE	0 \n\
+#define MTFN_COMPLEMENT	1 \n\
+#define MT_DEFAULT -1 \n\
+\n\
 void finalColCalc(inout vec4 prevColour, in int mode, in sampler2D tex, in vec2 texcoord) { \n\
   vec4 texel = texture2D(tex,texcoord); \n\
   vec4 rv = vec4(1.,0.,1.,1.);   \n\
@@ -801,6 +819,10 @@ void finalColCalc(inout vec4 prevColour, in int mode, in sampler2D tex, in vec2 
     rv = vec4 (prevColour - texel);  \n\
   } else if (mode==MTMODE_ADDSMOOTH) {  \n\
     rv = vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texel);  \n\
+  } else if (mode==MTMODE_SELECTARG1) {  \n\
+    rv = texel;  \n\
+  } else if (mode==MTMODE_SELECTARG2) {  \n\
+    rv = prevColour;  \n\
   } \n\
   prevColour = rv;  \n\
 } \n\
@@ -893,6 +915,7 @@ uniform fw_MaterialParameters fw_FrontMaterial; \n\
 #ifdef TWO \n\
 uniform fw_MaterialParameters fw_BackMaterial; \n\
 #endif //TWO \n\
+vec3 castle_ColorES; \n\
 #else //LITE \n\
 //per-vertex lighting - interpolated Emissive-specular \n\
 varying vec3 castle_ColorES; //emissive shininess term \n\
@@ -906,10 +929,11 @@ vec2 texture_coord_shifted(in vec2 tex_coord) \n\
   return tex_coord; \n\
 } \n\
  \n\
+vec4 matdiff_color; \n\
 void main(void) \n\
 { \n\
   vec4 fragment_color = vec4(1.0,1.0,1.0,1.0); \n\
-  vec4 matdiff_color = castle_Color; \n\
+  matdiff_color = castle_Color; \n\
   float castle_MaterialDiffuseAlpha = castle_Color.a; \n\
   \n\
   #ifdef LITE \n\
@@ -917,7 +941,7 @@ void main(void) \n\
   //start over with the color, since we have material and lighting in here \n\
   castle_MaterialDiffuseAlpha = fw_FrontMaterial.diffuse.a; \n\
   matdiff_color = vec4(0,0,0,1.0); \n\
-  vec3 castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
+  castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
   /* PLUG: add_light_contribution2 (matdiff_color, castle_ColorES, castle_vertex_eye, castle_normal_eye, fw_FrontMaterial.shininess) */ \n\
   #endif //LITE \n\
   \n\
@@ -984,20 +1008,50 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 	finalFrag = vec4(gray,gray,gray, finalFrag.a); \n\
 }\n";
 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#MultiTexture
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
 static const GLchar *plug_fragment_texture_apply =	"\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
-   /* ONE TEXTURE */ \n\
-   finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; \n\
-   #ifdef MTEX \n\
-   if(textureCount>=1) \n\
-     finalColCalc(finalFrag,fw_Texture_mode0,fw_Texture_unit0,v_texC.st); \n\
-   if(textureCount>=2) \n\
-     finalColCalc(finalFrag,fw_Texture_mode1,fw_Texture_unit1,v_texC.st); \n\
-   if(textureCount>=3) \n\
-     finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,v_texC.st); \n\
-	#endif //MTEX \n\
-	//clamp here or outside? \n\
+\n\
+  #ifdef MTEX \n\
+  vec4 source; \n\
+  finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; \n\
+  if(textureCount>1){ \n\
+    if(fw_Texture_source0 == MT_DEFAULT) source = finalFrag; \n\
+    else if(fw_Texture_source0 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+    else if(fw_Texture_source0 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+    else if(fw_Texture_source0 == MTSRC_FACTOR) source = mt_Color; \n\
+    finalColCalc(source,fw_Texture_mode0,fw_Texture_unit0,v_texC.st); \n\
+    finalFrag = source; \n\
+  } \n\
+  if(textureCount>=2){ \n\
+    if(fw_Texture_source1 == MT_DEFAULT) source = finalFrag; \n\
+    else if(fw_Texture_source1 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+    else if(fw_Texture_source1 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+    else if(fw_Texture_source1 == MTSRC_FACTOR) source = mt_Color; \n\
+    finalColCalc(source,fw_Texture_mode1,fw_Texture_unit1,v_texC.st); \n\
+    finalFrag = source; \n\
+  } \n\
+  if(textureCount>=3){ \n\
+    if(fw_Texture_source2 == MT_DEFAULT) source = finalFrag; \n\
+    else if(fw_Texture_source2 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+    else if(fw_Texture_source2 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+    else if(fw_Texture_source2 == MTSRC_FACTOR) source = mt_Color; \n\
+    finalColCalc(source,fw_Texture_mode1,fw_Texture_unit2,v_texC.st); \n\
+    finalFrag = source; \n\
+  } \n\
+  if(textureCount>=4){ \n\
+    if(fw_Texture_source3 == MT_DEFAULT) source = finalFrag; \n\
+    else if(fw_Texture_source3 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+    else if(fw_Texture_source3 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+    else if(fw_Texture_source3 == MTSRC_FACTOR) source = mt_Color; \n\
+    finalColCalc(source,fw_Texture_mode1,fw_Texture_unit3,v_texC.st); \n\
+    finalFrag = source; \n\
+  } \n\
+  #else //MTEX \n\
+  /* ONE TEXTURE */ \n\
+  finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; \n\
+  #endif //MTEX \n\
   \n\
 }\n";
 

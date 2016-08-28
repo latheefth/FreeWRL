@@ -990,6 +990,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		   for "normal" textures; at least 1 for MultiTextures. */
 
         	gglobal()->RenderFuncs.textureStackTop++;
+			
  
 		
         paramPtr++;
@@ -999,6 +1000,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		printf ("loadMultiTexture, finished with texture %d\n",count);
 #endif
 	}
+	gglobal()->RenderFuncs.multitexturenode = (void*)node;
 }
 
 #define BOUNDARY_TO_GL(direct) \

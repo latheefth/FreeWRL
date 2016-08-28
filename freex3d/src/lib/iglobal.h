@@ -335,6 +335,7 @@ iOLDCODE	}Component_Networking;
 		//GLuint boundTextureStack[10];//MAX_MULTITEXTURE];
 		unsigned int boundTextureStack[10];//MAX_MULTITEXTURE];
 		int textureStackTop;
+		void *multitexturenode;
 		void *prv;
 	}RenderFuncs;
 	struct tStreamPoly{
