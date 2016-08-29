@@ -1507,7 +1507,7 @@ static const GLchar *vertSimColDec = "\
 	attribute  vec4 fw_Color;\n ";
 
 static const GLchar *vertTexMatrixDec = "\
-	uniform mat4 fw_TextureMatrix;\n";
+	uniform mat4 fw_TextureMatrix0;\n";
 
 static const GLchar *vertTexCoordGenDec ="\
 	uniform int fw_textureCoordGenType;\n";
@@ -1557,7 +1557,7 @@ static const GLchar *vertNormPosCalc = "\
 static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
-static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
+static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
 
 static const GLchar *vertSingTexCubeCalc = "\
 	vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
@@ -2486,7 +2486,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 			#define gl_NormalMatrix fw_NormalMatrix\n \
 			#define gl_ProjectionMatrix fw_ProjectionMatrix \n\
 			#define gl_ModelViewMatrix fw_ModelViewMatrix \n\
-			#define gl_TextureMatrix fw_TextureMatrix \n\
+			#define gl_TextureMatrix fw_TextureMatrix0 \n\
 			#define gl_Vertex fw_Vertex \n \
 			#define gl_Normal fw_Normal\n \
 			#define gl_Texture_unit0 fw_Texture_unit0\n \
@@ -2895,7 +2895,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
-	me->TextureMatrix = GET_UNIFORM(myProg,"fw_TextureMatrix");
+	me->TextureMatrix0 = GET_UNIFORM(myProg,"fw_TextureMatrix0");
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
@@ -6307,7 +6307,7 @@ normMat[6],normMat[7],normMat[8]);
 /* make this more generic, so that the non-OpenGL-ES 2.0 FillProperties, etc, still work */
 
 void sendMatriciesToShader(s_shader_capabilities_t *me) {
-	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix);
+	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix0);
 
 }
 #define SEND_VEC2(myMat,myVal) \

@@ -458,7 +458,7 @@ attribute vec4 fw_Vertex; \n\
 attribute vec3 fw_Normal; \n\
  \n\
 #ifdef TEX \n\
-uniform mat4 fw_TextureMatrix; \n\
+uniform mat4 fw_TextureMatrix0; \n\
 attribute vec2 fw_MultiTexCoord0; \n\
 varying vec3 v_texC; \n\
 #ifdef TGEN \n\
@@ -642,7 +642,7 @@ void main(void) \n\
     v_texC =    reflect(u,vertexNorm); \n\
   } \n\
   #else //TGEN \n\
-  v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
+  v_texC = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #endif //TGEN \n\
   #endif //TEX \n\
   \n\
