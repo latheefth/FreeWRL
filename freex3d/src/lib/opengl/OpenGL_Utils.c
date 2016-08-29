@@ -1534,7 +1534,7 @@ static const GLchar *varyingNormPos = " \
 	varying vec4 vertexPos; \n";
 
 static const GLchar *varyingTexCoord = "\
-	varying vec3 v_texC;\n";
+	varying vec3 fw_TexCoord[4];\n";
 
 static const GLchar *varyingFrontColour = "\
 	varying vec4    v_front_colour; \n";
@@ -1557,14 +1557,14 @@ static const GLchar *vertNormPosCalc = "\
 static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
-static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
+static const GLchar *vertSingTexCalc = "fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
 
 static const GLchar *vertSingTexCubeCalc = "\
 	vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
 	/* vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
-	v_texC = reflect(u,n); myEyeNormal */ \n \
+	fw_TexCoord[0] = reflect(u,n); myEyeNormal */ \n \
 	/* v_texC = reflect(normalize(vec3(vertexPos)),vertexNorm);\n */ \
-	v_texC = reflect(u,vertexNorm);\n";
+	fw_TexCoord[0] = reflect(u,vertexNorm);\n";
 
 
 /* TextureCoordinateGenerator mapping  */
@@ -1582,13 +1582,13 @@ vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more 
 vec3 r= reflect(u,vertexNorm); \n\
 if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
     float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
-    v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n \
+    fw_TexCoord[0] = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n \
 }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) /* GL_REFLECTION_MAP used for sampling cubemaps */ {\n \
 	float dotResult = 2.0 * dot(u,r); \n\
-	v_texC = vec3(u-r)*dotResult;\n\
+	fw_TexCoord[0] = vec3(u-r)*dotResult;\n\
 } else { /* default usage - like default CubeMaps */ \n\
     vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
-    v_texC = reflect(u,vertexNorm);\n \
+    fw_TexCoord[0] = reflect(u,vertexNorm);\n \
 }\n\
 ";
 
@@ -1974,8 +1974,8 @@ const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(vertexNorm,vertexP
 const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(vertexNorm,vertexPos,true);";
 const static GLchar *vertADSLCalc0 = "v_front_colour = ADSLightModel(vertexNorm,vertexPos,false);";
 
-const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag;\n";
-const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_unit0, v_texC) * finalFrag;\n";
+const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, fw_TexCoord[0].st) * finalFrag;\n";
+const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_unit0, fw_TexCoord[0]) * finalFrag;\n";
 
 
 /* MultiTexture stuff */
@@ -2126,15 +2126,15 @@ return rv; \
 } \n";
 
 const static GLchar *fragMulTexCalc = "\
-if(textureCount>=1) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode0,fw_Texture_unit0,v_texC.st);} \n\
-if(textureCount>=2) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode1,fw_Texture_unit1,v_texC.st);} \n\
-if(textureCount>=3) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,v_texC.st);} \n\
+if(textureCount>=1) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode0,fw_Texture_unit0,fw_TexCoord[0].st);} \n\
+if(textureCount>=2) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode1,fw_Texture_unit1,fw_TexCoord[0].st);} \n\
+if(textureCount>=3) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,fw_TexCoord[0].st);} \n\
 /* REMOVE these as shader compile takes long \
-if(textureCount>=4) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode3,fw_Texture_unit3,v_texC.st);} \n\
-if(textureCount>=5) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode4,fw_Texture_unit4,v_texC.st);} \n\
-if(textureCount>=6) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode5,fw_Texture_unit5,v_texC.st);} \n\
-if(textureCount>=7) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode6,fw_Texture_unit6,v_texC.st);} \n\
-if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Texture_unit7,v_texC.st);} \n\
+if(textureCount>=4) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode3,fw_Texture_unit3,fw_TexCoord[0].st);} \n\
+if(textureCount>=5) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode4,fw_Texture_unit4,fw_TexCoord[0].st);} \n\
+if(textureCount>=6) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode5,fw_Texture_unit5,fw_TexCoord[0].st);} \n\
+if(textureCount>=7) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode6,fw_Texture_unit6,fw_TexCoord[0].st);} \n\
+if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Texture_unit7,fw_TexCoord[0].st);} \n\
 */ \n";
 
 

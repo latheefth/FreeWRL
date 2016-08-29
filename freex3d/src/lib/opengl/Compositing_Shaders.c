@@ -460,7 +460,8 @@ attribute vec3 fw_Normal; \n\
 #ifdef TEX \n\
 uniform mat4 fw_TextureMatrix0; \n\
 attribute vec2 fw_MultiTexCoord0; \n\
-varying vec3 v_texC; \n\
+//varying vec3 v_texC; \n\
+varying vec3 fw_TexCoord[4]; \n\
 #ifdef TGEN \n\
  #define TCGT_CAMERASPACENORMAL    0  \n\
  #define TCGT_CAMERASPACEPOSITION    1 \n\
@@ -632,17 +633,17 @@ void main(void) \n\
   vec3 r= reflect(u,vertexNorm); \n\
   if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
     float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
-    v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
+    fw_TexCoord[0] = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
   }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
     /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
     float dotResult = 2.0 * dot(u,r); \n\
-    v_texC = vec3(u-r)*dotResult; \n\
+    fw_TexCoord[0] = vec3(u-r)*dotResult; \n\
   } else { /* default usage - like default CubeMaps */ \n\
     vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
-    v_texC =    reflect(u,vertexNorm); \n\
+    fw_TexCoord[0] =    reflect(u,vertexNorm); \n\
   } \n\
   #else //TGEN \n\
-  v_texC = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
+  fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #endif //TGEN \n\
   #endif //TEX \n\
   \n\
@@ -735,7 +736,7 @@ varying vec4 cpv_Color; \n\
 \n\
 #ifdef TEX \n\
 uniform sampler2D fw_Texture_unit0; \n\
-varying vec3 v_texC; \n\
+varying vec3 fw_TexCoord[4]; \n\
 #ifdef MTEX \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
@@ -1031,14 +1032,14 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 \n\
   #ifdef MTEX \n\
   vec4 source; \n\
-  //finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; \n\
+  //finalFrag = texture2D(fw_Texture_unit0, fw_TexCoord[0].st) * finalFrag; \n\
   if(textureCount>0){ \n\
 	if(fw_Texture_mode0 != MTMODE_OFF) { \n\
       if(fw_Texture_source0 == MT_DEFAULT) source = finalFrag; \n\
       else if(fw_Texture_source0 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source0 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source0 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode0,fw_Texture_function0, fw_Texture_unit0,v_texC.st); \n\
+      finalColCalc(source,fw_Texture_mode0,fw_Texture_function0, fw_Texture_unit0,fw_TexCoord[0].st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
@@ -1048,7 +1049,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source1 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source1 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source1 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode1,fw_Texture_function1, fw_Texture_unit1,v_texC.st); \n\
+      finalColCalc(source,fw_Texture_mode1,fw_Texture_function1, fw_Texture_unit1,fw_TexCoord[0].st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
@@ -1058,7 +1059,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source2 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source2 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source2 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode2,fw_Texture_function2,fw_Texture_unit2,v_texC.st); \n\
+      finalColCalc(source,fw_Texture_mode2,fw_Texture_function2,fw_Texture_unit2,fw_TexCoord[0].st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
@@ -1068,13 +1069,13 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source3 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source3 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source3 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode3,fw_Texture_function3,fw_Texture_unit3,v_texC.st); \n\
+      finalColCalc(source,fw_Texture_mode3,fw_Texture_function3,fw_Texture_unit3,fw_TexCoord[0].st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
   #else //MTEX \n\
   /* ONE TEXTURE */ \n\
-  finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag; \n\
+  finalFrag = texture2D(fw_Texture_unit0, fw_TexCoord[0].st) * finalFrag; \n\
   #endif //MTEX \n\
   \n\
 }\n";
