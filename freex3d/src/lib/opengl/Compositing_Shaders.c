@@ -705,6 +705,7 @@ precision mediump float; \n\
 #endif //MOBILE \n\
 /* Generic GLSL fragment shader, used on OpenGL ES. */ \n\
  \n\
+varying vec4 castle_Color; \n\
  \n\
 #ifdef LITE \n\
 #define MAX_LIGHTS 8 \n\
@@ -753,24 +754,26 @@ uniform int fw_Texture_function2;  \n\
 uniform int fw_Texture_function3;  \n\
 uniform int textureCount; \n\
 uniform vec4 mt_Color; \n\
-#define MTMODE_ADD     0 \n\
-#define MTMODE_ADDSIGNED       1 \n\
-#define MTMODE_ADDSIGNED2X     2 \n\
-#define MTMODE_ADDSMOOTH       3 \n\
-#define MTMODE_BLENDCURRENTALPHA       4 \n\
-#define MTMODE_BLENDDIFFUSEALPHA       5 \n\
-#define MTMODE_DOTPRODUCT3     6 \n\
-#define MTMODE_MODULATE        7 \n\
-#define MTMODE_MODULATE2X      8 \n\
-#define MTMODE_MODULATE4X      9 \n\
-#define MTMODE_MODULATEALPHA_ADDCOLOR  10 \n\
-#define MTMODE_MODULATEINVALPHA_ADDCOLOR       11 \n\
-#define MTMODE_MODULATEINVCOLOR_ADDALPHA       12 \n\
-#define MTMODE_OFF     13 \n\
-#define MTMODE_REPLACE 14 \n\
-#define MTMODE_SELECTARG1      15 \n\
-#define MTMODE_SELECTARG2      16 \n\
-#define MTMODE_SUBTRACT        17 \n\
+#define MTMODE_ADD	0\n \
+#define MTMODE_ADDSIGNED	1\n \
+#define MTMODE_ADDSIGNED2X	2\n \
+#define MTMODE_ADDSMOOTH	3\n \
+#define MTMODE_BLENDCURRENTALPHA	4\n \
+#define MTMODE_BLENDDIFFUSEALPHA	5\n \
+#define MTMODE_BLENDFACTORALPHA	6\n \
+#define MTMODE_BLENDTEXTUREALPHA	7\n \
+#define MTMODE_DOTPRODUCT3	8\n \
+#define MTMODE_MODULATE	9\n \
+#define MTMODE_MODULATE2X	10\n \
+#define MTMODE_MODULATE4X	11\n \
+#define MTMODE_MODULATEALPHA_ADDCOLOR	12\n \
+#define MTMODE_MODULATEINVALPHA_ADDCOLOR	13\n \
+#define MTMODE_MODULATEINVCOLOR_ADDALPHA	14\n \
+#define MTMODE_OFF	15\n \
+#define MTMODE_REPLACE	16\n \
+#define MTMODE_SELECTARG1	17\n \
+#define MTMODE_SELECTARG2	18\n \
+#define MTMODE_SUBTRACT	19\n \
 #define MTSRC_DIFFUSE	0 \n\
 #define MTSRC_FACTOR	1 \n\
 #define MTSRC_SPECULAR	2 \n\
@@ -819,6 +822,14 @@ void finalColCalc(inout vec4 prevColour, in int mode, in sampler2D tex, in vec2 
     rv = vec4 (prevColour - texel);  \n\
   } else if (mode==MTMODE_ADDSMOOTH) {  \n\
     rv = vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texel);  \n\
+  } else if (mode==MTMODE_BLENDDIFFUSEALPHA) {  \n\
+    rv = vec4 (mix(prevColour,texel,castle_Color.a)); \n\
+  } else if (mode==MTMODE_BLENDTEXTUREALPHA) {  \n\
+    rv = vec4 (mix(prevColour,texel,texel.a)); \n\
+  } else if (mode==MTMODE_BLENDFACTORALPHA) {  \n\
+    rv = vec4 (mix(prevColour,texel,mt_Color.a)); \n\
+  } else if (mode==MTMODE_BLENDCURRENTALPHA) {  \n\
+    rv = vec4 (mix(prevColour,texel,prevColour.a)); \n\
   } else if (mode==MTMODE_SELECTARG1) {  \n\
     rv = texel;  \n\
   } else if (mode==MTMODE_SELECTARG2) {  \n\
@@ -900,7 +911,6 @@ uniform fogParams fw_fogparams; \n\
  \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec3 castle_normal_eye; \n\
-varying vec4 castle_Color; \n\
 #ifdef LIT \n\
 #ifdef LITE \n\
 //per-fragment lighting ie phong \n\
