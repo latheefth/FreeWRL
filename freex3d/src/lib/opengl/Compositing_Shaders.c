@@ -781,7 +781,7 @@ uniform vec4 mt_Color; \n\
 #define MTFN_COMPLEMENT	1 \n\
 #define MT_DEFAULT -1 \n\
 \n\
-void finalColCalc(inout vec4 prevColour, in int mode, in sampler2D tex, in vec2 texcoord) { \n\
+void finalColCalc(inout vec4 prevColour, in int mode, in int func, in sampler2D tex, in vec2 texcoord) { \n\
   vec4 texel = texture2D(tex,texcoord); \n\
   vec4 rv = vec4(1.,0.,1.,1.);   \n\
   if (mode==MTMODE_OFF) {  \n\
@@ -834,6 +834,12 @@ void finalColCalc(inout vec4 prevColour, in int mode, in sampler2D tex, in vec2 
     rv = texel;  \n\
   } else if (mode==MTMODE_SELECTARG2) {  \n\
     rv = prevColour;  \n\
+  } \n\
+  if(func == MTFN_COMPLEMENT){ \n\
+	//rv = vec4(1.0,1.0,1.0,1.0) - rv; \n\
+	rv = vec4( vec3(1.0,1.0,1.0) - rv.rgb, rv.a); \n\
+  }else if(func == MTFN_ALPHAREPLICATE){ \n\
+	rv = vec4(rv.a,rv.a,rv.a,rv.a); \n\
   } \n\
   prevColour = rv;  \n\
 } \n\
@@ -1032,7 +1038,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source0 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source0 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source0 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode0,fw_Texture_unit0,v_texC.st); \n\
+      finalColCalc(source,fw_Texture_mode0,fw_Texture_function0, fw_Texture_unit0,v_texC.st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
@@ -1042,7 +1048,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source1 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source1 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source1 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode1,fw_Texture_unit1,v_texC.st); \n\
+      finalColCalc(source,fw_Texture_mode1,fw_Texture_function1, fw_Texture_unit1,v_texC.st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
@@ -1052,7 +1058,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source2 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source2 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source2 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode1,fw_Texture_unit2,v_texC.st); \n\
+      finalColCalc(source,fw_Texture_mode2,fw_Texture_function2,fw_Texture_unit2,v_texC.st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
@@ -1062,7 +1068,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source3 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source3 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source3 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode1,fw_Texture_unit3,v_texC.st); \n\
+      finalColCalc(source,fw_Texture_mode3,fw_Texture_function3,fw_Texture_unit3,v_texC.st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
