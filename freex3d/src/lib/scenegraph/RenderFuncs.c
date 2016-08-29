@@ -733,9 +733,9 @@ ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSi
 		}
 			break;
 		case FW_TEXCOORD_POINTER_TYPE:
-		if (me->TexCoords != -1) {
-			glEnableVertexAttribArray(me->TexCoords);
-			glVertexAttribPointer(me->TexCoords, dataSize, dataType, normalized, stride, pointer);
+		if (me->TexCoords[0] != -1) {
+			glEnableVertexAttribArray(me->TexCoords[0]);
+			glVertexAttribPointer(me->TexCoords[0], dataSize, dataType, normalized, stride, pointer);
 		}
 			break;
 

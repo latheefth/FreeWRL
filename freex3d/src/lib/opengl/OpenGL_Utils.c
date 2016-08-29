@@ -2895,7 +2895,12 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
-	me->TextureMatrix0 = GET_UNIFORM(myProg,"fw_TextureMatrix0");
+	//for (i=0; i<MAX_MULTITEXTURE; i++) {
+	me->TextureMatrix[0] = GET_UNIFORM(myProg,"fw_TextureMatrix0");
+	me->TextureMatrix[1] = GET_UNIFORM(myProg,"fw_TextureMatrix1");
+	me->TextureMatrix[2] = GET_UNIFORM(myProg,"fw_TextureMatrix2");
+	me->TextureMatrix[3] = GET_UNIFORM(myProg,"fw_TextureMatrix3");
+
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
@@ -2903,7 +2908,11 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->FogCoords = GET_ATTRIB(myProg,"fw_FogCoords");
 
 
-	me->TexCoords = GET_ATTRIB(myProg,"fw_MultiTexCoord0");
+	//for (i=0; i<MAX_MULTITEXTURE; i++) {
+	me->TexCoords[0] = GET_ATTRIB(myProg,"fw_MultiTexCoord0");
+	me->TexCoords[1] = GET_ATTRIB(myProg,"fw_MultiTexCoord1");
+	me->TexCoords[2] = GET_ATTRIB(myProg,"fw_MultiTexCoord2");
+	me->TexCoords[3] = GET_ATTRIB(myProg,"fw_MultiTexCoord3");
 
 
 	for (i=0; i<MAX_MULTITEXTURE; i++) {
@@ -6193,7 +6202,7 @@ static void killNode_hide_obsolete (int index) {
 }
 BOOL matrix3x3_inverse_float(float *inn, float *outt);
 
-static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint TextureMatrix)
+static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix)
 
 {
 
@@ -6230,21 +6239,22 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
 	profile_end("sendmtx");
 	/* TextureMatrix */
-	if (TextureMatrix != -1) {
-		sp = spval;
-		dp = p->FW_TextureView[p->textureviewTOS];
+	for(j=0;j<MAX_MULTITEXTURE;j++) {
+		if (TextureMatrix[j] != -1) {
+			sp = spval;
+			dp = p->FW_TextureView[p->textureviewTOS];
 
-		//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
-		/* convert GLDOUBLE to float */
-		for (i=0; i<16; i++) {
-			*sp = (float) *dp;
-			sp ++; dp ++;
+			//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
+			/* convert GLDOUBLE to float */
+			for (i=0; i<16; i++) {
+				*sp = (float) *dp;
+				sp ++; dp ++;
+			}
+			profile_start("sendmtx");
+			GLUNIFORMMATRIX4FV(TextureMatrix[j],1,GL_FALSE,spval);
+			profile_end("sendmtx");
 		}
-		profile_start("sendmtx");
-		GLUNIFORMMATRIX4FV(TextureMatrix,1,GL_FALSE,spval);
-		profile_end("sendmtx");
 	}
-
 
 	/* send in the NormalMatrix */
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
@@ -6307,7 +6317,7 @@ normMat[6],normMat[7],normMat[8]);
 /* make this more generic, so that the non-OpenGL-ES 2.0 FillProperties, etc, still work */
 
 void sendMatriciesToShader(s_shader_capabilities_t *me) {
-	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix0);
+	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix);
 
 }
 #define SEND_VEC2(myMat,myVal) \

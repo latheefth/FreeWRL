@@ -371,11 +371,11 @@ typedef struct s_shader_capabilities{
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
 	GLint NormalMatrix;
-	GLint TextureMatrix0;
+	GLint TextureMatrix[MAX_MULTITEXTURE];
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;
-	GLint TexCoords;
+	GLint TexCoords[MAX_MULTITEXTURE];
 	GLint FogCoords; //Aug 2016
 
 	GLint TextureUnit[MAX_MULTITEXTURE];

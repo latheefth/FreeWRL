@@ -462,6 +462,14 @@ uniform mat4 fw_TextureMatrix0; \n\
 attribute vec2 fw_MultiTexCoord0; \n\
 //varying vec3 v_texC; \n\
 varying vec3 fw_TexCoord[4]; \n\
+#ifdef MTEX \n\
+uniform mat4 fw_TextureMatrix1; \n\
+uniform mat4 fw_TextureMatrix2; \n\
+uniform mat4 fw_TextureMatrix3; \n\
+attribute vec2 fw_MultiTexCoord1; \n\
+attribute vec2 fw_MultiTexCoord2; \n\
+attribute vec2 fw_MultiTexCoord3; \n\
+#endif //MTEX \n\
 #ifdef TGEN \n\
  #define TCGT_CAMERASPACENORMAL    0  \n\
  #define TCGT_CAMERASPACEPOSITION    1 \n\

@@ -2627,7 +2627,7 @@ void render_texturegrid(void *_self){
 	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, self->vert2 );
 	// Load the texture coordinate
-	texCoordLoc = scap->TexCoords;
+	texCoordLoc = scap->TexCoords[0];
 	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,  GL_FALSE, 0, self->tex );  
 	glEnableVertexAttribArray (positionLoc );
 	glEnableVertexAttribArray ( texCoordLoc);
@@ -2642,7 +2642,7 @@ void render_texturegrid(void *_self){
 
 	// Set the base map sampler to texture unit to 0
 	textureLoc = scap->TextureUnit[0];
-	textureMatrix0 = scap->TextureMatrix0;
+	textureMatrix0 = scap->TextureMatrix[0];
 	glUniformMatrix4fv(textureMatrix0, 1, GL_FALSE, matrixIdentity);
 
 	glUniform1i ( textureLoc, 0 );
@@ -2885,7 +2885,7 @@ void render_orientation(void *_self){
 	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, self->vert );
 	// Load the texture coordinate
-	texCoordLoc = scap->TexCoords;
+	texCoordLoc = scap->TexCoords[0];
 	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,  GL_FALSE, 0, self->tex );  
 	glEnableVertexAttribArray (positionLoc );
 	glEnableVertexAttribArray ( texCoordLoc);
@@ -2896,7 +2896,7 @@ void render_orientation(void *_self){
 
 	// Set the base map sampler to texture unit to 0
 	textureLoc = scap->TextureUnit[0];
-	textureMatrix0 = scap->TextureMatrix0;
+	textureMatrix0 = scap->TextureMatrix[0];
 	glUniformMatrix4fv(textureMatrix0, 1, GL_FALSE, matrixIdentity);
 
 	glUniform1i ( textureLoc, 0 );
