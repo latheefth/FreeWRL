@@ -267,6 +267,16 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 			//ConsoleMessage ("have textureCoord, point.n = %d",tc->point.n);
 			textureCoordPoint = &(texCoordNode->point);
 		}
+
+		if (r->tcoordtype == NODE_MultiTextureCoordinate) {
+			//improper hack to get at least the first multitexture coords right
+			struct X3D_MultiTextureCoordinate * mtc = (struct X3D_MultiTextureCoordinate*)texCoordNode;
+			if(mtc->texCoord.n && mtc->texCoord.p && mtc->texCoord.p[0]->_nodeType == NODE_TextureCoordinate){
+				struct X3D_TextureCoordinate * ttcc = (struct X3D_TextureCoordinate*)mtc->texCoord.p[0];
+				textureCoordPoint = &(ttcc->point);
+			}
+		}
+
      
 		// TextureCoordinateGenerator, make the r->texgentype match the TCGT_ definition of the field 
 		if (r->tcoordtype == NODE_TextureCoordinateGenerator) {
