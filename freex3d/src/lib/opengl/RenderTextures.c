@@ -158,6 +158,7 @@ void textureDraw_end(void) {
 		FW_GL_POP_MATRIX(); //pushed in passedInGenTex
 
 	tg->RenderFuncs.textureStackTop = 0;
+	tg->RenderFuncs.multitexturenode = NULL;
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
@@ -237,7 +238,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
     FW_GL_MATRIX_MODE(GL_TEXTURE);
 
     //printf ("passedInGenTex, B\n");
-	isStrict = 0;
+	isStrict = 1;
 	genTexPtr = genTex;
 	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 		FW_GL_PUSH_MATRIX(); //POPPED in textureDraw_end
@@ -245,7 +246,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		//printf ("passedInGenTex, c=%d\n",c);
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c]!=0) {
-			isMulti = p->textureParameterStack[c].multitex_mode != INT_ID_UNDEFINED;
+			isMulti = tg->RenderFuncs.multitexturenode != NULL;
 			//printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
 			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
 				//printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
@@ -254,7 +255,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				if (tt!=NULL) {
 					int match = FALSE;
 					match = isMulti && tt->_nodeType == NODE_MultiTextureTransform;
-					match = match || !isMulti && tt->_nodeType == NODE_TextureTransform;
+					match = match || !isMulti && tt->_nodeType != NODE_MultiTextureTransform;
 					if(isStrict){
 						if(match) do_textureTransform(tt,c);
 					}else{
