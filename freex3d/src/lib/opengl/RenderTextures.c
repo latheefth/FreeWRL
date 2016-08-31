@@ -238,7 +238,10 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
     FW_GL_MATRIX_MODE(GL_TEXTURE);
 
     //printf ("passedInGenTex, B\n");
-	isStrict = 1;
+	isStrict = 1;  //web3d specs say if its a multitexture, 
+		//and you give it a single textureTransform instead of multitexturetransform 
+		//it should ignore the singleTextureTransform and use identities. 
+		//strict: This is a change of functionality for freewrl Aug 31, 2016
 	genTexPtr = genTex;
 	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 		FW_GL_PUSH_MATRIX(); //POPPED in textureDraw_end
