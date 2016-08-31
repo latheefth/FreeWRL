@@ -983,9 +983,9 @@ void main(void) \n\
   \n\
   #ifdef CPV \n\
   #ifdef CPVREP \n\
-  fragment_color.rgb = cpv_Color.rgb; //CPV replaces mat.diffuse prior \n\
+  fragment_color = cpv_Color; //CPV replaces mat.diffuse prior \n\
   #else \n\
-  fragment_color.rgb *= cpv_Color.rgb; //CPV modulates prior \n\
+  fragment_color *= cpv_Color; //CPV modulates prior \n\
   #endif //CPVREP \n\
   #endif //CPV \n\
   \n\
