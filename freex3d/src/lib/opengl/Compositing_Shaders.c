@@ -652,6 +652,11 @@ void main(void) \n\
   } \n\
   #else //TGEN \n\
   fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
+  #ifdef MTEX \n\
+  fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
+  fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
+  fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
+  #endif //MTEX \n\
   #endif //TGEN \n\
   #endif //TEX \n\
   \n\
@@ -1057,7 +1062,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source1 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source1 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source1 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode1,fw_Texture_function1, fw_Texture_unit1,fw_TexCoord[0].st); \n\
+      finalColCalc(source,fw_Texture_mode1,fw_Texture_function1, fw_Texture_unit1,fw_TexCoord[1].st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
@@ -1067,7 +1072,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source2 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source2 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source2 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode2,fw_Texture_function2,fw_Texture_unit2,fw_TexCoord[0].st); \n\
+      finalColCalc(source,fw_Texture_mode2,fw_Texture_function2,fw_Texture_unit2,fw_TexCoord[2].st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\
@@ -1077,7 +1082,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(fw_Texture_source3 == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(fw_Texture_source3 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(fw_Texture_source3 == MTSRC_FACTOR) source = mt_Color; \n\
-      finalColCalc(source,fw_Texture_mode3,fw_Texture_function3,fw_Texture_unit3,fw_TexCoord[0].st); \n\
+      finalColCalc(source,fw_Texture_mode3,fw_Texture_function3,fw_Texture_unit3,fw_TexCoord[3].st); \n\
       finalFrag = source; \n\
 	} \n\
   } \n\

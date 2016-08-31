@@ -113,7 +113,7 @@ static void makeAndCompileShader(struct shaderTableEntry *);
 
 /* OpenGL perform matrix state here */
 #define MAX_LARGE_MATRIX_STACK 256	/* depth of stacks */
-#define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
+#define MAX_SMALL_MATRIX_STACK 9	/* depth of stacks */
 #define MATRIX_SIZE 16		/* 4 x 4 matrix */
 typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
 
@@ -3284,48 +3284,6 @@ void doglClearColor() {
 
 
 
-/* did we have a TextureTransform in the Appearance node? */
-void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
-    FW_GL_MATRIX_MODE(GL_TEXTURE);
-	FW_GL_LOAD_IDENTITY();
-
-	/* is this a simple TextureTransform? */
-	if (textureNode->_nodeType == NODE_TextureTransform) {
-		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
-		struct X3D_TextureTransform  *ttt = (struct X3D_TextureTransform *) textureNode;
-		/*  Render transformations according to spec.*/
-		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-		FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
-		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
-
-	/* is this a MultiTextureTransform? */
-	} else  if (textureNode->_nodeType == NODE_MultiTextureTransform) {
-		struct X3D_MultiTextureTransform *mtt = (struct X3D_MultiTextureTransform *) textureNode;
-		if (ttnum < mtt->textureTransform.n) {
-			struct X3D_TextureTransform *ttt = (struct X3D_TextureTransform *) mtt->textureTransform.p[ttnum];
-			/* is this a simple TextureTransform? */
-			if (ttt->_nodeType == NODE_TextureTransform) {
-				/*  Render transformations according to spec.*/
-				FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-				FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-				FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
-				FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-				FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
-			} else {
-				printf ("MultiTextureTransform expected a textureTransform for texture %d, got %d\n",
-					ttnum, ttt->_nodeType);
-			}
-		} else {
-			printf ("not enough textures in MultiTextureTransform....\n");
-		}
-	} else {
-		printf ("expected a textureTransform node, got %d\n",textureNode->_nodeType);
-	}
-
-	FW_GL_MATRIX_MODE(GL_MODELVIEW);
-}
 
 void clear_shader_table()
 {
@@ -6240,9 +6198,10 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 	profile_end("sendmtx");
 	/* TextureMatrix */
 	for(j=0;j<MAX_MULTITEXTURE;j++) {
-		if (TextureMatrix[j] != -1) {
+		int itexturestackposition = j+1;
+		if (TextureMatrix[j] != -1 && itexturestackposition <= p->textureviewTOS) {
 			sp = spval;
-			dp = p->FW_TextureView[p->textureviewTOS];
+			dp = p->FW_TextureView[itexturestackposition]; //[p->textureviewTOS];
 
 			//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
 			/* convert GLDOUBLE to float */

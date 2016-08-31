@@ -142,6 +142,7 @@ void textureDraw_start(struct textureVertexInfo* genTex) {
 
 /* lets disable textures here */
 void textureDraw_end(void) {
+	int j;
 	ttglobal tg = gglobal();
     
 #ifdef TEXVERBOSE
@@ -151,9 +152,65 @@ void textureDraw_end(void) {
 	/* DISABLE_TEXTURES */
 	/* setting this ENSURES that items, like the HUD, that are not within the normal
 	   rendering path do not try and use textures... */
-	tg->RenderFuncs.textureStackTop = 0;
+	FW_GL_MATRIX_MODE(GL_TEXTURE);
+	for(j=0;j<tg->RenderFuncs.textureStackTop;j++)
+		FW_GL_POP_MATRIX(); //pushed in passedInGenTex
 
-        FW_GL_MATRIX_MODE(GL_MODELVIEW);
+	tg->RenderFuncs.textureStackTop = 0;
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
+}
+
+/* did we have a TextureTransform in the Appearance node? */
+void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
+
+	/* is this a simple TextureTransform? */
+	if (textureNode->_nodeType == NODE_TextureTransform) {
+		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
+		struct X3D_TextureTransform  *ttt = (struct X3D_TextureTransform *) textureNode;
+		/*  Render transformations according to spec.*/
+		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+		FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
+		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+
+	/* is this a MultiTextureTransform? */
+	} else  if (textureNode->_nodeType == NODE_MultiTextureTransform) {
+		struct X3D_MultiTextureTransform *mtt = (struct X3D_MultiTextureTransform *) textureNode;
+		if (ttnum < mtt->textureTransform.n) {
+			struct X3D_TextureTransform *ttt = (struct X3D_TextureTransform *) mtt->textureTransform.p[ttnum];
+			/* is this a simple TextureTransform? */
+			if (ttt->_nodeType == NODE_TextureTransform) {
+				/*  Render transformations according to spec.*/
+				FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+				FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+				FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
+				FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+				FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+			} else {
+				static int once = 0;
+				if(!once){
+					printf ("MultiTextureTransform expected a textureTransform for texture %d, got %d \n",
+					ttnum, ttt->_nodeType);
+					once = 1;
+				}
+			}
+		} else {
+			static int once = 0;
+			if(!once){
+				printf ("not enough transforms in MultiTextureTransform -will fill with Identity matrix\n");
+				once = 1;
+			}
+		}
+	} else {
+		static int once = 0;
+		if(!once){
+			printf ("expected a textureTransform node, got %d\n",textureNode->_nodeType);
+			once = 1;
+		}
+	}
+
+	//FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
 /***********************************************************************************/
@@ -175,9 +232,12 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	printf ("passedInGenTex, cubeFace %d\n",getAppearanceProperties()->cubeFace);
 	#endif 
 
+    FW_GL_MATRIX_MODE(GL_TEXTURE);
 
     //printf ("passedInGenTex, B\n");
 	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+		FW_GL_PUSH_MATRIX(); //POPPED in textureDraw_end
+		FW_GL_LOAD_IDENTITY();
 		//printf ("passedInGenTex, c=%d\n",c);
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c]!=0) {
@@ -211,7 +271,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 			}
 		}
 	}
-
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	/* set up the selected shader for this texture(s) config */
 	if (me != NULL) {
 		//printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
