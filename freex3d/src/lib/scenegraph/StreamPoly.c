@@ -623,7 +623,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 			r->GeneratedTexCoords[k] = newTexCoords[k];
 		}
 	}
-
+	r->ntcoord = nmtexcoord;
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->colindex);
 
