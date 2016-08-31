@@ -653,9 +653,9 @@ void main(void) \n\
   #else //TGEN \n\
   fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #ifdef MTEX \n\
-  fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
-  fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
-  fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
+  fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord1,0,0))).stp; \n\
+  fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord2,0,0))).stp; \n\
+  fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord3,0,0))).stp; \n\
   #endif //MTEX \n\
   #endif //TGEN \n\
   #endif //TEX \n\

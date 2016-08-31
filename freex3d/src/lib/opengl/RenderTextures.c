@@ -260,15 +260,17 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				} else {
 					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); 
 				}
-				
+				if(genTexPtr->VBO)
+					FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,genTexPtr->VBO);
+
 				if (genTexPtr->pre_canned_textureCoords != NULL) {
 					/* simple shapes, like Boxes and Cones and Spheres will have pre-canned arrays */
-					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTexPtr->pre_canned_textureCoords,0);
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTexPtr->pre_canned_textureCoords,c);
 				}else{
 					FW_GL_TEXCOORD_POINTER (genTexPtr->TC_size, 
 						genTexPtr->TC_type,
 						genTexPtr->TC_stride,
-						genTexPtr->TC_pointer,0);
+						genTexPtr->TC_pointer,c);
 				}
 			}
 		}

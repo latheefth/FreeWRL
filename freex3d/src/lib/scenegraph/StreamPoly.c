@@ -277,11 +277,11 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 			//improper hack to get at least the first multitexture coords right
 			struct X3D_MultiTextureCoordinate * mtc = (struct X3D_MultiTextureCoordinate*)texCoordNode;
 			if(mtc->texCoord.n && mtc->texCoord.p){
-				for(i=0;i<min(mtc->texCoord.n,MAX_MULTITEXTURE);i++){
-					textureCoordPoint[i] = NULL;
-					if( mtc->texCoord.p[0]->_nodeType == NODE_TextureCoordinate){
-						struct X3D_TextureCoordinate * ttcc = (struct X3D_TextureCoordinate*)mtc->texCoord.p[0];
-						textureCoordPoint[i] = &(ttcc->point);
+				for(k=0;k<min(mtc->texCoord.n,MAX_MULTITEXTURE);k++){
+					textureCoordPoint[k] = NULL;
+					if( mtc->texCoord.p[k]->_nodeType == NODE_TextureCoordinate){
+						struct X3D_TextureCoordinate * ttcc = (struct X3D_TextureCoordinate*)mtc->texCoord.p[k];
+						textureCoordPoint[k] = &(ttcc->point);
 						nmtexcoord++;
 					}
 				}
@@ -621,6 +621,10 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		if (newTexCoords[k] != NULL) {
 			FREE_IF_NZ(r->GeneratedTexCoords[k]);
 			r->GeneratedTexCoords[k] = newTexCoords[k];
+			//printf("k=%d\n",k);
+			//for(int kk=0;kk<r->ntri*3;kk++){
+			//	printf("%d %f %f\n",kk,r->GeneratedTexCoords[k][kk*2],r->GeneratedTexCoords[k][kk*2 +1]);
+			//}
 		}
 	}
 	r->ntcoord = nmtexcoord;
