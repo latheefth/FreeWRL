@@ -237,7 +237,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
     FW_GL_MATRIX_MODE(GL_TEXTURE);
 
     //printf ("passedInGenTex, B\n");
-	isStrict = 1;
+	isStrict = 0;
 	genTexPtr = genTex;
 	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 		FW_GL_PUSH_MATRIX(); //POPPED in textureDraw_end
@@ -302,14 +302,14 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		}
 
 		for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
-			static int once = 0;
-			if(once < 10) {
-			printf (" sending in i%d tu %d mode %d src %d fnc %d\n",i,i,
-				p->textureParameterStack[i].multitex_mode,
-				p->textureParameterStack[i].multitex_source,
-				p->textureParameterStack[i].multitex_function);
-				once++;
-			}
+			//static int once = 0;
+			//if(once < 10) {
+			//printf (" sending in i%d tu %d mode %d src %d fnc %d\n",i,i,
+			//	p->textureParameterStack[i].multitex_mode,
+			//	p->textureParameterStack[i].multitex_source,
+			//	p->textureParameterStack[i].multitex_function);
+			//	once++;
+			//}
 			glUniform1i(me->TextureUnit[i],i);
 			glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode);
 			glUniform1i(me->TextureSource[i],p->textureParameterStack[i].multitex_source);
