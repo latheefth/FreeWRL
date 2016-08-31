@@ -1600,7 +1600,7 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	float *flat_normal; /*triples or null*/
 	int last_normal_type; /* 0=regular 1=flat last normal type we put in the vbo normal buffer */
 	int last_index_type; /* 0=regular 1=wire last vertex index type we put in the vbo index buffer */
-	float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
+	float *GeneratedTexCoords[4];	/* triples (per triangle) of texture coords if there is no texCoord node */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
 	int texgentype; /* if we do have a TextureCoordinateGenerator, what "TCGT_XXX" type is it? */
 	GLfloat minVals[3];		/* for collision and default texture coord generation */

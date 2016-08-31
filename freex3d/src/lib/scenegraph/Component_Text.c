@@ -1876,13 +1876,13 @@ p->myff = 4;
 
 		/* do we have texture mapping to do? */
 		if (HAVETODOTEXTURES) {
-			p->FW_rep_->GeneratedTexCoords = MALLOC(float *, sizeof(*(p->FW_rep_->GeneratedTexCoords))*(p->FW_pointctr+1)*3);
+			p->FW_rep_->GeneratedTexCoords[0] = MALLOC(float *, sizeof(*(p->FW_rep_->GeneratedTexCoords[0]))*(p->FW_pointctr+1)*3);
 			/* an attempt to try to make this look like the NIST example */
 			/* I can't find a standard as to how to map textures to text JAS */
 			for (i=0; i<(unsigned int)p->FW_pointctr; i++) {
-				p->FW_rep_->GeneratedTexCoords[i*3+0] = p->FW_rep_->actualCoord[i*3+0]*1.66f;
-				p->FW_rep_->GeneratedTexCoords[i*3+1] = 0.0f;
-				p->FW_rep_->GeneratedTexCoords[i*3+2] = p->FW_rep_->actualCoord[i*3+1]*1.66f;
+				p->FW_rep_->GeneratedTexCoords[0][i*3+0] = p->FW_rep_->actualCoord[i*3+0]*1.66f;
+				p->FW_rep_->GeneratedTexCoords[0][i*3+1] = 0.0f;
+				p->FW_rep_->GeneratedTexCoords[0][i*3+2] = p->FW_rep_->actualCoord[i*3+1]*1.66f;
 			}
 		}
 		register_Polyrep_combiner(); //Tess.c - polyrep is the default

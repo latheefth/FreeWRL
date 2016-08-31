@@ -307,7 +307,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	#endif
 
 	// some nodes will generate our tex coords for us, eg GeoElevationGrid
-	if (!r->GeneratedTexCoords) newTexCoords = MALLOC (float *, sizeof (float)*2*r->ntri*3);
+	if (!r->GeneratedTexCoords[0]) newTexCoords = MALLOC (float *, sizeof (float)*2*r->ntri*3);
     
 	newcolors=0;	/*  only if we have colours*/
 
@@ -542,7 +542,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 
 		//printf ("textureCoordPoint %p\n",textureCoordPoint);
 
-		if (!r->GeneratedTexCoords) {
+		if (!r->GeneratedTexCoords[0]) {
 			if (textureCoordPoint != NULL) {
 				int j = newtcindex[i];
 				struct SFVec2f me;
@@ -598,11 +598,11 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	r->actualFog = (float*)newfog;
 
     //printf ("now, newTexCoords %p\n",newTexCoords);
-    //for (i=0; i<10; i++) printf ("rightpere, tc %d gt[i] %f\n",i,r->GeneratedTexCoords[i]);
+    //for (i=0; i<10; i++) printf ("rightpere, tc %d gt[i] %f\n",i,r->GeneratedTexCoords[0][i]);
 	/* did we have to generate tex coords? */
 	if (newTexCoords != NULL) {
-		FREE_IF_NZ(r->GeneratedTexCoords);
-		r->GeneratedTexCoords = newTexCoords;
+		FREE_IF_NZ(r->GeneratedTexCoords[0]);
+		r->GeneratedTexCoords[0] = newTexCoords;
 	}
 
 	FREE_IF_NZ(r->color);
@@ -720,10 +720,10 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	}
 		// Can we free this here, or do we need it later? FREE_IF_NZ(r->cindex);
 
-	if (r->GeneratedTexCoords) {
+	if (r->GeneratedTexCoords[0]) {
 		if (r->VBO_buffers[TEXTURE_VBO0] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO0]);
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[TEXTURE_VBO0]);
-		glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords[0], GL_STATIC_DRAW);
 		/* finished with these - if we did not use it as a flag later, we could get rid of it */
 		//FREE_IF_NZ(r->GeneratedTexCoords);
 	}
