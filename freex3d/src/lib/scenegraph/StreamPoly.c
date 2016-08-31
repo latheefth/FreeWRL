@@ -721,8 +721,8 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		// Can we free this here, or do we need it later? FREE_IF_NZ(r->cindex);
 
 	if (r->GeneratedTexCoords) {
-		if (r->VBO_buffers[TEXTURE_VBO] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO]);
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[TEXTURE_VBO]);
+		if (r->VBO_buffers[TEXTURE_VBO0] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO0]);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[TEXTURE_VBO0]);
 		glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords, GL_STATIC_DRAW);
 		/* finished with these - if we did not use it as a flag later, we could get rid of it */
 		//FREE_IF_NZ(r->GeneratedTexCoords);

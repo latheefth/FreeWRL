@@ -305,13 +305,24 @@ GLEWContext * glewGetContext();
  */
 
 /* are we doing Vertex Buffer Objects? (VBOs) for OpenGL? */
+//#define VERTEX_VBO 0
+//#define NORMAL_VBO 1
+//#define TEXTURE_VBO 2
+//#define INDEX_VBO 3
+//#define COLOR_VBO 4
+//#define FOG_VBO 5
+//#define VBO_COUNT 6
 #define VERTEX_VBO 0
 #define NORMAL_VBO 1
-#define TEXTURE_VBO 2
-#define INDEX_VBO 3
-#define COLOR_VBO 4
-#define FOG_VBO 5
-#define VBO_COUNT 6
+#define INDEX_VBO 2
+#define COLOR_VBO 3
+#define FOG_VBO 4
+#define TEXTURE_VBO0 5
+#define TEXTURE_VBO1 6
+#define TEXTURE_VBO2 7
+#define TEXTURE_VBO3 8
+#define VBO_COUNT 9
+
 
 void fv_setScreenDim(int wi, int he);
 
