@@ -2486,6 +2486,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 			#define gl_NormalMatrix fw_NormalMatrix\n \
 			#define gl_ProjectionMatrix fw_ProjectionMatrix \n\
 			#define gl_ModelViewMatrix fw_ModelViewMatrix \n\
+			#define fw_TextureMatrix fw_TextureMatrix0 \n\
 			#define gl_TextureMatrix fw_TextureMatrix0 \n\
 			#define gl_Vertex fw_Vertex \n \
 			#define gl_Normal fw_Normal\n \
