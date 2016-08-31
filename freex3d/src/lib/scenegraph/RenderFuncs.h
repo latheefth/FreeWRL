@@ -64,7 +64,7 @@ void setLightChangedFlag(GLint light);
 void fwglLightfv (int light, int pname, GLfloat *params);
 void fwglLightf (int light, int pname, GLfloat param);
 void initializeLightTables(void);
-void sendAttribToGPU(int myType, int mySize, int  xtype, int normalized, int stride, float *pointer, char*, int);
+void sendAttribToGPU(int myType, int mySize, int  xtype, int normalized, int stride, float *pointer, int, char*, int);
 void sendArraysToGPU (int mode, int first, int count);
 void sendBindBufferToGPU (GLenum target, GLuint buffer,char *, int);
 void sendElementsToGPU (int mode, int count, unsigned short *indices);

@@ -674,7 +674,7 @@ void enableGlobalShader(s_shader_capabilities_t *myShader) {
 
 
 /* send in vertices, normals, etc, etc... to either a shader or via older opengl methods */
-void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, char *file, int line){
+void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, int texID, char *file, int line){
 
     s_shader_capabilities_t *me = getAppearanceProperties()->currentShaderProperties;
 
@@ -733,9 +733,10 @@ ConsoleMessage ("myType %d, dataSize %d, dataType %d, stride %d\n",myType,dataSi
 		}
 			break;
 		case FW_TEXCOORD_POINTER_TYPE:
-		if (me->TexCoords[0] != -1) {
-			glEnableVertexAttribArray(me->TexCoords[0]);
-			glVertexAttribPointer(me->TexCoords[0], dataSize, dataType, normalized, stride, pointer);
+		if (me->TexCoords[texID] != -1) {
+			glEnableVertexAttribArray(me->TexCoords[texID]);
+			glVertexAttribPointer(me->TexCoords[texID], dataSize, dataType, normalized, stride, pointer);
+
 		}
 			break;
 

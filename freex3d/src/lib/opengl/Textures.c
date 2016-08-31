@@ -641,7 +641,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 	int count;
 
 	/* initialization */
-	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
 	thisurl.n = 0; thisurl.p = NULL;
 	thistex = NULL;
 
@@ -717,7 +717,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	struct X3D_Node *thistex = NULL;
 	struct X3D_TextureProperties *thistp = NULL;
 	int count;
-	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */

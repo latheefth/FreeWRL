@@ -859,9 +859,10 @@ void render_polyrep(void *node) {
         
 	/*  textures?*/
 	if (pr->VBO_buffers[TEXTURE_VBO0] != 0) {
-		struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
+		struct textureVertexInfo mtf[4] = {{NULL,2,GL_FLOAT,0, NULL,NULL},  
+			{NULL,2,GL_FLOAT,0, NULL,NULL},{NULL,2,GL_FLOAT,0, NULL,NULL},{NULL,2,GL_FLOAT,0, NULL,NULL}};  
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[TEXTURE_VBO0]);
-		textureDraw_start(&mtf);
+		textureDraw_start(mtf);
 	} else {
         ConsoleMessage("skipping tds of textures");
 	}

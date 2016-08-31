@@ -221,6 +221,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	GLint texUnit[MAX_MULTITEXTURE];
 	GLint texMode[MAX_MULTITEXTURE];
 	s_shader_capabilities_t *me;
+	struct textureVertexInfo *genTexPtr;
 	ppRenderTextures p;
 	ttglobal tg = gglobal();
 	p = (ppRenderTextures)tg->RenderTextures.prv;
@@ -235,6 +236,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
     FW_GL_MATRIX_MODE(GL_TEXTURE);
 
     //printf ("passedInGenTex, B\n");
+	genTexPtr = genTex;
 	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 		FW_GL_PUSH_MATRIX(); //POPPED in textureDraw_end
 		FW_GL_LOAD_IDENTITY();
@@ -259,17 +261,18 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); 
 				}
 				
-				if (genTex->pre_canned_textureCoords != NULL) {
+				if (genTexPtr->pre_canned_textureCoords != NULL) {
 					/* simple shapes, like Boxes and Cones and Spheres will have pre-canned arrays */
-					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->pre_canned_textureCoords);
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTexPtr->pre_canned_textureCoords,0);
 				}else{
-					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
-						genTex->TC_type,
-						genTex->TC_stride,
-						genTex->TC_pointer);
+					FW_GL_TEXCOORD_POINTER (genTexPtr->TC_size, 
+						genTexPtr->TC_type,
+						genTexPtr->TC_stride,
+						genTexPtr->TC_pointer,0);
 				}
 			}
 		}
+		genTexPtr = genTexPtr->next ? genTexPtr->next : genTexPtr; //duplicate the prior coords if not enough for all MultiTextures
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	/* set up the selected shader for this texture(s) config */
