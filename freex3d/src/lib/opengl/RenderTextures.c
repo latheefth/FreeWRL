@@ -122,6 +122,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 		} else {
 			//glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			//return FALSE;
+			// we do OFF right in the shader
 		}
 	}
 
@@ -217,7 +218,7 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 
 static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
-	int i;
+	int i, isStrict, isMulti;
 	GLint texUnit[MAX_MULTITEXTURE];
 	GLint texMode[MAX_MULTITEXTURE];
 	s_shader_capabilities_t *me;
@@ -236,6 +237,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
     FW_GL_MATRIX_MODE(GL_TEXTURE);
 
     //printf ("passedInGenTex, B\n");
+	isStrict = 1;
 	genTexPtr = genTex;
 	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 		FW_GL_PUSH_MATRIX(); //POPPED in textureDraw_end
@@ -243,13 +245,22 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		//printf ("passedInGenTex, c=%d\n",c);
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c]!=0) {
+			isMulti = p->textureParameterStack[c].multitex_mode != INT_ID_UNDEFINED;
 			//printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
 			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
 				//printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
 				GLuint texture;
 				struct X3D_Node *tt = getThis_textureTransform();
-				if (tt!=NULL) 
-					do_textureTransform(tt,c);
+				if (tt!=NULL) {
+					int match = FALSE;
+					match = isMulti && tt->_nodeType == NODE_MultiTextureTransform;
+					match = match || !isMulti && tt->_nodeType == NODE_TextureTransform;
+					if(isStrict){
+						if(match) do_textureTransform(tt,c);
+					}else{
+						do_textureTransform(tt,c);
+					}
+				}
 				texture = tg->RenderFuncs.boundTextureStack[c];
 
 				// SET_TEXTURE_UNIT_AND_BIND
