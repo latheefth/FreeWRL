@@ -324,7 +324,27 @@ static unsigned char *flipImageVerticallyB(unsigned char *input, int height, int
 static unsigned char *flipImageVertically(unsigned char *input, int height, int width) {
 	return flipImageVerticallyB(input,height,width,4);
 }
-static unsigned char *expandto4bpp(unsigned char *input, int height, int width, int bpp) {
+static unsigned char *expandto4bppfromGray(unsigned char *input, int height, int width, int bpp) {
+	int i, j, rowcountin, rowcountout;
+	unsigned char *sourcerow, *destrow;
+	unsigned char * blob;
+
+	rowcountin = width * bpp; //bytes per pixel
+	rowcountout = width * 4;
+	blob = MALLOCV(height * rowcountout);
+	for (i = 0; i<height; i++) {
+		sourcerow = &input[i*rowcountin];
+		destrow = &blob[i*rowcountout];
+		for (j = 0; j<width; j++) {
+			unsigned char *op = &destrow[j * 4];
+			op[0] = op[1] = op[2] = sourcerow[j*bpp];
+			op[3] = bpp == 1 ? 255 : sourcerow[j*bpp + 1];
+		}
+	}
+	//FREE_IF_NZ(input);
+	return blob;
+}
+static unsigned char *expandto4bppfromRGB(unsigned char *input, int height, int width, int bpp) {
 	int i, j, rowcountin, rowcountout;
 	unsigned char *sourcerow, *destrow;
 	unsigned char * blob;
@@ -342,6 +362,14 @@ static unsigned char *expandto4bpp(unsigned char *input, int height, int width, 
 	}
 	//FREE_IF_NZ(input);
 	return blob;
+}
+static unsigned char *expandto4bpp(unsigned char *input, int height, int width, int bpp) {
+	unsigned char * retval = NULL;
+	if(bpp == 1 || bpp == 2)
+		retval = expandto4bppfromGray(input, height, width, bpp);
+	else //if(bpp == 3)
+		retval = expandto4bppfromRGB(input, height, width, bpp);
+	return retval;
 }
 #endif //ANDROID - for flipImageVertically
 
@@ -754,6 +782,7 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	//char *filename;
 	GLuint texture_num;
 	unsigned char *image_data = 0;
+	int image_data_isMalloced;
 
 	/* png reading variables */
 	int rc;
@@ -842,9 +871,17 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	this_tex->channels = image_channels;
 	this_tex->hasAlpha = this_tex->channels == 2 || this_tex->channels == 4;
 	//int bpp = this_tex->hasAlpha ? 4 :  3; //bytes per pixel
+	image_data = raw_image.data;
+
+	image_data_isMalloced = 0;
+	if(image_channels < 4){
+		image_data = expandto4bpp(image_data, this_tex->y, this_tex->x, image_channels);
+		image_data_isMalloced = 1;
+	}
 	int bpp = 4;
-	char *dataflipped = flipImageVerticallyB(raw_image.data, this_tex->y, this_tex->x, bpp);
+	unsigned char *dataflipped = flipImageVerticallyB(image_data, this_tex->y, this_tex->x, bpp);
 	free(raw_image.data);
+	if(image_data_isMalloced) free(image_data);
 	this_tex->frames = 1;
 	this_tex->texdata = dataflipped;
 	this_tex->filename = filename;

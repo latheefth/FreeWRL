@@ -900,8 +900,25 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
 		char *smode, *ssource, *sfunc;
 		smode = ssource = sfunc = NULL;
 		if(node->mode.n>count){
+			int mode;
 			smode = node->mode.p[count]->strptr;
-			paramPtr->multitex_mode = findFieldInMULTITEXTUREMODE(smode);
+			mode = findFieldInMULTITEXTUREMODE(smode);
+			if(mode == -1){
+				//might be Castle style "RGB / ALPHA" dual modes
+				char *srgb, *salpha, *b1,*b2, *splittable;
+				int modergb, modealpha;
+				splittable = strdup(smode);
+				b1 = strchr(splittable,' ');
+				b2 = strrchr(splittable,' ');
+				salpha = b2+1;
+				splittable[b1 - splittable] = '\0';
+				srgb = splittable;
+				modergb = findFieldInMULTITEXTUREMODE(srgb);
+				modealpha = findFieldInMULTITEXTUREMODE(salpha);
+				printf("gotcha\n");
+				free(splittable);
+			}
+			paramPtr->multitex_mode = mode;
         }
         if(node->source.n>count) {
             ssource = node->source.p[count]->strptr;

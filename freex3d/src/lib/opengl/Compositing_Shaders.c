@@ -984,6 +984,7 @@ void main(void) \n\
   #ifdef CPV \n\
   #ifdef CPVREP \n\
   fragment_color = cpv_Color; //CPV replaces mat.diffuse prior \n\
+  fragment_color.a *= castle_MaterialDiffuseAlpha; \n\
   #else \n\
   fragment_color *= cpv_Color; //CPV modulates prior \n\
   #endif //CPVREP \n\
