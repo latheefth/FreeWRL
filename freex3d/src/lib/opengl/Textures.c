@@ -854,51 +854,50 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 }
 
 static void compileMultiTexture (struct X3D_MultiTexture *node) {
-    struct multiTexParams *paramPtr;
-    int count;
-    int max;
+	struct multiTexParams *paramPtr;
+	int count;
+	int max;
 	s_renderer_capabilities_t *rdr_caps;
-    ttglobal tg = gglobal();
+	ttglobal tg = gglobal();
 	rdr_caps = tg->display.rdr_caps;
+
+	/*  have to regen the shape*/
+	MARK_NODE_COMPILED;
+
+	/* alloc fields, if required - only do this once, even if node changes */
+	if (node->__xparams == 0) {
+		/* printf ("loadMulti, MALLOCing for params\n"); */
+		node->__xparams = MALLOC (void *, sizeof (struct multiTexParams) * rdr_caps->texture_units);
+
+		// printf ("just mallocd %ld in size for __params\n",sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
+
+		//printf ("paramPtr is %p\n",(int *)node->__params);
+
+		paramPtr = (struct multiTexParams*) node->__xparams;
+
+		/* set defaults for these fields */
+		for (count = 0; count < rdr_caps->texture_units; count++) {
+			paramPtr->multitex_mode[0]= MTMODE_MODULATE; //rgba (or rgb if a > 0)
+			paramPtr->multitex_mode[1]= 0; //0=unused -1=default else alpha channel part
+			paramPtr->multitex_source[0]=INT_ID_UNDEFINED; //rgba (or rgb if a > 0)
+			paramPtr->multitex_source[1]=0; //0=unused -1=default else alpha channel part
+			paramPtr->multitex_function=INT_ID_UNDEFINED;
+			paramPtr++;
+		}
+	}
     
-    /*  have to regen the shape*/
-    MARK_NODE_COMPILED;
-    
-    /* alloc fields, if required - only do this once, even if node changes */
-    if (node->__xparams == 0) {
-        /* printf ("loadMulti, MALLOCing for params\n"); */
-        node->__xparams = MALLOC (void *, sizeof (struct multiTexParams) * rdr_caps->texture_units);
-        
-       // printf ("just mallocd %ld in size for __params\n",sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
-    
-        
-        //printf ("paramPtr is %p\n",(int *)node->__params);
-        
-        paramPtr = (struct multiTexParams*) node->__xparams;
-        
-        /* set defaults for these fields */
-        for (count = 0; count < rdr_caps->texture_units; count++) {
-            paramPtr->multitex_mode[0]= MTMODE_MODULATE; //rgba (or rgb if a > 0)
-            paramPtr->multitex_mode[1]= 0; //0=unused -1=default else alpha channel part
-            paramPtr->multitex_source[0]=INT_ID_UNDEFINED; //rgba (or rgb if a > 0)
-            paramPtr->multitex_source[1]=0; //0=unused -1=default else alpha channel part
-            paramPtr->multitex_function=INT_ID_UNDEFINED;
-            paramPtr++;
-        }
-    }
-    
-    /* how many textures can we use? no sense scanning those we cant use */
-    //max = node->mode.n; 
+	/* how many textures can we use? no sense scanning those we cant use */
+	//max = node->mode.n; 
 	max = node->texture.n;
-    if (max > rdr_caps->texture_units) max = rdr_caps->texture_units;
-    
-    // warn users that function and source parameters not looked at right now 
-    //if ((node->source.n>0) || (node->function.n>0)) {
-    //    ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
-    //}
-    /* go through the params, and change string name into an int */
-    paramPtr = (struct multiTexParams*) node->__xparams;
-    for (count = 0; count < max; count++) {
+	if (max > rdr_caps->texture_units) max = rdr_caps->texture_units;
+
+	// warn users that function and source parameters not looked at right now 
+	//if ((node->source.n>0) || (node->function.n>0)) {
+	//    ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
+	//}
+	/* go through the params, and change string name into an int */
+	paramPtr = (struct multiTexParams*) node->__xparams;
+	for (count = 0; count < max; count++) {
 		char *smode, *ssource, *sfunc;
 		smode = ssource = sfunc = NULL;
 		if(node->mode.n>count){
@@ -939,11 +938,11 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
 				paramPtr->multitex_mode[1] = modea;
 			}
 			//else default
-        }
-        if(node->source.n>count) {
+		}
+		if(node->source.n > count) {
 			int source, sourcea;
-            ssource = node->source.p[count]->strptr;
-            source = findFieldInMULTITEXTURESOURCE(ssource); //we offset by 1 in the #defines
+			ssource = node->source.p[count]->strptr;
+			source = findFieldInMULTITEXTURESOURCE(ssource); //we offset by 1 in the #defines
 			if(source > -1) source += 1; //one-based defines
 			sourcea = 0; //0=unused
 			if(source == -1){
@@ -974,24 +973,26 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
 				paramPtr->multitex_source[1] = sourcea;
 			}
 			//else default
-        }
-        
-        if (node->function.n>count) {
-			int func;
-            sfunc = node->function.p[count]->strptr;
-            func = findFieldInMULTITEXTUREFUNCTION(sfunc);
-			if(func > -1)
-				paramPtr->multitex_function;
-			//else default
-        }
+		}
 
-//#ifdef TEXVERBOSE
+		if (node->function.n>count) {
+			int ifunc;
+			sfunc = node->function.p[count]->strptr;
+			{
+			ifunc = findFieldInMULTITEXTUREFUNCTION(sfunc);
+			}
+			if(ifunc > -1)
+				paramPtr->multitex_function = ifunc;
+			//else default
+		}
+
+#ifdef TEXVERBOSE
 printf ("compile_MultiTexture, %d of %d, mode %d %d source %d %d function %d m %s s %s f %s\n",
 count,max,paramPtr->multitex_mode[0],paramPtr->multitex_mode[1],paramPtr->multitex_source[0],paramPtr->multitex_source[1],paramPtr->multitex_function,smode,ssource,sfunc);
-//#endif //TEXVERBOSE
+#endif //TEXVERBOSE
 
-        paramPtr++;
-    }
+		paramPtr++;
+		}
 	printf("end of compileMultiTexture\n");
 }
 
