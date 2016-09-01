@@ -113,7 +113,7 @@ static void makeAndCompileShader(struct shaderTableEntry *);
 
 /* OpenGL perform matrix state here */
 #define MAX_LARGE_MATRIX_STACK 256	/* depth of stacks */
-#define MAX_SMALL_MATRIX_STACK 2	/* depth of stacks */
+#define MAX_SMALL_MATRIX_STACK 9	/* depth of stacks */
 #define MATRIX_SIZE 16		/* 4 x 4 matrix */
 typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
 
@@ -1507,7 +1507,7 @@ static const GLchar *vertSimColDec = "\
 	attribute  vec4 fw_Color;\n ";
 
 static const GLchar *vertTexMatrixDec = "\
-	uniform mat4 fw_TextureMatrix;\n";
+	uniform mat4 fw_TextureMatrix0;\n";
 
 static const GLchar *vertTexCoordGenDec ="\
 	uniform int fw_textureCoordGenType;\n";
@@ -1534,7 +1534,7 @@ static const GLchar *varyingNormPos = " \
 	varying vec4 vertexPos; \n";
 
 static const GLchar *varyingTexCoord = "\
-	varying vec3 v_texC;\n";
+	varying vec3 fw_TexCoord[4];\n";
 
 static const GLchar *varyingFrontColour = "\
 	varying vec4    v_front_colour; \n";
@@ -1557,14 +1557,14 @@ static const GLchar *vertNormPosCalc = "\
 static const GLchar *vertSimColUse = "v_front_colour = fw_Color; \n";
 
 static const GLchar *vertEmissionOnlyColourAss = "v_front_colour = fw_FrontMaterial.emission;\n";
-static const GLchar *vertSingTexCalc = "v_texC = vec3(vec4(fw_TextureMatrix *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
+static const GLchar *vertSingTexCalc = "fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp;\n";
 
 static const GLchar *vertSingTexCubeCalc = "\
 	vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
 	/* vec3 n=normalize(vec3(fw_NormalMatrix*fw_Normal)); \
-	v_texC = reflect(u,n); myEyeNormal */ \n \
+	fw_TexCoord[0] = reflect(u,n); myEyeNormal */ \n \
 	/* v_texC = reflect(normalize(vec3(vertexPos)),vertexNorm);\n */ \
-	v_texC = reflect(u,vertexNorm);\n";
+	fw_TexCoord[0] = reflect(u,vertexNorm);\n";
 
 
 /* TextureCoordinateGenerator mapping  */
@@ -1582,13 +1582,13 @@ vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more 
 vec3 r= reflect(u,vertexNorm); \n\
 if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
     float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
-    v_texC = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n \
+    fw_TexCoord[0] = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n \
 }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) /* GL_REFLECTION_MAP used for sampling cubemaps */ {\n \
 	float dotResult = 2.0 * dot(u,r); \n\
-	v_texC = vec3(u-r)*dotResult;\n\
+	fw_TexCoord[0] = vec3(u-r)*dotResult;\n\
 } else { /* default usage - like default CubeMaps */ \n\
     vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */ \
-    v_texC = reflect(u,vertexNorm);\n \
+    fw_TexCoord[0] = reflect(u,vertexNorm);\n \
 }\n\
 ";
 
@@ -1974,8 +1974,8 @@ const static GLchar *fragADSLAss = "finalFrag = ADSLightModel(vertexNorm,vertexP
 const static GLchar *vertADSLCalc = "v_front_colour = ADSLightModel(vertexNorm,vertexPos,true);";
 const static GLchar *vertADSLCalc0 = "v_front_colour = ADSLightModel(vertexNorm,vertexPos,false);";
 
-const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, v_texC.st) * finalFrag;\n";
-const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_unit0, v_texC) * finalFrag;\n";
+const static GLchar *fragSingTexAss = "finalFrag = texture2D(fw_Texture_unit0, fw_TexCoord[0].st) * finalFrag;\n";
+const static GLchar *fragSingTexCubeAss = "finalFrag = textureCube(fw_Texture_unit0, fw_TexCoord[0]) * finalFrag;\n";
 
 
 /* MultiTexture stuff */
@@ -2126,15 +2126,15 @@ return rv; \
 } \n";
 
 const static GLchar *fragMulTexCalc = "\
-if(textureCount>=1) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode0,fw_Texture_unit0,v_texC.st);} \n\
-if(textureCount>=2) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode1,fw_Texture_unit1,v_texC.st);} \n\
-if(textureCount>=3) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,v_texC.st);} \n\
+if(textureCount>=1) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode0,fw_Texture_unit0,fw_TexCoord[0].st);} \n\
+if(textureCount>=2) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode1,fw_Texture_unit1,fw_TexCoord[0].st);} \n\
+if(textureCount>=3) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode2,fw_Texture_unit2,fw_TexCoord[0].st);} \n\
 /* REMOVE these as shader compile takes long \
-if(textureCount>=4) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode3,fw_Texture_unit3,v_texC.st);} \n\
-if(textureCount>=5) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode4,fw_Texture_unit4,v_texC.st);} \n\
-if(textureCount>=6) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode5,fw_Texture_unit5,v_texC.st);} \n\
-if(textureCount>=7) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode6,fw_Texture_unit6,v_texC.st);} \n\
-if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Texture_unit7,v_texC.st);} \n\
+if(textureCount>=4) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode3,fw_Texture_unit3,fw_TexCoord[0].st);} \n\
+if(textureCount>=5) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode4,fw_Texture_unit4,fw_TexCoord[0].st);} \n\
+if(textureCount>=6) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode5,fw_Texture_unit5,fw_TexCoord[0].st);} \n\
+if(textureCount>=7) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode6,fw_Texture_unit6,fw_TexCoord[0].st);} \n\
+if(textureCount>=8) {finalFrag=finalColCalc(finalFrag,fw_Texture_mode7,fw_Texture_unit7,fw_TexCoord[0].st);} \n\
 */ \n";
 
 
@@ -2486,7 +2486,8 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 			#define gl_NormalMatrix fw_NormalMatrix\n \
 			#define gl_ProjectionMatrix fw_ProjectionMatrix \n\
 			#define gl_ModelViewMatrix fw_ModelViewMatrix \n\
-			#define gl_TextureMatrix fw_TextureMatrix \n\
+			#define fw_TextureMatrix fw_TextureMatrix0 \n\
+			#define gl_TextureMatrix fw_TextureMatrix0 \n\
 			#define gl_Vertex fw_Vertex \n \
 			#define gl_Normal fw_Normal\n \
 			#define gl_Texture_unit0 fw_Texture_unit0\n \
@@ -2895,7 +2896,12 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
-	me->TextureMatrix = GET_UNIFORM(myProg,"fw_TextureMatrix");
+	//for (i=0; i<MAX_MULTITEXTURE; i++) {
+	me->TextureMatrix[0] = GET_UNIFORM(myProg,"fw_TextureMatrix0");
+	me->TextureMatrix[1] = GET_UNIFORM(myProg,"fw_TextureMatrix1");
+	me->TextureMatrix[2] = GET_UNIFORM(myProg,"fw_TextureMatrix2");
+	me->TextureMatrix[3] = GET_UNIFORM(myProg,"fw_TextureMatrix3");
+
 	me->Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 
 	me->Normals = GET_ATTRIB(myProg,"fw_Normal");
@@ -2903,7 +2909,11 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->FogCoords = GET_ATTRIB(myProg,"fw_FogCoords");
 
 
-	me->TexCoords = GET_ATTRIB(myProg,"fw_MultiTexCoord0");
+	//for (i=0; i<MAX_MULTITEXTURE; i++) {
+	me->TexCoords[0] = GET_ATTRIB(myProg,"fw_MultiTexCoord0");
+	me->TexCoords[1] = GET_ATTRIB(myProg,"fw_MultiTexCoord1");
+	me->TexCoords[2] = GET_ATTRIB(myProg,"fw_MultiTexCoord2");
+	me->TexCoords[3] = GET_ATTRIB(myProg,"fw_MultiTexCoord3");
 
 
 	for (i=0; i<MAX_MULTITEXTURE; i++) {
@@ -2912,11 +2922,16 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 		me->TextureUnit[i]= GET_UNIFORM(myProg,line);
 		sprintf (line,"fw_Texture_mode%d",i);
 		me->TextureMode[i] = GET_UNIFORM(myProg,line);
+		sprintf (line,"fw_Texture_source%d",i);
+		me->TextureSource[i] = GET_UNIFORM(myProg,line);
+		sprintf (line,"fw_Texture_function%d",i);
+		me->TextureFunction[i] = GET_UNIFORM(myProg,line);
 		//printf ("   i %d tu %d mode %d\n",i,me->TextureUnit[i],me->TextureMode[i]);
 
 	}
 
 	me->textureCount = GET_UNIFORM(myProg,"textureCount");
+	me->multitextureColor = GET_UNIFORM(myProg,"mt_Color");
 	//printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
 
 
@@ -3270,48 +3285,6 @@ void doglClearColor() {
 
 
 
-/* did we have a TextureTransform in the Appearance node? */
-void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
-    FW_GL_MATRIX_MODE(GL_TEXTURE);
-	FW_GL_LOAD_IDENTITY();
-
-	/* is this a simple TextureTransform? */
-	if (textureNode->_nodeType == NODE_TextureTransform) {
-		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
-		struct X3D_TextureTransform  *ttt = (struct X3D_TextureTransform *) textureNode;
-		/*  Render transformations according to spec.*/
-		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-		FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
-		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
-
-	/* is this a MultiTextureTransform? */
-	} else  if (textureNode->_nodeType == NODE_MultiTextureTransform) {
-		struct X3D_MultiTextureTransform *mtt = (struct X3D_MultiTextureTransform *) textureNode;
-		if (ttnum < mtt->textureTransform.n) {
-			struct X3D_TextureTransform *ttt = (struct X3D_TextureTransform *) mtt->textureTransform.p[ttnum];
-			/* is this a simple TextureTransform? */
-			if (ttt->_nodeType == NODE_TextureTransform) {
-				/*  Render transformations according to spec.*/
-				FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
-				FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
-				FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
-				FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
-				FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
-			} else {
-				printf ("MultiTextureTransform expected a textureTransform for texture %d, got %d\n",
-					ttnum, ttt->_nodeType);
-			}
-		} else {
-			printf ("not enough textures in MultiTextureTransform....\n");
-		}
-	} else {
-		printf ("expected a textureTransform node, got %d\n",textureNode->_nodeType);
-	}
-
-	FW_GL_MATRIX_MODE(GL_MODELVIEW);
-}
 
 void clear_shader_table()
 {
@@ -6188,7 +6161,7 @@ static void killNode_hide_obsolete (int index) {
 }
 BOOL matrix3x3_inverse_float(float *inn, float *outt);
 
-static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint TextureMatrix)
+static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix)
 
 {
 
@@ -6225,21 +6198,23 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
 	profile_end("sendmtx");
 	/* TextureMatrix */
-	if (TextureMatrix != -1) {
-		sp = spval;
-		dp = p->FW_TextureView[p->textureviewTOS];
+	for(j=0;j<MAX_MULTITEXTURE;j++) {
+		int itexturestackposition = j+1;
+		if (TextureMatrix[j] != -1 && itexturestackposition <= p->textureviewTOS) {
+			sp = spval;
+			dp = p->FW_TextureView[itexturestackposition]; //[p->textureviewTOS];
 
-		//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
-		/* convert GLDOUBLE to float */
-		for (i=0; i<16; i++) {
-			*sp = (float) *dp;
-			sp ++; dp ++;
+			//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
+			/* convert GLDOUBLE to float */
+			for (i=0; i<16; i++) {
+				*sp = (float) *dp;
+				sp ++; dp ++;
+			}
+			profile_start("sendmtx");
+			GLUNIFORMMATRIX4FV(TextureMatrix[j],1,GL_FALSE,spval);
+			profile_end("sendmtx");
 		}
-		profile_start("sendmtx");
-		GLUNIFORMMATRIX4FV(TextureMatrix,1,GL_FALSE,spval);
-		profile_end("sendmtx");
 	}
-
 
 	/* send in the NormalMatrix */
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper

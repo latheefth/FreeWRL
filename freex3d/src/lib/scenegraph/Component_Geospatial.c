@@ -1437,10 +1437,10 @@ int checkX3DGeoElevationGridFields (struct X3D_GeoElevationGrid *node, float **p
 	/* any texture coordinates passed in? if so, DO NOT generate any texture coords here. */
         if (!(node->texCoord)) {
 		/* allocate memory for texture coords */
-		FREE_IF_NZ(rep->GeneratedTexCoords);
+		FREE_IF_NZ(rep->GeneratedTexCoords[0]);
 
 		/* 6 vertices per quad each vertex has a 2-float tex coord mapping */
-		texcoord = rep->GeneratedTexCoords = MALLOC (float *, sizeof (float) * nquads * 12); 
+		texcoord = rep->GeneratedTexCoords[0] = MALLOC (float *, sizeof (float) * nquads * 12); 
 
 		rep->tcindex=0; /* we will generate our own mapping */
 	}

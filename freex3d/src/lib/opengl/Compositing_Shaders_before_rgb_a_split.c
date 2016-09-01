@@ -754,48 +754,48 @@ varying vec3 fw_TexCoord[4]; \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
 uniform sampler2D fw_Texture_unit3; \n\
-uniform ivec2 fw_Texture_mode0;  \n\
-uniform ivec2 fw_Texture_mode1;  \n\
-uniform ivec2 fw_Texture_mode2;  \n\
-uniform ivec2 fw_Texture_mode3;  \n\
-uniform ivec2 fw_Texture_source0;  \n\
-uniform ivec2 fw_Texture_source1;  \n\
-uniform ivec2 fw_Texture_source2;  \n\
-uniform ivec2 fw_Texture_source3;  \n\
+uniform int fw_Texture_mode0;  \n\
+uniform int fw_Texture_mode1;  \n\
+uniform int fw_Texture_mode2;  \n\
+uniform int fw_Texture_mode3;  \n\
+uniform int fw_Texture_source0;  \n\
+uniform int fw_Texture_source1;  \n\
+uniform int fw_Texture_source2;  \n\
+uniform int fw_Texture_source3;  \n\
 uniform int fw_Texture_function0;  \n\
 uniform int fw_Texture_function1;  \n\
 uniform int fw_Texture_function2;  \n\
 uniform int fw_Texture_function3;  \n\
 uniform int textureCount; \n\
 uniform vec4 mt_Color; \n\
-#define MTMODE_ADD	1\n \
-#define MTMODE_ADDSIGNED	2\n \
-#define MTMODE_ADDSIGNED2X	3\n \
-#define MTMODE_ADDSMOOTH	4\n \
-#define MTMODE_BLENDCURRENTALPHA	5\n \
-#define MTMODE_BLENDDIFFUSEALPHA	6\n \
-#define MTMODE_BLENDFACTORALPHA	7\n \
-#define MTMODE_BLENDTEXTUREALPHA	8\n \
-#define MTMODE_DOTPRODUCT3	9\n \
-#define MTMODE_MODULATE	10\n \
-#define MTMODE_MODULATE2X	11\n \
-#define MTMODE_MODULATE4X	12\n \
-#define MTMODE_MODULATEALPHA_ADDCOLOR	13\n \
-#define MTMODE_MODULATEINVALPHA_ADDCOLOR	14\n \
-#define MTMODE_MODULATEINVCOLOR_ADDALPHA	15\n \
-#define MTMODE_OFF	16\n \
-#define MTMODE_REPLACE	17\n \
-#define MTMODE_SELECTARG1	18\n \
-#define MTMODE_SELECTARG2	19\n \
-#define MTMODE_SUBTRACT	20\n \
-#define MTSRC_DIFFUSE	1 \n\
-#define MTSRC_FACTOR	2 \n\
-#define MTSRC_SPECULAR	3 \n\
+#define MTMODE_ADD	0\n \
+#define MTMODE_ADDSIGNED	1\n \
+#define MTMODE_ADDSIGNED2X	2\n \
+#define MTMODE_ADDSMOOTH	3\n \
+#define MTMODE_BLENDCURRENTALPHA	4\n \
+#define MTMODE_BLENDDIFFUSEALPHA	5\n \
+#define MTMODE_BLENDFACTORALPHA	6\n \
+#define MTMODE_BLENDTEXTUREALPHA	7\n \
+#define MTMODE_DOTPRODUCT3	8\n \
+#define MTMODE_MODULATE	9\n \
+#define MTMODE_MODULATE2X	10\n \
+#define MTMODE_MODULATE4X	11\n \
+#define MTMODE_MODULATEALPHA_ADDCOLOR	12\n \
+#define MTMODE_MODULATEINVALPHA_ADDCOLOR	13\n \
+#define MTMODE_MODULATEINVCOLOR_ADDALPHA	14\n \
+#define MTMODE_OFF	15\n \
+#define MTMODE_REPLACE	16\n \
+#define MTMODE_SELECTARG1	17\n \
+#define MTMODE_SELECTARG2	18\n \
+#define MTMODE_SUBTRACT	19\n \
+#define MTSRC_DIFFUSE	0 \n\
+#define MTSRC_FACTOR	1 \n\
+#define MTSRC_SPECULAR	2 \n\
 #define MTFN_ALPHAREPLICATE	0 \n\
 #define MTFN_COMPLEMENT	1 \n\
 #define MT_DEFAULT -1 \n\
 \n\
-void finalColCalc(inout vec4 prevColour, in int mode, in int modea, in int func, in sampler2D tex, in vec2 texcoord) { \n\
+void finalColCalc(inout vec4 prevColour, in int mode, in int func, in sampler2D tex, in vec2 texcoord) { \n\
   vec4 texel = texture2D(tex,texcoord); \n\
   vec4 rv = vec4(1.,0.,1.,1.);   \n\
   if (mode==MTMODE_OFF) {  \n\
@@ -833,7 +833,7 @@ void finalColCalc(inout vec4 prevColour, in int mode, in int modea, in int func,
   } else if (mode== MTMODE_ADD) { \n\
     rv= vec4 (prevColour + texel);  \n\
   } else if (mode== MTMODE_SUBTRACT) { \n\
-    rv = vec4 (texel - prevColour); //jas had prev - tex \n\
+    rv = vec4 (prevColour - texel);  \n\
   } else if (mode==MTMODE_ADDSMOOTH) {  \n\
     rv = vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texel);  \n\
   } else if (mode==MTMODE_BLENDDIFFUSEALPHA) {  \n\
@@ -848,50 +848,6 @@ void finalColCalc(inout vec4 prevColour, in int mode, in int modea, in int func,
     rv = texel;  \n\
   } else if (mode==MTMODE_SELECTARG2) {  \n\
     rv = prevColour;  \n\
-  } \n\
-  if(modea != 0){ \n\
-    if (modea==MTMODE_OFF) {  \n\
-      rv.a = prevColour.a; \n\
-    } else if (modea==MTMODE_REPLACE) { \n\
-      rv.a = 1.0; \n\
-    }else if (modea==MTMODE_MODULATE) {  \n\
-      float at,af;  \n\
-      af = prevColour.a;  \n\
-      at = texel.a;  \n\
-      rv.a = at*af;  \n\
-    } else if (modea==MTMODE_MODULATE2X) {  \n\
-      float at,af;  \n\
-      af = prevColour.a;  \n\
-      at = texel.a;  \n\
-      rv.a = at*af*2.0;  \n\
-    }else if (modea==MTMODE_MODULATE4X) {  \n\
-      float at,af;  \n\
-      af = prevColour.a;  \n\
-      at = texel.a;  \n\
-      rv.a = at*af*4.0;  \n\
-    }else if (modea== MTMODE_ADDSIGNED) { \n\
-      rv.a = (prevColour.a + texel.a + .5);  \n\
-    } else if (modea== MTMODE_ADDSIGNED2X) { \n\
-      rv.a = ((prevColour.a + texel.a + .5))*2.0;  \n\
-    } else if (modea== MTMODE_ADD) { \n\
-      rv.a = prevColour.a + texel.a;  \n\
-    } else if (modea== MTMODE_SUBTRACT) { \n\
-      rv.a = texel.a - prevColour.a;  //jas had prev - texel \n\
-    } else if (modea==MTMODE_ADDSMOOTH) {  \n\
-      rv.a = (prevColour.a + (prevColour.a - 1.)) * texel.a;  \n\
-    } else if (modea==MTMODE_BLENDDIFFUSEALPHA) {  \n\
-      rv.a = mix(prevColour.a,texel.a,castle_Color.a); \n\
-    } else if (modea==MTMODE_BLENDTEXTUREALPHA) {  \n\
-      rv.a = mix(prevColour.a,texel.a,texel.a); \n\
-    } else if (modea==MTMODE_BLENDFACTORALPHA) {  \n\
-      rv.a = mix(prevColour.a,texel.a,mt_Color.a); \n\
-    } else if (modea==MTMODE_BLENDCURRENTALPHA) {  \n\
-      rv.a = mix(prevColour.a,texel.a,prevColour.a); \n\
-    } else if (modea==MTMODE_SELECTARG1) {  \n\
-      rv.a = texel.a;  \n\
-    } else if (modea==MTMODE_SELECTARG2) {  \n\
-      rv.a = prevColour.a;  \n\
-    } \n\
   } \n\
   if(func == MTFN_COMPLEMENT){ \n\
 	//rv = vec4(1.0,1.0,1.0,1.0) - rv; \n\
@@ -1090,79 +1046,46 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 \n\
   #ifdef MTEX \n\
   vec4 source; \n\
-  int isource,iasource, mode; \n\
   //finalFrag = texture2D(fw_Texture_unit0, fw_TexCoord[0].st) * finalFrag; \n\
   if(textureCount>0){ \n\
-    if(fw_Texture_mode0[0] != MTMODE_OFF) { \n\
-      isource = fw_Texture_source0[0]; //castle-style dual sources \n\
-      iasource = fw_Texture_source0[1]; \n\
-      if(isource == MT_DEFAULT) source = finalFrag; \n\
-      else if(isource == MTSRC_DIFFUSE) source = matdiff_color; \n\
-      else if(isource == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
-      else if(isource == MTSRC_FACTOR) source = mt_Color; \n\
-      if(iasource != 0){ \n\
-        if(iasource == MT_DEFAULT) source.a = finalFrag.a; \n\
-        else if(iasource == MTSRC_DIFFUSE) source.a = matdiff_color.a; \n\
-        else if(iasource == MTSRC_SPECULAR) source.a = 1.0; \n\
-        else if(iasource == MTSRC_FACTOR) source.a = mt_Color.a; \n\
-      } \n\
-      finalColCalc(source,fw_Texture_mode0[0],fw_Texture_mode0[1],fw_Texture_function0, fw_Texture_unit0,fw_TexCoord[0].st); \n\
+	if(fw_Texture_mode0 != MTMODE_OFF) { \n\
+      if(fw_Texture_source0 == MT_DEFAULT) source = finalFrag; \n\
+      else if(fw_Texture_source0 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+      else if(fw_Texture_source0 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+      else if(fw_Texture_source0 == MTSRC_FACTOR) source = mt_Color; \n\
+      finalColCalc(source,fw_Texture_mode0,fw_Texture_function0, fw_Texture_unit0,fw_TexCoord[0].st); \n\
       finalFrag = source; \n\
-    } \n\
+	} \n\
   } \n\
   if(textureCount>1){ \n\
-    if(fw_Texture_mode1[0] != MTMODE_OFF) { \n\
-      isource = fw_Texture_source1[0]; //castle-style dual sources \n\
-      iasource = fw_Texture_source1[1]; \n\
-      if(isource == MT_DEFAULT) source = finalFrag; \n\
-      else if(isource == MTSRC_DIFFUSE) source = matdiff_color; \n\
-      else if(isource == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
-      else if(isource == MTSRC_FACTOR) source = mt_Color; \n\
-      if(iasource != 0){ \n\
-        if(iasource == MT_DEFAULT) source.a = finalFrag.a; \n\
-        else if(iasource == MTSRC_DIFFUSE) source.a = matdiff_color.a; \n\
-        else if(iasource == MTSRC_SPECULAR) source.a = 1.0; \n\
-        else if(iasource == MTSRC_FACTOR) source.a = mt_Color.a; \n\
-      } \n\
-      finalColCalc(source,fw_Texture_mode1[0],fw_Texture_mode1[1],fw_Texture_function1, fw_Texture_unit1,fw_TexCoord[1].st); \n\
+	if(fw_Texture_mode1 != MTMODE_OFF) { \n\
+      if(fw_Texture_source1 == MT_DEFAULT) source = finalFrag; \n\
+      else if(fw_Texture_source1 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+      else if(fw_Texture_source1 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+      else if(fw_Texture_source1 == MTSRC_FACTOR) source = mt_Color; \n\
+      finalColCalc(source,fw_Texture_mode1,fw_Texture_function1, fw_Texture_unit1,fw_TexCoord[1].st); \n\
       finalFrag = source; \n\
-    } \n\
+	} \n\
   } \n\
   if(textureCount>2){ \n\
-    if(fw_Texture_mode2[0] != MTMODE_OFF) { \n\
-      isource = fw_Texture_source2[0]; //castle-style dual sources \n\
-      iasource = fw_Texture_source2[1]; \n\
-      if(isource == MT_DEFAULT) source = finalFrag; \n\
-      else if(isource == MTSRC_DIFFUSE) source = matdiff_color; \n\
-      else if(isource == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
-      else if(isource == MTSRC_FACTOR) source = mt_Color; \n\
-      if(iasource != 0){ \n\
-        if(iasource == MT_DEFAULT) source.a = finalFrag.a; \n\
-        else if(iasource == MTSRC_DIFFUSE) source.a = matdiff_color.a; \n\
-        else if(iasource == MTSRC_SPECULAR) source.a = 1.0; \n\
-        else if(iasource == MTSRC_FACTOR) source.a = mt_Color.a; \n\
-      } \n\
-      finalColCalc(source,fw_Texture_mode2[0],fw_Texture_mode2[1],fw_Texture_function2,fw_Texture_unit2,fw_TexCoord[2].st); \n\
+	if(fw_Texture_mode2 != MTMODE_OFF) { \n\
+      if(fw_Texture_source2 == MT_DEFAULT) source = finalFrag; \n\
+      else if(fw_Texture_source2 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+      else if(fw_Texture_source2 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+      else if(fw_Texture_source2 == MTSRC_FACTOR) source = mt_Color; \n\
+      finalColCalc(source,fw_Texture_mode2,fw_Texture_function2,fw_Texture_unit2,fw_TexCoord[2].st); \n\
       finalFrag = source; \n\
-    } \n\
+	} \n\
   } \n\
   if(textureCount>3){ \n\
-    if(fw_Texture_mode3[0] != MTMODE_OFF) { \n\
-      isource = fw_Texture_source3[0]; //castle-style dual sources \n\
-      iasource = fw_Texture_source3[1]; \n\
-      if(isource == MT_DEFAULT) source = finalFrag; \n\
-      else if(isource == MTSRC_DIFFUSE) source = matdiff_color; \n\
-      else if(isource == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
-      else if(isource == MTSRC_FACTOR) source = mt_Color; \n\
-      if(iasource != 0){ \n\
-        if(iasource == MT_DEFAULT) source.a = finalFrag.a; \n\
-        else if(iasource == MTSRC_DIFFUSE) source.a = matdiff_color.a; \n\
-        else if(iasource == MTSRC_SPECULAR) source.a = 1.0; \n\
-        else if(iasource == MTSRC_FACTOR) source.a = mt_Color.a; \n\
-      } \n\
-      finalColCalc(source,fw_Texture_mode3[0],fw_Texture_mode3[1],fw_Texture_function3,fw_Texture_unit3,fw_TexCoord[3].st); \n\
+	if(fw_Texture_mode3 != MTMODE_OFF) { \n\
+      if(fw_Texture_source3 == MT_DEFAULT) source = finalFrag; \n\
+      else if(fw_Texture_source3 == MTSRC_DIFFUSE) source = matdiff_color; \n\
+      else if(fw_Texture_source3 == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
+      else if(fw_Texture_source3 == MTSRC_FACTOR) source = mt_Color; \n\
+      finalColCalc(source,fw_Texture_mode3,fw_Texture_function3,fw_Texture_unit3,fw_TexCoord[3].st); \n\
       finalFrag = source; \n\
-    } \n\
+	} \n\
   } \n\
   #else //MTEX \n\
   /* ONE TEXTURE */ \n\

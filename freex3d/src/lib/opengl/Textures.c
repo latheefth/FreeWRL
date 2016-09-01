@@ -641,7 +641,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 	int count;
 
 	/* initialization */
-	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
 	thisurl.n = 0; thisurl.p = NULL;
 	thistex = NULL;
 
@@ -717,7 +717,7 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	struct X3D_Node *thistex = NULL;
 	struct X3D_TextureProperties *thistp = NULL;
 	int count;
-	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
 
 	for (count=0; count<6; count++) {
 		/* go through these, back, front, top, bottom, right left */
@@ -855,7 +855,6 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 
 static void compileMultiTexture (struct X3D_MultiTexture *node) {
     struct multiTexParams *paramPtr;
-    char *param;
     int count;
     int max;
 	s_renderer_capabilities_t *rdr_caps;
@@ -879,43 +878,121 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
         
         /* set defaults for these fields */
         for (count = 0; count < rdr_caps->texture_units; count++) {
-            paramPtr->multitex_mode= MTMODE_MODULATE;
-            paramPtr->multitex_source=INT_ID_UNDEFINED;
+            paramPtr->multitex_mode[0]= MTMODE_MODULATE; //rgba (or rgb if a > 0)
+            paramPtr->multitex_mode[1]= 0; //0=unused -1=default else alpha channel part
+            paramPtr->multitex_source[0]=INT_ID_UNDEFINED; //rgba (or rgb if a > 0)
+            paramPtr->multitex_source[1]=0; //0=unused -1=default else alpha channel part
             paramPtr->multitex_function=INT_ID_UNDEFINED;
             paramPtr++;
         }
     }
     
     /* how many textures can we use? no sense scanning those we cant use */
-    max = node->mode.n; 
+    //max = node->mode.n; 
+	max = node->texture.n;
     if (max > rdr_caps->texture_units) max = rdr_caps->texture_units;
     
     // warn users that function and source parameters not looked at right now 
-    if ((node->source.n>0) || (node->function.n>0)) {
-        ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
-    }
+    //if ((node->source.n>0) || (node->function.n>0)) {
+    //    ConsoleMessage ("currently, MultiTexture source and function parameters defaults used");
+    //}
     /* go through the params, and change string name into an int */
     paramPtr = (struct multiTexParams*) node->__xparams;
     for (count = 0; count < max; count++) {
-        param = node->mode.p[count]->strptr;
-        paramPtr->multitex_mode = findFieldInMULTITEXTUREMODE(param);
-        
+		char *smode, *ssource, *sfunc;
+		smode = ssource = sfunc = NULL;
+		if(node->mode.n>count){
+			int mode, modea;
+			smode = node->mode.p[count]->strptr;
+			modea = 0; //unused
+			mode = findFieldInMULTITEXTUREMODE(smode); //we offset by 1 in the #defines
+			if(mode > -1) mode += 1; //one-based defines
+			if(mode == -1){
+				//might be Castle style "RGB / ALPHA" dual modes
+				if(strchr(smode,'/') || strchr(smode,',')){
+					//yes, castle protocol
+					char *srgb, *salpha, *b1,*b2, *splittable;
+					int modergb, modealpha;
+					splittable = strdup(smode);
+					b1 = strchr(splittable,' ');
+					b2 = strrchr(splittable,' ');
+					salpha = b2+1;
+					splittable[b1 - splittable] = '\0';
+					srgb = splittable;
+					modergb = findFieldInMULTITEXTUREMODE(srgb);
+					if(modergb == -1)
+						modergb = MTMODE_MODULATE;
+					else 
+						modergb +=1; //one-based defines
+					modealpha = findFieldInMULTITEXTUREMODE(salpha);
+					if(modealpha == -1)
+						modealpha = MTMODE_MODULATE; //default
+					else
+						modealpha += 1; //one-based defines
+					free(splittable);
+					mode = modergb;
+					modea = modealpha;
+				}
+			}
+			if(mode > -1){
+				paramPtr->multitex_mode[0] = mode;
+				paramPtr->multitex_mode[1] = modea;
+			}
+			//else default
+        }
         if(node->source.n>count) {
-            param = node->source.p[count]->strptr;
-            paramPtr->multitex_source = findFieldInMULTITEXTURESOURCE(param);
+			int source, sourcea;
+            ssource = node->source.p[count]->strptr;
+            source = findFieldInMULTITEXTURESOURCE(ssource); //we offset by 1 in the #defines
+			if(source > -1) source += 1; //one-based defines
+			sourcea = 0; //0=unused
+			if(source == -1){
+				//might be Castle style "RGB / ALPHA" dual modes
+				if(strchr(ssource,'/') || strchr(ssource,',')){
+					//yes, castle protocol
+					char *srgb, *salpha, *b1,*b2, *splittable;
+					int sourcergb, sourcealpha;
+					splittable = strdup(ssource);
+					b1 = strchr(splittable,' ');
+					b2 = strrchr(splittable,' ');
+					salpha = b2+1;
+					splittable[b1 - splittable] = '\0';
+					srgb = splittable;
+					sourcergb = findFieldInMULTITEXTURESOURCE(srgb);
+					if(sourcergb == -1)
+						sourcergb = INT_ID_UNDEFINED; //default
+					else 
+						sourcergb +=1; //one-based defines
+					sourcealpha = findFieldInMULTITEXTURESOURCE(salpha);
+					free(splittable);
+					source = sourcergb;
+					sourcea = sourcealpha;
+				} 
+			}
+			if(source > -1){
+				paramPtr->multitex_source[0] = source;
+				paramPtr->multitex_source[1] = sourcea;
+			}
+			//else default
         }
         
         if (node->function.n>count) {
-            param = node->function.p[count]->strptr;
-            paramPtr->multitex_function = findFieldInMULTITEXTUREFUNCTION(param);
+			int func;
+            sfunc = node->function.p[count]->strptr;
+            func = findFieldInMULTITEXTUREFUNCTION(sfunc);
+			if(func > -1)
+				paramPtr->multitex_function;
+			//else default
         }
 
-#ifdef TEXVERBOSE
-printf ("compile_MultiTexture, %d of %d, string %s mode %d function %d\n",count,max,param,paramPtr->multitex_mode,paramPtr->multitex_function);
-#endif //TEXVERBOSE
+//#ifdef TEXVERBOSE
+printf ("compile_MultiTexture, %d of %d, mode %d %d source %d %d function %d m %s s %s f %s\n",
+count,max,paramPtr->multitex_mode[0],paramPtr->multitex_mode[1],paramPtr->multitex_source[0],paramPtr->multitex_source[1],paramPtr->multitex_function,smode,ssource,sfunc);
+//#endif //TEXVERBOSE
 
         paramPtr++;
     }
+	printf("end of compileMultiTexture\n");
 }
 
 void loadMultiTexture (struct X3D_MultiTexture *node) {
@@ -989,7 +1066,8 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		   stored in boundTextureStack[textureStackTop]; textureStackTop will be 1
 		   for "normal" textures; at least 1 for MultiTextures. */
 
-        	gglobal()->RenderFuncs.textureStackTop++;
+        	tg->RenderFuncs.textureStackTop++;
+			
  
 		
         paramPtr++;
@@ -999,6 +1077,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		printf ("loadMultiTexture, finished with texture %d\n",count);
 #endif
 	}
+	tg->RenderFuncs.multitexturenode = (void*)node;
 }
 
 #define BOUNDARY_TO_GL(direct) \
@@ -1532,19 +1611,20 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			DEBUG_TEX("texture loaded into memory... now lets load it into OpenGL...\n");
 			move_texture_to_opengl(myTableIndex);
 			//Aug 6, 2016 should we trigger a compile_shape? Depends on if we can compile new shader as needed in child_shape as channels show up 
-			if(1) if(myTableIndex->scenegraphNode){
-				//myTableIndex->scenegraphNode->_ichange++;  //problem: this causes the image file to be reloaded, a new opengl texture mipmapped etc.
-				int i,j;
-				struct X3D_Node *texnode = myTableIndex->scenegraphNode;
-				for(i=0;i<vectorSize(texnode->_parentVector);i++){
-					struct X3D_Node *parent = vector_get(struct X3D_Node *,texnode->_parentVector, i);
-					//parent->_ichange++;  //appearance change doesn't trigger shape_recompile
-					for(j=0;j<vectorSize(parent->_parentVector);j++){
-						struct X3D_Node *grandparent = vector_get(struct X3D_Node *,parent->_parentVector, j);
-						grandparent->_ichange++;  //shape node - tell it to recompile
-					}
-				}
-			}
+			//Aug 27, 2016 no, no need now, we do channel recounting and shader flag fiddling in child_shape
+			//if(0) if(myTableIndex->scenegraphNode){
+			//	//myTableIndex->scenegraphNode->_ichange++;  //problem: this causes the image file to be reloaded, a new opengl texture mipmapped etc.
+			//	int i,j;
+			//	struct X3D_Node *texnode = myTableIndex->scenegraphNode;
+			//	for(i=0;i<vectorSize(texnode->_parentVector);i++){
+			//		struct X3D_Node *parent = vector_get(struct X3D_Node *,texnode->_parentVector, i);
+			//		//parent->_ichange++;  //appearance change doesn't trigger shape_recompile
+			//		for(j=0;j<vectorSize(parent->_parentVector);j++){
+			//			struct X3D_Node *grandparent = vector_get(struct X3D_Node *,parent->_parentVector, j);
+			//			grandparent->_ichange++;  //shape node - tell it to recompile
+			//		}
+			//	}
+			//}
 			//giving up on compiling in texture channels. Shader will have to be updatable on each draw, not compiled channel-specific shader
 			break;
 

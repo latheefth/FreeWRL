@@ -150,10 +150,10 @@ int checkX3DElevationGridFields (struct X3D_ElevationGrid *this_, float **points
 	/* any texture coordinates passed in? if so, DO NOT generate any texture coords here. */
         if (!(this_->texCoord)) {
 		/* allocate memory for texture coords */
-		FREE_IF_NZ(rep->GeneratedTexCoords);
+		FREE_IF_NZ(rep->GeneratedTexCoords[0]);
 
 		/* 6 vertices per quad each vertex has a 2-float tex coord mapping */
-		tcoord = rep->GeneratedTexCoords = MALLOC (float *, sizeof (float) * nquads * 12); 
+		tcoord = rep->GeneratedTexCoords[0] = MALLOC (float *, sizeof (float) * nquads * 12); 
 
 		rep->tcindex=0; /* we will generate our own mapping */
 	} else {
@@ -1515,9 +1515,9 @@ void stream_extrusion_texture_coords (struct X3D_PolyRep *rep_,
 	/* printf ("stream_extrusion_texture_coords, have %d triangles \n",rep_->ntri); */
 
 	/* 2 floats per vertex, each triangle has 3 vertexes... */
-	rep_->GeneratedTexCoords = MALLOC (float *, sizeof(float) * 2 * 3 * rep_->ntri);
+	rep_->GeneratedTexCoords[0] = MALLOC (float *, sizeof(float) * 2 * 3 * rep_->ntri);
 
-	nc = rep_->GeneratedTexCoords;
+	nc = rep_->GeneratedTexCoords[0];
 
 	/* go through - note now that the "span" is 2 floats per vertex, while the old
 	   method (used when the extrusion code was written) was to use 3 floats, but
@@ -1822,10 +1822,10 @@ void make_Extrusion(struct X3D_Extrusion *node) {
 			printf ("tcoordsize is %d\n",tcoordsize);
 		# endif
 
-		FREE_IF_NZ (rep_->GeneratedTexCoords);
+		FREE_IF_NZ (rep_->GeneratedTexCoords[0]);
 		FREE_IF_NZ (rep_->tcindex);
 
-		tcoord = MALLOC(float *, sizeof(*(rep_->GeneratedTexCoords))*tcoordsize);
+		tcoord = MALLOC(float *, sizeof(*(rep_->GeneratedTexCoords[0]))*tcoordsize);
 
 		tcindexsize = rep_->ntri*3;
 		#ifdef VERBOSE

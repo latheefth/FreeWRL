@@ -305,13 +305,24 @@ GLEWContext * glewGetContext();
  */
 
 /* are we doing Vertex Buffer Objects? (VBOs) for OpenGL? */
+//#define VERTEX_VBO 0
+//#define NORMAL_VBO 1
+//#define TEXTURE_VBO 2
+//#define INDEX_VBO 3
+//#define COLOR_VBO 4
+//#define FOG_VBO 5
+//#define VBO_COUNT 6
 #define VERTEX_VBO 0
 #define NORMAL_VBO 1
-#define TEXTURE_VBO 2
-#define INDEX_VBO 3
-#define COLOR_VBO 4
-#define FOG_VBO 5
-#define VBO_COUNT 6
+#define INDEX_VBO 2
+#define COLOR_VBO 3
+#define FOG_VBO 4
+#define TEXTURE_VBO0 5
+#define TEXTURE_VBO1 6
+#define TEXTURE_VBO2 7
+#define TEXTURE_VBO3 8
+#define VBO_COUNT 9
+
 
 void fv_setScreenDim(int wi, int he);
 
@@ -348,16 +359,16 @@ typedef struct s_shader_capabilities{
 
 	GLint myPointSize;
     
-    // do we need to send down light information?
-    bool  haveLightInShader; 
-    
+	// do we need to send down light information?
+	bool  haveLightInShader; 
+
 	GLint lightcount;
 	//GLint lightType;
 	GLint lightType[MAX_LIGHTS];
-    GLint lightAmbient[MAX_LIGHTS];
-    GLint lightDiffuse[MAX_LIGHTS];
-    GLint lightSpecular[MAX_LIGHTS];
-    GLint lightPosition[MAX_LIGHTS];
+	GLint lightAmbient[MAX_LIGHTS];
+	GLint lightDiffuse[MAX_LIGHTS];
+	GLint lightSpecular[MAX_LIGHTS];
+	GLint lightPosition[MAX_LIGHTS];
 	GLint lightSpotDir[MAX_LIGHTS];
 	GLint lightAtten[MAX_LIGHTS];
 	//GLint lightConstAtten[MAX_LIGHTS];
@@ -365,22 +376,25 @@ typedef struct s_shader_capabilities{
 	//GLint lightQuadAtten[MAX_LIGHTS];
 	GLint lightSpotCutoffAngle[MAX_LIGHTS];
 	GLint lightSpotBeamWidth[MAX_LIGHTS];
-    //GLint lightRadius;
+	//GLint lightRadius;
 	GLint lightRadius[MAX_LIGHTS];
 
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
 	GLint NormalMatrix;
-	GLint TextureMatrix;
+	GLint TextureMatrix[MAX_MULTITEXTURE];
 	GLint Vertices;
 	GLint Normals;
 	GLint Colours;
-	GLint TexCoords;
+	GLint TexCoords[MAX_MULTITEXTURE];
 	GLint FogCoords; //Aug 2016
 
-    GLint TextureUnit[MAX_MULTITEXTURE];
-    GLint TextureMode[MAX_MULTITEXTURE];
-    GLint textureCount;
+	GLint TextureUnit[MAX_MULTITEXTURE];
+	GLint TextureMode[MAX_MULTITEXTURE];
+	GLint TextureSource[MAX_MULTITEXTURE];
+	GLint TextureFunction[MAX_MULTITEXTURE];
+	GLint textureCount;
+	GLint multitextureColor;
 
 	/* fill properties */
 	GLint hatchColour;
@@ -390,8 +404,8 @@ typedef struct s_shader_capabilities{
 	GLint hatchedBool;
 	GLint algorithm;
     
-    /* TextureCoordinateGenerator type */
-    GLint texCoordGenType;
+	/* TextureCoordinateGenerator type */
+	GLint texCoordGenType;
 
 	GLint fogColor;  //Aug 2016
 	GLint fogvisibilityRange;
@@ -728,11 +742,11 @@ void resetGeometry();
 	#define FW_FOG_POINTER_TYPE 33888 //?? how geenerate these numbers
 	#define FW_COLOR_POINTER_TYPE 12453
 	#define FW_TEXCOORD_POINTER_TYPE 67655
-	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
-	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
-	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,__FILE__,__LINE__); }
-	#define FW_GL_FOG_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_FOG_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,__FILE__,__LINE__); }
-	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,__FILE__,__LINE__); }
+	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,0,__FILE__,__LINE__); }
+	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,0,__FILE__,__LINE__); }
+	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,0,__FILE__,__LINE__); }
+	#define FW_GL_FOG_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_FOG_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,0,__FILE__,__LINE__); }
+	#define FW_GL_TEXCOORD_POINTER(aaa, bbb, ccc, ddd, eee) {sendAttribToGPU(FW_TEXCOORD_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,eee,__FILE__,__LINE__); }
 	#define FW_GL_BINDBUFFER(xxx,yyy) {sendBindBufferToGPU(xxx,yyy,__FILE__,__LINE__); }
 
 

@@ -98,7 +98,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 	 * bind_image, we store a pointer for the texture parameters. It is
 	 * NULL, possibly different for MultiTextures */
 
-	if (p->textureParameterStack[c].multitex_mode == INT_ID_UNDEFINED) {
+	if (p->textureParameterStack[c].multitex_mode[0] == INT_ID_UNDEFINED) {
         
 		#ifdef TEXVERBOSE
 		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
@@ -118,10 +118,11 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 
 	} else {
 	/* printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source); */
-		if (p->textureParameterStack[c].multitex_source != MTMODE_OFF) {
+		if (p->textureParameterStack[c].multitex_source[0] != MTMODE_OFF) {
 		} else {
-			glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
-			return FALSE;
+			//glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
+			//return FALSE;
+			// we do OFF right in the shader
 		}
 	}
 
@@ -142,6 +143,7 @@ void textureDraw_start(struct textureVertexInfo* genTex) {
 
 /* lets disable textures here */
 void textureDraw_end(void) {
+	int j;
 	ttglobal tg = gglobal();
     
 #ifdef TEXVERBOSE
@@ -151,19 +153,77 @@ void textureDraw_end(void) {
 	/* DISABLE_TEXTURES */
 	/* setting this ENSURES that items, like the HUD, that are not within the normal
 	   rendering path do not try and use textures... */
-	tg->RenderFuncs.textureStackTop = 0;
+	FW_GL_MATRIX_MODE(GL_TEXTURE);
+	for(j=0;j<tg->RenderFuncs.textureStackTop;j++)
+		FW_GL_POP_MATRIX(); //pushed in passedInGenTex
 
-        FW_GL_MATRIX_MODE(GL_MODELVIEW);
+	tg->RenderFuncs.textureStackTop = 0;
+	tg->RenderFuncs.multitexturenode = NULL;
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
+}
+
+/* did we have a TextureTransform in the Appearance node? */
+void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
+
+	/* is this a simple TextureTransform? */
+	if (textureNode->_nodeType == NODE_TextureTransform) {
+		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
+		struct X3D_TextureTransform  *ttt = (struct X3D_TextureTransform *) textureNode;
+		/*  Render transformations according to spec.*/
+		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+		FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
+		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+
+	/* is this a MultiTextureTransform? */
+	} else  if (textureNode->_nodeType == NODE_MultiTextureTransform) {
+		struct X3D_MultiTextureTransform *mtt = (struct X3D_MultiTextureTransform *) textureNode;
+		if (ttnum < mtt->textureTransform.n) {
+			struct X3D_TextureTransform *ttt = (struct X3D_TextureTransform *) mtt->textureTransform.p[ttnum];
+			/* is this a simple TextureTransform? */
+			if (ttt->_nodeType == NODE_TextureTransform) {
+				/*  Render transformations according to spec.*/
+				FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
+				FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
+				FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
+				FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
+				FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
+			} else {
+				static int once = 0;
+				if(!once){
+					printf ("MultiTextureTransform expected a textureTransform for texture %d, got %d \n",
+					ttnum, ttt->_nodeType);
+					once = 1;
+				}
+			}
+		} else {
+			static int once = 0;
+			if(!once){
+				printf ("not enough transforms in MultiTextureTransform -will fill with Identity matrix\n");
+				once = 1;
+			}
+		}
+	} else {
+		static int once = 0;
+		if(!once){
+			printf ("expected a textureTransform node, got %d\n",textureNode->_nodeType);
+			once = 1;
+		}
+	}
+
+	//FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
 /***********************************************************************************/
 
 static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
-	int i;
+	int i, isStrict, isMulti;
 	GLint texUnit[MAX_MULTITEXTURE];
 	GLint texMode[MAX_MULTITEXTURE];
 	s_shader_capabilities_t *me;
+	struct textureVertexInfo *genTexPtr;
 	ppRenderTextures p;
 	ttglobal tg = gglobal();
 	p = (ppRenderTextures)tg->RenderTextures.prv;
@@ -175,19 +235,36 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	printf ("passedInGenTex, cubeFace %d\n",getAppearanceProperties()->cubeFace);
 	#endif 
 
+    FW_GL_MATRIX_MODE(GL_TEXTURE);
 
     //printf ("passedInGenTex, B\n");
+	isStrict = 1;  //web3d specs say if its a multitexture, 
+		//and you give it a single textureTransform instead of multitexturetransform 
+		//it should ignore the singleTextureTransform and use identities. 
+		//strict: This is a change of functionality for freewrl Aug 31, 2016
+	genTexPtr = genTex;
 	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
+		FW_GL_PUSH_MATRIX(); //POPPED in textureDraw_end
+		FW_GL_LOAD_IDENTITY();
 		//printf ("passedInGenTex, c=%d\n",c);
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c]!=0) {
+			isMulti = tg->RenderFuncs.multitexturenode != NULL;
 			//printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
 			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
 				//printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
 				GLuint texture;
 				struct X3D_Node *tt = getThis_textureTransform();
-				if (tt!=NULL) 
-					do_textureTransform(tt,c);
+				if (tt!=NULL) {
+					int match = FALSE;
+					match = isMulti && tt->_nodeType == NODE_MultiTextureTransform;
+					match = match || !isMulti && tt->_nodeType != NODE_MultiTextureTransform;
+					if(isStrict){
+						if(match) do_textureTransform(tt,c);
+					}else{
+						do_textureTransform(tt,c);
+					}
+				}
 				texture = tg->RenderFuncs.boundTextureStack[c];
 
 				// SET_TEXTURE_UNIT_AND_BIND
@@ -198,31 +275,52 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				} else {
 					glBindTexture(GL_TEXTURE_CUBE_MAP,texture); 
 				}
-				
-				if (genTex->pre_canned_textureCoords != NULL) {
+				if(genTexPtr->VBO)
+					FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,genTexPtr->VBO);
+
+				if (genTexPtr->pre_canned_textureCoords != NULL) {
 					/* simple shapes, like Boxes and Cones and Spheres will have pre-canned arrays */
-					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTex->pre_canned_textureCoords);
+					FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,genTexPtr->pre_canned_textureCoords,c);
 				}else{
-					FW_GL_TEXCOORD_POINTER (genTex->TC_size, 
-						genTex->TC_type,
-						genTex->TC_stride,
-						genTex->TC_pointer);
+					FW_GL_TEXCOORD_POINTER (genTexPtr->TC_size, 
+						genTexPtr->TC_type,
+						genTexPtr->TC_stride,
+						genTexPtr->TC_pointer,c);
 				}
 			}
 		}
+		genTexPtr = genTexPtr->next ? genTexPtr->next : genTexPtr; //duplicate the prior coords if not enough for all MultiTextures
 	}
-
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	/* set up the selected shader for this texture(s) config */
 	if (me != NULL) {
 		//printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
 
 		if (me->textureCount != -1) 
 		glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
+		if(tg->RenderFuncs.textureStackTop){
+			struct X3D_MultiTexture * mtnode = (struct X3D_MultiTexture *)tg->RenderFuncs.multitexturenode;
+			if(mtnode && mtnode->_nodeType == NODE_MultiTexture){
+				glUniform4f(me->multitextureColor,mtnode->color.c[0],mtnode->color.c[1],mtnode->color.c[2],mtnode->alpha);
+			}
+		}
 
 		for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
-			//printf (" sending in i%d tu %d mode %d\n",i,i,tg->RenderTextures.textureParameterStack[i].multitex_mode);
+			//static int once = 0;
+			//if(once < 10) {
+			//printf (" sending in i%d tu %d mode %d src %d fnc %d\n",i,i,
+			//	p->textureParameterStack[i].multitex_mode,
+			//	p->textureParameterStack[i].multitex_source,
+			//	p->textureParameterStack[i].multitex_function);
+			//	once++;
+			//}
 			glUniform1i(me->TextureUnit[i],i);
-			glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode);
+			//the 2i wasn't working for me even with ivec2 in shader
+			glUniform2i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode[0], p->textureParameterStack[i].multitex_mode[1]);
+			glUniform2i(me->TextureSource[i],p->textureParameterStack[i].multitex_source[0], p->textureParameterStack[i].multitex_source[1]);
+			//glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode[0]);
+			//glUniform1i(me->TextureSource[i],p->textureParameterStack[i].multitex_source[0]);
+			glUniform1i(me->TextureFunction[i],p->textureParameterStack[i].multitex_function);
 		}
 	#ifdef TEXVERBOSE
 	} else {

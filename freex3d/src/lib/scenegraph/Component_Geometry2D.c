@@ -400,7 +400,7 @@ void compile_Disk2D (struct X3D_Disk2D *node){
 void render_Disk2D (struct X3D_Disk2D *node){
 	COMPILE_IF_REQUIRED
 	if (node->__numPoints>0) {	
-		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords.p,2,GL_FLOAT,0,NULL};
+		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords.p,2,GL_FLOAT,0,NULL,NULL};
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
@@ -509,7 +509,7 @@ void compile_TriangleSet2D (struct X3D_TriangleSet2D *node){
 void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 	COMPILE_IF_REQUIRED
 	if (node->vertices.n>0) {	
-		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords.p,2,GL_FLOAT,0,NULL};
+		struct textureVertexInfo mtf = {(GLfloat *)node->__texCoords.p,2,GL_FLOAT,0,NULL,NULL};
 		/* for BoundingBox calculations */
 		setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, 
 			node->EXTENT_MAX_Y, node->EXTENT_MIN_Y, 0.0f,0.0f,X3D_NODE(node));
@@ -571,7 +571,7 @@ void compile_Rectangle2D (struct X3D_Rectangle2D *node) {
 void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
-	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
 	
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;

@@ -66,6 +66,8 @@ struct textureVertexInfo {
 	GLenum TC_type;		/* glTexCoordPointer - type param */	
 	GLsizei TC_stride;	/* glTexCoordPointer - stride param */
 	GLvoid *TC_pointer;	/* glTexCoordPointer - pointer to first element */
+	void *next; //next textureVertexInfo for MultitextureCoordinate
+	GLint VBO;
 };
 
 /* for texIsloaded structure */

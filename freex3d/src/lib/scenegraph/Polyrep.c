@@ -858,10 +858,16 @@ void render_polyrep(void *node) {
 
         
 	/*  textures?*/
-	if (pr->VBO_buffers[TEXTURE_VBO] != 0) {
-		struct textureVertexInfo mtf = {NULL,2,GL_FLOAT,0, NULL};
-		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[TEXTURE_VBO]);
-		textureDraw_start(&mtf);
+	if (pr->VBO_buffers[TEXTURE_VBO0] != 0) {
+		int k;
+		struct textureVertexInfo mtf[4] = {{NULL,2,GL_FLOAT,0, NULL,NULL},  
+			{NULL,2,GL_FLOAT,0, NULL,NULL},{NULL,2,GL_FLOAT,0, NULL,NULL},{NULL,2,GL_FLOAT,0, NULL,NULL}};  
+		for(k=0;k<max(1,pr->ntcoord);k++){
+			//FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[TEXTURE_VBO0+k]);
+			mtf[k].VBO = pr->VBO_buffers[TEXTURE_VBO0+k];
+			if(k > 0) mtf[k-1].next = &mtf[k];
+		}
+		textureDraw_start(mtf);
 	} else {
         ConsoleMessage("skipping tds of textures");
 	}
@@ -1110,16 +1116,16 @@ void compile_polyrep(void *innode, void *coord, void *fogCoord, void *color, voi
 		int i;
 
 		node->_intern = MALLOC(struct X3D_PolyRep *, sizeof(struct X3D_PolyRep));
-
+		memset(node->_intern,0,sizeof(struct X3D_PolyRep));
 		polyrep = node->_intern;
 		polyrep->ntri = -1;
-		polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
-		polyrep->norindex = 0; polyrep->normal = 0; polyrep->flat_normal = 0; polyrep->GeneratedTexCoords = 0;
-		polyrep->tri_indices = 0; polyrep->wire_indices = 0; polyrep->actualFog =  0;
-		polyrep->tcindex = 0; 
-		polyrep->tcoordtype = 0;
+		//polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
+		//polyrep->norindex = 0; polyrep->normal = 0; polyrep->flat_normal = 0; polyrep->GeneratedTexCoords = 0;
+		//polyrep->tri_indices = 0; polyrep->wire_indices = 0; polyrep->actualFog =  0;
+		//polyrep->tcindex = 0; 
+		//polyrep->tcoordtype = 0;
 		polyrep->streamed = FALSE;
-		polyrep->last_index_type = 0; polyrep->last_normal_type = 0;
+		//polyrep->last_index_type = 0; polyrep->last_normal_type = 0;
 		
 
 		/* for Collision, default texture generation */
@@ -1156,7 +1162,7 @@ void compile_polyrep(void *innode, void *coord, void *fogCoord, void *color, voi
 
 	FREE_IF_NZ(polyrep->cindex);
 	FREE_IF_NZ(polyrep->actualCoord);
-	FREE_IF_NZ(polyrep->GeneratedTexCoords);
+	FREE_IF_NZ(polyrep->GeneratedTexCoords[0]);
 	FREE_IF_NZ(polyrep->colindex);
 	FREE_IF_NZ(polyrep->color);
 	FREE_IF_NZ(polyrep->norindex);
@@ -1207,7 +1213,7 @@ void delete_polyrep(struct X3D_Node *node){
 		FREE_IF_NZ(pr->color); /* triples or null */
 		FREE_IF_NZ(pr->normal); /* triples or null */
 		FREE_IF_NZ(pr->flat_normal);
-		FREE_IF_NZ(pr->GeneratedTexCoords);	/* triples (per triangle) of texture coords if there is no texCoord node */
+		FREE_IF_NZ(pr->GeneratedTexCoords[0]);	/* triples (per triangle) of texture coords if there is no texCoord node */
 		FREE_IF_NZ(pr);
 		node->_intern = NULL;
 	}

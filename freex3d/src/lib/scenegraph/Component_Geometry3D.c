@@ -204,7 +204,7 @@ void render_Box (struct X3D_Box *node) {
 	extern GLfloat boxtex[];		/*  in CFuncs/statics.c*/
 	extern GLfloat boxnorms[];		/*  in CFuncs/statics.c*/
 	extern ushort boxwireindices[];
-	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
 
 	float x = ((node->size).c[0])/2;
 	float y = ((node->size).c[1])/2;
@@ -489,7 +489,7 @@ void clear_Cylinder (struct X3D_Node *node) {
 
 void render_Cylinder (struct X3D_Cylinder * node) {
 	extern GLfloat cylsidetex[];		/*  in CFuncs/statics.c*/
-	struct textureVertexInfo mtf = {cylsidetex,2,GL_FLOAT,0,NULL};    
+	struct textureVertexInfo mtf = {cylsidetex,2,GL_FLOAT,0,NULL,NULL};    
 
 	float h = (node->height)/2;
 	float r = node->radius;
@@ -710,7 +710,7 @@ void clear_Cone (struct X3D_Node *node) {
 
 void render_Cone (struct X3D_Cone *node) {
 	extern float tribottex[];		/*  in CFuncs/statics.c*/
-	struct textureVertexInfo mtf = {tribottex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {tribottex,2,GL_FLOAT,0,NULL,NULL};
 				
 	float h = (node->height)/2;
 	float r = node->bottomRadius;
@@ -944,7 +944,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 	extern GLfloat spherenorms[];		/*  side normals*/
 	extern float spheretex[];		/*  in CFuncs/statics.c*/
 
-	struct textureVertexInfo mtf = {spheretex,2,GL_FLOAT,0,NULL};
+	struct textureVertexInfo mtf = {spheretex,2,GL_FLOAT,0,NULL,NULL};
 
 
 	float rad = node->radius;

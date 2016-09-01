@@ -2564,7 +2564,7 @@ void render_texturegrid(void *_self){
 	int useMip,haveTexture;
 	//float aspect, scale, xshift, yshift;
 	GLint  positionLoc, texCoordLoc, textureLoc;
-    GLint textureMatrix;
+    GLint textureMatrix0;
 	GLuint textureID;
 	s_shader_capabilities_t *scap;
 	self = (contenttype_texturegrid *)_self;
@@ -2627,7 +2627,7 @@ void render_texturegrid(void *_self){
 	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, self->vert2 );
 	// Load the texture coordinate
-	texCoordLoc = scap->TexCoords;
+	texCoordLoc = scap->TexCoords[0];
 	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,  GL_FALSE, 0, self->tex );  
 	glEnableVertexAttribArray (positionLoc );
 	glEnableVertexAttribArray ( texCoordLoc);
@@ -2642,8 +2642,8 @@ void render_texturegrid(void *_self){
 
 	// Set the base map sampler to texture unit to 0
 	textureLoc = scap->TextureUnit[0];
-	textureMatrix = scap->TextureMatrix;
-	glUniformMatrix4fv(textureMatrix, 1, GL_FALSE, matrixIdentity);
+	textureMatrix0 = scap->TextureMatrix[0];
+	glUniformMatrix4fv(textureMatrix0, 1, GL_FALSE, matrixIdentity);
 
 	glUniform1i ( textureLoc, 0 );
 	//window coordinates natively go from -1 to 1 in x and y
@@ -2833,7 +2833,7 @@ void render_orientation(void *_self){
 	contenttype_orientation *self;
 	int haveTexture;
 	GLint  positionLoc, texCoordLoc, textureLoc;
-    GLint textureMatrix;
+    GLint textureMatrix0;
 	GLuint textureID;
 	float *orientationMatrix;
 	s_shader_capabilities_t *scap;
@@ -2885,7 +2885,7 @@ void render_orientation(void *_self){
 	glVertexAttribPointer (positionLoc, 3, GL_FLOAT, 
 						   GL_FALSE, 0, self->vert );
 	// Load the texture coordinate
-	texCoordLoc = scap->TexCoords;
+	texCoordLoc = scap->TexCoords[0];
 	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,  GL_FALSE, 0, self->tex );  
 	glEnableVertexAttribArray (positionLoc );
 	glEnableVertexAttribArray ( texCoordLoc);
@@ -2896,8 +2896,8 @@ void render_orientation(void *_self){
 
 	// Set the base map sampler to texture unit to 0
 	textureLoc = scap->TextureUnit[0];
-	textureMatrix = scap->TextureMatrix;
-	glUniformMatrix4fv(textureMatrix, 1, GL_FALSE, matrixIdentity);
+	textureMatrix0 = scap->TextureMatrix[0];
+	glUniformMatrix4fv(textureMatrix0, 1, GL_FALSE, matrixIdentity);
 
 	glUniform1i ( textureLoc, 0 );
 	//window coordinates natively go from -1 to 1 in x and y

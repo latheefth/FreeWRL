@@ -430,7 +430,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 	//GLint shader;
 	GLint  positionLoc, texCoordLoc, textureLoc;
     //GLint textureCount;
-    GLint textureMatrix;
+    GLint textureMatrix0;
 	ppCursorDraw p;
 	GLfloat cursorVert2[18];
 	//GLushort ind[] = {0,1,2,3,4,5};
@@ -481,7 +481,7 @@ void cursorDraw(int ID, int x, int y, float angle)
 						   GL_FALSE, 0, cursorVert2 );
 	// Load the texture coordinate
 	//texCoordLoc =  glGetAttribLocation ( shader, "fw_MultiTexCoord0"); //"fw_TexCoords" );
-	texCoordLoc = scap->TexCoords;
+	texCoordLoc = scap->TexCoords[0];
 	glVertexAttribPointer ( texCoordLoc, 2, GL_FLOAT,
 						   GL_FALSE, 0, cursorTex );  //fails - p->texCoordLoc is 429xxxxx - garbage
 	//glUniform4f(p->color4fLoc,0.7f,0.7f,0.9f,1.0f);
@@ -497,8 +497,8 @@ void cursorDraw(int ID, int x, int y, float angle)
 	textureLoc = scap->TextureUnit[0];
 	//textureCount = scap->textureCount;
 	//glUniform1i(textureCount,(GLint)1);
-	textureMatrix = scap->TextureMatrix;
-	glUniformMatrix4fv(textureMatrix, 1, GL_FALSE, cursIdentity);
+	textureMatrix0 = scap->TextureMatrix[0];
+	glUniformMatrix4fv(textureMatrix0, 1, GL_FALSE, cursIdentity);
 
 	glUniform1i ( textureLoc, 0 );
 	//glDrawElements ( GL_TRIANGLES, 3*2, GL_UNSIGNED_SHORT, ind ); //just render the active ones

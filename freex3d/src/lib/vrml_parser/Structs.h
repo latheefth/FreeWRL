@@ -79,7 +79,8 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	float *flat_normal; /*triples or null*/
 	int last_normal_type; /* 0=regular 1=flat last normal type we put in the vbo normal buffer */
 	int last_index_type; /* 0=regular 1=wire last vertex index type we put in the vbo index buffer */
-	float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
+	float *GeneratedTexCoords[4];	/* triples (per triangle) of texture coords if there is no texCoord node */
+	int ntcoord;		/* number of multitextureCoordinates */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
 	int texgentype; /* if we do have a TextureCoordinateGenerator, what "TCGT_XXX" type is it? */
 	GLfloat minVals[3];		/* for collision and default texture coord generation */
@@ -2093,53 +2094,57 @@ const char *stringPROTOKeywordType(int st);
 /* Table of built-in MULTITEXTUREMODE keywords */
 extern const char *MULTITEXTUREMODE[];
 extern const int MULTITEXTUREMODE_COUNT;
-#define MTMODE_ADD	0
-#define MTMODE_ADDSIGNED	1
-#define MTMODE_ADDSIGNED2X	2
-#define MTMODE_ADDSMOOTH	3
-#define MTMODE_BLENDCURRENTALPHA	4
-#define MTMODE_BLENDDIFFUSEALPHA	5
-#define MTMODE_DOTPRODUCT3	6
-#define MTMODE_MODULATE	7
-#define MTMODE_MODULATE2X	8
-#define MTMODE_MODULATE4X	9
-#define MTMODE_MODULATEALPHA_ADDCOLOR	10
-#define MTMODE_MODULATEINVALPHA_ADDCOLOR	11
-#define MTMODE_MODULATEINVCOLOR_ADDALPHA	12
-#define MTMODE_OFF	13
-#define MTMODE_REPLACE	14
-#define MTMODE_SELECTARG1	15
-#define MTMODE_SELECTARG2	16
-#define MTMODE_SUBTRACT	17
+#define MTMODE_ADD	1
+#define MTMODE_ADDSIGNED	2
+#define MTMODE_ADDSIGNED2X	3
+#define MTMODE_ADDSMOOTH	4
+#define MTMODE_BLENDCURRENTALPHA	5
+#define MTMODE_BLENDDIFFUSEALPHA	6
+#define MTMODE_BLENDFACTORALPHA	7
+#define MTMODE_BLENDTEXTUREALPHA	8
+#define MTMODE_DOTPRODUCT3	9
+#define MTMODE_MODULATE	10
+#define MTMODE_MODULATE2X	11
+#define MTMODE_MODULATE4X	12
+#define MTMODE_MODULATEALPHA_ADDCOLOR	13
+#define MTMODE_MODULATEINVALPHA_ADDCOLOR	14
+#define MTMODE_MODULATEINVCOLOR_ADDALPHA	15
+#define MTMODE_OFF	16
+#define MTMODE_REPLACE	17
+#define MTMODE_SELECTARG1	18
+#define MTMODE_SELECTARG2	19
+#define MTMODE_SUBTRACT	20
 
 const char *stringMULTITEXTUREMODEType(int st);
 #define MULTITEXTUREDefs " \
-#define MTMODE_ADD	0\n \
-#define MTMODE_ADDSIGNED	1\n \
-#define MTMODE_ADDSIGNED2X	2\n \
-#define MTMODE_ADDSMOOTH	3\n \
-#define MTMODE_BLENDCURRENTALPHA	4\n \
-#define MTMODE_BLENDDIFFUSEALPHA	5\n \
-#define MTMODE_DOTPRODUCT3	6\n \
-#define MTMODE_MODULATE	7\n \
-#define MTMODE_MODULATE2X	8\n \
-#define MTMODE_MODULATE4X	9\n \
-#define MTMODE_MODULATEALPHA_ADDCOLOR	10\n \
-#define MTMODE_MODULATEINVALPHA_ADDCOLOR	11\n \
-#define MTMODE_MODULATEINVCOLOR_ADDALPHA	12\n \
-#define MTMODE_OFF	13\n \
-#define MTMODE_REPLACE	14\n \
-#define MTMODE_SELECTARG1	15\n \
-#define MTMODE_SELECTARG2	16\n \
-#define MTMODE_SUBTRACT	17\n \
+#define MTMODE_ADD	1\n \
+#define MTMODE_ADDSIGNED	2\n \
+#define MTMODE_ADDSIGNED2X	3\n \
+#define MTMODE_ADDSMOOTH	4\n \
+#define MTMODE_BLENDCURRENTALPHA	5\n \
+#define MTMODE_BLENDDIFFUSEALPHA	6\n \
+#define MTMODE_BLENDFACTORALPHA	7\n \
+#define MTMODE_BLENDTEXTUREALPHA	8\n \
+#define MTMODE_DOTPRODUCT3	9\n \
+#define MTMODE_MODULATE	10\n \
+#define MTMODE_MODULATE2X	11\n \
+#define MTMODE_MODULATE4X	12\n \
+#define MTMODE_MODULATEALPHA_ADDCOLOR	13\n \
+#define MTMODE_MODULATEINVALPHA_ADDCOLOR	14\n \
+#define MTMODE_MODULATEINVCOLOR_ADDALPHA	15\n \
+#define MTMODE_OFF	16\n \
+#define MTMODE_REPLACE	17\n \
+#define MTMODE_SELECTARG1	18\n \
+#define MTMODE_SELECTARG2	19\n \
+#define MTMODE_SUBTRACT	20\n \
 ";
 
 /* Table of built-in MULTITEXTURESOURCE keywords */
 extern const char *MULTITEXTURESOURCE[];
 extern const int MULTITEXTURESOURCE_COUNT;
-#define MTSRC_DIFFUSE	0
-#define MTSRC_FACTOR	1
-#define MTSRC_SPECULAR	2
+#define MTSRC_DIFFUSE	1
+#define MTSRC_FACTOR	2
+#define MTSRC_SPECULAR	3
 
 
 /* Table of built-in TEXTURECOORDINATEGENERATOR keywords */

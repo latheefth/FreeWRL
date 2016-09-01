@@ -601,7 +601,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of MULTITEXTUREMODE keywords */\n       const char *MULTITEXTUREMODE[] = {\n";
 
         @sf = sort keys %VRML::Rend::MultiTextureModeC if %VRML::Rend::MultiTextureModeC;
-	$keywordIntegerType = 0;
+	$keywordIntegerType = 1; #one-based defines
 	my $MultiText_defs = '#define MULTITEXTUREDefs " \\' . "\n";
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -633,7 +633,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of MULTITEXTURESOURCE keywords */\n       const char *MULTITEXTURESOURCE[] = {\n";
 
         @sf = sort keys %VRML::Rend::MultiTextureSourceC if %VRML::Rend::MultiTextureSourceC;
-	$keywordIntegerType = 0;
+	$keywordIntegerType = 1; #one-based defines
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
@@ -1600,7 +1600,8 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	float *flat_normal; /*triples or null*/
 	int last_normal_type; /* 0=regular 1=flat last normal type we put in the vbo normal buffer */
 	int last_index_type; /* 0=regular 1=wire last vertex index type we put in the vbo index buffer */
-	float *GeneratedTexCoords;	/* triples (per triangle) of texture coords if there is no texCoord node */
+	float *GeneratedTexCoords[4];	/* triples (per triangle) of texture coords if there is no texCoord node */
+	int ntcoord;		/* number of multitextureCoordinates */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
 	int texgentype; /* if we do have a TextureCoordinateGenerator, what "TCGT_XXX" type is it? */
 	GLfloat minVals[3];		/* for collision and default texture coord generation */
