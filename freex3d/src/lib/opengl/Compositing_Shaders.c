@@ -768,29 +768,29 @@ uniform int fw_Texture_function2;  \n\
 uniform int fw_Texture_function3;  \n\
 uniform int textureCount; \n\
 uniform vec4 mt_Color; \n\
-#define MTMODE_ADD	0\n \
-#define MTMODE_ADDSIGNED	1\n \
-#define MTMODE_ADDSIGNED2X	2\n \
-#define MTMODE_ADDSMOOTH	3\n \
-#define MTMODE_BLENDCURRENTALPHA	4\n \
-#define MTMODE_BLENDDIFFUSEALPHA	5\n \
-#define MTMODE_BLENDFACTORALPHA	6\n \
-#define MTMODE_BLENDTEXTUREALPHA	7\n \
-#define MTMODE_DOTPRODUCT3	8\n \
-#define MTMODE_MODULATE	9\n \
-#define MTMODE_MODULATE2X	10\n \
-#define MTMODE_MODULATE4X	11\n \
-#define MTMODE_MODULATEALPHA_ADDCOLOR	12\n \
-#define MTMODE_MODULATEINVALPHA_ADDCOLOR	13\n \
-#define MTMODE_MODULATEINVCOLOR_ADDALPHA	14\n \
-#define MTMODE_OFF	15\n \
-#define MTMODE_REPLACE	16\n \
-#define MTMODE_SELECTARG1	17\n \
-#define MTMODE_SELECTARG2	18\n \
-#define MTMODE_SUBTRACT	19\n \
-#define MTSRC_DIFFUSE	0 \n\
-#define MTSRC_FACTOR	1 \n\
-#define MTSRC_SPECULAR	2 \n\
+#define MTMODE_ADD	1\n \
+#define MTMODE_ADDSIGNED	2\n \
+#define MTMODE_ADDSIGNED2X	3\n \
+#define MTMODE_ADDSMOOTH	4\n \
+#define MTMODE_BLENDCURRENTALPHA	5\n \
+#define MTMODE_BLENDDIFFUSEALPHA	6\n \
+#define MTMODE_BLENDFACTORALPHA	7\n \
+#define MTMODE_BLENDTEXTUREALPHA	8\n \
+#define MTMODE_DOTPRODUCT3	9\n \
+#define MTMODE_MODULATE	10\n \
+#define MTMODE_MODULATE2X	11\n \
+#define MTMODE_MODULATE4X	12\n \
+#define MTMODE_MODULATEALPHA_ADDCOLOR	13\n \
+#define MTMODE_MODULATEINVALPHA_ADDCOLOR	14\n \
+#define MTMODE_MODULATEINVCOLOR_ADDALPHA	15\n \
+#define MTMODE_OFF	16\n \
+#define MTMODE_REPLACE	17\n \
+#define MTMODE_SELECTARG1	18\n \
+#define MTMODE_SELECTARG2	19\n \
+#define MTMODE_SUBTRACT	20\n \
+#define MTSRC_DIFFUSE	1 \n\
+#define MTSRC_FACTOR	2 \n\
+#define MTSRC_SPECULAR	3 \n\
 #define MTFN_ALPHAREPLICATE	0 \n\
 #define MTFN_COMPLEMENT	1 \n\
 #define MT_DEFAULT -1 \n\
@@ -849,7 +849,7 @@ void finalColCalc(inout vec4 prevColour, in int mode, in int modea, in int func,
   } else if (mode==MTMODE_SELECTARG2) {  \n\
     rv = prevColour;  \n\
   } \n\
-  if(modea != MT_DEFAULT){ \n\
+  if(modea != 0){ \n\
     if (modea==MTMODE_OFF) {  \n\
       rv.a = prevColour.a; \n\
     } else if (modea==MTMODE_REPLACE) { \n\
@@ -1100,7 +1100,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(isource == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(isource == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(isource == MTSRC_FACTOR) source = mt_Color; \n\
-      if(iasource != MT_DEFAULT){ \n\
+      if(iasource != 0){ \n\
         if(iasource == MT_DEFAULT) source.a = finalFrag.a; \n\
         else if(iasource == MTSRC_DIFFUSE) source.a = matdiff_color.a; \n\
         else if(iasource == MTSRC_SPECULAR) source.a = 1.0; \n\
@@ -1118,7 +1118,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(isource == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(isource == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(isource == MTSRC_FACTOR) source = mt_Color; \n\
-      if(iasource != MT_DEFAULT){ \n\
+      if(iasource != 0){ \n\
         if(iasource == MT_DEFAULT) source.a = finalFrag.a; \n\
         else if(iasource == MTSRC_DIFFUSE) source.a = matdiff_color.a; \n\
         else if(iasource == MTSRC_SPECULAR) source.a = 1.0; \n\
@@ -1136,7 +1136,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(isource == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(isource == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(isource == MTSRC_FACTOR) source = mt_Color; \n\
-      if(iasource != MT_DEFAULT){ \n\
+      if(iasource != 0){ \n\
         if(iasource == MT_DEFAULT) source.a = finalFrag.a; \n\
         else if(iasource == MTSRC_DIFFUSE) source.a = matdiff_color.a; \n\
         else if(iasource == MTSRC_SPECULAR) source.a = 1.0; \n\
@@ -1154,7 +1154,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
       else if(isource == MTSRC_DIFFUSE) source = matdiff_color; \n\
       else if(isource == MTSRC_SPECULAR) source = vec4(castle_ColorES.rgb,1.0); \n\
       else if(isource == MTSRC_FACTOR) source = mt_Color; \n\
-      if(iasource != MT_DEFAULT){ \n\
+      if(iasource != 0){ \n\
         if(iasource == MT_DEFAULT) source.a = finalFrag.a; \n\
         else if(iasource == MTSRC_DIFFUSE) source.a = matdiff_color.a; \n\
         else if(iasource == MTSRC_SPECULAR) source.a = 1.0; \n\

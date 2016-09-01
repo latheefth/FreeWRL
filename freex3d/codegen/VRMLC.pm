@@ -601,7 +601,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of MULTITEXTUREMODE keywords */\n       const char *MULTITEXTUREMODE[] = {\n";
 
         @sf = sort keys %VRML::Rend::MultiTextureModeC if %VRML::Rend::MultiTextureModeC;
-	$keywordIntegerType = 0;
+	$keywordIntegerType = 1; #one-based defines
 	my $MultiText_defs = '#define MULTITEXTUREDefs " \\' . "\n";
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
@@ -633,7 +633,7 @@ sub gen {
 	push @genFuncs1, "\n/* Table of MULTITEXTURESOURCE keywords */\n       const char *MULTITEXTURESOURCE[] = {\n";
 
         @sf = sort keys %VRML::Rend::MultiTextureSourceC if %VRML::Rend::MultiTextureSourceC;
-	$keywordIntegerType = 0;
+	$keywordIntegerType = 1; #one-based defines
 	for (@sf) {
 		# print "node $_ is tagged as $nodeIntegerType\n";
 		# tag each node type with a integer key.
