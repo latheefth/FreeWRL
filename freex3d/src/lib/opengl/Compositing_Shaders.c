@@ -833,7 +833,7 @@ void finalColCalc(inout vec4 prevColour, in int mode, in int modea, in int func,
   } else if (mode== MTMODE_ADD) { \n\
     rv= vec4 (prevColour + texel);  \n\
   } else if (mode== MTMODE_SUBTRACT) { \n\
-    rv = vec4 (prevColour - texel);  \n\
+    rv = vec4 (texel - prevColour); //jas had prev - tex \n\
   } else if (mode==MTMODE_ADDSMOOTH) {  \n\
     rv = vec4 (prevColour + (prevColour - vec4 (1.,1.,1.,1.)) * texel);  \n\
   } else if (mode==MTMODE_BLENDDIFFUSEALPHA) {  \n\
@@ -876,7 +876,7 @@ void finalColCalc(inout vec4 prevColour, in int mode, in int modea, in int func,
     } else if (modea== MTMODE_ADD) { \n\
       rv.a = prevColour.a + texel.a;  \n\
     } else if (modea== MTMODE_SUBTRACT) { \n\
-      rv.a = prevColour.a - texel.a;  \n\
+      rv.a = texel.a - prevColour.a;  //jas had prev - texel \n\
     } else if (modea==MTMODE_ADDSMOOTH) {  \n\
       rv.a = (prevColour.a + (prevColour.a - 1.)) * texel.a;  \n\
     } else if (modea==MTMODE_BLENDDIFFUSEALPHA) {  \n\
