@@ -119,8 +119,8 @@ typedef enum fragmenShaderResources {
 /* Ian moved this from iglobal.h so that OpenGL_Utils.c could use it
  * since OpenGL_Utils.c cannot #include <iglobal.h> due to recursion */
 struct multiTexParams {
-    int multitex_mode;
-    int multitex_source;
+    int multitex_mode[2];
+    int multitex_source[2];
     int multitex_function;
 };
 

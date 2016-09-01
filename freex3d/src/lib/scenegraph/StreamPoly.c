@@ -396,7 +396,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	
 	/* parent[0] should be a NODE_Shape */
 	if(0){ 
-		//Sept 1, 2016: I think we can/should/are modulating CPV transparency with material transparency 
+		//Sept 1, 2016: we are modulating CPV transparency with material transparency 
 		// .. in the UberShader, so we don't need to modulate it here
 		struct X3D_Shape *parent;
 

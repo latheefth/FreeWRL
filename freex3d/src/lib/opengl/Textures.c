@@ -878,8 +878,10 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
         
         /* set defaults for these fields */
         for (count = 0; count < rdr_caps->texture_units; count++) {
-            paramPtr->multitex_mode= MTMODE_MODULATE;
-            paramPtr->multitex_source=INT_ID_UNDEFINED;
+            paramPtr->multitex_mode[0]= MTMODE_MODULATE; //rgba (or rgb if a > 0)
+            paramPtr->multitex_mode[1]= 0; //alpha channel part if 0 uses [0]
+            paramPtr->multitex_source[0]=INT_ID_UNDEFINED; //rgba (or rgb if a > 0)
+            paramPtr->multitex_source[1]=0; //alpha channel part if 0 uses [0]
             paramPtr->multitex_function=INT_ID_UNDEFINED;
             paramPtr++;
         }
@@ -900,39 +902,82 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
 		char *smode, *ssource, *sfunc;
 		smode = ssource = sfunc = NULL;
 		if(node->mode.n>count){
-			int mode;
+			int mode, modea;
 			smode = node->mode.p[count]->strptr;
+			modea = 0;
 			mode = findFieldInMULTITEXTUREMODE(smode);
 			if(mode == -1){
 				//might be Castle style "RGB / ALPHA" dual modes
-				char *srgb, *salpha, *b1,*b2, *splittable;
-				int modergb, modealpha;
-				splittable = strdup(smode);
-				b1 = strchr(splittable,' ');
-				b2 = strrchr(splittable,' ');
-				salpha = b2+1;
-				splittable[b1 - splittable] = '\0';
-				srgb = splittable;
-				modergb = findFieldInMULTITEXTUREMODE(srgb);
-				modealpha = findFieldInMULTITEXTUREMODE(salpha);
-				printf("gotcha\n");
-				free(splittable);
+				if(strchr(smode,'/') || strchr(smode,',')){
+					//yes, castle protocol
+					char *srgb, *salpha, *b1,*b2, *splittable;
+					int modergb, modealpha;
+					splittable = strdup(smode);
+					b1 = strchr(splittable,' ');
+					b2 = strrchr(splittable,' ');
+					salpha = b2+1;
+					splittable[b1 - splittable] = '\0';
+					srgb = splittable;
+					modergb = findFieldInMULTITEXTUREMODE(srgb);
+					if(modergb == -1)
+						modergb = MTMODE_MODULATE;
+					modealpha = findFieldInMULTITEXTUREMODE(salpha);
+					if(modealpha == -1)
+						modealpha = MTMODE_MODULATE;
+					free(splittable);
+					mode = modergb;
+					modea = modealpha;
+				}
 			}
-			paramPtr->multitex_mode = mode;
+			if(mode > -1){
+				paramPtr->multitex_mode[0] = mode;
+				paramPtr->multitex_mode[1] = modea;
+			}
+			//else default
         }
         if(node->source.n>count) {
+			int source, sourcea;
             ssource = node->source.p[count]->strptr;
-            paramPtr->multitex_source = findFieldInMULTITEXTURESOURCE(ssource);
+            source = findFieldInMULTITEXTURESOURCE(ssource);
+			sourcea = 0;
+			if(source == -1){
+				//might be Castle style "RGB / ALPHA" dual modes
+				if(strchr(ssource,'/') || strchr(ssource,',')){
+					//yes, castle protocol
+					char *srgb, *salpha, *b1,*b2, *splittable;
+					int sourcergb, sourcealpha;
+					splittable = strdup(ssource);
+					b1 = strchr(splittable,' ');
+					b2 = strrchr(splittable,' ');
+					salpha = b2+1;
+					splittable[b1 - splittable] = '\0';
+					srgb = splittable;
+					sourcergb = findFieldInMULTITEXTURESOURCE(srgb);
+					sourcealpha = findFieldInMULTITEXTURESOURCE(salpha);
+					free(splittable);
+					source = sourcergb;
+					sourcea = sourcealpha;
+				} 
+			}
+			if(source > -1){
+				paramPtr->multitex_source[0] = source;
+				paramPtr->multitex_source[1] = sourcea;
+			}
+			//else default
         }
         
         if (node->function.n>count) {
+			int func;
             sfunc = node->function.p[count]->strptr;
-            paramPtr->multitex_function = findFieldInMULTITEXTUREFUNCTION(sfunc);
+            func = findFieldInMULTITEXTUREFUNCTION(sfunc);
+			if(func > -1)
+				paramPtr->multitex_function;
+			//else default
         }
 
 //#ifdef TEXVERBOSE
-printf ("compile_MultiTexture, %d of %d, mode %d source %d function %d m %s s %s f %s\n",
-count,max,paramPtr->multitex_mode,paramPtr->multitex_source,paramPtr->multitex_function,smode,ssource,sfunc);
+printf ("compile_MultiTexture, %d of %d, mode %d %d source %d %d function %d m %s s %s f %s\n",
+count,max,paramPtr->multitex_mode[0],paramPtr->multitex_mode[1],paramPtr->multitex_source[0],paramPtr->multitex_source[1],paramPtr->multitex_function,smode,ssource,sfunc);
 //#endif //TEXVERBOSE
 
         paramPtr++;

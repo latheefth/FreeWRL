@@ -98,7 +98,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 	 * bind_image, we store a pointer for the texture parameters. It is
 	 * NULL, possibly different for MultiTextures */
 
-	if (p->textureParameterStack[c].multitex_mode == INT_ID_UNDEFINED) {
+	if (p->textureParameterStack[c].multitex_mode[0] == INT_ID_UNDEFINED) {
         
 		#ifdef TEXVERBOSE
 		printf ("setActiveTexture - simple texture NOT a MultiTexture \n"); 
@@ -315,8 +315,8 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 			//	once++;
 			//}
 			glUniform1i(me->TextureUnit[i],i);
-			glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode);
-			glUniform1i(me->TextureSource[i],p->textureParameterStack[i].multitex_source);
+			glUniform2i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode[0], p->textureParameterStack[i].multitex_mode[1]);
+			glUniform2i(me->TextureSource[i],p->textureParameterStack[i].multitex_source[0], p->textureParameterStack[i].multitex_source[1]);
 			glUniform1i(me->TextureFunction[i],p->textureParameterStack[i].multitex_function);
 		}
 	#ifdef TEXVERBOSE
