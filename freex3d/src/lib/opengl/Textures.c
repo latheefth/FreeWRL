@@ -879,9 +879,9 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
         /* set defaults for these fields */
         for (count = 0; count < rdr_caps->texture_units; count++) {
             paramPtr->multitex_mode[0]= MTMODE_MODULATE; //rgba (or rgb if a > 0)
-            paramPtr->multitex_mode[1]= 0; //alpha channel part if 0 uses [0]
+            paramPtr->multitex_mode[1]= INT_ID_UNDEFINED; //alpha channel part if 0 uses [0]
             paramPtr->multitex_source[0]=INT_ID_UNDEFINED; //rgba (or rgb if a > 0)
-            paramPtr->multitex_source[1]=0; //alpha channel part if 0 uses [0]
+            paramPtr->multitex_source[1]=INT_ID_UNDEFINED; //alpha channel part if 0 uses [0]
             paramPtr->multitex_function=INT_ID_UNDEFINED;
             paramPtr++;
         }
@@ -904,8 +904,8 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
 		if(node->mode.n>count){
 			int mode, modea;
 			smode = node->mode.p[count]->strptr;
-			modea = 0;
-			mode = findFieldInMULTITEXTUREMODE(smode);
+			modea = INT_ID_UNDEFINED;
+			mode = findFieldInMULTITEXTUREMODE(smode); //we offset by 1 in the #defines
 			if(mode == -1){
 				//might be Castle style "RGB / ALPHA" dual modes
 				if(strchr(smode,'/') || strchr(smode,',')){
@@ -938,8 +938,8 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
         if(node->source.n>count) {
 			int source, sourcea;
             ssource = node->source.p[count]->strptr;
-            source = findFieldInMULTITEXTURESOURCE(ssource);
-			sourcea = 0;
+            source = findFieldInMULTITEXTURESOURCE(ssource); //we offset by 1 in the #defines
+			sourcea = INT_ID_UNDEFINED;
 			if(source == -1){
 				//might be Castle style "RGB / ALPHA" dual modes
 				if(strchr(ssource,'/') || strchr(ssource,',')){

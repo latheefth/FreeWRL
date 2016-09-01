@@ -118,7 +118,7 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 
 	} else {
 	/* printf ("muititex source for %d is %d\n",c,tg->RenderTextures.textureParameterStack[c].multitex_source); */
-		if (p->textureParameterStack[c].multitex_source != MTMODE_OFF) {
+		if (p->textureParameterStack[c].multitex_source[0] != MTMODE_OFF) {
 		} else {
 			//glDisable(GL_TEXTURE_2D); /* DISABLE_TEXTURES */
 			//return FALSE;
@@ -315,8 +315,11 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 			//	once++;
 			//}
 			glUniform1i(me->TextureUnit[i],i);
+			//the 2i wasn't working for me even with ivec2 in shader
 			glUniform2i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode[0], p->textureParameterStack[i].multitex_mode[1]);
 			glUniform2i(me->TextureSource[i],p->textureParameterStack[i].multitex_source[0], p->textureParameterStack[i].multitex_source[1]);
+			//glUniform1i(me->TextureMode[i],p->textureParameterStack[i].multitex_mode[0]);
+			//glUniform1i(me->TextureSource[i],p->textureParameterStack[i].multitex_source[0]);
 			glUniform1i(me->TextureFunction[i],p->textureParameterStack[i].multitex_function);
 		}
 	#ifdef TEXVERBOSE
