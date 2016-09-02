@@ -64,19 +64,37 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ff476906(v=vs.85).aspx
 http://docs.nvidia.com/gameworks/content/gameworkslibrary/graphicssamples/opengl_samples/texturearrayterrainsample.htm
 - an application for rendering terrain
 
+
+
 Fuzzy Design:
 - load various ways into a buffer representing contiguous voxels, with width, height, depth available
 - somewhere in geometry rendering - polyrep stuff? - give it 3D or 4D-homogenous texture coordinates 
 	instead of regular 2D. Hint: look at per-vertex RGBA floats in polyrep?
 - somewhere in sending geom to shader, send the 3D/4D texture coords (and/or Matrix?)
-- in shader, detect if its 3D texture, and use 3D texture lookup (Q. is it available in GLES2?)
+- in shader, detect if its 3D texture, and use 3D texture lookup 
+
+Q. is Texture3D available in GLES2?
 	https://www.khronos.org/opengles/sdk/docs/reference_cards/OpenGL-ES-2_0-Reference-card.pdf
 	- at bottom shows texture2D etc sampler functions
-	instead of  v3c3 texture2D(sampler2D,coord2D) 
+	instead of  vec3 texture2D(sampler2D,coord2D) 
 	it would be vec4 texture3D(sampler3D sampler, vec3 coord) ?
-	https://www.khronos.org/registry/gles/extensions/OES/OES_texture_3D.txt
-	-Texture3D _may_ be available in _some_ gles2: its a proposed extension
-	-Q.how to test for it at runtime?
+
+GLES2 texture3D: first edition doesn't have sampler3D/texture3D
+https://www.khronos.org/registry/gles/extensions/OES/OES_texture_3D.txt
+- there's a proposed extension
+-Q.how to test for it at runtime?
+-A. worst case: frag shader has a compile error:
+-- if I put Texture3D uniform, and sampler3D(texture3d,vec3(coords2D,0.0)) then:
+	- desktop windows opengl frag shader compiles
+	x uwp windows (using angle over dx/hlsl) frag shader doesn't compile
+	x android frag shader doesn't compile
+http://stackoverflow.com/questions/14150941/webgl-glsl-emulate-texture3d
+http://stackoverflow.com/questions/16938422/3d-texture-emulation-in-shader-subpixel-related
+- hackers emulating with texture2D tiles and lerps
+https://android.googlesource.com/platform/external/chromium_org/third_party/angle/+/0027fa9%5E!/
+- looks like chromium's ANGLE^ emulates cube as 6 2Ds as of 2014
+  ^(gles2 over DX/HLSL for webgl in windows chrome browser) 
+
 
 Example use: if you have 3 images for terrain - white for mountain peaks, brown for mountain sides, green for valleys
 - then combine them into a nxmx3 volume image?

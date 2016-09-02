@@ -81,5 +81,8 @@ Links:
 	- teem > Mite - has some transfer tables
 	http://prideout.net/blog/?tag=volume-rendering
 	- shows volume raycasting shader example
+	http://http.developer.nvidia.com/GPUGems3/gpugems3_ch30.html
+	- see 30.3.1 Volume Rendering for raymarching nuances
+
 
 */
