@@ -474,7 +474,8 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->texture,tex);
 		if ((tex->_nodeType == NODE_ImageTexture) || 
 			(tex->_nodeType == NODE_MovieTexture) || 
-			(tex->_nodeType == NODE_PixelTexture)){
+			(tex->_nodeType == NODE_PixelTexture) ||
+			(tex->_nodeType == NODE_PixelTexture3D) ){
 			retval |= ONE_TEX_APPEARANCE_SHADER;
 		} else if (tex->_nodeType == NODE_MultiTexture) {
 			retval |= MULTI_TEX_APPEARANCE_SHADER;
@@ -613,9 +614,13 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 			// --to get to get max channels or hasAlpha, or need channels for each one?
 			// H0: if nay of the multitextures has an alpha, then its alpha replaces material alpha
 			// H1: multitexture alpha is only for composing textures, assumed to take material alpha 
-			if(appearance->texture->_nodeType == NODE_MultiTexture){
+			if(appearance->texture->_nodeType == NODE_MultiTexture || appearance->texture->_nodeType == NODE_ComposedTexture3D ){
 				int k;
-				struct X3D_MultiTexture * mtex = (struct X3D_MultiTexture*)appearance->texture;
+				struct X3D_MultiTexture * mtex;
+				switch(appearance->texture->_nodeType){
+					case NODE_MultiTexture: mtex = (struct X3D_MultiTexture*)appearance->texture; break;
+					case NODE_ComposedTexture3D: mtex = (struct X3D_ComposedTexture3D*)appearance->texture; break;
+				}
 				channels = 0;
 				imgalpha = 0;
 				for(k=0;k<mtex->texture.n;k++){
