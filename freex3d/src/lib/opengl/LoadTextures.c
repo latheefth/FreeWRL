@@ -303,9 +303,7 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 	}
 }
 
-static void texture_load_from_pixelTexture3D (textureTableIndexStruct_s* this_tex, struct X3D_PixelTexture3D *node)
-{}
-/*
+
 static void texture_load_from_pixelTexture3D (textureTableIndexStruct_s* this_tex, struct X3D_PixelTexture3D *node)
 {
 
@@ -403,7 +401,7 @@ static void texture_load_from_pixelTexture3D (textureTableIndexStruct_s* this_te
 		}
 	}
 }
-*/
+
 
 #if defined(_ANDROID) || defined(ANDROIDNDK)
 // sometimes (usually?) we have to flip an image vertically. 
