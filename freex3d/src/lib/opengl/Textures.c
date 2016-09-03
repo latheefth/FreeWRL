@@ -1447,7 +1447,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				glHint(GL_TEXTURE_COMPRESSION_HINT, compression);
 			}
 			x = me->x;
-			y = me->y;
+			y = me->y * me->z; //takes care of texture3D using strip image
 		
 		
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);

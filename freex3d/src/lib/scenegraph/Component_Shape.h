@@ -71,6 +71,7 @@ Proximity sensor macro.
 #define SHADINGSTYLE_WIRE    0x800000
 #define MAT_FIRST			 0x1000000
 #define WANT_ANAGLYPH		 0x2000000
+#define TEX3D_APPEARANCE_SHADER 0X4000000
 
 /* Component_Shader - user-specified shaders. Currently limited in number */
 /* note we start at 0x1000 and count up by 1 for (currently) 255 shaders per program */

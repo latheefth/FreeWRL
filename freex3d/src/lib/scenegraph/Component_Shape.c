@@ -474,9 +474,13 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->texture,tex);
 		if ((tex->_nodeType == NODE_ImageTexture) || 
 			(tex->_nodeType == NODE_MovieTexture) || 
-			(tex->_nodeType == NODE_PixelTexture) ||
-			(tex->_nodeType == NODE_PixelTexture3D) ){
+			(tex->_nodeType == NODE_PixelTexture) ){
 			retval |= ONE_TEX_APPEARANCE_SHADER;
+		} else if( (tex->_nodeType == NODE_PixelTexture3D) ||
+			(tex->_nodeType == NODE_ComposedTexture3D) ||
+			(tex->_nodeType == NODE_ImageTexture3D) ) {
+			retval |= ONE_TEX_APPEARANCE_SHADER;
+			retval |= TEX3D_APPEARANCE_SHADER;
 		} else if (tex->_nodeType == NODE_MultiTexture) {
 			retval |= MULTI_TEX_APPEARANCE_SHADER;
 		} else if ((tex->_nodeType == NODE_ComposedCubeMapTexture) ||
@@ -616,13 +620,14 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 			// H1: multitexture alpha is only for composing textures, assumed to take material alpha 
 			if(appearance->texture->_nodeType == NODE_MultiTexture || appearance->texture->_nodeType == NODE_ComposedTexture3D ){
 				int k;
-				struct X3D_MultiTexture * mtex;
+				struct X3D_MultiTexture * mtex = NULL;
 				switch(appearance->texture->_nodeType){
 					case NODE_MultiTexture: mtex = (struct X3D_MultiTexture*)appearance->texture; break;
 					case NODE_ComposedTexture3D: mtex = (struct X3D_ComposedTexture3D*)appearance->texture; break;
 				}
 				channels = 0;
 				imgalpha = 0;
+				if(mtex)
 				for(k=0;k<mtex->texture.n;k++){
 					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(mtex->texture.p[k]);
 					haveTexture = 1;

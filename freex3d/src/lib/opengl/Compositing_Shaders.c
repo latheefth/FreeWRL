@@ -651,12 +651,16 @@ void main(void) \n\
     fw_TexCoord[0] =    reflect(u,vertexNorm); \n\
   } \n\
   #else //TGEN \n\
+  #ifdef TEX3D \n\
+  fw_TexCoord[0] = vec3(fw_Vertex.x,fw_Vertex.y/4.0,fw_Vertex.z) *.5 + vec3(.5,.5,.5); \n\
+  #else //TEX3D \n\
   fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #ifdef MTEX \n\
   fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord1,0,0))).stp; \n\
   fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord2,0,0))).stp; \n\
   fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord3,0,0))).stp; \n\
   #endif //MTEX \n\
+  #endif //TEX3D \n\
   #endif //TGEN \n\
   #endif //TEX \n\
   \n\
@@ -1460,6 +1464,10 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		if(DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)){
 			AddDefine(SHADERPART_VERTEX,"MTEX",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"MTEX",CompleteCode);
+		}
+		if(DESIRE(whichOne,TEX3D_APPEARANCE_SHADER)){
+			AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode);
+			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
 		}
 		if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
 			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
