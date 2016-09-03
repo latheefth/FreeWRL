@@ -44,6 +44,7 @@ struct textureTableIndexStruct {
 	char   *filename;
     int    x;
     int    y;
+	int    z;
     unsigned char *texdata;
     GLint  Src;
     GLint  Trc;
