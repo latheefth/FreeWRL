@@ -2278,7 +2278,7 @@ END_NODE(PixelTexture)
 
 /* PixelTexture3D node */
 BEGIN_NODE(PixelTexture3D)
-EXPOSED_FIELD(PixelTexture3D,image,sfimage,image,FIELDTYPE_SFImage)
+EXPOSED_FIELD(PixelTexture3D,image,mfint32,image,FIELDTYPE_MFInt32)
 EXPOSED_FIELD(PixelTexture3D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 FIELD(PixelTexture3D,repeatR,sfbool,repeatR,FIELDTYPE_SFBool)
 FIELD(PixelTexture3D,repeatS,sfbool,repeatS,FIELDTYPE_SFBool)

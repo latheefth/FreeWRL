@@ -94,7 +94,13 @@ http://stackoverflow.com/questions/16938422/3d-texture-emulation-in-shader-subpi
 https://android.googlesource.com/platform/external/chromium_org/third_party/angle/+/0027fa9%5E!/
 - looks like chromium's ANGLE^ emulates cube as 6 2Ds as of 2014
   ^(gles2 over DX/HLSL for webgl in windows chrome browser) 
-
+Michalis: "Note that Castle Game Engine does not support 3D textures in
+	OpenGLES now (so we don't use OES_texture_3D), but only on desktop
+	OpenGL now (available through EXT_texture3D, or in standard OpenGL >=
+	1.2). But that's simply due to my lack of time to patch necessary
+	things:) From the first glance, using OES_texture_3D to achieve the
+	same functionality on OpenGLES should be easy."
+	https://github.com/castle-engine/demo-models > texturing_advanced/tex3d_*
 
 Example use: if you have 3 images for terrain - white for mountain peaks, brown for mountain sides, green for valleys
 - then combine them into a nxmx3 volume image?
@@ -104,3 +110,21 @@ Example use: if you have 3 images for terrain - white for mountain peaks, brown 
 
 
 */
+
+void render_PixelTexture3D (struct X3D_PixelTexture3D *node) {
+	loadTextureNode(X3D_NODE(node),NULL);
+	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+}
+
+void render_ImageTexture3D (struct X3D_ImageTexture3D *node) {
+	/* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
+	loadTextureNode(X3D_NODE(node),NULL);
+	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+}
+
+void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
+	/* printf ("render_ComposedTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
+	loadTextureNode(X3D_NODE(node),NULL);
+	loadMultiTexture(node);
+	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+}

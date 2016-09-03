@@ -65,3 +65,4 @@ void render_MovieTexture (struct X3D_MovieTexture *node) {
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 
 }
+

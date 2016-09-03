@@ -303,6 +303,108 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 	}
 }
 
+static void texture_load_from_pixelTexture3D (textureTableIndexStruct_s* this_tex, struct X3D_PixelTexture3D *node)
+{}
+/*
+static void texture_load_from_pixelTexture3D (textureTableIndexStruct_s* this_tex, struct X3D_PixelTexture3D *node)
+{
+
+// load a PixelTexture that is stored in the PixelTexture as an MFInt32 
+	int hei,wid,bpp,dep,nvox,nints;
+	unsigned char *texture;
+	int count;
+	int ok;
+	int *iptr;
+	int tctr;
+
+	iptr = node->image.p;
+
+	ok = TRUE;
+
+	DEBUG_TEX ("start of texture_load_from_pixelTexture...\n");
+
+	// are there enough numbers for the texture? 
+	if (node->image.n < 4) {
+		printf ("PixelTexture, need at least 3 elements, have %d\n",node->image.n);
+		ok = FALSE;
+	} else {
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/fieldsDef.html#SFImageAndMFImage
+		//MFInt32 image field contain 4 integers representing channels(aka components), width, height,depth the image
+		bpp = *iptr; iptr++;
+		wid = *iptr; iptr++;
+		hei = *iptr; iptr++;
+		dep = *iptr; iptr++;
+
+		DEBUG_TEX ("bpp %d wid %d hei %d dep %d \n",bpp,wid,hei,dep);
+
+		if ((bpp < 0) || (bpp >4)) {
+			printf ("PixelTexture, bytes per pixel %d out of range, assuming 1\n",(int) bpp);
+			bpp = 1;
+		}
+		nvox = wid*hei*dep;
+		nints = (nvox * bpp) / 4; //4 bytes per int, how many ints
+		if ((nints + 4) > node->image.n) {
+			printf ("PixelTexture3D, not enough data for bpp %d wid %d hei %d, dep %d, need %d have %d\n",
+					bpp, wid, hei, dep, nints + 4, node->image.n);
+			ok = FALSE;
+		}
+	}
+
+	// did we have any errors? if so, create a grey pixeltexture and get out of here 
+	if (!ok) {
+		return;
+	}
+
+	// ok, we are good to go here 
+	this_tex->x = wid;
+	this_tex->y = hei;
+	this_tex->z = dep;
+	this_tex->hasAlpha = ((bpp == 2) || (bpp == 4));
+	this_tex->channels = bpp;
+
+	texture = MALLOC (unsigned char *, wid*hei*4*dep);
+	this_tex->texdata = texture; // this will be freed when texture opengl-ized 
+	this_tex->status = TEX_NEEDSBINDING;
+
+	tctr = 0;
+	if(texture != NULL){
+		for (count = 0; count < (wid*hei*dep); count++) {
+			switch (bpp) {
+				case 1: {
+					   texture[tctr++] = *iptr & 0xff;
+					   texture[tctr++] = *iptr & 0xff;
+					   texture[tctr++] = *iptr & 0xff;
+					   texture[tctr++] = 0xff; //alpha, but force it to be ff 
+					   break;
+				   }
+				case 2: {
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 //G
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 //G
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 //G
+					   texture[tctr++] = (*iptr>>0) & 0xff; //A
+					   break;
+				   }
+				case 3: {
+					   texture[tctr++] = (*iptr>>0) & 0xff; //B
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 //G
+					   texture[tctr++] = (*iptr>>16) & 0xff; //R
+					   texture[tctr++] = 0xff; //alpha, but force it to be ff 
+					   break;
+				   }
+				case 4: {
+					   texture[tctr++] = (*iptr>>8) & 0xff;	 //B
+					   texture[tctr++] = (*iptr>>16) & 0xff; //G
+					   texture[tctr++] = (*iptr>>24) & 0xff; //R
+					   texture[tctr++] = (*iptr>>0) & 0xff; //A
+					   break;
+				   }
+			}
+			iptr++;
+		}
+	}
+}
+*/
+
 #if defined(_ANDROID) || defined(ANDROIDNDK)
 // sometimes (usually?) we have to flip an image vertically. 
 static unsigned char *flipImageVerticallyB(unsigned char *input, int height, int width, int bpp) {
@@ -1140,10 +1242,11 @@ ConsoleMessage(me);}
 	{
 		int nchan, imtype;
 		imtype = sniffImageFileHeader(filename);
-		if(imtype == 2)
+		if(imtype == 2){
 			nchan = 3; //jpeg always rgb, no alpha
-		else
+		}else{
 			nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
+		}
 		//nchan = sniffImageChannels(fname);
 		if(nchan > -1) this_tex->channels = nchan;
 	}
@@ -1444,6 +1547,12 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 
 	case NODE_PixelTexture:
 		texture_load_from_pixelTexture(entry,(struct X3D_PixelTexture *)entry->scenegraphNode);
+		//sets TEX_NEEDSBINDING internally
+		return TRUE;
+		break;
+
+	case NODE_PixelTexture3D:
+		texture_load_from_pixelTexture3D(entry,(struct X3D_PixelTexture3D *)entry->scenegraphNode);
 		//sets TEX_NEEDSBINDING internally
 		return TRUE;
 		break;

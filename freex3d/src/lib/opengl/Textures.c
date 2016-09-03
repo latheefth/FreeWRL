@@ -381,6 +381,8 @@ void releaseTexture(struct X3D_Node *node) {
 			tableIndex  = ((struct X3D_PixelTexture *)node)->__textureTableIndex;
 		} else if (node->_nodeType == NODE_MovieTexture) {
 			tableIndex  = ((struct X3D_MovieTexture *)node)->__textureTableIndex;
+		} else if (node->_nodeType == NODE_PixelTexture3D) {
+			tableIndex  = ((struct X3D_PixelTexture3D *)node)->__textureTableIndex;
             
 		} else return;
 
@@ -458,6 +460,9 @@ int getTextureTableIndexFromFromTextureNode(struct X3D_Node *node){
 	} else if (thisTextureType==NODE_ImageCubeMapTexture){
 		struct X3D_ImageCubeMapTexture* ict = (struct X3D_ImageCubeMapTexture*) node;
 		thisTexture = ict->__textureTableIndex;
+	} else if (thisTextureType==NODE_PixelTexture3D){
+		struct X3D_PixelTexture3D* pt = (struct X3D_PixelTexture3D*) node;
+		thisTexture = pt->__textureTableIndex;
 	} else { 
 		ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); 
 	}
@@ -485,6 +490,7 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 /* JAS - still to implement 
 		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
 */ 
+		(it->_nodeType == NODE_PixelTexture3D) ||
 		(it->_nodeType == NODE_MovieTexture) 
         ) {
 		ppTextures p = (ppTextures)gglobal()->Textures.prv;
@@ -495,6 +501,7 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 			// new texture table entry. Zero all data
 			textureTableIndexStruct_s * newTexture = MALLOC (textureTableIndexStruct_s *,sizeof (textureTableIndexStruct_s));
 			memset(newTexture,0,sizeof(textureTableIndexStruct_s));
+			newTexture->z = 1; //just texturing3D is > 1
 
 
 			if (p->activeTextureTable == NULL) {
@@ -517,6 +524,11 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 			case NODE_PixelTexture: {
 				struct X3D_PixelTexture *pt;
 				pt = (struct X3D_PixelTexture *) tmp;
+				pt->__textureTableIndex = textureNumber;
+				break; }
+			case NODE_PixelTexture3D: {
+				struct X3D_PixelTexture3D *pt;
+				pt = (struct X3D_PixelTexture3D *) tmp;
 				pt->__textureTableIndex = textureNumber;
 				break; }
 			case NODE_MovieTexture: {
@@ -567,6 +579,11 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 			case NODE_PixelTexture: {
 				struct X3D_PixelTexture *pt;
 				pt = (struct X3D_PixelTexture *) tmp;
+				textureNumber = &pt->__textureTableIndex;
+				break; }
+			case NODE_PixelTexture3D: {
+				struct X3D_PixelTexture3D *pt;
+				pt = (struct X3D_PixelTexture3D *) tmp;
 				textureNumber = &pt->__textureTableIndex;
 				break; }
 			case NODE_MovieTexture: {
@@ -838,6 +855,10 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 
 */
 		case NODE_ImageCubeMapTexture:
+	    		releaseTexture(node); 
+		break;
+
+		case NODE_PixelTexture3D:
 	    		releaseTexture(node); 
 		break;
 
@@ -1547,6 +1568,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	int thisTextureType;
 	struct X3D_ImageTexture *it;
 	struct X3D_PixelTexture *pt;
+	struct X3D_PixelTexture3D *pt3d;
 	struct X3D_MovieTexture *mt;
 	struct X3D_ImageCubeMapTexture *ict;
     
@@ -1578,6 +1600,9 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		ict = (struct X3D_ImageCubeMapTexture*) node;
 		thisTexture = ict->__textureTableIndex;
 		mfurl = &ict->url;
+	} else if (thisTextureType==NODE_PixelTexture3D){
+		pt3d = (struct X3D_PixelTexture3D*) node;
+		thisTexture = pt3d->__textureTableIndex;
 	} else { 
 		ConsoleMessage ("Invalid type for texture, %s\n",stringNodeType(thisTextureType)); 
 		return;
