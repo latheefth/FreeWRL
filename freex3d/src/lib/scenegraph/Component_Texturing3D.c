@@ -107,6 +107,35 @@ Example use: if you have 3 images for terrain - white for mountain peaks, brown 
 - then you can use the terrain height to compute an R value ?
 - cube sampler should in theory interpolate between the 3 layers?
 
+Design:
+Texture coordinates:
+I think the geometry vertices, scaled into the range 0-1 on each axis, 
+could/should serve as default 3D texture coordinates.
+algorithm:
+a) interpolate through varying the vertex xyz you want as usual
+b) transform xyz into 0-1 range 
+	-would need to know bounding box, or have pre-computed, or assume -1 to 1, or in textureTransform3D
+Option: convert xyz vertex to 0-1 range in vertex shader, 
+	and do varying interpolation in 0-1 range for varying textureCoords3D aka tc3d
+c) sample the texture
+A. if have texture3D/sampler3D/EXT_texture3D/OES_texture3D: 
+	sample directly tc3d.xyz (0-1): frag = sampler3D(texture3D, vec3 tc3d.xyz)
+B. else emulate texture3D/sampler3D with 2D tiled texture:
+	single texture2D: sample the texture at xy[z] on the 2D image plane, z rounded 'above' and 'below'
+	Q. how many z layers, and does it have to be same as rows & cols?
+	nx,ny,nz = size of image in pixels
+	nz == number of z levels
+	nzr = sqrt(nz) so if 256 z levels, it would be sqrt(256) = 16. 16x16 tiles in 2D plane
+	x,y,z - 0-1 range 3D image texture coords from tc3d.xyz
+	vec2 xyi = xy[i] = f(xyz) = [x/nzr + (i / nzr), y/nzr + (i % nzr)]
+	vec2 xyj = xy[j] ... "
+	where
+	 i = floor(z*nz)
+	 j = ceil(z*nz)
+	fxyi = sampler2D(texture2D,xyi)
+	fxyj = sampler2D(texture2D,xyj)
+	lerp between layers xy[i],xy[j]: frag = lerp(fxyi,fxyj,(z*nz-i)/(j-i))
+	Note: i,j don't need to be ints, nothing above needs to be int, can all be float
 
 
 */
