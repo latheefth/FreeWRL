@@ -136,7 +136,9 @@ B. else emulate texture3D/sampler3D with 2D tiled texture:
 	fxyj = sampler2D(texture2D,xyj)
 	lerp between layers xy[i],xy[j]: frag = lerp(fxyi,fxyj,(z*nz-i)/(j-i))
 	Note: i,j don't need to be ints, nothing above needs to be int, can all be float
-
+	Option: lerp vs floor effects: 
+		lerp - smooth transition between layers, good for 3-layer valley, hillside, mountain peak 
+		floor - (frag = fxyi): gives abrupt change between layers, good for brick effects
 
 */
 
