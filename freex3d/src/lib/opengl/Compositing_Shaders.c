@@ -462,6 +462,9 @@ uniform mat4 fw_TextureMatrix0; \n\
 attribute vec2 fw_MultiTexCoord0; \n\
 //varying vec3 v_texC; \n\
 varying vec3 fw_TexCoord[4]; \n\
+#ifdef TEX3D \n\
+uniform vec3 tex3dBbox[2]; \n\
+#endif //TEX3D \n\
 #ifdef MTEX \n\
 uniform mat4 fw_TextureMatrix1; \n\
 uniform mat4 fw_TextureMatrix2; \n\
@@ -652,8 +655,11 @@ void main(void) \n\
   } \n\
   #else //TGEN \n\
   #ifdef TEX3D \n\
+  //to re-use vertex coords as texture3Dcoords, we need them in 0-1 range \n\
   //fw_TexCoord[0] = vec3(fw_Vertex.x,fw_Vertex.y/4.0,fw_Vertex.z) *.5 + vec3(.5,.5,.5); \n\
-  fw_TexCoord[0] = fw_Vertex.xyz *.5 + vec3(.5,.5,.5); \n\
+  fw_TexCoord[0] = (fw_Vertex.xyz - tex3dBbox[0]); \n\
+  fw_TexCoord[0] = fw_TexCoord[0]*tex3dBbox[1]; \n\
+  //fw_TexCoord[0] = fw_Vertex.xyz *.5 + vec3(.5,.5,.5); \n\
   #else //TEX3D \n\
   fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #ifdef MTEX \n\

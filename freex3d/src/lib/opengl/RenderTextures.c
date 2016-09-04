@@ -311,12 +311,39 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		if (me->textureCount != -1) {
 			glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
 		}
+		//TEXTURE 3D
 		if(me->tex3dDepth != -1){
 			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tg->RenderFuncs.texturenode);
 			if(tti)
-				glUniform1i(me->tex3dDepth,tti->z);
+				glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
 			else
 				glUniform1i(me->tex3dDepth,1);
+		}
+		//TEXTURE 3D
+		if(me->tex3dBbox != -1){
+			if(tg->RenderFuncs.shapenode){
+				//bounding box of shape, in local coordinates, is needed for Texture3D
+				//when geometry vertices are re-used as default texture3D coordinates
+				//by scaling them into 0-1 range on each axis
+				float bbox[6], *bmin, *bmax;
+				struct X3D_Node *sn = tg->RenderFuncs.shapenode;
+				//first vec3 is minimum xyz
+				bmin = bbox;
+				bmax = &bbox[3];
+				for(i=0;i<3;i++){
+					bmin[i] = sn->_extent[i*2 + 1];
+					bmax[i] = sn->_extent[i*2];
+				}
+				//second vec3 is 1/size - so can be applied directly in vertex shader
+				vecdif3f(bmax,bmax,bmin);
+				for(i=0;i<3;i++){
+					if(bmax[i] != 0.0f)
+						bmax[i] = 1.0f/bmax[i];
+					else
+						bmax[i] = 1.0f;
+				}
+				glUniform3fv(me->tex3dBbox,2,bbox);
+			}
 		}
 		if(tg->RenderFuncs.textureStackTop){
 			if(isMultiTexture(tg->RenderFuncs.texturenode)){

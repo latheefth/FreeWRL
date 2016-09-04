@@ -699,7 +699,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* initialization. This will get overwritten if there is a texture in an Appearance
 	   node in this shape (see child_Appearance) */
-	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
+	tg->RenderFuncs.last_texture_type = NOTEXTURE;
+	tg->RenderFuncs.shapenode = node;
 	
 	/* copy the material stuff in preparation for copying all to the shader */
 	memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
@@ -864,6 +865,7 @@ void child_Shape (struct X3D_Shape *node) {
 	p->material_twoSided = NULL;
 	p->material_oneSided = NULL;
 	p->userShaderNode = NULL;
+	tg->RenderFuncs.shapenode = NULL;
     
 	/* load the identity matrix for textures. This is necessary, as some nodes have TextureTransforms
 		and some don't. So, if we have a TextureTransform, loadIdentity */

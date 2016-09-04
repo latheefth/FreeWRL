@@ -336,6 +336,7 @@ iOLDCODE	}Component_Networking;
 		unsigned int boundTextureStack[10];//MAX_MULTITEXTURE];
 		int textureStackTop;
 		void *texturenode;
+		void *shapenode;
 		void *prv;
 	}RenderFuncs;
 	struct tStreamPoly{
