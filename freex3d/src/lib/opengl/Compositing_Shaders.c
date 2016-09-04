@@ -652,7 +652,8 @@ void main(void) \n\
   } \n\
   #else //TGEN \n\
   #ifdef TEX3D \n\
-  fw_TexCoord[0] = vec3(fw_Vertex.x,fw_Vertex.y/4.0,fw_Vertex.z) *.5 + vec3(.5,.5,.5); \n\
+  //fw_TexCoord[0] = vec3(fw_Vertex.x,fw_Vertex.y/4.0,fw_Vertex.z) *.5 + vec3(.5,.5,.5); \n\
+  fw_TexCoord[0] = fw_Vertex.xyz *.5 + vec3(.5,.5,.5); \n\
   #else //TEX3D \n\
   fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #ifdef MTEX \n\
@@ -1087,6 +1088,23 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 	finalFrag = vec4(gray,gray,gray, finalFrag.a); \n\
 }\n";
 
+//TEXTURE 3D
+static const GLchar *plug_fragment_texture3D_apply =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+  #ifdef TEX3D \n\
+  vec3 texcoord = fw_TexCoord[0]; \n\
+  texcoord = clamp(texcoord,0.0001,.9999); \n\
+  texcoord.y += floor(texcoord.z*4.0); \n\
+  texcoord.y /= 4.0; \n\
+  vec4 texel = texture2D(fw_Texture_unit0,texcoord.st); \n\
+  finalFrag.rgb *= texel.rgb; \n\
+  #endif //TEX3D \n\
+  \n\
+}\n";
+
+
+//MULTITEXTURE
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#MultiTexture
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
 static const GLchar *plug_fragment_texture_apply =	"\
@@ -1461,27 +1479,29 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
 		AddDefine(SHADERPART_VERTEX,"TEX",CompleteCode);
 		AddDefine(SHADERPART_FRAGMENT,"TEX",CompleteCode);
-		if(DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)){
-			AddDefine(SHADERPART_VERTEX,"MTEX",CompleteCode);
-			AddDefine(SHADERPART_FRAGMENT,"MTEX",CompleteCode);
-		}
 		if(DESIRE(whichOne,TEX3D_APPEARANCE_SHADER)){
 			AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
+			Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+		}else{
+			if(DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)){
+				AddDefine(SHADERPART_VERTEX,"MTEX",CompleteCode);
+				AddDefine(SHADERPART_FRAGMENT,"MTEX",CompleteCode);
+			}
+			if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
+				AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
+			if(DESIRE(whichOne,TEXTURE_REPLACE_PRIOR) )
+				AddDefine(SHADERPART_FRAGMENT,"TEXREP",CompleteCode);
+			if(DESIRE(whichOne,TEXALPHA_REPLACE_PRIOR))
+				AddDefine(SHADERPART_VERTEX,"TAREP",CompleteCode);
+
+			Plug(SHADERPART_FRAGMENT,plug_fragment_texture_apply,CompleteCode,&unique_int);
+
+			//if(texture has alpha ie channels == 2 or 4) then vertex diffuse = 111 and fragment diffuse*=texture
+			//H: we currently assume image alpha, and maybe fill the alpha channel with (1-material.transparency)?
+			//AddDefine(SHADERPART_VERTEX,"TAT",CompleteCode);
+			//AddDefine(SHADERPART_FRAGMENT,"TAT",CompleteCode);
 		}
-		if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
-			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
-		if(DESIRE(whichOne,TEXTURE_REPLACE_PRIOR) )
-			AddDefine(SHADERPART_FRAGMENT,"TEXREP",CompleteCode);
-		if(DESIRE(whichOne,TEXALPHA_REPLACE_PRIOR))
-			AddDefine(SHADERPART_VERTEX,"TAREP",CompleteCode);
-
-		Plug(SHADERPART_FRAGMENT,plug_fragment_texture_apply,CompleteCode,&unique_int);
-
-		//if(texture has alpha ie channels == 2 or 4) then vertex diffuse = 111 and fragment diffuse*=texture
-		//H: we currently assume image alpha, and maybe fill the alpha channel with (1-material.transparency)?
-		//AddDefine(SHADERPART_VERTEX,"TAT",CompleteCode);
-		//AddDefine(SHADERPART_FRAGMENT,"TAT",CompleteCode);
 	}
 
 	//fill properties / hatching

@@ -158,7 +158,7 @@ void textureDraw_end(void) {
 		FW_GL_POP_MATRIX(); //pushed in passedInGenTex
 
 	tg->RenderFuncs.textureStackTop = 0;
-	tg->RenderFuncs.multitexturenode = NULL;
+	tg->RenderFuncs.texturenode = NULL;
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
@@ -216,7 +216,13 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 }
 
 /***********************************************************************************/
-
+int isMultiTexture(struct X3D_Node *node){
+	int ret = FALSE;
+	if(node && node->_nodeType == NODE_MultiTexture)
+		ret = TRUE;
+	return ret;
+}
+int isTex3D(struct X3D_Node *node);
 static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
 	int i, isStrict, isMulti;
@@ -249,7 +255,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		//printf ("passedInGenTex, c=%d\n",c);
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c]!=0) {
-			isMulti = tg->RenderFuncs.multitexturenode != NULL;
+			isMulti = isMultiTexture(tg->RenderFuncs.texturenode);
 			//printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
 			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
 				//printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
@@ -265,6 +271,11 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 						do_textureTransform(tt,c);
 					}
 				}
+				//else if(isTex3D(tg->RenderFuncs.texturenode)){
+				//	//special default texture transform for 3D textures posing as 2D textures
+				//	FW_GL_SCALE_F(1.0f,1.0f/(tti->z+1.0f),1.0f);			/*  4*/
+				//	FW_GL_TRANSLATE_F(.5f,.5f,.5f, 0);		/*  2*/
+				//}
 				texture = tg->RenderFuncs.boundTextureStack[c];
 
 				// SET_TEXTURE_UNIT_AND_BIND
@@ -299,8 +310,8 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		if (me->textureCount != -1) 
 		glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
 		if(tg->RenderFuncs.textureStackTop){
-			struct X3D_MultiTexture * mtnode = (struct X3D_MultiTexture *)tg->RenderFuncs.multitexturenode;
-			if(mtnode && mtnode->_nodeType == NODE_MultiTexture){
+			if(isMultiTexture(tg->RenderFuncs.texturenode)){
+				struct X3D_MultiTexture * mtnode = (struct X3D_MultiTexture *)tg->RenderFuncs.texturenode;
 				glUniform4f(me->multitextureColor,mtnode->color.c[0],mtnode->color.c[1],mtnode->color.c[2],mtnode->alpha);
 			}
 		}

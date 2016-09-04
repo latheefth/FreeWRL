@@ -150,6 +150,20 @@ B. else emulate texture3D/sampler3D with 2D tiled texture:
 
 */
 
+int isTex3D(struct X3D_Node *node){
+	int ret = 0;
+	if(node)
+	switch(node->_nodeType){
+		case NODE_PixelTexture3D:
+		case NODE_ComposedTexture3D:
+		case NODE_ImageTexture3D:
+			ret = TRUE; break;
+		default:
+			ret = FALSE;break;
+	}
+	return ret;
+}
+
 void render_PixelTexture3D (struct X3D_PixelTexture3D *node) {
 	loadTextureNode(X3D_NODE(node),NULL);
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */

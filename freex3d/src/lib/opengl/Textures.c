@@ -1099,7 +1099,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 		printf ("loadMultiTexture, finished with texture %d\n",count);
 #endif
 	}
-	tg->RenderFuncs.multitexturenode = (void*)node;
+	//tg->RenderFuncs.multitexturenode = (void*)node;
 }
 
 #define BOUNDARY_TO_GL(direct) \
@@ -1149,6 +1149,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	struct X3D_PixelTexture *pt = NULL;
 	struct X3D_MovieTexture *mt = NULL;
 	struct X3D_ImageTexture *it = NULL;
+	struct X3D_PixelTexture3D *pt3d = NULL;
     
 	struct X3D_TextureProperties *tpNode = NULL;
 	int haveValidTexturePropertiesNode;
@@ -1217,6 +1218,20 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		mt = (struct X3D_MovieTexture *) me->scenegraphNode;
 		Src = mt->repeatS; Trc = mt->repeatT;
 		tpNode =X3D_TEXTUREPROPERTIES(mt->textureProperties);
+	} else if (me->nodeType == NODE_PixelTexture3D) {
+		pt3d = (struct X3D_PixelTexture3D *) me->scenegraphNode;
+		Src = pt3d->repeatS; Trc = pt3d->repeatT; Rrc = pt3d->repeatR;
+		tpNode = X3D_TEXTUREPROPERTIES(pt3d->textureProperties);
+	} else if (me->nodeType == NODE_ImageTexture3D) {
+		struct X3D_ImageTexture3D * it3d;
+		it3d = (struct X3D_ImageTexture3D *) me->scenegraphNode;
+		Src = it3d->repeatS; Trc = it3d->repeatT; Rrc = it3d->repeatR;
+		tpNode = X3D_TEXTUREPROPERTIES(pt3d->textureProperties);
+	} else if (me->nodeType == NODE_ComposedTexture3D) {
+		struct X3D_ComposedTexture3D * ct3d;
+		ct3d = (struct X3D_ComposedTexture3D *) me->scenegraphNode;
+		Src = ct3d->repeatS; Trc = ct3d->repeatT; Rrc = ct3d->repeatR;
+		tpNode = X3D_TEXTUREPROPERTIES(pt3d->textureProperties);
 	} else if (me->nodeType == NODE_ImageCubeMapTexture) {
 		struct X3D_ImageCubeMapTexture *mi = (struct X3D_ImageCubeMapTexture *) me->scenegraphNode;
 		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
@@ -1329,13 +1344,13 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			// scene authors need to make their repeating textures (brick, siding,
 			// shingles etc) squarish to get mipmapping and avoid moire/scintilation
 			float ratio = 1.0f;
-			if(me->x < me->y) ratio = (float)me->y / (float)me->x;
-			else ratio = (float)me->x / (float)me->y;
+			if(me->x < me->y*me->z) ratio = (float)(me->y*me->z) / (float)me->x;
+			else ratio = (float)me->x / (float)(me->y*me->z);
 			if(ratio > 2.0f) generateMipMaps = GL_FALSE;
 		}
 
 		/* choose smaller images to be NEAREST, larger ones to be LINEAR */
-		if ((me->x<=256) || (me->y<=256)) {
+		if ((me->x<=256) || ((me->y*me->z)<=256)) {
 			minFilter = GL_NEAREST_MIPMAP_NEAREST;
 			if(!generateMipMaps) minFilter = GL_NEAREST;
 			magFilter = GL_NEAREST;

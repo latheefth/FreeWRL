@@ -8361,9 +8361,9 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_ComposedTexture3D * tmp2;
 			tmp2 = (struct X3D_ComposedTexture3D *) tmp;
 			tmp2->metadata = NULL;
-			tmp2->repeatR = TRUE;
-			tmp2->repeatS = TRUE;
-			tmp2->repeatT = TRUE;
+			tmp2->repeatR = FALSE;
+			tmp2->repeatS = FALSE;
+			tmp2->repeatT = FALSE;
 			tmp2->texture.n=0; tmp2->texture.p=0;
 			tmp2->textureProperties = 0;
 			tmp2->_defaultContainer = FIELDNAMES_texture;
@@ -9431,9 +9431,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__textureTableIndex = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->metadata = NULL;
-			tmp2->repeatR = TRUE;
-			tmp2->repeatS = TRUE;
-			tmp2->repeatT = TRUE;
+			tmp2->repeatR = FALSE;
+			tmp2->repeatS = FALSE;
+			tmp2->repeatT = FALSE;
 			tmp2->textureProperties = 0;
 			tmp2->url.n=0; tmp2->url.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_texture;
@@ -10888,9 +10888,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_parentResource = getInputResource();
 			tmp2->image.n=0; tmp2->image.p=0;
 			tmp2->metadata = NULL;
-			tmp2->repeatR = TRUE;
-			tmp2->repeatS = TRUE;
-			tmp2->repeatT = TRUE;
+			tmp2->repeatR = FALSE;
+			tmp2->repeatS = FALSE;
+			tmp2->repeatT = FALSE;
 			tmp2->textureProperties = 0;
 			tmp2->_defaultContainer = FIELDNAMES_texture;
 		break;

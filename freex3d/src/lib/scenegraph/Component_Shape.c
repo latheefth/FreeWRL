@@ -161,6 +161,7 @@ struct X3D_Node *getThis_textureTransform(){
 
 void child_Appearance (struct X3D_Appearance *node) {
 	struct X3D_Node *tmpN;
+	ttglobal tg = gglobal();
 	
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -192,6 +193,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 		
 		/* now, render the texture */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->texture,tmpN);
+		tg->RenderFuncs.texturenode = (void*)tmpN;
 
 		render_node(tmpN);
 	}
@@ -620,16 +622,16 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 			// H1: multitexture alpha is only for composing textures, assumed to take material alpha 
 			if(appearance->texture->_nodeType == NODE_MultiTexture || appearance->texture->_nodeType == NODE_ComposedTexture3D ){
 				int k;
-				struct X3D_MultiTexture * mtex = NULL;
+				struct Multi_Node * mtex = NULL;
 				switch(appearance->texture->_nodeType){
-					case NODE_MultiTexture: mtex = (struct X3D_MultiTexture*)appearance->texture; break;
-					case NODE_ComposedTexture3D: mtex = (struct X3D_ComposedTexture3D*)appearance->texture; break;
+					case NODE_MultiTexture: mtex = &((struct X3D_MultiTexture*)appearance->texture)->texture; break;
+					case NODE_ComposedTexture3D: mtex = &((struct X3D_ComposedTexture3D*)appearance->texture)->texture; break;
 				}
 				channels = 0;
 				imgalpha = 0;
 				if(mtex)
-				for(k=0;k<mtex->texture.n;k++){
-					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(mtex->texture.p[k]);
+				for(k=0;k<mtex->n;k++){
+					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(mtex->p[k]);
 					haveTexture = 1;
 					if(tti){
 						//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
