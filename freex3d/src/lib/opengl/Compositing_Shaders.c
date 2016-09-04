@@ -1108,7 +1108,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   texcoord.y += floor(texcoord.z*depth); \n\
   texcoord.y /= depth; \n\
   vec4 texel = texture2D(fw_Texture_unit0,texcoord.st); \n\
-  finalFrag.rgb *= texel.rgb; \n\
+  finalFrag *= texel; \n\
   #endif //TEX3D \n\
   \n\
 }\n";
