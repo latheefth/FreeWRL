@@ -204,6 +204,23 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 				once = 1;
 			}
 		}
+	} else if (textureNode->_nodeType == NODE_TextureTransform3D) {
+		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
+		struct X3D_TextureTransform3D  *ttt = (struct X3D_TextureTransform3D *) textureNode;
+		/*  Render transformations according to spec.*/
+		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
+		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
+		FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
+		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
+		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
+	} else if (textureNode->_nodeType == NODE_TextureTransformMatrix3D) {
+		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
+		int i;
+		double mat[16];
+		struct X3D_TextureTransformMatrix3D  *ttt = (struct X3D_TextureTransformMatrix3D *) textureNode;
+		for(i=0;i<16;i++)
+			mat[i] = (double)ttt->matrix.c[i];
+		FW_GL_SETDOUBLEV(GL_TEXTURE_MATRIX,mat);
 	} else {
 		static int once = 0;
 		if(!once){

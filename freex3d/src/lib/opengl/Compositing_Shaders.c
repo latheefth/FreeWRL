@@ -649,10 +649,14 @@ void main(void) \n\
     /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
     float dotResult = 2.0 * dot(u,r); \n\
     fw_TexCoord[0] = vec3(u-r)*dotResult; \n\
+  }else if (fw_textureCoordGenType==TCGT_COORD) { \n\
+    /* 3D textures can use coords in 0-1 range */ \n\
+    fw_TexCoord[0] = fw_Vertex.xyz; \n\
   } else { /* default usage - like default CubeMaps */ \n\
     vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
     fw_TexCoord[0] =    reflect(u,vertexNorm); \n\
   } \n\
+  fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_TexCoord[0],0))).stp; \n\
   #else //TGEN \n\
   #ifdef TEX3D \n\
   //to re-use vertex coords as texture3Dcoords, we need them in 0-1 range \n\
@@ -1489,8 +1493,15 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
 		AddDefine(SHADERPART_VERTEX,"TEX",CompleteCode);
 		AddDefine(SHADERPART_FRAGMENT,"TEX",CompleteCode);
+		if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
+			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
 		if(DESIRE(whichOne,TEX3D_APPEARANCE_SHADER)){
-			AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode);
+			//in theory, if the texcoordgen "COORD" and TextureTransform3D are set in scenefile 
+			// and working properly in freewrl, then don't need TEX3D for that node in VERTEX shader
+			// which is using tex3dbbox (shape->_extent reworked) to get vertex coords in 0-1 range
+			// x Sept 4, 2016 either TextureTransform3D or CoordinateGenerator "COORD" isn't working right for Texture3D
+			// so we're using the bbox method
+			if(0) AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode); 
 			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
 			Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
 		}else{
@@ -1498,8 +1509,6 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 				AddDefine(SHADERPART_VERTEX,"MTEX",CompleteCode);
 				AddDefine(SHADERPART_FRAGMENT,"MTEX",CompleteCode);
 			}
-			if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
-				AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
 			if(DESIRE(whichOne,TEXTURE_REPLACE_PRIOR) )
 				AddDefine(SHADERPART_FRAGMENT,"TEXREP",CompleteCode);
 			if(DESIRE(whichOne,TEXALPHA_REPLACE_PRIOR))
