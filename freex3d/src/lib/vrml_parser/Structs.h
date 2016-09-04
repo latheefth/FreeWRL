@@ -3540,6 +3540,8 @@ struct X3D_ComposedTexture3D {
 	int repeatS;
 	int repeatT;
 	int repeatR;
+	int __textureTableIndex;
+	void * _parentResource;
 };
 extern struct X3D_Virt virt_ComposedTexture3D;
 /***********************/
@@ -7808,8 +7810,8 @@ struct X3D_PixelTexture3D {
 	int repeatT;
 	int repeatR;
 	struct X3D_Node *textureProperties;
-	void * _parentResource;
 	int __textureTableIndex;
+	void * _parentResource;
 };
 extern struct X3D_Virt virt_PixelTexture3D;
 /***********************/

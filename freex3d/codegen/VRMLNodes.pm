@@ -2747,8 +2747,8 @@ our %Nodes = (
 		repeatT => ["SFBool", "FALSE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatR => ["SFBool", "FALSE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		textureProperties => ["SFNode", 0, "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__textureTableIndex => ["SFInt32", 0, "initializeOnly", 0],
+		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
 	],"X3DTextureNode"),
 
 	"TextureCoordinate3D" => new VRML::NodeType("TextureCoordinate3D", [
@@ -2781,6 +2781,8 @@ our %Nodes = (
 		repeatS => ["SFBool", "FALSE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatT => ["SFBool", "FALSE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatR => ["SFBool", "FALSE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__textureTableIndex => ["SFInt32", 0, "initializeOnly", 0],
+		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
 	],"X3DTexture3DNode"),
 
 

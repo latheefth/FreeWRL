@@ -222,6 +222,7 @@ int isMultiTexture(struct X3D_Node *node){
 		ret = TRUE;
 	return ret;
 }
+textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
 int isTex3D(struct X3D_Node *node);
 static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
@@ -307,8 +308,14 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	if (me != NULL) {
 		//printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
 
-		if (me->textureCount != -1) 
-		glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
+		if (me->textureCount != -1) {
+			glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
+			if(1){
+				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tg->RenderFuncs.texturenode);
+				if(tti)
+					glUniform1i(me->tex3dDepth,tti->z);
+			}
+		}
 		if(tg->RenderFuncs.textureStackTop){
 			if(isMultiTexture(tg->RenderFuncs.texturenode)){
 				struct X3D_MultiTexture * mtnode = (struct X3D_MultiTexture *)tg->RenderFuncs.texturenode;

@@ -1561,6 +1561,12 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		restype = resm_image;
 		break;
 
+	case NODE_ImageTexture3D:
+		url = & (((struct X3D_ImageTexture3D *)entry->scenegraphNode)->url);
+		parentPath = (resource_item_t *)(((struct X3D_ImageTexture3D *)entry->scenegraphNode)->_parentResource);
+		restype = resm_image;
+		break;
+
 	case NODE_MovieTexture:
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_MovieTexture *)entry->scenegraphNode)->_parentResource);

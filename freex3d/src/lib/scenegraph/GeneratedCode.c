@@ -3821,6 +3821,8 @@ const int OFFSETS_ComposedShader[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ComposedTexture3D[] = {
+	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_ComposedTexture3D, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_ComposedTexture3D, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ComposedTexture3D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatR, (int) offsetof (struct X3D_ComposedTexture3D, repeatR),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatS, (int) offsetof (struct X3D_ComposedTexture3D, repeatS),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8360,6 +8362,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ComposedTexture3D : {
 			struct X3D_ComposedTexture3D * tmp2;
 			tmp2 = (struct X3D_ComposedTexture3D *) tmp;
+			tmp2->__textureTableIndex = 0;
+			tmp2->_parentResource = getInputResource();
 			tmp2->metadata = NULL;
 			tmp2->repeatR = FALSE;
 			tmp2->repeatS = FALSE;

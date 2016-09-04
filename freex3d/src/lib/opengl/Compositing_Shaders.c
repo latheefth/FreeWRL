@@ -1094,7 +1094,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 \n\
   #ifdef TEX3D \n\
   vec3 texcoord = fw_TexCoord[0]; \n\
-  texcoord = clamp(texcoord,0.0001,.9999); \n\
+  texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
   texcoord.y += floor(texcoord.z*4.0); \n\
   texcoord.y /= 4.0; \n\
   vec4 texel = texture2D(fw_Texture_unit0,texcoord.st); \n\
