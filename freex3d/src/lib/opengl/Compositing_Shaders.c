@@ -755,6 +755,9 @@ varying vec4 cpv_Color; \n\
 #ifdef TEX \n\
 uniform sampler2D fw_Texture_unit0; \n\
 varying vec3 fw_TexCoord[4]; \n\
+#ifdef TEX3D \n\
+uniform int tex3dDepth; \n\
+#endif //TEX3D \n\
 #ifdef MTEX \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
@@ -1094,9 +1097,10 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 \n\
   #ifdef TEX3D \n\
   vec3 texcoord = fw_TexCoord[0]; \n\
+  float depth = max(1.0,float(tex3dDepth)); \n\
   texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
-  texcoord.y += floor(texcoord.z*4.0); \n\
-  texcoord.y /= 4.0; \n\
+  texcoord.y += floor(texcoord.z*depth); \n\
+  texcoord.y /= depth; \n\
   vec4 texel = texture2D(fw_Texture_unit0,texcoord.st); \n\
   finalFrag.rgb *= texel.rgb; \n\
   #endif //TEX3D \n\

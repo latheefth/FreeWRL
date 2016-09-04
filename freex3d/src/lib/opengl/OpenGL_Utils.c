@@ -2934,6 +2934,9 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->multitextureColor = GET_UNIFORM(myProg,"mt_Color");
 	//printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
 
+	//texture3D
+	me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
+	me->tex3dBbox = GET_UNIFORM(myProg,"tex3dBbox");
 
 	/* for FillProperties */
 	me->myPointSize = GET_UNIFORM(myProg, "pointSize");

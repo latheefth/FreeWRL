@@ -310,11 +310,13 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 
 		if (me->textureCount != -1) {
 			glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
-			if(1){
-				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tg->RenderFuncs.texturenode);
-				if(tti)
-					glUniform1i(me->tex3dDepth,tti->z);
-			}
+		}
+		if(me->tex3dDepth != -1){
+			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tg->RenderFuncs.texturenode);
+			if(tti)
+				glUniform1i(me->tex3dDepth,tti->z);
+			else
+				glUniform1i(me->tex3dDepth,1);
 		}
 		if(tg->RenderFuncs.textureStackTop){
 			if(isMultiTexture(tg->RenderFuncs.texturenode)){
