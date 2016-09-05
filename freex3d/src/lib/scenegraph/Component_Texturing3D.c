@@ -57,6 +57,8 @@ http://www.web3d.org/x3d/content/examples/Basic/VolumeRendering/
 - Volumetric Rendering Samples use nrrd format
 - http://teem.sourceforge.net/index.html
 -- Nrrd lib LGPL
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb205579(v=vs.85).aspx
+- DDS Volume Texture Example
 
 What is Texturing3D used for? a few links:
 https://msdn.microsoft.com/en-us/library/windows/desktop/ff476906(v=vs.85).aspx
@@ -180,4 +182,7 @@ void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
 	loadTextureNode(X3D_NODE(node),NULL);
 	loadMultiTexture(node);
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+}
+
+void loadImageTexture3D(struct X3D_ImageTexture3D *node){
 }

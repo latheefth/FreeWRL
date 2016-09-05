@@ -23,7 +23,7 @@ void render_GeneratedCubeMapTexture(struct X3D_GeneratedCubeMapTexture *node);
 void render_ImageCubeMapTexture(struct X3D_ImageCubeMapTexture *node);
 
 void unpackImageCubeMap (textureTableIndexStruct_s* me);
-bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename);
+int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename);
 
 
 /* DDS readstuff */
@@ -145,6 +145,10 @@ bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename);
   ((pf.dwFlags & DDPF_INDEXED) && \
    (pf.dwRGBBitCount == 8))
 
+#define PF_IS_VOLUME(pf) \
+  ((pf.dwFlags & DDSD_DEPTH) && \
+   (pf.sCaps.dwCaps1 & DDSCAPS_COMPLEX) && \
+   (pf.sCaps.dwCaps1 & DDSCAPS2_VOLUME)) 
 
 union DDS_header {
   struct {

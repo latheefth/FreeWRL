@@ -1133,12 +1133,12 @@ static void __reallyloadImageTexture(textureTableIndexStruct_s* this_tex, char *
  *   texture_load_from_file: a local filename has been found / downloaded,
  *                           load it now.
  */
- 
+int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename); 
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 {
 
 /* Android, put it here... */
-
+	
 #if defined(ANDROIDNDK)
 
 	__reallyloadImageTexture(this_tex, filename);
@@ -1212,6 +1212,8 @@ ConsoleMessage(me);}
 	int ret;
 
 	fname = STRDUP(filename);
+	if(textureIsDDS(this_tex, fname))
+		return TRUE;
 	ret = loadImage(this_tex, fname);
     if (!ret) {
 		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);

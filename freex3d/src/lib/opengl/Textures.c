@@ -1660,6 +1660,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		struct X3D_ImageTexture3D *pt3d;
 		pt3d = (struct X3D_ImageTexture3D*) node;
 		thisTexture = pt3d->__textureTableIndex;
+		mfurl = &pt3d->url;
 	} else if (thisTextureType==NODE_ComposedTexture3D){
 		struct X3D_ComposedTexture3D *pt3d;
 		pt3d = (struct X3D_ComposedTexture3D*) node;
