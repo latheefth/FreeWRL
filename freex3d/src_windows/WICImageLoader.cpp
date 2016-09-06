@@ -151,7 +151,8 @@ HRESULT ConvertBitmapSource(IWICBitmapSource *m_pOriginalBitmapSource, IWICBitma
 			{
 				hr = pConverter->Initialize(
 					pFlipper, //pScaler,                         // Input bitmap to convert
-					GUID_WICPixelFormat32bppBGRA,     // Destination pixel format - I don't see ARGB. just BGRA or RGBA
+					//GUID_WICPixelFormat32bppBGRA,     // Destination pixel format - I don't see ARGB. just BGRA or RGBA
+					GUID_WICPixelFormat32bppRGBA,    // change in LoadTextures tti->data from desktop BGRA to RGBA
 					WICBitmapDitherTypeNone,         // Specified dither patterm
 					NULL,                            // Specify a particular palette 
 					0.f,                             // Alpha threshold

@@ -126,6 +126,170 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 /* see: http://msdn.microsoft.com/en-us/library/bb943991.aspx/ */
 // 2016: https://msdn.microsoft.com/en-us/library/windows/desktop/bb943982(v=vs.85).aspx
 
+/* DDS readstuff */
+/* DDS loader written by Jon Watte 2002 */
+/* Permission granted to use freely, as long as Jon Watte */
+/* is held harmless for all possible damages resulting from */
+/* your use or failure to use this code. */
+/* No warranty is expressed or implied. Use at your own risk, */
+/* or not at all. */
+
+#if !defined( mydds_h )
+#define mydds_h
+
+//  little-endian, of course
+#define DDS_MAGIC 0x20534444
+
+
+//  DDS_header.dwFlags
+#define DDSD_CAPS                   0x00000001 
+#define DDSD_HEIGHT                 0x00000002 
+#define DDSD_WIDTH                  0x00000004 
+#define DDSD_PITCH                  0x00000008 
+#define DDSD_PIXELFORMAT            0x00001000 
+#define DDSD_MIPMAPCOUNT            0x00020000 
+#define DDSD_LINEARSIZE             0x00080000 
+#define DDSD_DEPTH                  0x00800000 
+
+//  DDS_header.sPixelFormat.dwFlags
+#define DDPF_ALPHAPIXELS            0x00000001 
+#define DDPF_FOURCC                 0x00000004 
+#define DDPF_INDEXED                0x00000020 
+#define DDPF_RGB                    0x00000040 
+
+//  DDS_header.sCaps.dwCaps1
+#define DDSCAPS_COMPLEX             0x00000008 
+#define DDSCAPS_TEXTURE             0x00001000 
+#define DDSCAPS_MIPMAP              0x00400000 
+
+//  DDS_header.sCaps.dwCaps2
+#define DDSCAPS2_CUBEMAP            0x00000200 
+#define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400 
+#define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800 
+#define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000 
+#define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000 
+#define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000 
+#define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000 
+#define DDSCAPS2_VOLUME             0x00200000 
+
+/* old way - use 4-char string and cast later, not a good idea 
+#define D3DFMT_DXT1     "1TXD"    //  DXT1 compression texture format 
+#define D3DFMT_DXT2     "2TXD"    //  DXT2 compression texture format 
+#define D3DFMT_DXT3     "3TXD"    //  DXT3 compression texture format 
+#define D3DFMT_DXT4     "4TXD"    //  DXT4 compression texture format 
+#define D3DFMT_DXT5     "5TXD"    //  DXT5 compression texture format 
+*/
+/* new way - use actual four-byte unsigned integer value */
+#define D3DFMT_DXT1	0x31545844
+#define D3DFMT_DXT2	0x32545844
+#define D3DFMT_DXT3	0x33545844
+#define D3DFMT_DXT4	0x34545844
+#define D3DFMT_DXT5	0x35545844
+
+
+#define PF_IS_DXT1(pf) \
+  ((pf.dwFlags & DDPF_FOURCC) && \
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT1))
+
+#define PF_IS_DXT3(pf) \
+  ((pf.dwFlags & DDPF_FOURCC) && \
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT3))
+
+#define PF_IS_DXT5(pf) \
+  ((pf.dwFlags & DDPF_FOURCC) && \
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT5))
+
+#define PF_IS_BGRA8(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+   (pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 32) && \
+   (pf.dwRBitMask == 0xff0000) && \
+   (pf.dwGBitMask == 0xff00) && \
+   (pf.dwBBitMask == 0xff) && \
+   (pf.dwAlphaBitMask == 0xff000000U))
+
+#define PF_IS_RGB8(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+  !(pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 24) && \
+   (pf.dwRBitMask == 0xff) && \
+   (pf.dwGBitMask == 0xff00) && \
+   (pf.dwBBitMask == 0xff0000))
+
+#define PF_IS_BGR8(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+  !(pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 24) && \
+   (pf.dwRBitMask == 0xff0000) && \
+   (pf.dwGBitMask == 0xff00) && \
+   (pf.dwBBitMask == 0xff))
+
+#define PF_IS_BGR5A1(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+   (pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 16) && \
+   (pf.dwRBitMask == 0x00007c00) && \
+   (pf.dwGBitMask == 0x000003e0) && \
+   (pf.dwBBitMask == 0x0000001f) && \
+   (pf.dwAlphaBitMask == 0x00008000))
+
+#define PF_IS_BGR565(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+  !(pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 16) && \
+   (pf.dwRBitMask == 0x0000f800) && \
+   (pf.dwGBitMask == 0x000007e0) && \
+   (pf.dwBBitMask == 0x0000001f))
+
+#define PF_IS_INDEX8(pf) \
+  ((pf.dwFlags & DDPF_INDEXED) && \
+   (pf.dwRGBBitCount == 8))
+
+#define PF_IS_VOLUME(pf) \
+  ((pf.dwFlags & DDSD_DEPTH))
+  //&& 
+  // (pf.sCaps.dwCaps1 & DDSCAPS_COMPLEX) && 
+  // (pf.sCaps.dwCaps1 & DDSCAPS2_VOLUME)) 
+
+union DDS_header {
+  struct {
+    unsigned int    dwMagic;
+    unsigned int    dwSize;
+    unsigned int    dwFlags;
+    unsigned int    dwHeight;
+    unsigned int    dwWidth;
+    unsigned int    dwPitchOrLinearSize;
+    unsigned int    dwDepth;
+    unsigned int    dwMipMapCount;
+    unsigned int    dwReserved1[ 11 ];
+
+    //  DDPIXELFORMAT
+    struct {
+      unsigned int    dwSize;
+      unsigned int    dwFlags;
+      unsigned int    dwFourCC;
+      unsigned int    dwRGBBitCount;
+      unsigned int    dwRBitMask;
+      unsigned int    dwGBitMask;
+      unsigned int    dwBBitMask;
+      unsigned int    dwAlphaBitMask;
+    }               sPixelFormat;
+
+    //  DDCAPS2
+    struct {
+      unsigned int    dwCaps1;
+      unsigned int    dwCaps2;
+      unsigned int    dwDDSX;
+      unsigned int    dwReserved;
+    }               sCaps;
+    unsigned int    dwReserved2;
+  }; //JASdefStruct; // put "name" in here to get rid of compiler warning
+char data[ 128 ];
+};
+
+#endif  //  mydds_h
+
+
 struct DdsLoadInfo {
   bool compressed;
   bool swap;
@@ -172,19 +336,22 @@ struct DdsLoadInfo loadInfoBGR565 = {
 
 int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *file;
-	char *buffer;
+	char *buffer, *bdata, *bdata2;
 	unsigned long fileLen;
 	union DDS_header hdr;
 	unsigned int x = 0;
 	unsigned int y = 0;
+	unsigned int z = 0;
+	int nchan;
 	unsigned int mipMapCount = 0;
-	unsigned int size,xSize, ySize;
+	unsigned int size,xSize, ySize,zSize;
 
 	struct DdsLoadInfo * li;
 	size_t xx;
 
 	UNUSED(xx); // compiler warning mitigation
-	xSize=ySize=0;
+	xSize=ySize=zSize=0;
+	li = NULL;
 
 	printf ("textureIsDDS... node %s, file %s\n",
 		stringNodeType(this_tex->scenegraphNode->_nodeType), filename);
@@ -225,73 +392,120 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		(hdr.dwFlags & DDSD_PIXELFORMAT) && (hdr.dwFlags & DDSD_CAPS)) {
 		printf ("matched :DDS :\n");
 
-		/*
+		
 		printf ("dwFlags %x, DDSD_PIXELFORMAT %x, DDSD_CAPS %x\n",hdr.dwFlags, DDSD_PIXELFORMAT, DDSD_CAPS);
 			xSize = hdr.dwWidth;
 			ySize = hdr.dwHeight;
 		printf ("size %d, %d\n",xSize, ySize);
-		*/
+		
 
 		/*
 			assert( !(xSize & (xSize-1)) );
 			assert( !(ySize & (ySize-1)) );
 		*/
 
-		/*
+		
 		printf ("looking to see what it is...\n");
 		printf ("DDPF_FOURCC dwFlags %x mask %x, final %x\n",hdr.sPixelFormat.dwFlags,DDPF_FOURCC,hdr.sPixelFormat.dwFlags & DDPF_FOURCC);
 
 		printf ("if it is a dwFourCC, %x and %x\n", hdr.sPixelFormat.dwFourCC ,D3DFMT_DXT1);
 
 		printf ("dwFlags %x\n",hdr.sPixelFormat.dwFlags);
-		printf ("dwRGBBitCount %d\n",hdr.sPixelFormat.dwRGBBitCount);
+		printf ("dwRGBBitCount %d\n",hdr.sPixelFormat.dwRGBBitCount); //24 for normal RGB
 		printf ("dwRBitMask %x\n",hdr.sPixelFormat.dwRBitMask);
 		printf ("dwGBitMask %x\n",hdr.sPixelFormat.dwGBitMask);
 		printf ("dwBBitMask %x\n",hdr.sPixelFormat.dwBBitMask);
 		printf ("dwAlphaBitMask %x\n",hdr.sPixelFormat.dwAlphaBitMask);
 		printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags);
-		*/
-
-		if( PF_IS_DXT1( hdr.sPixelFormat ) ) {
-			li = &loadInfoDXT1;
-		}
-		else if( PF_IS_DXT3( hdr.sPixelFormat ) ) {
-			li = &loadInfoDXT3;
-		}
-		else if( PF_IS_DXT5( hdr.sPixelFormat ) ) {
-			li = &loadInfoDXT5;
-		}
+		printf ("dwFlags and DEPTH %x\n",hdr.dwFlags & DDSD_DEPTH);
+		printf ("dwCaps1 and complex %x\n",   (hdr.sCaps.dwCaps1 & DDSCAPS_COMPLEX));
+		printf ("dwCaps1 and VOLUME %x\n", (hdr.sCaps.dwCaps1 & DDSCAPS2_VOLUME));
+		
+		bdata = NULL;
+		if(hdr.sPixelFormat.dwFlags & DDPF_FOURCC){
+			if( PF_IS_DXT1( hdr.sPixelFormat ) ) {
+				li = &loadInfoDXT1;
+			}
+			else if( PF_IS_DXT3( hdr.sPixelFormat ) ) {
+				li = &loadInfoDXT3;
+			}
+			else if( PF_IS_DXT5( hdr.sPixelFormat ) ) {
+				li = &loadInfoDXT5;
+			}
   
-		#if defined (GL_BGRA)
-		else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
-			li = &loadInfoBGRA8;
-		}
-		else if( PF_IS_BGR5A1( hdr.sPixelFormat ) ) {
-			li = &loadInfoBGR5A1;
-		}
-		else if( PF_IS_INDEX8( hdr.sPixelFormat ) ) {
-			li = &loadInfoIndex8;
-		}
-		#endif
+			#if defined (GL_BGRA)
+			else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
+				li = &loadInfoBGRA8;
+			}
+			else if( PF_IS_BGR5A1( hdr.sPixelFormat ) ) {
+				li = &loadInfoBGR5A1;
+			}
+			else if( PF_IS_INDEX8( hdr.sPixelFormat ) ) {
+				li = &loadInfoIndex8;
+			}
+			#endif
 
-		else if( PF_IS_RGB8( hdr.sPixelFormat ) ) {
-			li = &loadInfoRGB8;
+			else if( PF_IS_RGB8( hdr.sPixelFormat ) ) {
+				li = &loadInfoRGB8;
+			}
+			else if( PF_IS_BGR8( hdr.sPixelFormat ) ) {
+				li = &loadInfoBGR8;
+			}
+			else if( PF_IS_BGR565( hdr.sPixelFormat ) ) {
+				li = &loadInfoBGR565;
+			}
+			//else {
+			//	ConsoleMessage("CubeMap li failure\n");
+			//	return FALSE;
+			//}
+		}else{
+			//no FOURCC
+			bdata = &buffer[sizeof(union DDS_header)];
+			//bdata = &hdr.data[0];
 		}
-		else if( PF_IS_BGR8( hdr.sPixelFormat ) ) {
-			li = &loadInfoBGR8;
-		}
-		else if( PF_IS_BGR565( hdr.sPixelFormat ) ) {
-			li = &loadInfoBGR565;
-		}
-		else {
-			ConsoleMessage("CubeMap li failure\n");
-			return FALSE;
-		}
-
 		//fixme: do cube maps later
 		//fixme: do 3d later
-		x = xSize;
-		y = ySize;
+		x = xSize = hdr.dwWidth;
+		y = ySize = hdr.dwHeight;
+		z = zSize = 1;
+		if( PF_IS_VOLUME(hdr) )
+			z = zSize = hdr.dwDepth;
+		nchan = 3;
+		if(DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags) nchan = 4;
+		//if(li == NULL)
+		//	return FALSE;
+		//if(!hdr.dwFlags & DDSD_MIPMAPCOUNT){
+		if(bdata){
+			//simple, convert to rgba and set tti
+			int ipix,i,j,k,bpp;
+			char * rgbablob = malloc(x*y*z *4);
+			bpp = hdr.sPixelFormat.dwRGBBitCount / 8;
+			for(i=0;i<z;i++){
+				for(j=0;j<y;j++){
+					for(k=0;k<x;k++){
+						unsigned char *pixel,*rgba;
+						ipix = (i*z +j)*y +k;
+						pixel = &bdata[ipix * bpp];
+						rgba = &rgbablob[ipix *4];
+						rgba[3] = 255;
+						rgba[0] = pixel[0];
+						rgba[1] = pixel[1];
+						rgba[2] = pixel[2];
+						if(nchan == 4)
+							rgba[3] = pixel[3];
+
+					}
+				}
+			}
+			this_tex->channels = nchan;
+			this_tex->x = x;
+			this_tex->y = y;
+			this_tex->z = z;
+			this_tex->texdata = rgbablob;
+			return TRUE;
+		}else{
+		}
+
 		mipMapCount = (hdr.dwFlags & DDSD_MIPMAPCOUNT) ? hdr.dwMipMapCount : 1;
 		printf ("mipMapCount %d\n",mipMapCount);
 

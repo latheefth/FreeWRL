@@ -150,7 +150,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    }
    bitmapData->Width = bitmap->GetWidth();
    bitmapData->Height = bitmap->GetHeight();
-   bitmapData->PixelFormat = PixelFormat32bppARGB;
+   bitmapData->PixelFormat = PixelFormat32bppARGB; // BGRA
    int totalbytes = bitmap->GetWidth() * bitmap->GetHeight() * 4; //tti->depth;
    unsigned char * blob = (unsigned char*)MALLOCV(totalbytes);
 
@@ -163,7 +163,7 @@ int loadImage(struct textureTableIndexStruct *tti, char *fname)
    bitmap->LockBits(
       &rect,
       ImageLockModeRead|ImageLockModeUserInputBuf,
-	  PixelFormat32bppARGB, //PixelFormat24bppRGB, 
+	  PixelFormat32bppARGB, //PixelFormat24bppRGB,  // BGRA
       bitmapData);
 
 #ifdef verbose

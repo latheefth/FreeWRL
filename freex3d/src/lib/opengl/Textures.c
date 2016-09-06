@@ -1264,12 +1264,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		struct X3D_ImageTexture3D * it3d;
 		it3d = (struct X3D_ImageTexture3D *) me->scenegraphNode;
 		Src = it3d->repeatS; Trc = it3d->repeatT; Rrc = it3d->repeatR;
-		tpNode = X3D_TEXTUREPROPERTIES(pt3d->textureProperties);
+		tpNode = X3D_TEXTUREPROPERTIES(it3d->textureProperties);
 	} else if (me->nodeType == NODE_ComposedTexture3D) {
 		struct X3D_ComposedTexture3D * ct3d;
 		ct3d = (struct X3D_ComposedTexture3D *) me->scenegraphNode;
 		Src = ct3d->repeatS; Trc = ct3d->repeatT; Rrc = ct3d->repeatR;
-		tpNode = X3D_TEXTUREPROPERTIES(pt3d->textureProperties);
+		tpNode = X3D_TEXTUREPROPERTIES(ct3d->textureProperties);
 	} else if (me->nodeType == NODE_ImageCubeMapTexture) {
 		struct X3D_ImageCubeMapTexture *mi = (struct X3D_ImageCubeMapTexture *) me->scenegraphNode;
 		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
@@ -1410,11 +1410,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		int cx;
 
 
-		#if defined (GL_BGRA)
-		iformat = GL_RGBA; format = GL_BGRA;
-		#else
+		//#if defined (GL_BGRA)
+		//iformat = GL_RGBA; format = GL_BGRA;
+		//#else
 		iformat = GL_RGBA; format = GL_RGBA;
-		#endif
+		//#endif
 
 
         
@@ -1507,11 +1507,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 			
 			/* BGRA is seemingly faster on desktop machines... */
-			#if defined (GL_BGRA)
-			iformat = GL_RGBA; format = GL_BGRA;
-			#else
+			//#if defined (GL_BGRA)
+			//iformat = GL_RGBA; format = GL_BGRA;
+			//#else
 			iformat = GL_RGBA; format = GL_RGBA;
-			#endif
+			//#endif
 			
 			/* do the image. */
 			if(x && y) {
