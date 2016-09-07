@@ -333,7 +333,19 @@ struct DdsLoadInfo loadInfoBGR8 = {
 struct DdsLoadInfo loadInfoBGR565 = {
   false, true, false, 1, 2, GL_RGB5, GL_RGB, GL_UNSIGNED_SHORT_5_6_5
 };
+unsigned int GetLowestBitPos(unsigned int value)
+{
+   assert(value != 0); // handled separately
 
+   unsigned int pos = 0;
+   while (!(value & 1))
+   {
+      value >>= 1;
+      ++pos;
+	  if(pos == 32) break;
+   }
+   return pos;
+}
 int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *file;
 	char *buffer, *bdata, *bdata2;
@@ -342,6 +354,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	unsigned int x = 0;
 	unsigned int y = 0;
 	unsigned int z = 0;
+	unsigned int rshift[4]; //to go with color bitmask
 	int nchan;
 	unsigned int mipMapCount = 0;
 	unsigned int size,xSize, ySize,zSize;
@@ -421,6 +434,10 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		printf ("dwCaps1 and complex %x\n",   (hdr.sCaps.dwCaps1 & DDSCAPS_COMPLEX));
 		printf ("dwCaps1 and VOLUME %x\n", (hdr.sCaps.dwCaps1 & DDSCAPS2_VOLUME));
 		
+		//rshift[0] = GetLowestBitPos(hdr.sPixelFormat.dwRBitMask);
+		//rshift[1] = GetLowestBitPos(hdr.sPixelFormat.dwGBitMask);
+		//rshift[2] = GetLowestBitPos(hdr.sPixelFormat.dwBBitMask);
+		//rshift[3] = GetLowestBitPos(hdr.sPixelFormat.dwAlphaBitMask);
 		bdata = NULL;
 		if(hdr.sPixelFormat.dwFlags & DDPF_FOURCC){
 			if( PF_IS_DXT1( hdr.sPixelFormat ) ) {
@@ -477,9 +494,15 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		//if(!hdr.dwFlags & DDSD_MIPMAPCOUNT){
 		if(bdata){
 			//simple, convert to rgba and set tti
-			int ipix,i,j,k,bpp;
+			int ipix,i,j,k,bpp, ir, ig, ib;
 			char * rgbablob = malloc(x*y*z *4);
 			bpp = hdr.sPixelFormat.dwRGBBitCount / 8;
+			ir = 0; ig = 1; ib = 2; //if incoming is RGB order
+			if(hdr.sPixelFormat.dwRBitMask < hdr.sPixelFormat.dwBBitMask){
+				//if incoming is BGR order
+				ir = 2;
+				ib = 0;
+			}
 			for(i=0;i<z;i++){
 				for(j=0;j<y;j++){
 					for(k=0;k<x;k++){
@@ -487,10 +510,12 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 						ipix = (i*z +j)*y +k;
 						pixel = &bdata[ipix * bpp];
 						rgba = &rgbablob[ipix *4];
+						//freewrl target format: RGBA
+						//swizzle if incoming is BGRA
 						rgba[3] = 255;
-						rgba[0] = pixel[0];
-						rgba[1] = pixel[1];
-						rgba[2] = pixel[2];
+						rgba[0] = pixel[ir];
+						rgba[1] = pixel[ig];
+						rgba[2] = pixel[ib];
 						if(nchan == 4)
 							rgba[3] = pixel[3];
 

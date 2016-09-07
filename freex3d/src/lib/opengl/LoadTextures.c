@@ -1538,14 +1538,17 @@ ConsoleMessage(me);}
 	int ret;
 
 	fname = STRDUP(filename);
-	if(loadImage3D_x3di3d(this_tex, fname))
+	if(loadImage3D_x3di3d(this_tex, fname)){
 		return TRUE;
-	if(loadImage3DVol(this_tex, fname))
+	}
+	if(loadImage3DVol(this_tex, fname)){
 		return TRUE;
+	}
 	if(textureIsDDS(this_tex, fname)){
 		//saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //good for testing round trip
 		return TRUE;
 	}
+
 	//gdiplus image loader on desktop, wicimageloader on uwp
 	ret = loadImage(this_tex, fname); // BGRA in src_windows/gdiplusimageloader.cpp
 #ifndef GL_ES_VERSION_2_0
