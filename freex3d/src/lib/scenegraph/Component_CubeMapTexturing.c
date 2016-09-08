@@ -86,8 +86,8 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 			case 2: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->top,thistex);  break;}
 			case 3: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->bottom,thistex);   break;}
 
-			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
-			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
+			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
 
 
 
@@ -669,9 +669,14 @@ void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 		FREE_IF_NZ(node->__subTextures.p); /* should be NULL, checking */
 		node->__subTextures.p = MALLOC(struct X3D_Node  **,  6 * sizeof (struct X3D_PixelTexture *));
 		for (i=0; i<6; i++) {
-			node->__subTextures.p[i] = createNewX3DNode(NODE_PixelTexture);
+			struct X3D_PixelTexture *pt;
+			struct textureTableIndexStruct *tti;
+			pt = (struct X3D_PixelTexture *)createNewX3DNode(NODE_PixelTexture);
+			node->__subTextures.p[i] = X3D_NODE(pt);
 			if(node->_executionContext)
 				add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->__subTextures.p[i]));
+			tti = getTableIndex(pt->__textureTableIndex);
+			//tti->status = TEX_NEEDSBINDING;
 		}
 		node->__subTextures.n=6;
 	}

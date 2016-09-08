@@ -620,7 +620,8 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 			// --to get to get max channels or hasAlpha, or need channels for each one?
 			// H0: if nay of the multitextures has an alpha, then its alpha replaces material alpha
 			// H1: multitexture alpha is only for composing textures, assumed to take material alpha 
-			if(appearance->texture->_nodeType == NODE_MultiTexture || appearance->texture->_nodeType == NODE_ComposedTexture3D ){
+			if(appearance->texture->_nodeType == NODE_MultiTexture || 
+				appearance->texture->_nodeType == NODE_ComposedTexture3D ){
 				int k;
 				struct Multi_Node * mtex = NULL;
 				switch(appearance->texture->_nodeType){
@@ -641,6 +642,30 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 						imgalpha = max(tti->hasAlpha,imgalpha);
 						//if(tti->status < TEX_NEEDSBINDING) 
 						//	printf("."); //should Unmark node compiled
+					}
+				}
+			}else if(appearance->texture->_nodeType == NODE_ComposedCubeMapTexture){
+				int k;
+				struct X3D_Node* p[6];
+				struct X3D_ComposedCubeMapTexture * ccmt;
+				ccmt = appearance->texture;
+				p[0] = ccmt->top;
+				p[1] = ccmt->left;
+				p[2] = ccmt->front;
+				p[3] = ccmt->right;
+				p[4] = ccmt->back;
+				p[5] = ccmt->bottom;
+				for(k=0;k<6;k++){
+					if(p[k]){
+						textureTableIndexStruct_s *tti = getTableTableFromTextureNode(p[k]);
+						haveTexture = 1;
+						if(tti){
+							//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+							//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+							//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
+							channels = max(channels,tti->channels);
+							imgalpha = max(tti->hasAlpha,imgalpha);
+						}
 					}
 				}
 			}else{

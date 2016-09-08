@@ -454,6 +454,9 @@ static const GLchar *genericVertexGLES2 = "\
 uniform mat4 fw_ModelViewMatrix; \n\
 uniform mat4 fw_ProjectionMatrix; \n\
 uniform mat3 fw_NormalMatrix; \n\
+#ifdef CUB \n\
+uniform mat4 fw_ModelViewInverseMatrix; \n\
+#endif //CUB \n\
 attribute vec4 fw_Vertex; \n\
 attribute vec3 fw_Normal; \n\
  \n\
@@ -677,6 +680,15 @@ void main(void) \n\
   \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
   \n\
+  #ifdef CUB \n\
+  //vec3 u  = normalize(castle_vertex_eye.xyz); /* myEyeVertex */ \n\
+  //vec3 v = reflect(u,castle_normal_eye); \n\
+  //fw_TexCoord[0] = fw_NormalMatrix * v; //transform back to object space \n\
+  vec4 camera = fw_ModelViewInverseMatrix * vec4(0.0,0.0,0.0,1.0); \n\
+  vec3 u = normalize( vec4(castle_vertex_eye - camera).xyz ); \n\
+  vec3 v = normalize(fw_Normal); \n\
+  fw_TexCoord[0] = normalize(reflect(u,v)); //computed in object space \n\
+  #endif //CUB \n\
   #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
   #undef castle_vertex_eye \n\
   #undef castle_normal_eye \n\
@@ -763,7 +775,11 @@ varying vec4 cpv_Color; \n\
 #endif //CPV \n\
 \n\
 #ifdef TEX \n\
+#ifdef CUB \n\
+uniform samplerCube fw_Texture_unit0; \n\
+#else //CUB \n\
 uniform sampler2D fw_Texture_unit0; \n\
+#endif //CUB \n\
 varying vec3 fw_TexCoord[4]; \n\
 #ifdef TEX3D \n\
 uniform int tex3dDepth; \n\
@@ -1202,7 +1218,11 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   } \n\
   #else //MTEX \n\
   /* ONE TEXTURE */ \n\
+  #ifdef CUB \n\
+  finalFrag = textureCube(fw_Texture_unit0, fw_TexCoord[0]) * finalFrag; \n\
+  #else //CUB \n\
   finalFrag = texture2D(fw_Texture_unit0, fw_TexCoord[0].st) * finalFrag; \n\
+  #endif //CUB \n\
   #endif //MTEX \n\
   \n\
 }\n";
@@ -1505,7 +1525,10 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
 			Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
 		}else{
-			if(DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)){
+			if(DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)){
+				AddDefine(SHADERPART_VERTEX,"CUB",CompleteCode);
+				AddDefine(SHADERPART_FRAGMENT,"CUB",CompleteCode);
+			} else if(DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)){
 				AddDefine(SHADERPART_VERTEX,"MTEX",CompleteCode);
 				AddDefine(SHADERPART_FRAGMENT,"MTEX",CompleteCode);
 			}
