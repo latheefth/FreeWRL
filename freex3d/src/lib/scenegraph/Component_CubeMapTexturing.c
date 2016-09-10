@@ -251,6 +251,8 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
   // (pf.sCaps.dwCaps1 & DDSCAPS_COMPLEX) && 
   // (pf.sCaps.dwCaps1 & DDSCAPS2_VOLUME)) 
 
+
+
 union DDS_header {
   struct {
     unsigned int    dwMagic;
@@ -349,6 +351,7 @@ unsigned int GetLowestBitPos(unsigned int value)
 int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *file;
 	char *buffer, *bdata, *bdata2;
+	char sniffbuf[20];
 	unsigned long fileLen;
 	union DDS_header hdr;
 	unsigned int x = 0;
@@ -366,14 +369,24 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	xSize=ySize=zSize=0;
 	li = NULL;
 
-	printf ("textureIsDDS... node %s, file %s\n",
-		stringNodeType(this_tex->scenegraphNode->_nodeType), filename);
+	//printf ("textureIsDDS... node %s, file %s\n",
+	//	stringNodeType(this_tex->scenegraphNode->_nodeType), filename);
 
 	/* read in file */
 	file = fopen(filename,"rb");
 	if (!file) 
 		return FALSE;
 
+	//sniff header
+	xx=fread(sniffbuf, 4, 1, file);
+	fclose(file);
+	if(strncmp(sniffbuf,"DDS ",4)){
+		//not DDS file
+		//sniffbuf[5] = '\0';
+		//printf("sniff header = %s\n",sniffbuf);
+		return FALSE;
+	}
+	file = fopen(filename,"rb");
 	/* have file, read in data */
 
 
@@ -430,6 +443,8 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		printf ("dwBBitMask %x\n",hdr.sPixelFormat.dwBBitMask);
 		printf ("dwAlphaBitMask %x\n",hdr.sPixelFormat.dwAlphaBitMask);
 		printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags);
+		printf ("dwflags & DDPF_RGB %x\n,",hdr.sPixelFormat.dwFlags & DDPF_RGB);
+
 		printf ("dwFlags and DEPTH %x\n",hdr.dwFlags & DDSD_DEPTH);
 		printf ("dwCaps1 and complex %x\n",   (hdr.sCaps.dwCaps1 & DDSCAPS_COMPLEX));
 		printf ("dwCaps1 and VOLUME %x\n", (hdr.sCaps.dwCaps1 & DDSCAPS2_VOLUME));
@@ -487,6 +502,16 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		z = zSize = 1;
 		if( PF_IS_VOLUME(hdr) )
 			z = zSize = hdr.dwDepth;
+		if( hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP){
+			int facecount = 0;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEX) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEX) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEY) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEY) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEZ) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEZ) facecount++;
+			z = zSize = facecount;
+		}
 		nchan = 3;
 		if(DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags) nchan = 4;
 		//if(li == NULL)
@@ -494,22 +519,26 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		//if(!hdr.dwFlags & DDSD_MIPMAPCOUNT){
 		if(bdata){
 			//simple, convert to rgba and set tti
-			int ipix,i,j,k,bpp, ir, ig, ib;
+			int ipix,jpix,i,j,k,bpp, ir, ig, ib;
 			char * rgbablob = malloc(x*y*z *4);
 			bpp = hdr.sPixelFormat.dwRGBBitCount / 8;
-			ir = 0; ig = 1; ib = 2; //if incoming is RGB order
-			if(hdr.sPixelFormat.dwRBitMask < hdr.sPixelFormat.dwBBitMask){
-				//if incoming is BGR order
+			ir = 0; ig = 1; ib = 2; //if incoming is BGR order
+			if(hdr.sPixelFormat.dwRBitMask > hdr.sPixelFormat.dwBBitMask){
+				//if incoming is RGB order
 				ir = 2;
 				ib = 0;
+				printf("BGR\n");
 			}
+			//printf("bitmasks R %d G %d B %d\n",hdr.sPixelFormat.dwRBitMask,hdr.sPixelFormat.dwGBitMask,hdr.sPixelFormat.dwBBitMask);
+			//printf("bpp=%d x %d y %d z %d\n",bpp, x,y,z);
 			for(i=0;i<z;i++){
 				for(j=0;j<y;j++){
 					for(k=0;k<x;k++){
 						unsigned char *pixel,*rgba;
-						ipix = (i*z +j)*y +k;
+						ipix = (i*y +j)*x +k;     //top down, for input image
+						jpix = (i*y +(y-1-j))*x + k; //bottom up, for ouput texture
 						pixel = &bdata[ipix * bpp];
-						rgba = &rgbablob[ipix *4];
+						rgba = &rgbablob[jpix *4];
 						//freewrl target format: RGBA
 						//swizzle if incoming is BGRA
 						rgba[3] = 255;
@@ -518,6 +547,13 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 						rgba[2] = pixel[ib];
 						if(nchan == 4)
 							rgba[3] = pixel[3];
+						if(0){
+							static int once = 0;
+							if(!once){
+								printf("pixel R=%x G=%x B=%x A=%x\n",rgba[0],rgba[1],rgba[2],rgba[3]);
+								//once = 1;
+							}
+						}
 
 					}
 				}
@@ -529,10 +565,11 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			this_tex->texdata = rgbablob;
 			return TRUE;
 		}else{
+			return FALSE;
 		}
 
 		mipMapCount = (hdr.dwFlags & DDSD_MIPMAPCOUNT) ? hdr.dwMipMapCount : 1;
-		printf ("mipMapCount %d\n",mipMapCount);
+		//printf ("mipMapCount %d\n",mipMapCount);
 
 		if( li->compressed ) {
 			printf ("compressed\n");
@@ -670,13 +707,13 @@ void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 		node->__subTextures.p = MALLOC(struct X3D_Node  **,  6 * sizeof (struct X3D_PixelTexture *));
 		for (i=0; i<6; i++) {
 			struct X3D_PixelTexture *pt;
-			struct textureTableIndexStruct *tti;
+			//struct textureTableIndexStruct *tti;
 			pt = (struct X3D_PixelTexture *)createNewX3DNode(NODE_PixelTexture);
 			node->__subTextures.p[i] = X3D_NODE(pt);
 			if(node->_executionContext)
 				add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->__subTextures.p[i]));
-			tti = getTableIndex(pt->__textureTableIndex);
-			//tti->status = TEX_NEEDSBINDING;
+			//tti = getTableIndex(pt->__textureTableIndex);
+			//tti->status = TEX_NEEDSBINDING; //I found I didn't need - yet
 		}
 		node->__subTextures.n=6;
 	}
@@ -808,4 +845,63 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	/* get rid of the original texture data now */
 	FREE_IF_NZ(me->texdata);
 }
+
+/* -order of images: +x,-x,+y,-y,+z,-z (or R,L,F,B,T,D) */
+void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
+	int size;
+	int count;
+
+	struct X3D_ImageCubeMapTexture *node = (struct X3D_ImageCubeMapTexture *)me->scenegraphNode;
+
+	if (node == NULL) { 
+		ERROR_MSG("problem unpacking single image ImageCubeMap\n");
+		return; 
+	}
+
+	if (node->_nodeType != NODE_ImageCubeMapTexture) {
+		ERROR_MSG("internal error - expected ImageCubeMapTexture here");
+		return;
+	}
+
+
+	if (node->__subTextures.n != 6) {
+		ERROR_MSG("unpackImageCubeMap, there should be 6 PixelTexture nodes here\n");
+		return;
+	}
+	/* go through each face, and send the data to the relevant PixelTexture */
+	/* (jas declared target) order: right left, top, bottom, back, front */
+	// (dug9 incoming order from dds cubemap texture) +x,-x,+y,-y,+z,-z
+	uint32 imlookup[] = {1,0,2,3,4,5}; //dug9 lookup order that experimentally seems to work
+	for (count=0; count <6; count++) {
+		int x,y,i;
+		uint32 val, ioff;
+		uint32 *tex = (uint32 *) me->texdata;
+		struct X3D_PixelTexture *pt = X3D_PIXELTEXTURE(node->__subTextures.p[count]);
+
+		/* create the MFInt32 array for this face in the PixelTexture */
+		FREE_IF_NZ(pt->image.p);
+		pt->image.n = me->x*me->y+3;
+		pt->image.p = MALLOC(int *, pt->image.n * sizeof (uint32));
+		pt->image.p[0] = me->x;
+		pt->image.p[1] = me->y;
+		pt->image.p[2] = 4; /* this last one is for RGBA */
+		ioff = imlookup[count] * me->x * me->y;
+		//we are in char rgba order, but we need to convert to endian-specific uint32
+		// which is what texture_load_from_pixelTexture() will be expecting
+		for(i=0;i<me->x*me->y;i++){
+			uint32 pixint;
+			unsigned char* rgba = (unsigned char*)&tex[ioff + i];
+			pixint = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + rgba[3];
+			pt->image.p[i+3] = pixint;
+		}
+	}
+
+	/* we are now locked-n-loaded */
+	node->__regenSubTextures = FALSE;
+
+	/* get rid of the original texture data now */
+	FREE_IF_NZ(me->texdata);
+}
+
+
 

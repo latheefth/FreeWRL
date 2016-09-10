@@ -588,6 +588,281 @@ void saveImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 	fclose(fp);
 
 }
+
+int loadImage_web3dit(struct textureTableIndexStruct *tti, char *fname){
+/*	TESTED ONLY RGB Geometry 3 AS OF SEPT 9, 2016
+	reads image in ascii format almost like you would put inline for PixelTexture
+	Goal: easy to create image file format just sufficient for web3d types:
+		2D texture
+		3D texture
+		cubemap
+		volume (float luminance)
+		panorama
+	with sniffable header web3dit:
+	"""
+web3ditG #H 7 byte magic header, means web3d compatible image in text form, 1byte for Geometry sniffing
+1       #F file version
+C       #G {C,P,3,2}: #G {C,P,3,2}: image geometry: C: cubemap z(depth/layer)=[+-x,+-y,+-z], P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D
+        #O optional description
+x       #T {x,i,f} how to read space-delimited value: x as hex, i as int, f as float
+0 255   #R range of channel, most useful for normalizing floats
+4       #N channels/components per value ie RGBA as int: 4, RGBA as 4 ints: 1
+1       #M values per pixel ie RGBA as int: 1, RGBA as 4 ints: 4
+RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA, L, RGB
+3       #D number of dimensions, 2 for normal 2D image, 3 for 3D image
+3 3 3   #P[D] size in pixels in each dimension: x,y,z (use 1 for z if 2D)
+#I image values follow with x in inner loop, y-down image direction, z in outer:
+0xFF00FF .... 
+	"""
+	format 'invented' by dug9 for testing freewrl, License: MIT
+*/
+	int i,j,k,m,nx,ny,nz,nv,nc, ishex, isint, isfloat, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, nchan;
+	int version, Rmin, Rmax, Nchannelspervalue, Mvaluesperpixel, Dimensions;
+	unsigned int pixint, Pixels[10];
+	float pixfloat;
+	float sx,sy,sz,tx,ty,tz;
+	char Geometry, ODescription[200], Type, Componentnames[10], LRGBA[4];
+	FILE *fp;
+
+	iret = FALSE;
+
+	fp = fopen(fname,"r");
+	if (fp != NULL) {
+		char line [1000];
+		fgets(line,1000,fp);
+		if(strncmp(line,"web3dit",7)){
+			//not our type
+			fclose(fp);
+			return iret;
+		}
+		//could sniff Geometry here, if caller says what geometry type is OK for them, return if not OK
+		fgets(line,1000,fp);
+		sscanf(line,"%c",&Geometry);
+		fgets(line,1000,fp);
+		sscanf(line,"%d",&version);
+		fgets(line,1000,fp);
+		sscanf(line,"%s",ODescription);
+		fgets(line,1000,fp);
+		sscanf(line,"%c",&Type);
+		fgets(line,1000,fp);
+		sscanf(line,"%d %d",&Rmin,&Rmax);
+
+		fgets(line,1000,fp);
+		sscanf(line,"%d",&Nchannelspervalue);
+		fgets(line,1000,fp);
+		sscanf(line,"%d",&Mvaluesperpixel);
+		fgets(line,1000,fp);
+		sscanf(line,"%s",Componentnames);
+		fgets(line,1000,fp);
+		sscanf(line,"%d",&Dimensions);
+		fgets(line,1000,fp);
+		sscanf(line,"%d %d %d",&Pixels[0], &Pixels[1], &Pixels[2]);
+		fgets(line,1000,fp); //waste #I Image warning line
+
+
+		nx = ny = nz = 1;
+		nx = Pixels[0];
+		ny = Pixels[1];
+		if(Dimensions > 2) nz = Pixels[2];
+		nv = Mvaluesperpixel;
+		nc = Nchannelspervalue;
+		nchan = nv * nc;
+			
+		totalbytes = 4 * nx * ny * nz; //output 4 channel RGBA image size
+		if(totalbytes <= 128 * 128 * 128 * 4){
+			unsigned char *rgbablob;
+			rgbablob = malloc(totalbytes);
+			memset(rgbablob,0,totalbytes);
+
+			//now convert to RGBA 4 bytes per pixel
+			for(i=0;i<nz;i++){
+				for(j=0;j<ny;j++){
+					for(k=0;k<nx;k++){
+						unsigned char pixel[4],*rgba, n;
+						pixel[0] = pixel[1] = pixel[2] = pixel[3] = 0;
+						for(m=0;m<nv;m++){
+							switch(Type){
+								case 'f':
+								fscanf(fp,"%f",&pixfloat);
+								break;
+								case 'x':
+								fscanf(fp,"%x",&pixint);
+								break;
+								case 'i':
+								default:
+								fscanf(fp,"%d",&pixint);
+								break;
+							}
+							for(n=0;n<nc;n++){
+								switch(Type){
+									case 'f':
+										pixel[n] = (unsigned char)(unsigned int)((pixfloat - Rmin) / (Rmax - Rmin) * 255.0);
+									break;
+									case 'x':
+									case 'i':
+									default:
+										pixel[n] = (pixint >> n*8) & 0xff;
+										break;
+								}
+							}
+
+						}
+						//for RGBA, pixel[0] is A, pixel[3] is B
+						//printf("[%x %x %x %x]\n",(int)pixel[0],(int)pixel[1],(int)pixel[2],(int)pixel[3]);
+
+						ipix = (i*ny +j)*nx +k;          //file is in y-down image order
+						jpix = (i*ny +(ny-1-j))*nx + k;  //outgoing is in y-up texture order
+						rgba = &rgbablob[jpix*4];
+						//http://www.color-hex.com/ #aabbcc
+						switch(nchan){
+							case 1: rgba[0] = rgba[1] = rgba[2] = pixel[0]; rgba[3] = 255;break;
+							case 2: rgba[0] = rgba[1] = rgba[2] = pixel[1]; rgba[3] = pixel[0];break;
+							case 3: rgba[0] = pixel[2]; rgba[1] = pixel[1]; rgba[2] = pixel[0]; rgba[3] = 255;  // BGRA
+							break;
+							case 4: rgba[0] = pixel[3]; rgba[1] = pixel[2]; rgba[2] = pixel[1]; rgba[3] = pixel[0]; break; // BGRA
+							default:
+								break;
+						}
+						//memcpy(rgba,&pixint,4);
+
+					}
+				}
+			}
+			tti->channels = nchan;
+			tti->x = nx;
+			tti->y = ny;
+			tti->z = nz;
+			tti->texdata = rgbablob;
+			if(0){
+				printf("\n");
+				for(i=0;i<tti->z;i++){
+					for(j=0;j<tti->y;j++){
+						for(k=0;k<tti->x;k++){
+							int ipix = (i*tti->y + j)*tti->x + k;
+							unsigned int pixint;
+							memcpy(&pixint,&tti->texdata[ipix*4],4);
+							printf("%x ",pixint);
+						}
+						printf("\n");
+					}
+
+				}
+			}
+			iret = TRUE;
+		}
+		fclose(fp);
+	}
+	return iret;
+
+}
+void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname){
+/*	TESTED ONLY RGB Geometry 3 AS OF SEPT 9, 2016
+	writes image in ascii format almost like you would put inline for PixelTexture
+	please put .web3dit suffix on fname (i stands for image, t stands for text format (future x xml, j json formats?)
+	Goal: easy to create image file format just sufficient for web3d types:
+		2D texture
+		3D texture
+		cubemap
+		volume (float luminance)
+	and write out the explanation of the header with the header so don't need this document
+	with sniffable header web3dit:
+	"""
+web3ditG #H 7 byte magic header, means web3d compatible image in text form, 1byte for Geometry sniffing
+C       #G {C,P,3,2}: image geometry: C: cubemap z(depth/layer)=[+-x,+-y,+-z], P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D
+1       #F file version
+        #O optional description
+x       #T {x,i,f} how to read space-delimited value: x as hex, i as int, f as float
+0 255   #R range of channel, most useful for normalizing floats
+4       #N channels/components per value ie RGBA as int: 4, RGBA as 4 ints: 1
+1       #M values per pixel ie RGBA as int: 1, RGBA as 4 ints: 4
+RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA, L, RGB
+3       #D number of dimensions, 2 for normal 2D image, 3 for 3D image
+3 3 3   #P[D] size in pixels in each dimension: x,y,z(depth/layer) (use 1 for z if 2D)
+#I image values follow with x in inner loop, y-down image direction, z in outer:
+0xFF00FF .... 
+	"""
+	format 'invented' by dug9 for testing freewrl, License: MIT
+*/
+	int i,j,k,m,nx,ny,nz,nv,nc, ishex, isint, isfloat, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, nchan;
+	int version, Rmin, Rmax, Nchannelspervalue, Mvaluesperpixel, Dimensions;
+	unsigned int pixint;
+	float pixfloat;
+	float sx,sy,sz,tx,ty,tz;
+	char Geometry, *ODescription, Type, *Componentnames, Pixels[10];
+	static char *LRGBA [] = {"L","LA","RGB","RGBA"};
+	FILE *fp;
+
+
+	iret = FALSE;
+
+	fp = fopen(fname,"w+");
+	if (fp != NULL) {
+		unsigned char *rgbablob;
+		nchan = tti->channels;
+		nx = tti->x;
+		ny = tti->y;
+		nz = tti->z;
+		rgbablob = tti->texdata;
+		Dimensions = nz == 1 ? 2 : 3;
+		Pixels[0] = nx;
+		Pixels[1] = ny;
+		Pixels[2] = nz;
+		Nchannelspervalue = nchan;
+		Mvaluesperpixel = 1;
+		Rmin = 0;
+		Rmax = 255;
+		Type = 'x';
+		ODescription = "";
+		Geometry = '2';
+		if(nz > 1) Geometry = '3';
+		Componentnames = LRGBA[nchan -1]; //"RGBA";
+		version = 1;
+
+		fprintf(fp,"web3dit%c #H 7 byte magic header, means web3d compatible image in text form, 1byte for Geometry sniffing\n",Geometry);
+		fprintf(fp,"%c       #G {C,P,3,2}: #G {C,P,3,2}: image geometry: C: cubemap z(depth/layer)=[+-x,+-y,+-z], P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D\n",Geometry);
+		fprintf(fp,"%d       #F {1} file version\n",version);
+		fprintf(fp,"%s       #O optional description\n",ODescription);
+		fprintf(fp,"%c       #T {x,i,f} how to read space-delimited value: x as hex, i as int, f as float\n",Type);
+		fprintf(fp,"%d %d   #R range of channel, most useful for normalizing floats\n",Rmin,Rmax);
+		fprintf(fp,"%d       #N channels/components per value ie RGBA as int: 4, RGBA as 4 ints: 1\n",Nchannelspervalue);
+		fprintf(fp,"%d       #M values per pixel ie RGBA as int: 1, RGBA as 4 ints: 4\n",Mvaluesperpixel);
+		fprintf(fp,"%s       #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA, L, RGB\n",Componentnames);
+		fprintf(fp,"%d       #D number of dimensions, 2 for normal 2D image, 3 for 3D image\n",Dimensions);
+		fprintf(fp,"%d %d %d  #P[D] size in pixels in each dimension: x,y,z (use 1 for z if 2D)\n",nx,ny,nz);
+		fprintf(fp,"#I image values follow with x in inner loop, y-down image direction, z in outer:\n");
+
+		//now convert to RGBA 4 bytes per pixel
+		for(i=0;i<nz;i++){
+			for(j=0;j<ny;j++){
+				for(k=0;k<nx;k++){
+					unsigned char *pixel,*rgba;
+					ipix = (i*ny +j)*nx +k; //incoming assumed in y-up texture order
+					jpix = (i*ny +(ny-1-j))*nx + k; //outgoing in y-down image order
+					rgba = &rgbablob[jpix*4];
+					pixint = 0;
+					switch(nchan){
+						case 1:	pixint = rgba[0];break;
+						case 2:	pixint = (rgba[0] << 8) + rgba[3];break;
+						case 3:	pixint = (rgba[0] << 16) + (rgba[1] << 8) + (rgba[2] << 0);break; 
+						case 4:	pixint = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + rgba[3];break; // RGBA
+						default:
+							pixint = 0;
+					}
+					switch(nchan){
+						case 1:	fprintf(fp," %#.2x",pixint);break;
+						case 2:	fprintf(fp," %#.4x",pixint);break;
+						case 3:	fprintf(fp," %#.6x",pixint);break;
+						case 4:	fprintf(fp," %#.8x",pixint);break;
+						default:
+							fprintf(fp," 0x00");break;
+					}
+				}
+			}
+		}
+		fclose(fp);
+	}
+}
+
 int loadImage3DVol(struct textureTableIndexStruct *tti, char *fname){
 /* UNTESTED, UNUSED AS OF SEPT 6, 2016
 	a simple 3D volume texture format 
@@ -611,7 +886,7 @@ The endian is one of
 0 for big endian (most significant byte first). For example Motorola processors, Sun, SGI, some HP.
 1 for little endian (least significant byte first). For example Intel processors, Dec Alphas.
 */
-	int i,j,k,m,nx,ny,nz, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, nchan;
+	int i,j,k,m,nx,ny,nz, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, nchan;
 	float sx,sy,sz,tx,ty,tz;
 	FILE *fp;
 
@@ -666,7 +941,8 @@ The endian is one of
 				for(j=0;j<ny;j++){
 					for(k=0;k<nx;k++){
 						unsigned char *pixel,*rgba;
-						ipix = (i*nz +j)*ny +k;
+						ipix = (i*ny +j)*nx +k; //incoming image 
+						jpix = (i*ny +(ny-1-j))*nx +  k;
 						pixel = &blob[ipix*bpp];
 						rgba = &rgbablob[ipix*4];
 						rgba[3] = 255;
@@ -1541,11 +1817,15 @@ ConsoleMessage(me);}
 	if(loadImage3D_x3di3d(this_tex, fname)){
 		return TRUE;
 	}
+	if(loadImage_web3dit(this_tex,fname)){
+		return TRUE;
+	}
 	if(loadImage3DVol(this_tex, fname)){
 		return TRUE;
 	}
 	if(textureIsDDS(this_tex, fname)){
 		//saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //good for testing round trip
+		//saveImage_web3dit(this_tex, "temp2.web3dit");
 		return TRUE;
 	}
 

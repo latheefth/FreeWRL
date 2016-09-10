@@ -37,6 +37,13 @@
 #include <getopt.h>
 #endif
 
+#if !defined(min)
+    #define min(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __a : __b; })
+#endif
+
+#if !defined(max)
+    #define max(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __b : __a; })
+#endif
 
 void fv_print_version()
 {

@@ -1456,20 +1456,31 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	} else {
 
 
-		/* if we have an ImageCubeMap, we have most likely got a png map; let the
-		   render_ImageCubeMapTexture code unpack the maps from this one png */
-		if (me->nodeType == NODE_ImageCubeMapTexture) {
-			/* this is ok - what is happening is that we have one image, that needs to be 
-			   split up into each face */
-			/* this should print if we are actually working ok
-			if (me->status != TEX_LOADED) {
-				printf ("have ImageCubeMapTexture, but status != TEX_LOADED\n");
-			}
-			*/
+		if (me->nodeType == NODE_ImageCubeMapTexture ) {
+			if(me->z == 1){
+				/* if we have an single 2D image, ImageCubeMap, we have most likely got a png map; 
+				   ________
+				  |	 T    | - Top
+				  |L F R B| - Left, Front, Right, Back
+				  |__D____| - Down(bottom)
+					let the  render_ImageCubeMapTexture code unpack the maps from this one png */
+				/* this is ok - what is happening is that we have one image, that needs to be 
+					split up into each face */
+				/* this should print if we are actually working ok
+				if (me->status != TEX_LOADED) {
+					printf ("have ImageCubeMapTexture, but status != TEX_LOADED\n");
+				}
+				*/
 
-			/* call the routine in Component_CubeMapTexturing.c to split this baby apart */
-			unpackImageCubeMap(me);
-			me->status = TEX_LOADED; /* finito */
+				/* call the routine in Component_CubeMapTexturing.c to split this baby apart */
+				unpackImageCubeMap(me);
+				me->status = TEX_LOADED; /* finito */
+			}else if(me->z == 6){
+				//likely a .DDS (MS invention) or web3dit (dug9 invention)
+				//order of images: +x,-x,+y,-y,+z,-z (or R,L,F,B,T,D)
+				unpackImageCubeMap6(me);
+				me->status = TEX_LOADED; /* finito */
+			}
 		} else {
 
 			/* a pointer to the tex data. We increment the pointer for movie texures */

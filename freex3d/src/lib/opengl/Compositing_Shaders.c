@@ -681,9 +681,7 @@ void main(void) \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
   \n\
   #ifdef CUB \n\
-  //vec3 u  = normalize(castle_vertex_eye.xyz); /* myEyeVertex */ \n\
-  //vec3 v = reflect(u,castle_normal_eye); \n\
-  //fw_TexCoord[0] = fw_NormalMatrix * v; //transform back to object space \n\
+  //cubemap \n\
   vec4 camera = fw_ModelViewInverseMatrix * vec4(0.0,0.0,0.0,1.0); \n\
   vec3 u = normalize( vec4(castle_vertex_eye - camera).xyz ); \n\
   vec3 v = normalize(fw_Normal); \n\
