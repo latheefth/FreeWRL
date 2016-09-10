@@ -1399,13 +1399,13 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		}
 	}
 
-        //ConsoleMessage ("move_texture_to_opengl cubeFace %x\n",getAppearanceProperties()->cubeFace);
+	//ConsoleMessage ("move_texture_to_opengl cubeFace %x\n",getAppearanceProperties()->cubeFace);
 
 	/* is this a CubeMap? If so, lets try this... */
 
 	if (getAppearanceProperties()->cubeFace != 0) {
 		unsigned char *dest = me->texdata;
-        uint32 *sp, *dp;
+		uint32 *sp, *dp;
 
 		int cx;
 
@@ -1417,7 +1417,6 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		//#endif
 
 
-        
 		/* first image in the ComposedCubeMap, do some setups */
 		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT) {
 			FW_GL_TEXPARAMETERI(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1429,19 +1428,18 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 		rx = me->x;
 		ry = me->y;
-
+		dest = me->texdata;
+		//dug9 Sep 10,2016: I'm suspicious of flipping here but it works 'a bit' but not sure if its right,
+		// (reflected workd backwards?) or just needed as a consequence of doing other things wrong elsewhere
 		/* flip the image around */
 		dest = MALLOC (unsigned char *, 4*rx*ry);
 		dp = (uint32 *) dest;
 		sp = (uint32 *) me->texdata;        
-
-
-
 		for (cx=0; cx<rx; cx++) {
 			memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
 		}
-	
-			myTexImage2D(generateMipMaps, getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
+
+		myTexImage2D(generateMipMaps, getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
 		/* last thing to do at the end of the setup for the 6th face */
 		if (getAppearanceProperties()->cubeFace == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z) {
@@ -1451,10 +1449,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			glEnable(GL_TEXTURE_GEN_R);
 		}
 
-
-
 	} else {
-
 
 		if (me->nodeType == NODE_ImageCubeMapTexture ) {
 			if(me->z == 1){
@@ -1578,12 +1573,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				if ((x==rx) && (y==ry)) {
 					dest = mytexdata;
 				} else {
-                    
+
 					/* try this texture on for size, keep scaling down until we can do it */
 					/* all textures are 4 bytes/pixel */
 					dest = MALLOC(unsigned char *, 4 * rx * ry);
 
-						myScaleImage(x,y,rx,ry,mytexdata,dest);
+					myScaleImage(x,y,rx,ry,mytexdata,dest);
 				}
 				
 		

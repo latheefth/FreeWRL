@@ -46,6 +46,68 @@ X3D Cubemap Texturing Component
 #endif
 
 
+/*
+
+"CUBEMAP STANDARDS"?
+- left to right is usually obvious - sky usually at top
+a) for the single image -+-- layout its usually ovbious which way to shoot down and top images:
+	-top of down image is contiguous with bottom of front
+	-bottom of up image is contiguous with top of front
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
+	- direct3D cubic environment mapping
+	- no talk of DDS, but shows +- layout on single uv image (relative to LHS object space axes, Y up)
+		 +y
+	-x  +z  +x  -z
+		 -y
+
+b) for otherwise piecewise cubemaps its a little less obvious, needs standards:
+
+http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/env_texture.html#Textureorientation
+Web3D has texture orientation
+- Front is on the XY plane, in RHS
+- Left is on the YZ plane
++x == Right
+-x == Left
++y == Top
+-y == Down
++z == Back
+-z == Front
+so to match DX ordering:
+R,L,T,D,B,F
+x no mention of which way is up on the the top and bottom images
+
+http://wiki.simigon.com/wiki/index.php?title=Dds_cubemaps
+- has instructions for generating via maya -> photoshop -> dds
+- rotations of images: 4 sides are obvious, top at top
+x up/down seem rotatated: 
+- Up has Right at top (+x when looking from center)
+x Down has Left at top (-x when looking from center)
+F,B,U,D,L,R
+
+OpenGL Redbook p.441 has no diagram, but hints at the same face ordering as dds.
+
+https://docs.unity3d.com/Manual/class-Cubemap.html
+Unity uses Y up, and (unlike web3d) LHS
+Right +x
+Left -x
+Top +Y
+Bottom -Y
+Front +z
+Back -Z
+Top of the bottom image is Left -x like simigon says about DDS cubemap
+Top of the top image is front or back likely +z front
+
+http://stackoverflow.com/questions/11685608/convention-of-faces-in-opengl-cubemapping
+- mentions of renderman
+- a LHS diagram for figuring opengl cube map
+http://www.nvidia.com/object/cube_map_ogl_tutorial.html
+- the refleciton pool architecture model images I'm using are from an nVidia oopengl cubemap tutorial
+
+
+*/
+
+
+
 /* testing */
 //OLDCODE #define CUBE_MAP_SIZE 256
 
@@ -770,7 +832,9 @@ static int offsets[]={
 	--	Down	--	--
 */
 
-/* fill in the 6 PixelTextures from the data in the texture */
+/* fill in the 6 PixelTextures from the data in the texture 
+	this is for when you have a single .png image with 6 sub-patches
+*/
 void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	int size;
 	int count;
@@ -846,8 +910,10 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	FREE_IF_NZ(me->texdata);
 }
 
-/* -order of images: +x,-x,+y,-y,+z,-z (or R,L,F,B,T,D) */
+
 void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
+	//for .DDS and .web3dit that are in cubemap format ie 6 contiguous images in tti->teximage
+	// incoming order of images: +x,-x,+y,-y,+z,-z (or R,L,F,B,T,D ?) */
 	int size;
 	int count;
 
