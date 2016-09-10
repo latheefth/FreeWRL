@@ -939,9 +939,9 @@ void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
 	// (dug9 incoming order from dds cubemap texture) +x,-x,+y,-y,+z,-z
 	uint32 imlookup[] = {1,0,2,3,4,5}; //dug9 lookup order that experimentally seems to work
 	for (count=0; count <6; count++) {
-		int x,y,i;
+		int x,y,i,j,k;
 		uint32 val, ioff;
-		uint32 *tex = (uint32 *) me->texdata;
+		uint32 *tex;
 		struct X3D_PixelTexture *pt = X3D_PIXELTEXTURE(node->__subTextures.p[count]);
 
 		/* create the MFInt32 array for this face in the PixelTexture */
@@ -954,11 +954,22 @@ void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
 		ioff = imlookup[count] * me->x * me->y;
 		//we are in char rgba order, but we need to convert to endian-specific uint32
 		// which is what texture_load_from_pixelTexture() will be expecting
-		for(i=0;i<me->x*me->y;i++){
-			uint32 pixint;
-			unsigned char* rgba = (unsigned char*)&tex[ioff + i];
-			pixint = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + rgba[3];
-			pt->image.p[i+3] = pixint;
+		//in imageIsDDS() image reader, we already flipped from top-down image to bottom-up texture order
+		// which pixeltexture is expecting
+		tex = (uint32 *) me->texdata;
+		tex = &tex[ioff];
+		for(j=0;j<me->y;j++){
+			for(i=0;i<me->x;i++){
+				int ipix,jpix;
+				uint32 pixint;
+				unsigned char* rgba;
+
+				ipix = j*me->x + i;  //image row same as image row out
+				//jpix = (me->y-1 -j)*me->x + i;  //flip image vertically - no, pixeltexture is bottom-up like incoming
+				rgba = (unsigned char*)&tex[ipix];
+				pixint = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + rgba[3];
+				pt->image.p[ipix+3] = pixint;
+			}
 		}
 	}
 

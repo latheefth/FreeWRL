@@ -283,6 +283,7 @@ static void texture_load_from_pixelTexture (textureTableIndexStruct_s* this_tex,
 	} else {
 		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/fieldsDef.html#SFImageAndMFImage
 		//SFImage fields contain three integers representing the width, height and number of components in the image
+		//Pixels are specified from left to right, bottom to top (ie like a texture, not an image)
 		wid = *iptr; iptr++;
 		hei = *iptr; iptr++;
 		depth = *iptr; iptr++;

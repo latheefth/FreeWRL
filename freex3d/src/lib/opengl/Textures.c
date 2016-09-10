@@ -1429,16 +1429,14 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		rx = me->x;
 		ry = me->y;
 		dest = me->texdata;
-		//dug9 Sep 10,2016: I'm suspicious of flipping here but it works 'a bit' but not sure if its right,
-		// (reflected workd backwards?) or just needed as a consequence of doing other things wrong elsewhere
-		/* flip the image around */
-		dest = MALLOC (unsigned char *, 4*rx*ry);
-		dp = (uint32 *) dest;
-		sp = (uint32 *) me->texdata;        
-		for (cx=0; cx<rx; cx++) {
-			memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
+		if(1){
+			dest = MALLOC (unsigned char *, 4*rx*ry);
+			dp = (uint32 *) dest;
+			sp = (uint32 *) me->texdata;        
+			for (cx=0; cx<rx; cx++) {
+				memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
+			}
 		}
-
 		myTexImage2D(generateMipMaps, getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
 		/* last thing to do at the end of the setup for the 6th face */
