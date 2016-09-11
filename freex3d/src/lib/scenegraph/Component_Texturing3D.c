@@ -180,9 +180,15 @@ void render_ImageTexture3D (struct X3D_ImageTexture3D *node) {
 
 void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
 	/* printf ("render_ComposedTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
-	loadTextureNode(X3D_NODE(node),NULL);
-	loadMultiTexture(node);
-	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+	if(node && node->_nodeType == NODE_ComposedTexture3D){
+		int i;
+		struct Multi_Node *tex = &node->texture;
+		for(i=0;i<tex->n;i++){
+			loadTextureNode(X3D_NODE(tex->p[i]),NULL);
+			//loadMultiTexture(node);
+		}
+		gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+	}
 }
 
 void loadImageTexture3D(struct X3D_ImageTexture3D *node){
