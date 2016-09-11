@@ -133,7 +133,7 @@ CCubeMapProcessor.cpp:
 - if +Y is top, -Y bottom, +Z front, -Z back, then its saying:
 	top of the Top is against Back, and top of the Bottom is against Front.
 x doesn't explain the order of faces in .dds file
-* does harmonize with simigon above, which has (dug9-derived) file side order (LHS Z):
+* does harmonize with simigon above, which has (dug9-derived) file face order (LHS Z):
   _____ _____ _____ _____ _____ _____
  |     |     |     |     |     |     |
  | +X  | -X  | +Y  | -Y  | +Z  | -Z  |
@@ -142,13 +142,14 @@ x doesn't explain the order of faces in .dds file
 
 SUMMARY OF BEST GUESS OF DDS CUBEMAP LAYOUT:
 a) LHS: +y is up, xy form RHS 2D axes, +z is LHS relative to xy
-b) order in file: (as per simigon derived diagram above):
+b) face order in file: (as per simigon derived diagram above):
 	 +x (Right), -x (Left), +y (Top), -y(Bottom), +z(Front, in LHS), -z(Back, in LHS)
 c) uv direction per face (as per CubeMapGen diagram above): 
 	- x,z sides (+x/Right,-x/Left,+z/Front,-z/Back): top of image is up; 
 	- +y(Top): top of Top is against -z(Back)
 	- -y(Bottom): top of Bottom is against +z(Front)
-
+This interpretation matches the 2nd diagram on this page:
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
 
 
 */
