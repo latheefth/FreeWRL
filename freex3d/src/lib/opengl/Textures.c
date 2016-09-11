@@ -1430,9 +1430,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		ry = me->y;
 		dest = me->texdata;
 		if(1){
+			//flip. (but which direction you flipping. And why?)
 			dest = MALLOC (unsigned char *, 4*rx*ry);
 			dp = (uint32 *) dest;
-			sp = (uint32 *) me->texdata;        
+			sp = (uint32 *) me->texdata;
+			//even though you talk about cx, rx, I think you're flipping in y
+			//and just lucky rx=ry.        
 			for (cx=0; cx<rx; cx++) {
 				memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
 			}

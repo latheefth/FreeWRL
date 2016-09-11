@@ -187,6 +187,9 @@ A. LHS vs RHS
 - I don't seem to need to exchange front and back faces to go from LHS to RHS when loading DDS
 - face order matches opengl's POSITIVE-X,... etc
 - and that means after 3 days of trying to understand, I still don't. Something above is likely wrong.
+- opengl redbook doesn't say if LHS or RHS for cubemap
+  H: opengl also LHS
+
 B. reflection wrong
 - when I reflect in ubershader, it doesn't reverse sides like looking in a mirror (GenCubeMap does)
 - reflection seems stretchy in a weird way - is it like reflecting off the far side of the sphere?
@@ -229,18 +232,18 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 		/* set up the appearanceProperties to indicate a CubeMap */
 		getAppearanceProperties()->cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
         //printf ("set cubeFace to %d in rcm\n",getAppearanceProperties()->cubeFace);
-		/* go through these, right left, top, bottom, back, front */
+		/* go through these, right left, top, bottom, front, back, */
+		//                     +x,   -x,  +y,     -y,   +z,   -z    //LHS system
+		//                                              -z,   +z    //RHS system
 		switch (count) {
+			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
+
 			case 2: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->top,thistex);  break;}
 			case 3: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->bottom,thistex);   break;}
 
-			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
-			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
-
-
-
-			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
-			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
+			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
+			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
 		}
         //printf ("rcm, thistex %p, type %s\n",thistex,stringNodeType(thistex->_nodeType));
 		if (thistex != 0) {
