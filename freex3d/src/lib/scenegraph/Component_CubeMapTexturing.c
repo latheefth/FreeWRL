@@ -145,13 +145,51 @@ a) LHS: +y is up, xy form RHS 2D axes, +z is LHS relative to xy
 b) face order in file: (as per simigon derived diagram above):
 	 +x (Right), -x (Left), +y (Top), -y(Bottom), +z(Front, in LHS), -z(Back, in LHS)
 c) uv direction per face (as per CubeMapGen diagram above): 
-	- x,z sides (+x/Right,-x/Left,+z/Front,-z/Back): top of image is up; 
+	- x,z faces (+x/Right,-x/Left,+z/Front,-z/Back): top of image is up; 
 	- +y(Top): top of Top is against -z(Back)
 	- -y(Bottom): top of Bottom is against +z(Front)
 This interpretation matches the 2nd diagram on this page:
 https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
 
 
+CUBEMAP FORMAT FOR INTERNAL FREEWRL AND .WEB3DIT
+http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/env_texture.html#Textureorientation
+Similar to above for DDS summary, except:
+1. using opengl/web3d RHS: when naming the faces by signed axis:-
+	sign on z is reversed, -z is Front, +z is Back
+2. order: +x,-x,+y,-y,+z,-z except +z,-z mean something different. So relative to DDS, we swap Front and Back
+	Back is before Front in linear list
+
+a) RHS with y-up, -z Front
+b) face order in linear array:
+	 +x (Right), -x (Left), +y (Top), -y(Bottom), +z(Back, in RHS), -z(Front, in RHS)
+c) uv direction per face - (same as DDS)
+	- x,z faces: top of image is up
+	- +y(Top): top of Top is against +z(Back)
+	- -y(Bottom): top of Bottom is against -z(Front)
+
+OPENGL CUBETEXTURE CONVENTION:
+- it has defined constants 
+- GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT
+- in numerical order +X, -X, +Y, -Y, +Z, -Z
+- RHS, +Z is Back
+  http://learnopengl.com/#!Advanced-OpenGL/Cubemaps
+- assume (untested): uv directions are same as FREEWRL/WEB3DIT and DDS:
+	- top of x,z faces: +y/up
+	- top of Top: adjacent to Back
+	- top of Bottom: adjacent to Front
+
+I've confirmed my proper creation of dds cubemap with Gimp DDS using ATI's GenCubeMap utility
+- GenCubeMap uses an axis numbering sceme that matches DX/DDS conventions
+
+What's odd Sept 11, 2016:
+A. LHS vs RHS
+- I don't seem to need to exchange front and back faces to go from LHS to RHS when loading DDS
+- face order matches opengl's POSITIVE-X,... etc
+- and that means after 3 days of trying to understand, I still don't. Something above is likely wrong.
+B. reflection wrong
+- when I reflect in ubershader, it doesn't reverse sides like looking in a mirror (GenCubeMap does)
+- reflection seems stretchy in a weird way - is it like reflecting off the far side of the sphere?
 */
 
 
@@ -468,7 +506,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	unsigned int y = 0;
 	unsigned int z = 0;
 	unsigned int rshift[4]; //to go with color bitmask
-	int nchan;
+	int nchan, idoFrontBackSwap;
 	unsigned int mipMapCount = 0;
 	unsigned int size,xSize, ySize,zSize;
 
@@ -610,6 +648,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		x = xSize = hdr.dwWidth;
 		y = ySize = hdr.dwHeight;
 		z = zSize = 1;
+		idoFrontBackSwap = 0;
 		if( PF_IS_VOLUME(hdr) )
 			z = zSize = hdr.dwDepth;
 		if( hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP){
@@ -621,6 +660,8 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEZ) facecount++;
 			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEZ) facecount++;
 			z = zSize = facecount;
+			if(z==6)
+				idoFrontBackSwap = 1;
 		}
 		nchan = 3;
 		if(DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags) nchan = 4;
@@ -645,8 +686,12 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 				for(j=0;j<y;j++){
 					for(k=0;k<x;k++){
 						unsigned char *pixel,*rgba;
+						int ii;
+						ii = idoFrontBackSwap && i == 4? 5 : i; //swap Front and Back faces for opengl order
+						ii = idoFrontBackSwap && i == 5? 4 : i;
+						ii = i;
 						ipix = (i*y +j)*x +k;     //top down, for input image
-						jpix = (i*y +(y-1-j))*x + k; //bottom up, for ouput texture
+						jpix = (ii*y +(y-1-j))*x + k; //bottom up, for ouput texture
 						pixel = &bdata[ipix * bpp];
 						rgba = &rgbablob[jpix *4];
 						//freewrl target format: RGBA
@@ -984,8 +1029,9 @@ void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
 	}
 	/* go through each face, and send the data to the relevant PixelTexture */
 	/* (jas declared target) order: right left, top, bottom, back, front */
-	// (dug9 incoming order from dds cubemap texture) +x,-x,+y,-y,+z,-z
-	uint32 imlookup[] = {1,0,2,3,4,5}; //dug9 lookup order that experimentally seems to work
+	// (dug9 incoming order from dds/.web3dit cubemap texture, RHS: +x,-x,+y,-y,+z,-z
+	// this should be same as opengl/web3d order
+	uint32 imlookup[] = {0,1,2,3,4,5}; //dug9 lookup order that experimentally seems to work
 	for (count=0; count <6; count++) {
 		int x,y,i,j,k;
 		uint32 val, ioff;

@@ -609,7 +609,7 @@ int loadImage_web3dit(struct textureTableIndexStruct *tti, char *fname){
 	"""
 web3ditG #H 7 byte magic header, means web3d compatible image in text form, 1byte for Geometry sniffing
 1       #F file version
-C       #G {C,P,3,2}: #G {C,P,3,2}: image geometry: C: cubemap z(depth/layer)=[+-x,+-y,+-z], P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D
+C       #G {C,P,3,2}: image geometry: C: cubemap RHS y-up z/depth/layer/order [+-x,+-y,+-z], top of top +z, bottom of bottom -z P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D
         #O optional description
 x       #T {x,i,f} how to read space-delimited value: x as hex, i as int, f as float
 0 255   #R range of channel, most useful for normalizing floats
@@ -773,7 +773,7 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 
 }
 void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname){
-/*	TESTED ONLY RGB Geometry 3 AS OF SEPT 9, 2016
+/*	TESTED ONLY RGB Geometry 3 and C AS OF SEPT 9, 2016
 	writes image in ascii format almost like you would put inline for PixelTexture
 	please put .web3dit suffix on fname (i stands for image, t stands for text format (future x xml, j json formats?)
 	Goal: easy to create image file format just sufficient for web3d types:
@@ -785,7 +785,7 @@ void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname){
 	with sniffable header web3dit:
 	"""
 web3ditG #H 7 byte magic header, means web3d compatible image in text form, 1byte for Geometry sniffing
-C       #G {C,P,3,2}: image geometry: C: cubemap z(depth/layer)=[+-x,+-y,+-z], P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D
+C       #G {C,P,3,2} image geometry: C: cubemap RHS y-up z/depth/layer/order [+-x,+-y,+-z], top of top +z, bottom of bottom -z P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D
 1       #F file version
         #O optional description
 x       #T {x,i,f} how to read space-delimited value: x as hex, i as int, f as float
@@ -839,7 +839,7 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 		iydown = (YDirection == 'D') ? 1 : 0;
 
 		fprintf(fp,"web3dit%c #H 7 byte magic header, means web3d compatible image in text form, 1byte for Geometry sniffing\n",Geometry);
-		fprintf(fp,"%c       #G {C,P,3,2}: #G {C,P,3,2}: image geometry: C: cubemap z(depth/layer)=[+-x,+-y,+-z], P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D\n",Geometry);
+		fprintf(fp,"%c       #G {C,P,3,2}: image geometry: C: cubemap RHS y-up z/depth/layer/order [+-x,+-y,+-z], top of top +z, bottom of bottom -z P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D\n",Geometry);
 		fprintf(fp,"%d       #F {1} file version\n",version);
 		fprintf(fp,"%s       #O optional description\n",ODescription);
 		fprintf(fp,"%c       #T {x,i,f} how to read space-delimited value: x as hex, i as int, f as float\n",Type);
@@ -848,8 +848,8 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 		fprintf(fp,"%d       #M values per pixel ie RGBA as int: 1, RGBA as 4 ints: 4\n",Mvaluesperpixel);
 		fprintf(fp,"%s       #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA, L, RGB\n",Componentnames);
 		fprintf(fp,"%d       #D number of dimensions, 2 for normal 2D image, 3 for 3D image\n",Dimensions);
-		fprintf(fp,"%c       #Y {U,D} image y-Down or texture y-Up row order\n",YDirection);
 		fprintf(fp,"%d %d %d  #P[D] size in pixels in each dimension: x,y,z (use 1 for z if 2D)\n",nx,ny,nz);
+		fprintf(fp,"%c       #Y {U,D} image y-Down or texture y-Up row order\n",YDirection);
 		fprintf(fp,"#I image values follow with x in inner loop, y-down image direction, z in outer:\n");
 
 		//now convert to RGBA 4 bytes per pixel
@@ -1846,8 +1846,8 @@ ConsoleMessage(me);}
 		return TRUE;
 	}
 	if(textureIsDDS(this_tex, fname)){
-		//saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //good for testing round trip
-		//saveImage_web3dit(this_tex, "temp2.web3dit");
+		////saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //obsolete now with more advanced web3dit
+		//saveImage_web3dit(this_tex, "temp2.web3dit"); //good for testing round trip
 		return TRUE;
 	}
 
