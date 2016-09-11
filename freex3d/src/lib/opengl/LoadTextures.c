@@ -378,8 +378,12 @@ static void texture_load_from_pixelTexture3D (textureTableIndexStruct_s* this_te
 		printf ("PixelTexture, need at least 3 elements, have %d\n",node->image.n);
 		ok = FALSE;
 	} else {
-		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/fieldsDef.html#SFImageAndMFImage
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texture3D.html#PixelTexture3D
 		//MFInt32 image field contain 4 integers representing channels(aka components), width, height,depth the image
+		//it doesn't say the row-order (y-up like texture or y-down like image)
+		//closest analogy: SFImage Field uses y-up (texture) convention
+		//We will use y-up texture convention here. That means no row flipping as you read,
+		//first row is bottom of texture
 		bpp = *iptr; iptr++;
 		wid = *iptr; iptr++;
 		hei = *iptr; iptr++;
@@ -455,7 +459,8 @@ static void texture_load_from_pixelTexture3D (textureTableIndexStruct_s* this_te
 }
 
 int loadImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
-/*	reads 3D image in ascii format like you would put inline for PixelTexture3D
+/*	SUPERCEEDED by web3dit
+	reads 3D image in ascii format like you would put inline for PixelTexture3D
 	except with sniffable header x3dimage3d ie:
 	"""
 	x3di3d
@@ -533,7 +538,8 @@ int loadImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 
 }
 void saveImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
-/*	reads 3D image in ascii format like you would put inline for PixelTexture3D
+/*	SUPERCEEDED by web3dit
+	reads 3D image in ascii format like you would put inline for PixelTexture3D
 	except with sniffable header x3dimage3d ie:
 	"""
 	x3di3d
@@ -591,12 +597,12 @@ void saveImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 }
 
 int loadImage_web3dit(struct textureTableIndexStruct *tti, char *fname){
-/*	TESTED ONLY RGB Geometry 3 AS OF SEPT 9, 2016
+/*	TESTED ONLY RGB Geometry 3 and C AS OF SEPT 9, 2016
 	reads image in ascii format almost like you would put inline for PixelTexture
 	Goal: easy to create image file format just sufficient for web3d types:
-		2D texture
-		3D texture
-		cubemap
+		2 2D texture
+		3 3D texture
+		C cubemap
 		volume (float luminance)
 		panorama
 	with sniffable header web3dit:
@@ -612,17 +618,18 @@ x       #T {x,i,f} how to read space-delimited value: x as hex, i as int, f as f
 RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA, L, RGB
 3       #D number of dimensions, 2 for normal 2D image, 3 for 3D image
 3 3 3   #P[D] size in pixels in each dimension: x,y,z (use 1 for z if 2D)
-#I image values follow with x in inner loop, y-down image direction, z in outer:
+D       #Y {U,D} image y-Down or texture y-Up row order
+#I image values follow with x in inner loop, Y image direction, z in outer:
 0xFF00FF .... 
 	"""
 	format 'invented' by dug9 for testing freewrl, License: MIT
 */
-	int i,j,k,m,nx,ny,nz,nv,nc, ishex, isint, isfloat, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, nchan;
+	int i,j,k,m,nx,ny,nz,nv,nc, ishex, isint, isfloat, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, kpix, nchan;
 	int version, Rmin, Rmax, Nchannelspervalue, Mvaluesperpixel, Dimensions;
-	unsigned int pixint, Pixels[10];
+	unsigned int pixint, Pixels[10], iydown;
 	float pixfloat;
 	float sx,sy,sz,tx,ty,tz;
-	char Geometry, ODescription[200], Type, Componentnames[10], LRGBA[4];
+	char Geometry, ODescription[200], Type, Componentnames[10], LRGBA[4], YDirection;
 	FILE *fp;
 
 	iret = FALSE;
@@ -658,6 +665,8 @@ RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA,
 		sscanf(line,"%d",&Dimensions);
 		fgets(line,1000,fp);
 		sscanf(line,"%d %d %d",&Pixels[0], &Pixels[1], &Pixels[2]);
+		fgets(line,1000,fp);
+		sscanf(line,"%c",&YDirection);
 		fgets(line,1000,fp); //waste #I Image warning line
 
 
@@ -668,6 +677,8 @@ RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA,
 		nv = Mvaluesperpixel;
 		nc = Nchannelspervalue;
 		nchan = nv * nc;
+		iydown = 1;
+		if(YDirection == 'U') iydown = 0;
 			
 		totalbytes = 4 * nx * ny * nz; //output 4 channel RGBA image size
 		if(totalbytes <= 128 * 128 * 128 * 4){
@@ -710,10 +721,12 @@ RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA,
 						}
 						//for RGBA, pixel[0] is A, pixel[3] is B
 						//printf("[%x %x %x %x]\n",(int)pixel[0],(int)pixel[1],(int)pixel[2],(int)pixel[3]);
-
-						ipix = (i*ny +j)*nx +k;          //file is in y-down image order
-						jpix = (i*ny +(ny-1-j))*nx + k;  //outgoing is in y-up texture order
-						rgba = &rgbablob[jpix*4];
+						
+						ipix = (i*ny +j)*nx +k;          //if file is like outgoing y-up texture order: first row is bottom of texture
+						jpix = (i*ny +(ny-1-j))*nx + k;  //if file is in y-down image order: first row is top of image
+						kpix = iydown ? jpix : ipix;
+						if(iydown) kpix = 
+						rgba = &rgbablob[kpix*4];
 						//http://www.color-hex.com/ #aabbcc
 						switch(nchan){
 							case 1: rgba[0] = rgba[1] = rgba[2] = pixel[0]; rgba[3] = 255;break;
@@ -739,9 +752,12 @@ RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA,
 				for(i=0;i<tti->z;i++){
 					for(j=0;j<tti->y;j++){
 						for(k=0;k<tti->x;k++){
-							int ipix = (i*tti->y + j)*tti->x + k;
+							int ipix,jpix,kpix;
+							ipix = (i*tti->y + j)*tti->x + k;
+							jpix = (i*tti->y + (tti->y -1 - j))*tti->x + k;
+							kpix = ipix; //print it like we see it
 							unsigned int pixint;
-							memcpy(&pixint,&tti->texdata[ipix*4],4);
+							memcpy(&pixint,&tti->texdata[kpix*4],4);
 							printf("%x ",pixint);
 						}
 						printf("\n");
@@ -779,17 +795,18 @@ x       #T {x,i,f} how to read space-delimited value: x as hex, i as int, f as f
 RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA, L, RGB
 3       #D number of dimensions, 2 for normal 2D image, 3 for 3D image
 3 3 3   #P[D] size in pixels in each dimension: x,y,z(depth/layer) (use 1 for z if 2D)
-#I image values follow with x in inner loop, y-down image direction, z in outer:
+D       #Y {U,D} image y-Down or texture y-Up row order
+#I image values follow with x in inner loop, Y image direction, z in outer:
 0xFF00FF .... 
 	"""
 	format 'invented' by dug9 for testing freewrl, License: MIT
 */
-	int i,j,k,m,nx,ny,nz,nv,nc, ishex, isint, isfloat, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, nchan;
+	int i,j,k,m,nx,ny,nz,nv,nc, ishex, isint, isfloat, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, kpix, iydown, nchan;
 	int version, Rmin, Rmax, Nchannelspervalue, Mvaluesperpixel, Dimensions;
 	unsigned int pixint;
 	float pixfloat;
 	float sx,sy,sz,tx,ty,tz;
-	char Geometry, *ODescription, Type, *Componentnames, Pixels[10];
+	char Geometry, *ODescription, Type, *Componentnames, Pixels[10], YDirection;
 	static char *LRGBA [] = {"L","LA","RGB","RGBA"};
 	FILE *fp;
 
@@ -818,6 +835,8 @@ RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA,
 		if(nz > 1) Geometry = '3';
 		Componentnames = LRGBA[nchan -1]; //"RGBA";
 		version = 1;
+		YDirection = 'D';
+		iydown = (YDirection == 'D') ? 1 : 0;
 
 		fprintf(fp,"web3dit%c #H 7 byte magic header, means web3d compatible image in text form, 1byte for Geometry sniffing\n",Geometry);
 		fprintf(fp,"%c       #G {C,P,3,2}: #G {C,P,3,2}: image geometry: C: cubemap z(depth/layer)=[+-x,+-y,+-z], P: 360 panorama [L->R, 360/z ], 3: texture3D or Volume [z=depth], 2: texture2D\n",Geometry);
@@ -829,6 +848,7 @@ RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA,
 		fprintf(fp,"%d       #M values per pixel ie RGBA as int: 1, RGBA as 4 ints: 4\n",Mvaluesperpixel);
 		fprintf(fp,"%s       #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA, L, RGB\n",Componentnames);
 		fprintf(fp,"%d       #D number of dimensions, 2 for normal 2D image, 3 for 3D image\n",Dimensions);
+		fprintf(fp,"%c       #Y {U,D} image y-Down or texture y-Up row order\n",YDirection);
 		fprintf(fp,"%d %d %d  #P[D] size in pixels in each dimension: x,y,z (use 1 for z if 2D)\n",nx,ny,nz);
 		fprintf(fp,"#I image values follow with x in inner loop, y-down image direction, z in outer:\n");
 
@@ -839,7 +859,8 @@ RGBA    #C[N*M] component names and order, choose from: {R,G,B,A,L} ie RGBA, LA,
 					unsigned char *pixel,*rgba;
 					ipix = (i*ny +j)*nx +k; //incoming assumed in y-up texture order
 					jpix = (i*ny +(ny-1-j))*nx + k; //outgoing in y-down image order
-					rgba = &rgbablob[jpix*4];
+					kpix = iydown ? jpix : ipix;
+					rgba = &rgbablob[kpix*4];
 					pixint = 0;
 					switch(nchan){
 						case 1:	pixint = rgba[0];break;
