@@ -82,7 +82,10 @@ http://wiki.simigon.com/wiki/index.php?title=Dds_cubemaps
 x up/down seem rotatated: 
 - Up has Right at top (+x when looking from center)
 x Down has Left at top (-x when looking from center)
-F,B,U,D,L,R
+file order: F,B,U,D,L,R
+Assuming F==+x: in LHS system:
+file order: +x,-x,+y,-y,+z,-z
+- with top of Top against -z, top of bottom against +z
 
 OpenGL Redbook p.441 has no diagram, but hints at the same face ordering as dds.
 
@@ -102,6 +105,50 @@ http://stackoverflow.com/questions/11685608/convention-of-faces-in-opengl-cubema
 - a LHS diagram for figuring opengl cube map
 http://www.nvidia.com/object/cube_map_ogl_tutorial.html
 - the refleciton pool architecture model images I'm using are from an nVidia oopengl cubemap tutorial
+
+
+http://developer.amd.com/tools-and-sdks/archive/games-cgi/cubemapgen/
+CCubeMapProcessor.cpp:
+// D3D cube map face specification
+//   mapping from 3D x,y,z cube map lookup coordinates 
+//   to 2D within face u,v coordinates
+//
+//   --------------------> U direction 
+//   |                   (within-face texture space)
+//   |         _____
+//   |        |     |
+//   |        | +Y  |
+//   |   _____|_____|_____ _____
+//   |  |     |     |     |     |
+//   |  | -X  | +Z  | +X  | -Z  |
+//   |  |_____|_____|_____|_____|
+//   |        |     |
+//   |        | -Y  |
+//   |        |_____|
+//   |
+//   v   V direction
+//      (within-face texture space)
+- that's an LHS (Left-Handed coordinate System)
+- don't take the U,V as absolute in this diagram, but rather as directional hint 
+- if +Y is top, -Y bottom, +Z front, -Z back, then its saying:
+	top of the Top is against Back, and top of the Bottom is against Front.
+x doesn't explain the order of faces in .dds file
+* does harmonize with simigon above, which has (dug9-derived) file side order (LHS Z):
+  _____ _____ _____ _____ _____ _____
+ |     |     |     |     |     |     |
+ | +X  | -X  | +Y  | -Y  | +Z  | -Z  |
+ |_____|_____|_____|_____|_____|_____|
+
+
+SUMMARY OF BEST GUESS OF DDS CUBEMAP LAYOUT:
+a) LHS: +y is up, xy form RHS 2D axes, +z is LHS relative to xy
+b) order in file: (as per simigon derived diagram above):
+	 +x (Right), -x (Left), +y (Top), -y(Bottom), +z(Front, in LHS), -z(Back, in LHS)
+c) uv direction per face (as per CubeMapGen diagram above): 
+	- x,z sides (+x/Right,-x/Left,+z/Front,-z/Back): top of image is up; 
+	- +y(Top): top of Top is against -z(Back)
+	- -y(Bottom): top of Bottom is against +z(Front)
+
 
 
 */
