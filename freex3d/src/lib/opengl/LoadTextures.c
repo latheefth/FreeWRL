@@ -1756,8 +1756,11 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	
 #if defined(ANDROIDNDK)
 	char * fname = STRDUP(filename);
-	if (loadImage3D_x3di3d(this_tex, fname))
+	//if (loadImage3D_x3di3d(this_tex, fname))
+	//	return TRUE;
+	if(loadImage_web3dit(this_tex,fname)){
 		return TRUE;
+	}
 	if (loadImage3DVol(this_tex, fname))
 		return TRUE;
 	if (textureIsDDS(this_tex, fname)) {
@@ -1836,9 +1839,10 @@ ConsoleMessage(me);}
 	int ret;
 
 	fname = STRDUP(filename);
-	if(loadImage3D_x3di3d(this_tex, fname)){
-		return TRUE;
-	}
+	//if(loadImage3D_x3di3d(this_tex, fname)){
+	// //works but superceded by more general web3dit format
+	//	return TRUE;
+	//}
 	if(loadImage_web3dit(this_tex,fname)){
 		return TRUE;
 	}
@@ -1846,7 +1850,7 @@ ConsoleMessage(me);}
 		return TRUE;
 	}
 	if(textureIsDDS(this_tex, fname)){
-		////saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //obsolete now with more advanced web3dit
+		////saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //obsolete/superceded now with more advanced web3dit
 		//saveImage_web3dit(this_tex, "temp2.web3dit"); //good for testing round trip
 		return TRUE;
 	}
@@ -1905,6 +1909,15 @@ ConsoleMessage(me);}
 #if !defined (_MSC_VER) && !defined(_ANDROID) && !defined(ANDROIDNDK)
 	Imlib_Image image;
 	Imlib_Load_Error error_return;
+	if(loadImage_web3dit(this_tex,filename)){
+		return TRUE;
+	}
+	if (loadImage3DVol(this_tex, filename))
+		return TRUE;
+	if (textureIsDDS(this_tex, filename)) {
+		//saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //good for testing round trip
+		return TRUE;
+	}
 
 	//image = imlib_load_image_immediately(filename);
 	//image = imlib_load_image(filename);
