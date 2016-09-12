@@ -161,6 +161,7 @@ struct X3D_Node *getThis_textureTransform(){
 
 void child_Appearance (struct X3D_Appearance *node) {
 	struct X3D_Node *tmpN;
+	ttglobal tg = gglobal();
 	
 	/* printf ("in Appearance, this %d, nodeType %d\n",node, node->_nodeType);
 	   printf (" vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
@@ -192,6 +193,7 @@ void child_Appearance (struct X3D_Appearance *node) {
 		
 		/* now, render the texture */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->texture,tmpN);
+		tg->RenderFuncs.texturenode = (void*)tmpN;
 
 		render_node(tmpN);
 	}
@@ -474,8 +476,13 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->texture,tex);
 		if ((tex->_nodeType == NODE_ImageTexture) || 
 			(tex->_nodeType == NODE_MovieTexture) || 
-			(tex->_nodeType == NODE_PixelTexture)){
+			(tex->_nodeType == NODE_PixelTexture) ){
 			retval |= ONE_TEX_APPEARANCE_SHADER;
+		} else if( (tex->_nodeType == NODE_PixelTexture3D) ||
+			(tex->_nodeType == NODE_ComposedTexture3D) ||
+			(tex->_nodeType == NODE_ImageTexture3D) ) {
+			retval |= ONE_TEX_APPEARANCE_SHADER;
+			retval |= TEX3D_APPEARANCE_SHADER;
 		} else if (tex->_nodeType == NODE_MultiTexture) {
 			retval |= MULTI_TEX_APPEARANCE_SHADER;
 		} else if ((tex->_nodeType == NODE_ComposedCubeMapTexture) ||
@@ -613,13 +620,19 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 			// --to get to get max channels or hasAlpha, or need channels for each one?
 			// H0: if nay of the multitextures has an alpha, then its alpha replaces material alpha
 			// H1: multitexture alpha is only for composing textures, assumed to take material alpha 
-			if(appearance->texture->_nodeType == NODE_MultiTexture){
+			if(appearance->texture->_nodeType == NODE_MultiTexture || 
+				appearance->texture->_nodeType == NODE_ComposedTexture3D ){
 				int k;
-				struct X3D_MultiTexture * mtex = (struct X3D_MultiTexture*)appearance->texture;
+				struct Multi_Node * mtex = NULL;
+				switch(appearance->texture->_nodeType){
+					case NODE_MultiTexture: mtex = &((struct X3D_MultiTexture*)appearance->texture)->texture; break;
+					case NODE_ComposedTexture3D: mtex = &((struct X3D_ComposedTexture3D*)appearance->texture)->texture; break;
+				}
 				channels = 0;
 				imgalpha = 0;
-				for(k=0;k<mtex->texture.n;k++){
-					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(mtex->texture.p[k]);
+				if(mtex)
+				for(k=0;k<mtex->n;k++){
+					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(mtex->p[k]);
 					haveTexture = 1;
 					if(tti){
 						//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
@@ -629,6 +642,30 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 						imgalpha = max(tti->hasAlpha,imgalpha);
 						//if(tti->status < TEX_NEEDSBINDING) 
 						//	printf("."); //should Unmark node compiled
+					}
+				}
+			}else if(appearance->texture->_nodeType == NODE_ComposedCubeMapTexture){
+				int k;
+				struct X3D_Node* p[6];
+				struct X3D_ComposedCubeMapTexture * ccmt;
+				ccmt = appearance->texture;
+				p[0] = ccmt->top;
+				p[1] = ccmt->left;
+				p[2] = ccmt->front;
+				p[3] = ccmt->right;
+				p[4] = ccmt->back;
+				p[5] = ccmt->bottom;
+				for(k=0;k<6;k++){
+					if(p[k]){
+						textureTableIndexStruct_s *tti = getTableTableFromTextureNode(p[k]);
+						haveTexture = 1;
+						if(tti){
+							//new Aug 6, 2016, check LoadTextures.c for your platform channel counting
+							//NoImage=0, Luminance=1, LuminanceAlpha=2, RGB=3, RGBA=4
+							//PROBLEM: if tti isn't loaded -with #channels, alpha set-, we don't want to compile child
+							channels = max(channels,tti->channels);
+							imgalpha = max(tti->hasAlpha,imgalpha);
+						}
 					}
 				}
 			}else{
@@ -687,7 +724,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* initialization. This will get overwritten if there is a texture in an Appearance
 	   node in this shape (see child_Appearance) */
-	gglobal()->RenderFuncs.last_texture_type = NOTEXTURE;
+	tg->RenderFuncs.last_texture_type = NOTEXTURE;
+	tg->RenderFuncs.shapenode = node;
 	
 	/* copy the material stuff in preparation for copying all to the shader */
 	memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
@@ -852,6 +890,7 @@ void child_Shape (struct X3D_Shape *node) {
 	p->material_twoSided = NULL;
 	p->material_oneSided = NULL;
 	p->userShaderNode = NULL;
+	tg->RenderFuncs.shapenode = NULL;
     
 	/* load the identity matrix for textures. This is necessary, as some nodes have TextureTransforms
 		and some don't. So, if we have a TextureTransform, loadIdentity */

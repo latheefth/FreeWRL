@@ -2397,7 +2397,8 @@ void render_ComposedShader(struct X3D_ComposedShader *);
 void compile_ComposedShader(struct X3D_ComposedShader *);
 struct X3D_Virt virt_ComposedShader = { NULL,(void *)render_ComposedShader,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ComposedShader};
 
-struct X3D_Virt virt_ComposedTexture3D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_ComposedTexture3D(struct X3D_ComposedTexture3D *);
+struct X3D_Virt virt_ComposedTexture3D = { NULL,(void *)render_ComposedTexture3D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_ComposedVolumeStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2561,7 +2562,8 @@ struct X3D_Virt virt_ImageCubeMapTexture = { NULL,(void *)render_ImageCubeMapTex
 void render_ImageTexture(struct X3D_ImageTexture *);
 struct X3D_Virt virt_ImageTexture = { NULL,(void *)render_ImageTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_ImageTexture3D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_ImageTexture3D(struct X3D_ImageTexture3D *);
+struct X3D_Virt virt_ImageTexture3D = { NULL,(void *)render_ImageTexture3D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_IndexedFaceSet(struct X3D_IndexedFaceSet *);
 struct X3D_Virt virt_IndexedFaceSet = { NULL,(void *)render_IndexedFaceSet,NULL,NULL,(void *)rendray_IndexedFaceSet,(void *)make_IndexedFaceSet,NULL,NULL,(void *)collide_IndexedFaceSet,NULL};
@@ -2862,7 +2864,8 @@ struct X3D_Virt virt_PickableGroup = { (void *)prep_PickableGroup,NULL,(void *)c
 void render_PixelTexture(struct X3D_PixelTexture *);
 struct X3D_Virt virt_PixelTexture = { NULL,(void *)render_PixelTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_PixelTexture3D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_PixelTexture3D(struct X3D_PixelTexture3D *);
+struct X3D_Virt virt_PixelTexture3D = { NULL,(void *)render_PixelTexture3D,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_PlaneSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -3818,6 +3821,8 @@ const int OFFSETS_ComposedShader[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ComposedTexture3D[] = {
+	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_ComposedTexture3D, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_ComposedTexture3D, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ComposedTexture3D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatR, (int) offsetof (struct X3D_ComposedTexture3D, repeatR),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatS, (int) offsetof (struct X3D_ComposedTexture3D, repeatS),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5748,7 +5753,7 @@ const int OFFSETS_PixelTexture[] = {
 const int OFFSETS_PixelTexture3D[] = {
 	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_PixelTexture3D, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_PixelTexture3D, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES_image, (int) offsetof (struct X3D_PixelTexture3D, image),  (int) FIELDTYPE_SFImage, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_image, (int) offsetof (struct X3D_PixelTexture3D, image),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PixelTexture3D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatR, (int) offsetof (struct X3D_PixelTexture3D, repeatR),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatS, (int) offsetof (struct X3D_PixelTexture3D, repeatS),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8357,10 +8362,12 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ComposedTexture3D : {
 			struct X3D_ComposedTexture3D * tmp2;
 			tmp2 = (struct X3D_ComposedTexture3D *) tmp;
+			tmp2->__textureTableIndex = 0;
+			tmp2->_parentResource = getInputResource();
 			tmp2->metadata = NULL;
-			tmp2->repeatR = TRUE;
-			tmp2->repeatS = TRUE;
-			tmp2->repeatT = TRUE;
+			tmp2->repeatR = FALSE;
+			tmp2->repeatS = FALSE;
+			tmp2->repeatT = FALSE;
 			tmp2->texture.n=0; tmp2->texture.p=0;
 			tmp2->textureProperties = 0;
 			tmp2->_defaultContainer = FIELDNAMES_texture;
@@ -9428,9 +9435,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__textureTableIndex = 0;
 			tmp2->_parentResource = getInputResource();
 			tmp2->metadata = NULL;
-			tmp2->repeatR = TRUE;
-			tmp2->repeatS = TRUE;
-			tmp2->repeatT = TRUE;
+			tmp2->repeatR = FALSE;
+			tmp2->repeatS = FALSE;
+			tmp2->repeatT = FALSE;
 			tmp2->textureProperties = 0;
 			tmp2->url.n=0; tmp2->url.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_texture;
@@ -10883,11 +10890,11 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_PixelTexture3D *) tmp;
 			tmp2->__textureTableIndex = 0;
 			tmp2->_parentResource = getInputResource();
-			tmp2->image.n=3; tmp2->image.p=MALLOC (int *, sizeof(int)*3); tmp2->image.p[0] = 0; tmp2->image.p[1] = 0; tmp2->image.p[2] = 0;;
+			tmp2->image.n=0; tmp2->image.p=0;
 			tmp2->metadata = NULL;
-			tmp2->repeatR = TRUE;
-			tmp2->repeatS = TRUE;
-			tmp2->repeatT = TRUE;
+			tmp2->repeatR = FALSE;
+			tmp2->repeatS = FALSE;
+			tmp2->repeatT = FALSE;
 			tmp2->textureProperties = 0;
 			tmp2->_defaultContainer = FIELDNAMES_texture;
 		break;
@@ -15501,8 +15508,8 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_PixelTexture3D *tmp;
 			tmp = (struct X3D_PixelTexture3D *) node;
 			UNUSED(tmp); // compiler warning mitigation
-			spacer fprintf (fp," image (SFImage): (not dumped)\t");
-			fprintf (fp,"\n");
+			spacer fprintf (fp," image (MFInt32):\n");
+			for (i=0; i<tmp->image.n; i++) { spacer fprintf (fp,"			%d: \t%d\n",i,tmp->image.p[i]); }
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }

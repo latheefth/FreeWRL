@@ -382,6 +382,7 @@ typedef struct s_shader_capabilities{
 	GLint ModelViewMatrix;
 	GLint ProjectionMatrix;
 	GLint NormalMatrix;
+	GLint ModelViewInverseMatrix;
 	GLint TextureMatrix[MAX_MULTITEXTURE];
 	GLint Vertices;
 	GLint Normals;
@@ -395,6 +396,10 @@ typedef struct s_shader_capabilities{
 	GLint TextureFunction[MAX_MULTITEXTURE];
 	GLint textureCount;
 	GLint multitextureColor;
+
+	/* texture3D */
+	GLint tex3dDepth; //int nz or 3rd dimension, needed in shader for texture2D emulation of texture3D
+	GLint tex3dBbox; //vec3[2] bounding box of geometry/shape node in local system, used to scale vertices for re-use as 3D texture coords
 
 	/* fill properties */
 	GLint hatchColour;

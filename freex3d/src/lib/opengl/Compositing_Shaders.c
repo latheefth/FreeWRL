@@ -454,6 +454,9 @@ static const GLchar *genericVertexGLES2 = "\
 uniform mat4 fw_ModelViewMatrix; \n\
 uniform mat4 fw_ProjectionMatrix; \n\
 uniform mat3 fw_NormalMatrix; \n\
+#ifdef CUB \n\
+uniform mat4 fw_ModelViewInverseMatrix; \n\
+#endif //CUB \n\
 attribute vec4 fw_Vertex; \n\
 attribute vec3 fw_Normal; \n\
  \n\
@@ -462,6 +465,9 @@ uniform mat4 fw_TextureMatrix0; \n\
 attribute vec2 fw_MultiTexCoord0; \n\
 //varying vec3 v_texC; \n\
 varying vec3 fw_TexCoord[4]; \n\
+#ifdef TEX3D \n\
+uniform vec3 tex3dBbox[2]; \n\
+#endif //TEX3D \n\
 #ifdef MTEX \n\
 uniform mat4 fw_TextureMatrix1; \n\
 uniform mat4 fw_TextureMatrix2; \n\
@@ -646,22 +652,43 @@ void main(void) \n\
     /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
     float dotResult = 2.0 * dot(u,r); \n\
     fw_TexCoord[0] = vec3(u-r)*dotResult; \n\
+  }else if (fw_textureCoordGenType==TCGT_COORD) { \n\
+    /* 3D textures can use coords in 0-1 range */ \n\
+    fw_TexCoord[0] = fw_Vertex.xyz; \n\
   } else { /* default usage - like default CubeMaps */ \n\
     vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
     fw_TexCoord[0] =    reflect(u,vertexNorm); \n\
   } \n\
+  fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_TexCoord[0],0))).stp; \n\
   #else //TGEN \n\
+  #ifdef TEX3D \n\
+  //to re-use vertex coords as texture3Dcoords, we need them in 0-1 range \n\
+  //fw_TexCoord[0] = vec3(fw_Vertex.x,fw_Vertex.y/4.0,fw_Vertex.z) *.5 + vec3(.5,.5,.5); \n\
+  fw_TexCoord[0] = (fw_Vertex.xyz - tex3dBbox[0]); \n\
+  fw_TexCoord[0] = fw_TexCoord[0]*tex3dBbox[1]; \n\
+  //fw_TexCoord[0] = fw_Vertex.xyz *.5 + vec3(.5,.5,.5); \n\
+  #else //TEX3D \n\
   fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
   #ifdef MTEX \n\
   fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord1,0,0))).stp; \n\
   fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord2,0,0))).stp; \n\
   fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord3,0,0))).stp; \n\
   #endif //MTEX \n\
+  #endif //TEX3D \n\
   #endif //TGEN \n\
   #endif //TEX \n\
   \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
   \n\
+  #ifdef CUB \n\
+  //cubemap \n\
+  vec4 camera = fw_ModelViewInverseMatrix * vec4(0.0,0.0,0.0,1.0); \n\
+  //vec3 u = normalize( vec4(castle_vertex_eye - camera).xyz ); \n\
+  vec3 u = normalize( vec4(vertex_object + camera).xyz ); \n\
+  vec3 v = normalize(fw_Normal); \n\
+  fw_TexCoord[0] = normalize(reflect(u,v)); //computed in object space \n\
+  fw_TexCoord[0].st = -fw_TexCoord[0].st; //helps with renderman cubemap convention \n\
+  #endif //CUB \n\
   #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
   #undef castle_vertex_eye \n\
   #undef castle_normal_eye \n\
@@ -748,8 +775,15 @@ varying vec4 cpv_Color; \n\
 #endif //CPV \n\
 \n\
 #ifdef TEX \n\
+#ifdef CUB \n\
+uniform samplerCube fw_Texture_unit0; \n\
+#else //CUB \n\
 uniform sampler2D fw_Texture_unit0; \n\
+#endif //CUB \n\
 varying vec3 fw_TexCoord[4]; \n\
+#ifdef TEX3D \n\
+uniform int tex3dDepth; \n\
+#endif //TEX3D \n\
 #ifdef MTEX \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
@@ -1083,6 +1117,24 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 	finalFrag = vec4(gray,gray,gray, finalFrag.a); \n\
 }\n";
 
+//TEXTURE 3D
+static const GLchar *plug_fragment_texture3D_apply =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+  #ifdef TEX3D \n\
+  vec3 texcoord = fw_TexCoord[0]; \n\
+  float depth = max(1.0,float(tex3dDepth)); \n\
+  texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
+  texcoord.y += floor(texcoord.z*depth); \n\
+  texcoord.y /= depth; \n\
+  vec4 texel = texture2D(fw_Texture_unit0,texcoord.st); \n\
+  finalFrag *= texel; \n\
+  #endif //TEX3D \n\
+  \n\
+}\n";
+
+
+//MULTITEXTURE
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#MultiTexture
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
 static const GLchar *plug_fragment_texture_apply =	"\
@@ -1166,7 +1218,11 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   } \n\
   #else //MTEX \n\
   /* ONE TEXTURE */ \n\
+  #ifdef CUB \n\
+  finalFrag = textureCube(fw_Texture_unit0, fw_TexCoord[0]) * finalFrag; \n\
+  #else //CUB \n\
   finalFrag = texture2D(fw_Texture_unit0, fw_TexCoord[0].st) * finalFrag; \n\
+  #endif //CUB \n\
   #endif //MTEX \n\
   \n\
 }\n";
@@ -1457,23 +1513,37 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
 		AddDefine(SHADERPART_VERTEX,"TEX",CompleteCode);
 		AddDefine(SHADERPART_FRAGMENT,"TEX",CompleteCode);
-		if(DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)){
-			AddDefine(SHADERPART_VERTEX,"MTEX",CompleteCode);
-			AddDefine(SHADERPART_FRAGMENT,"MTEX",CompleteCode);
-		}
 		if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
 			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
-		if(DESIRE(whichOne,TEXTURE_REPLACE_PRIOR) )
-			AddDefine(SHADERPART_FRAGMENT,"TEXREP",CompleteCode);
-		if(DESIRE(whichOne,TEXALPHA_REPLACE_PRIOR))
-			AddDefine(SHADERPART_VERTEX,"TAREP",CompleteCode);
+		if(DESIRE(whichOne,TEX3D_APPEARANCE_SHADER)){
+			//in theory, if the texcoordgen "COORD" and TextureTransform3D are set in scenefile 
+			// and working properly in freewrl, then don't need TEX3D for that node in VERTEX shader
+			// which is using tex3dbbox (shape->_extent reworked) to get vertex coords in 0-1 range
+			// x Sept 4, 2016 either TextureTransform3D or CoordinateGenerator "COORD" isn't working right for Texture3D
+			// so we're using the bbox method
+			if(0) AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode); 
+			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
+			Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+		}else{
+			if(DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)){
+				AddDefine(SHADERPART_VERTEX,"CUB",CompleteCode);
+				AddDefine(SHADERPART_FRAGMENT,"CUB",CompleteCode);
+			} else if(DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)){
+				AddDefine(SHADERPART_VERTEX,"MTEX",CompleteCode);
+				AddDefine(SHADERPART_FRAGMENT,"MTEX",CompleteCode);
+			}
+			if(DESIRE(whichOne,TEXTURE_REPLACE_PRIOR) )
+				AddDefine(SHADERPART_FRAGMENT,"TEXREP",CompleteCode);
+			if(DESIRE(whichOne,TEXALPHA_REPLACE_PRIOR))
+				AddDefine(SHADERPART_VERTEX,"TAREP",CompleteCode);
 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_texture_apply,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_fragment_texture_apply,CompleteCode,&unique_int);
 
-		//if(texture has alpha ie channels == 2 or 4) then vertex diffuse = 111 and fragment diffuse*=texture
-		//H: we currently assume image alpha, and maybe fill the alpha channel with (1-material.transparency)?
-		//AddDefine(SHADERPART_VERTEX,"TAT",CompleteCode);
-		//AddDefine(SHADERPART_FRAGMENT,"TAT",CompleteCode);
+			//if(texture has alpha ie channels == 2 or 4) then vertex diffuse = 111 and fragment diffuse*=texture
+			//H: we currently assume image alpha, and maybe fill the alpha channel with (1-material.transparency)?
+			//AddDefine(SHADERPART_VERTEX,"TAT",CompleteCode);
+			//AddDefine(SHADERPART_FRAGMENT,"TAT",CompleteCode);
+		}
 	}
 
 	//fill properties / hatching

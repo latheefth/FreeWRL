@@ -2896,6 +2896,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->ModelViewMatrix = GET_UNIFORM(myProg,"fw_ModelViewMatrix");
 	me->ProjectionMatrix = GET_UNIFORM(myProg,"fw_ProjectionMatrix");
 	me->NormalMatrix = GET_UNIFORM(myProg,"fw_NormalMatrix");
+	me->ModelViewInverseMatrix = GET_UNIFORM(myProg,"fw_ModelViewInverseMatrix");
 	//for (i=0; i<MAX_MULTITEXTURE; i++) {
 	me->TextureMatrix[0] = GET_UNIFORM(myProg,"fw_TextureMatrix0");
 	me->TextureMatrix[1] = GET_UNIFORM(myProg,"fw_TextureMatrix1");
@@ -2934,6 +2935,9 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->multitextureColor = GET_UNIFORM(myProg,"mt_Color");
 	//printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
 
+	//texture3D
+	me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
+	me->tex3dBbox = GET_UNIFORM(myProg,"tex3dBbox");
 
 	/* for FillProperties */
 	me->myPointSize = GET_UNIFORM(myProg, "pointSize");
@@ -6161,7 +6165,7 @@ static void killNode_hide_obsolete (int index) {
 }
 BOOL matrix3x3_inverse_float(float *inn, float *outt);
 
-static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix)
+static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix)
 
 {
 
@@ -6216,6 +6220,28 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 		}
 	}
 
+	if( ModelViewInverseMatrix != -1){
+		//send in the inverse of the modelview matrix
+		//- handy for cube-map texturing
+		float spvali[16];
+		int ii,jj;
+		float *spi;
+		double *dpi, *dpp;
+		GLDOUBLE inverseMV[16];
+		GLDOUBLE transInverseMV[16];
+		GLDOUBLE MV[16];
+
+		dpp = p->FW_ModelView[p->modelviewTOS];
+		memcpy(MV,dpp,sizeof(GLDOUBLE)*16);
+		matinverse (inverseMV,MV);
+		dpi = inverseMV;
+		spi = spvali;
+		for (ii=0; ii<16; ii++) {
+			*spi = (float) *dpi;
+			spi ++; dpi ++;
+		}
+		GLUNIFORMMATRIX4FV(ModelViewInverseMatrix,1,GL_FALSE,spvali);
+	}
 	/* send in the NormalMatrix */
 	/* Uniform mat3  gl_NormalMatrix;  transpose of the inverse of the upper
 			  leftmost 3x3 of gl_ModelViewMatrix */
@@ -6277,7 +6303,7 @@ normMat[6],normMat[7],normMat[8]);
 /* make this more generic, so that the non-OpenGL-ES 2.0 FillProperties, etc, still work */
 
 void sendMatriciesToShader(s_shader_capabilities_t *me) {
-	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix);
+	sendExplicitMatriciesToShader (me->ModelViewMatrix, me->ProjectionMatrix, me->NormalMatrix,me->TextureMatrix,me->ModelViewInverseMatrix);
 
 }
 #define SEND_VEC2(myMat,myVal) \

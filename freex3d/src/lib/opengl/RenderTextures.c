@@ -158,7 +158,7 @@ void textureDraw_end(void) {
 		FW_GL_POP_MATRIX(); //pushed in passedInGenTex
 
 	tg->RenderFuncs.textureStackTop = 0;
-	tg->RenderFuncs.multitexturenode = NULL;
+	tg->RenderFuncs.texturenode = NULL;
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 }
 
@@ -204,6 +204,23 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 				once = 1;
 			}
 		}
+	} else if (textureNode->_nodeType == NODE_TextureTransform3D) {
+		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
+		struct X3D_TextureTransform3D  *ttt = (struct X3D_TextureTransform3D *) textureNode;
+		/*  Render transformations according to spec.*/
+		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
+		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
+		FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
+		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
+		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
+	} else if (textureNode->_nodeType == NODE_TextureTransformMatrix3D) {
+		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
+		int i;
+		double mat[16];
+		struct X3D_TextureTransformMatrix3D  *ttt = (struct X3D_TextureTransformMatrix3D *) textureNode;
+		for(i=0;i<16;i++)
+			mat[i] = (double)ttt->matrix.c[i];
+		FW_GL_SETDOUBLEV(GL_TEXTURE_MATRIX,mat);
 	} else {
 		static int once = 0;
 		if(!once){
@@ -216,7 +233,14 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 }
 
 /***********************************************************************************/
-
+int isMultiTexture(struct X3D_Node *node){
+	int ret = FALSE;
+	if(node && node->_nodeType == NODE_MultiTexture)
+		ret = TRUE;
+	return ret;
+}
+textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
+int isTex3D(struct X3D_Node *node);
 static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
 	int i, isStrict, isMulti;
@@ -249,7 +273,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		//printf ("passedInGenTex, c=%d\n",c);
 		/* are we ok with this texture yet? */
 		if (tg->RenderFuncs.boundTextureStack[c]!=0) {
-			isMulti = tg->RenderFuncs.multitexturenode != NULL;
+			isMulti = isMultiTexture(tg->RenderFuncs.texturenode);
 			//printf ("passedInGenTex, C, boundTextureStack %d\n",tg->RenderFuncs.boundTextureStack[c]);
 			if (setActiveTexture(c,getAppearanceProperties()->transparency,texUnit,texMode)) {
 				//printf ("passedInGenTex, going to bind to texture %d\n",tg->RenderFuncs.boundTextureStack[c]);
@@ -265,6 +289,11 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 						do_textureTransform(tt,c);
 					}
 				}
+				//else if(isTex3D(tg->RenderFuncs.texturenode)){
+				//	//special default texture transform for 3D textures posing as 2D textures
+				//	FW_GL_SCALE_F(1.0f,1.0f/(tti->z+1.0f),1.0f);			/*  4*/
+				//	FW_GL_TRANSLATE_F(.5f,.5f,.5f, 0);		/*  2*/
+				//}
 				texture = tg->RenderFuncs.boundTextureStack[c];
 
 				// SET_TEXTURE_UNIT_AND_BIND
@@ -296,11 +325,46 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	if (me != NULL) {
 		//printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
 
-		if (me->textureCount != -1) 
-		glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
+		if (me->textureCount != -1) {
+			glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
+		}
+		//TEXTURE 3D
+		if(me->tex3dDepth != -1){
+			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tg->RenderFuncs.texturenode);
+			if(tti)
+				glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
+			else
+				glUniform1i(me->tex3dDepth,1);
+		}
+		//TEXTURE 3D
+		if(me->tex3dBbox != -1){
+			if(tg->RenderFuncs.shapenode){
+				//bounding box of shape, in local coordinates, is needed for Texture3D
+				//when geometry vertices are re-used as default texture3D coordinates
+				//by scaling them into 0-1 range on each axis
+				float bbox[6], *bmin, *bmax;
+				struct X3D_Node *sn = tg->RenderFuncs.shapenode;
+				//first vec3 is minimum xyz
+				bmin = bbox;
+				bmax = &bbox[3];
+				for(i=0;i<3;i++){
+					bmin[i] = sn->_extent[i*2 + 1];
+					bmax[i] = sn->_extent[i*2];
+				}
+				//second vec3 is 1/size - so can be applied directly in vertex shader
+				vecdif3f(bmax,bmax,bmin);
+				for(i=0;i<3;i++){
+					if(bmax[i] != 0.0f)
+						bmax[i] = 1.0f/bmax[i];
+					else
+						bmax[i] = 1.0f;
+				}
+				glUniform3fv(me->tex3dBbox,2,bbox);
+			}
+		}
 		if(tg->RenderFuncs.textureStackTop){
-			struct X3D_MultiTexture * mtnode = (struct X3D_MultiTexture *)tg->RenderFuncs.multitexturenode;
-			if(mtnode && mtnode->_nodeType == NODE_MultiTexture){
+			if(isMultiTexture(tg->RenderFuncs.texturenode)){
+				struct X3D_MultiTexture * mtnode = (struct X3D_MultiTexture *)tg->RenderFuncs.texturenode;
 				glUniform4f(me->multitextureColor,mtnode->color.c[0],mtnode->color.c[1],mtnode->color.c[2],mtnode->alpha);
 			}
 		}

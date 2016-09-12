@@ -80,6 +80,7 @@ struct X3D_PolyRep { /* Currently a bit wasteful, because copying */
 	int last_normal_type; /* 0=regular 1=flat last normal type we put in the vbo normal buffer */
 	int last_index_type; /* 0=regular 1=wire last vertex index type we put in the vbo index buffer */
 	float *GeneratedTexCoords[4];	/* triples (per triangle) of texture coords if there is no texCoord node */
+	int ntexdim[4];  /* number of texture coordinate dimensions, normally 2 xy, 3 xyz, 4 xyzw */
 	int ntcoord;		/* number of multitextureCoordinates */
 	int tcoordtype; /* type of texture coord node - is this a NODE_TextureCoordGenerator... */
 	int texgentype; /* if we do have a TextureCoordinateGenerator, what "TCGT_XXX" type is it? */
@@ -3540,6 +3541,8 @@ struct X3D_ComposedTexture3D {
 	int repeatS;
 	int repeatT;
 	int repeatR;
+	int __textureTableIndex;
+	void * _parentResource;
 };
 extern struct X3D_Virt virt_ComposedTexture3D;
 /***********************/
@@ -7808,8 +7811,8 @@ struct X3D_PixelTexture3D {
 	int repeatT;
 	int repeatR;
 	struct X3D_Node *textureProperties;
-	void * _parentResource;
 	int __textureTableIndex;
+	void * _parentResource;
 };
 extern struct X3D_Virt virt_PixelTexture3D;
 /***********************/

@@ -410,6 +410,10 @@ our %RendC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsTrimmedSurface
+	ComposedTexture3D
+	PixelTexture3D
+	ImageTexture3D
+	
 /;
 
 #######################################################################

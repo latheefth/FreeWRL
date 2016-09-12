@@ -865,6 +865,7 @@ void render_polyrep(void *node) {
 		for(k=0;k<max(1,pr->ntcoord);k++){
 			//FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,pr->VBO_buffers[TEXTURE_VBO0+k]);
 			mtf[k].VBO = pr->VBO_buffers[TEXTURE_VBO0+k];
+			mtf[k].TC_size = pr->ntexdim[k];
 			if(k > 0) mtf[k-1].next = &mtf[k];
 		}
 		textureDraw_start(mtf);

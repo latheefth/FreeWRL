@@ -46,6 +46,197 @@ X3D Cubemap Texturing Component
 #endif
 
 
+/*
+
+"CUBEMAP STANDARDS"?
+- left to right is usually obvious - sky usually at top
+a) for the single image -+-- layout its usually ovbious which way to shoot down and top images:
+	-top of down image is contiguous with bottom of front
+	-bottom of up image is contiguous with top of front
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
+	- direct3D cubic environment mapping
+	- no talk of DDS, but shows +- layout on single uv image (relative to LHS object space axes, Y up)
+		 +y
+	-x  +z  +x  -z
+		 -y
+
+b) for otherwise piecewise cubemaps its a little less obvious, needs standards:
+
+http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/env_texture.html#Textureorientation
+Web3D has texture orientation
+- Front is on the XY plane, in RHS
+- Left is on the YZ plane
++x == Right
+-x == Left
++y == Top
+-y == Down
++z == Back
+-z == Front
+so to match DX ordering:
+R,L,T,D,B,F
+x no mention of which way is up on the the top and bottom images
+
+http://wiki.simigon.com/wiki/index.php?title=Dds_cubemaps
+- has instructions for generating via maya -> photoshop -> dds
+- rotations of images: 4 sides are obvious, top at top
+x up/down seem rotatated: 
+- Up has Right at top (+x when looking from center)
+x Down has Left at top (-x when looking from center)
+file order: F,B,U,D,L,R
+Assuming F==+x: in LHS system:
+file order: +x,-x,+y,-y,+z,-z
+- with top of Top against -z, top of bottom against +z
+
+OpenGL Redbook p.441 has no diagram, but hints at the same face ordering as dds.
+
+https://docs.unity3d.com/Manual/class-Cubemap.html
+Unity uses Y up, and (unlike web3d) LHS
+Right +x
+Left -x
+Top +Y
+Bottom -Y
+Front +z
+Back -Z
+Top of the bottom image is Left -x like simigon says about DDS cubemap
+Top of the top image is front or back likely +z front
+
+http://stackoverflow.com/questions/11685608/convention-of-faces-in-opengl-cubemapping
+- mentions of renderman
+- a LHS diagram for figuring opengl cube map
+http://www.nvidia.com/object/cube_map_ogl_tutorial.html
+- the refleciton pool architecture model images I'm using are from an nVidia oopengl cubemap tutorial
+
+
+http://developer.amd.com/tools-and-sdks/archive/games-cgi/cubemapgen/
+CCubeMapProcessor.cpp:
+// D3D cube map face specification
+//   mapping from 3D x,y,z cube map lookup coordinates 
+//   to 2D within face u,v coordinates
+//
+//   --------------------> U direction 
+//   |                   (within-face texture space)
+//   |         _____
+//   |        |     |
+//   |        | +Y  |
+//   |   _____|_____|_____ _____
+//   |  |     |     |     |     |
+//   |  | -X  | +Z  | +X  | -Z  |
+//   |  |_____|_____|_____|_____|
+//   |        |     |
+//   |        | -Y  |
+//   |        |_____|
+//   |
+//   v   V direction
+//      (within-face texture space)
+- that's an LHS (Left-Handed coordinate System)
+- don't take the U,V as absolute in this diagram, but rather as directional hint 
+- if +Y is top, -Y bottom, +Z front, -Z back, then its saying:
+	top of the Top is against Back, and top of the Bottom is against Front.
+x doesn't explain the order of faces in .dds file
+* does harmonize with simigon above, which has (dug9-derived) file face order (LHS Z):
+  _____ _____ _____ _____ _____ _____
+ |     |     |     |     |     |     |
+ | +X  | -X  | +Y  | -Y  | +Z  | -Z  |
+ |_____|_____|_____|_____|_____|_____|
+
+
+SUMMARY OF BEST GUESS OF DDS CUBEMAP LAYOUT:
+a) LHS: +y is up, xy form RHS 2D axes, +z is LHS relative to xy
+b) face order in file: (as per simigon derived diagram above):
+	 +x (Right), -x (Left), +y (Top), -y(Bottom), +z(Front, in LHS), -z(Back, in LHS)
+c) uv direction per face (as per CubeMapGen diagram above): 
+	- x,z faces (+x/Right,-x/Left,+z/Front,-z/Back): top of image is up; 
+	- +y(Top): top of Top is against -z(Back)
+	- -y(Bottom): top of Bottom is against +z(Front)
+This interpretation matches the 2nd diagram on this page:
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
+
+
+CUBEMAP FORMAT FOR INTERNAL FREEWRL AND .WEB3DIT
+http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/env_texture.html#Textureorientation
+Similar to above for DDS summary, except:
+1. using opengl/web3d RHS: when naming the faces by signed axis:-
+	sign on z is reversed, -z is Front, +z is Back
+2. order: +x,-x,+y,-y,+z,-z except +z,-z mean something different. So relative to DDS, we swap Front and Back
+	Back is before Front in linear list
+
+a) RHS with y-up, -z Front
+b) face order in linear array:
+	 +x (Right), -x (Left), +y (Top), -y(Bottom), +z(Back, in RHS), -z(Front, in RHS)
+c) uv direction per face - (same as DDS)
+	- x,z faces: top of image is up
+	- +y(Top): top of Top is against +z(Back)
+	- -y(Bottom): top of Bottom is against -z(Front)
+
+OPENGL CUBETEXTURE CONVENTION
+https://www.opengl.org/registry/doc/glspec21.20061201.pdf
+section 3.8.6, p.170, table 3.19 shows how your 3D texture coordinate
+is used in the sampler: 
+Major Axis
+Direction  Target                       sc  tc ma
++rx        TEXTURE CUBE MAP POSITIVE X -rz -ry rx
+-rx        TEXTURE CUBE MAP NEGATIVE X  rz -ry rx
++ry        TEXTURE CUBE MAP POSITIVE Y  rx  rz ry
+-ry        TEXTURE CUBE MAP NEGATIVE Y  rx -rz ry
++rz        TEXTURE CUBE MAP POSITIVE Z  rx -ry rz
+-rz        TEXTURE CUBE MAP NEGATIVE Z -rx -ry rz
+Take the +rx - the plus x face. If you're in the center of the cube
+at the origin, looking down the +x axis, in a Y-up RHS system, shouldn't 
+you see +z going to your right, and +y going up, in the 2D texture coordinate 
+system? Opengl has them both negative.
+
+Its a bit bizzarre and makes more sense
+if thinking of texture rows as y-down like images, and xyz as LHS - 2 things 
+that seem un-opengl-like. Someone said its using renderman convention for cubemaps.
+
+There's no way to intercept the output of this table before its used in cubeSampler.
+
+In freewrl we have been flipping texture rows to be y-down in Textures.c L.1432 in move_texture_to_opengl()
+- and for ComposedTexture below we exchange left/right and front/back textures
+- we still need to reflect one axis of our RHS reflection vector to get from our RHS to renderman LHS,
+x hard to find a way to do that in the shader that works for all cubemap faces
+
+http://www.3dcpptutorials.sk/index.php?id=24
+- this developer shows there's a way to do it without flipping your textures y-down
+-- 'just' re-arranging textures and rotating around 180
+-- I tried with composed, and it worked by doing 3 things:
+	a) don't flip y-down in textures.c L.1432
+		if(0){
+			//flip cubemap textures to be y-down following opengl specs table 3-19
+	b) swap faces in pairs so right goes to (our count=1) GL_CUBEMAP_NEGATIVE_X instead of (our count=0) POSITIVE_X
+				case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
+	c) in vertex shader reflect 2 axes of the reflection vector
+		fw_TexCoord[0].yz = -fw_TexCoord[0].yz;
+So could be rolled out for Composed, Generated, Image Cubemaps
+
+
+OpenGL has defined constants for cubemap faces:
+- GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT
+- in numerical order +X, -X, +Y, -Y, +Z, -Z
+  http://learnopengl.com/#!Advanced-OpenGL/Cubemaps
+- assume (untested): uv directions are same as FREEWRL/WEB3DIT and DDS:
+	- top of x,z faces: +y/up
+	- top of Top: adjacent to Back
+	- top of Bottom: adjacent to Front
+
+SUMMARY OF CUBEMAP
+I've confirmed my proper creation of dds cubemap with Gimp DDS using ATI's CubeMapGen utility
+http://developer.amd.com/tools-and-sdks/archive/games-cgi/cubemapgen/
+- CubeMapGen uses an axis numbering scheme that matches DX/DDS conventions
+
+What's odd Sept 11, 2016:
+A. reflection wrong
+- when I reflect in ubershader, it doesn't reverse sides like looking in a mirror (GenCubeMap does)
+
+B. center of rotation in cubemap seems offset 
+- reflection seems stretchy in a weird way 
+	H0: the center of rotation in the cubemap is somehow wrong, although that makes no sense
+	H1: its like reflecting off the back face of the sphere instead of the front
+
+*/
+
+static int lookup_xxyyzz_face_from_count [] = {0,1,2,3,4,5}; // {1,0,2,3,5,4}; //swaps left-right front-back faces
+
 /* testing */
 //OLDCODE #define CUBE_MAP_SIZE 256
 
@@ -72,7 +263,7 @@ X3D Cubemap Texturing Component
  ****************************************************************************/
 
 void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
-	int count;
+	int count, iface;
 	struct X3D_Node *thistex = 0;
 
         //printf ("render_ComposedCubeMapTexture\n");
@@ -81,18 +272,20 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 		/* set up the appearanceProperties to indicate a CubeMap */
 		getAppearanceProperties()->cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
         //printf ("set cubeFace to %d in rcm\n",getAppearanceProperties()->cubeFace);
-		/* go through these, right left, top, bottom, back, front */
-		switch (count) {
+		/* go through these, right left, top, bottom, front, back, */
+		//                     +x,   -x,  +y,     -y,   +z,   -z    //LHS system
+		//                                              -z,   +z    //RHS system
+		// we appear to be swapping left/right front/back
+		iface = lookup_xxyyzz_face_from_count[count];
+		switch (iface) {
+			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
+
 			case 2: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->top,thistex);  break;}
 			case 3: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->bottom,thistex);   break;}
 
-			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
-			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
-
-
-
-			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
-			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
+			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
+			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
 		}
         //printf ("rcm, thistex %p, type %s\n",thistex,stringNodeType(thistex->_nodeType));
 		if (thistex != 0) {
@@ -124,6 +317,173 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 /* is this a DDS file? If so, get it, and subdivide it. Ignore MIPMAPS for now */
 /* see: http://www.mindcontrol.org/~hplus/graphics/dds-info/MyDDS.cpp */
 /* see: http://msdn.microsoft.com/en-us/library/bb943991.aspx/ */
+// 2016: https://msdn.microsoft.com/en-us/library/windows/desktop/bb943982(v=vs.85).aspx
+
+/* DDS readstuff */
+/* DDS loader written by Jon Watte 2002 */
+/* Permission granted to use freely, as long as Jon Watte */
+/* is held harmless for all possible damages resulting from */
+/* your use or failure to use this code. */
+/* No warranty is expressed or implied. Use at your own risk, */
+/* or not at all. */
+
+#if !defined( mydds_h )
+#define mydds_h
+
+//  little-endian, of course
+#define DDS_MAGIC 0x20534444
+
+
+//  DDS_header.dwFlags
+#define DDSD_CAPS                   0x00000001 
+#define DDSD_HEIGHT                 0x00000002 
+#define DDSD_WIDTH                  0x00000004 
+#define DDSD_PITCH                  0x00000008 
+#define DDSD_PIXELFORMAT            0x00001000 
+#define DDSD_MIPMAPCOUNT            0x00020000 
+#define DDSD_LINEARSIZE             0x00080000 
+#define DDSD_DEPTH                  0x00800000 
+
+//  DDS_header.sPixelFormat.dwFlags
+#define DDPF_ALPHAPIXELS            0x00000001 
+#define DDPF_FOURCC                 0x00000004 
+#define DDPF_INDEXED                0x00000020 
+#define DDPF_RGB                    0x00000040 
+
+//  DDS_header.sCaps.dwCaps1
+#define DDSCAPS_COMPLEX             0x00000008 
+#define DDSCAPS_TEXTURE             0x00001000 
+#define DDSCAPS_MIPMAP              0x00400000 
+
+//  DDS_header.sCaps.dwCaps2
+#define DDSCAPS2_CUBEMAP            0x00000200 
+#define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400 
+#define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800 
+#define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000 
+#define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000 
+#define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000 
+#define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000 
+#define DDSCAPS2_VOLUME             0x00200000 
+
+/* old way - use 4-char string and cast later, not a good idea 
+#define D3DFMT_DXT1     "1TXD"    //  DXT1 compression texture format 
+#define D3DFMT_DXT2     "2TXD"    //  DXT2 compression texture format 
+#define D3DFMT_DXT3     "3TXD"    //  DXT3 compression texture format 
+#define D3DFMT_DXT4     "4TXD"    //  DXT4 compression texture format 
+#define D3DFMT_DXT5     "5TXD"    //  DXT5 compression texture format 
+*/
+/* new way - use actual four-byte unsigned integer value */
+#define D3DFMT_DXT1	0x31545844
+#define D3DFMT_DXT2	0x32545844
+#define D3DFMT_DXT3	0x33545844
+#define D3DFMT_DXT4	0x34545844
+#define D3DFMT_DXT5	0x35545844
+
+
+#define PF_IS_DXT1(pf) \
+  ((pf.dwFlags & DDPF_FOURCC) && \
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT1))
+
+#define PF_IS_DXT3(pf) \
+  ((pf.dwFlags & DDPF_FOURCC) && \
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT3))
+
+#define PF_IS_DXT5(pf) \
+  ((pf.dwFlags & DDPF_FOURCC) && \
+   (pf.dwFourCC == (unsigned int) D3DFMT_DXT5))
+
+#define PF_IS_BGRA8(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+   (pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 32) && \
+   (pf.dwRBitMask == 0xff0000) && \
+   (pf.dwGBitMask == 0xff00) && \
+   (pf.dwBBitMask == 0xff) && \
+   (pf.dwAlphaBitMask == 0xff000000U))
+
+#define PF_IS_RGB8(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+  !(pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 24) && \
+   (pf.dwRBitMask == 0xff) && \
+   (pf.dwGBitMask == 0xff00) && \
+   (pf.dwBBitMask == 0xff0000))
+
+#define PF_IS_BGR8(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+  !(pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 24) && \
+   (pf.dwRBitMask == 0xff0000) && \
+   (pf.dwGBitMask == 0xff00) && \
+   (pf.dwBBitMask == 0xff))
+
+#define PF_IS_BGR5A1(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+   (pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 16) && \
+   (pf.dwRBitMask == 0x00007c00) && \
+   (pf.dwGBitMask == 0x000003e0) && \
+   (pf.dwBBitMask == 0x0000001f) && \
+   (pf.dwAlphaBitMask == 0x00008000))
+
+#define PF_IS_BGR565(pf) \
+  ((pf.dwFlags & DDPF_RGB) && \
+  !(pf.dwFlags & DDPF_ALPHAPIXELS) && \
+   (pf.dwRGBBitCount == 16) && \
+   (pf.dwRBitMask == 0x0000f800) && \
+   (pf.dwGBitMask == 0x000007e0) && \
+   (pf.dwBBitMask == 0x0000001f))
+
+#define PF_IS_INDEX8(pf) \
+  ((pf.dwFlags & DDPF_INDEXED) && \
+   (pf.dwRGBBitCount == 8))
+
+#define PF_IS_VOLUME(pf) \
+  ((pf.dwFlags & DDSD_DEPTH))
+  //&& 
+  // (pf.sCaps.dwCaps1 & DDSCAPS_COMPLEX) && 
+  // (pf.sCaps.dwCaps1 & DDSCAPS2_VOLUME)) 
+
+
+
+union DDS_header {
+  struct {
+    unsigned int    dwMagic;
+    unsigned int    dwSize;
+    unsigned int    dwFlags;
+    unsigned int    dwHeight;
+    unsigned int    dwWidth;
+    unsigned int    dwPitchOrLinearSize;
+    unsigned int    dwDepth;
+    unsigned int    dwMipMapCount;
+    unsigned int    dwReserved1[ 11 ];
+
+    //  DDPIXELFORMAT
+    struct {
+      unsigned int    dwSize;
+      unsigned int    dwFlags;
+      unsigned int    dwFourCC;
+      unsigned int    dwRGBBitCount;
+      unsigned int    dwRBitMask;
+      unsigned int    dwGBitMask;
+      unsigned int    dwBBitMask;
+      unsigned int    dwAlphaBitMask;
+    }               sPixelFormat;
+
+    //  DDCAPS2
+    struct {
+      unsigned int    dwCaps1;
+      unsigned int    dwCaps2;
+      unsigned int    dwDDSX;
+      unsigned int    dwReserved;
+    }               sCaps;
+    unsigned int    dwReserved2;
+  }; //JASdefStruct; // put "name" in here to get rid of compiler warning
+char data[ 128 ];
+};
+
+#endif  //  mydds_h
+
 
 struct DdsLoadInfo {
   bool compressed;
@@ -168,30 +528,58 @@ struct DdsLoadInfo loadInfoBGR8 = {
 struct DdsLoadInfo loadInfoBGR565 = {
   false, true, false, 1, 2, GL_RGB5, GL_RGB, GL_UNSIGNED_SHORT_5_6_5
 };
+unsigned int GetLowestBitPos(unsigned int value)
+{
+   assert(value != 0); // handled separately
 
-bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
+   unsigned int pos = 0;
+   while (!(value & 1))
+   {
+      value >>= 1;
+      ++pos;
+	  if(pos == 32) break;
+   }
+   return pos;
+}
+int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *file;
-	char *buffer;
+	char *buffer, *bdata, *bdata2;
+	char sniffbuf[20];
 	unsigned long fileLen;
 	union DDS_header hdr;
 	unsigned int x = 0;
 	unsigned int y = 0;
+	unsigned int z = 0;
+	unsigned int rshift[4]; //to go with color bitmask
+	int nchan, idoFrontBackSwap;
 	unsigned int mipMapCount = 0;
-	unsigned int size,xSize, ySize;
+	unsigned int size,xSize, ySize,zSize;
 
 	struct DdsLoadInfo * li;
 	size_t xx;
 
 	UNUSED(xx); // compiler warning mitigation
-	xSize=ySize=0;
+	xSize=ySize=zSize=0;
+	li = NULL;
 
-	printf ("textureIsDDS... node %s, file %s\n",
-		stringNodeType(this_tex->scenegraphNode->_nodeType), filename);
+	//printf ("textureIsDDS... node %s, file %s\n",
+	//	stringNodeType(this_tex->scenegraphNode->_nodeType), filename);
 
 	/* read in file */
 	file = fopen(filename,"rb");
-	if (!file) return FALSE;
+	if (!file) 
+		return FALSE;
 
+	//sniff header
+	xx=fread(sniffbuf, 4, 1, file);
+	fclose(file);
+	if(strncmp(sniffbuf,"DDS ",4)){
+		//not DDS file
+		//sniffbuf[5] = '\0';
+		//printf("sniff header = %s\n",sniffbuf);
+		return FALSE;
+	}
+	file = fopen(filename,"rb");
 	/* have file, read in data */
 
 
@@ -212,7 +600,8 @@ bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	fclose(file);
 
 	/* check to see if this could be a valid DDS file */
-	if (fileLen < sizeof(hdr)) return FALSE;
+	if (fileLen < sizeof(hdr)) 
+		return FALSE;
 
 	/* look at the header, see what kind of a DDS file it might be */
 	memcpy( &hdr, buffer, sizeof(hdr));
@@ -222,177 +611,261 @@ bool textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		(hdr.dwFlags & DDSD_PIXELFORMAT) && (hdr.dwFlags & DDSD_CAPS)) {
 		printf ("matched :DDS :\n");
 
+		
+		printf ("dwFlags %x, DDSD_PIXELFORMAT %x, DDSD_CAPS %x\n",hdr.dwFlags, DDSD_PIXELFORMAT, DDSD_CAPS);
+			xSize = hdr.dwWidth;
+			ySize = hdr.dwHeight;
+		printf ("size %d, %d\n",xSize, ySize);
+		
 
-/*
-printf ("dwFlags %x, DDSD_PIXELFORMAT %x, DDSD_CAPS %x\n",hdr.dwFlags, DDSD_PIXELFORMAT, DDSD_CAPS);
-  xSize = hdr.dwWidth;
-  ySize = hdr.dwHeight;
-printf ("size %d, %d\n",xSize, ySize);
-*/
+		/*
+			assert( !(xSize & (xSize-1)) );
+			assert( !(ySize & (ySize-1)) );
+		*/
 
-/*
-  assert( !(xSize & (xSize-1)) );
-  assert( !(ySize & (ySize-1)) );
-*/
+		
+		printf ("looking to see what it is...\n");
+		printf ("DDPF_FOURCC dwFlags %x mask %x, final %x\n",hdr.sPixelFormat.dwFlags,DDPF_FOURCC,hdr.sPixelFormat.dwFlags & DDPF_FOURCC);
 
-/*
-printf ("looking to see what it is...\n");
-printf ("DDPF_FOURCC dwFlags %x mask %x, final %x\n",hdr.sPixelFormat.dwFlags,DDPF_FOURCC,hdr.sPixelFormat.dwFlags & DDPF_FOURCC);
+		printf ("if it is a dwFourCC, %x and %x\n", hdr.sPixelFormat.dwFourCC ,D3DFMT_DXT1);
 
-printf ("if it is a dwFourCC, %x and %x\n", hdr.sPixelFormat.dwFourCC ,D3DFMT_DXT1);
+		printf ("dwFlags %x\n",hdr.sPixelFormat.dwFlags);
+		printf ("dwRGBBitCount %d\n",hdr.sPixelFormat.dwRGBBitCount); //24 for normal RGB
+		printf ("dwRBitMask %x\n",hdr.sPixelFormat.dwRBitMask);
+		printf ("dwGBitMask %x\n",hdr.sPixelFormat.dwGBitMask);
+		printf ("dwBBitMask %x\n",hdr.sPixelFormat.dwBBitMask);
+		printf ("dwAlphaBitMask %x\n",hdr.sPixelFormat.dwAlphaBitMask);
+		printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags);
+		printf ("dwflags & DDPF_RGB %x\n,",hdr.sPixelFormat.dwFlags & DDPF_RGB);
 
-printf ("dwFlags %x\n",hdr.sPixelFormat.dwFlags);
-printf ("dwRGBBitCount %d\n",hdr.sPixelFormat.dwRGBBitCount);
-printf ("dwRBitMask %x\n",hdr.sPixelFormat.dwRBitMask);
-printf ("dwGBitMask %x\n",hdr.sPixelFormat.dwGBitMask);
-printf ("dwBBitMask %x\n",hdr.sPixelFormat.dwBBitMask);
-printf ("dwAlphaBitMask %x\n",hdr.sPixelFormat.dwAlphaBitMask);
-printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags);
-*/
-
-  if( PF_IS_DXT1( hdr.sPixelFormat ) ) {
-    li = &loadInfoDXT1;
-  }
-  else if( PF_IS_DXT3( hdr.sPixelFormat ) ) {
-    li = &loadInfoDXT3;
-  }
-  else if( PF_IS_DXT5( hdr.sPixelFormat ) ) {
-    li = &loadInfoDXT5;
-  }
+		printf ("dwFlags and DEPTH %x\n",hdr.dwFlags & DDSD_DEPTH);
+		printf ("dwCaps1 and complex %x\n",   (hdr.sCaps.dwCaps1 & DDSCAPS_COMPLEX));
+		printf ("dwCaps1 and VOLUME %x\n", (hdr.sCaps.dwCaps1 & DDSCAPS2_VOLUME));
+		
+		//rshift[0] = GetLowestBitPos(hdr.sPixelFormat.dwRBitMask);
+		//rshift[1] = GetLowestBitPos(hdr.sPixelFormat.dwGBitMask);
+		//rshift[2] = GetLowestBitPos(hdr.sPixelFormat.dwBBitMask);
+		//rshift[3] = GetLowestBitPos(hdr.sPixelFormat.dwAlphaBitMask);
+		bdata = NULL;
+		if(hdr.sPixelFormat.dwFlags & DDPF_FOURCC){
+			if( PF_IS_DXT1( hdr.sPixelFormat ) ) {
+				li = &loadInfoDXT1;
+			}
+			else if( PF_IS_DXT3( hdr.sPixelFormat ) ) {
+				li = &loadInfoDXT3;
+			}
+			else if( PF_IS_DXT5( hdr.sPixelFormat ) ) {
+				li = &loadInfoDXT5;
+			}
   
-#if defined (GL_BGRA)
-else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
-    li = &loadInfoBGRA8;
-  }
-  else if( PF_IS_BGR5A1( hdr.sPixelFormat ) ) {
-    li = &loadInfoBGR5A1;
-  }
-  else if( PF_IS_INDEX8( hdr.sPixelFormat ) ) {
-    li = &loadInfoIndex8;
-  }
-#endif
+			#if defined (GL_BGRA)
+			else if( PF_IS_BGRA8( hdr.sPixelFormat ) ) {
+				li = &loadInfoBGRA8;
+			}
+			else if( PF_IS_BGR5A1( hdr.sPixelFormat ) ) {
+				li = &loadInfoBGR5A1;
+			}
+			else if( PF_IS_INDEX8( hdr.sPixelFormat ) ) {
+				li = &loadInfoIndex8;
+			}
+			#endif
 
-  else if( PF_IS_RGB8( hdr.sPixelFormat ) ) {
-    li = &loadInfoRGB8;
-  }
-  else if( PF_IS_BGR8( hdr.sPixelFormat ) ) {
-    li = &loadInfoBGR8;
-  }
-  
+			else if( PF_IS_RGB8( hdr.sPixelFormat ) ) {
+				li = &loadInfoRGB8;
+			}
+			else if( PF_IS_BGR8( hdr.sPixelFormat ) ) {
+				li = &loadInfoBGR8;
+			}
+			else if( PF_IS_BGR565( hdr.sPixelFormat ) ) {
+				li = &loadInfoBGR565;
+			}
+			//else {
+			//	ConsoleMessage("CubeMap li failure\n");
+			//	return FALSE;
+			//}
+		}else{
+			//no FOURCC
+			bdata = &buffer[sizeof(union DDS_header)];
+			//bdata = &hdr.data[0];
+		}
+		//fixme: do cube maps later
+		//fixme: do 3d later
+		x = xSize = hdr.dwWidth;
+		y = ySize = hdr.dwHeight;
+		z = zSize = 1;
+		idoFrontBackSwap = 0;
+		if( PF_IS_VOLUME(hdr) )
+			z = zSize = hdr.dwDepth;
+		if( hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP){
+			int facecount = 0;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEX) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEX) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEY) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEY) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_POSITIVEZ) facecount++;
+			if(hdr.sCaps.dwCaps2 & DDSCAPS2_CUBEMAP_NEGATIVEZ) facecount++;
+			z = zSize = facecount;
+			if(z==6)
+				idoFrontBackSwap = 1;
+		}
+		nchan = 3;
+		if(DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags) nchan = 4;
+		//if(li == NULL)
+		//	return FALSE;
+		//if(!hdr.dwFlags & DDSD_MIPMAPCOUNT){
+		if(bdata){
+			//simple, convert to rgba and set tti
+			int ipix,jpix,i,j,k,bpp, ir, ig, ib;
+			char * rgbablob = malloc(x*y*z *4);
+			bpp = hdr.sPixelFormat.dwRGBBitCount / 8;
+			ir = 0; ig = 1; ib = 2; //if incoming is BGR order
+			if(hdr.sPixelFormat.dwRBitMask > hdr.sPixelFormat.dwBBitMask){
+				//if incoming is RGB order
+				ir = 2;
+				ib = 0;
+				printf("BGR\n");
+			}
+			//printf("bitmasks R %d G %d B %d\n",hdr.sPixelFormat.dwRBitMask,hdr.sPixelFormat.dwGBitMask,hdr.sPixelFormat.dwBBitMask);
+			//printf("bpp=%d x %d y %d z %d\n",bpp, x,y,z);
+			for(i=0;i<z;i++){
+				for(j=0;j<y;j++){
+					for(k=0;k<x;k++){
+						unsigned char *pixel,*rgba;
+						int ii;
+						ii = idoFrontBackSwap && i == 4? 5 : i; //swap Front and Back faces for opengl order
+						ii = idoFrontBackSwap && i == 5? 4 : i;
+						ii = i;
+						ipix = (i*y +j)*x +k;     //top down, for input image
+						jpix = (ii*y +(y-1-j))*x + k; //bottom up, for ouput texture
+						pixel = &bdata[ipix * bpp];
+						rgba = &rgbablob[jpix *4];
+						//freewrl target format: RGBA
+						//swizzle if incoming is BGRA
+						rgba[3] = 255;
+						rgba[0] = pixel[ir];
+						rgba[1] = pixel[ig];
+						rgba[2] = pixel[ib];
+						if(nchan == 4)
+							rgba[3] = pixel[3];
+						if(0){
+							static int once = 0;
+							if(!once){
+								printf("pixel R=%x G=%x B=%x A=%x\n",rgba[0],rgba[1],rgba[2],rgba[3]);
+								//once = 1;
+							}
+						}
 
-  else if( PF_IS_BGR565( hdr.sPixelFormat ) ) {
-    li = &loadInfoBGR565;
-  }
-  
-  else {
-	ConsoleMessage("CubeMap li failure\n");
-return FALSE;
-  }
+					}
+				}
+			}
+			this_tex->channels = nchan;
+			this_tex->x = x;
+			this_tex->y = y;
+			this_tex->z = z;
+			this_tex->texdata = rgbablob;
+			return TRUE;
+		}else{
+			return FALSE;
+		}
 
-  //fixme: do cube maps later
-  //fixme: do 3d later
-  x = xSize;
-  y = ySize;
-  mipMapCount = (hdr.dwFlags & DDSD_MIPMAPCOUNT) ? hdr.dwMipMapCount : 1;
-printf ("mipMapCount %d\n",mipMapCount);
+		mipMapCount = (hdr.dwFlags & DDSD_MIPMAPCOUNT) ? hdr.dwMipMapCount : 1;
+		//printf ("mipMapCount %d\n",mipMapCount);
 
-  if( li->compressed ) {
-printf ("compressed\n");
-/*
-    size_t size = max( li->divSize, x )/li->divSize * max( li->divSize, y )/li->divSize * li->blockBytes;
-    assert( size == hdr.dwPitchOrLinearSize );
-    assert( hdr.dwFlags & DDSD_LINEARSIZE );
-    unsigned char * data = (unsigned char *)malloc( size );
-    if( !data ) {
-      goto failure;
-    }
-    format = cFormat = li->internalFormat;
-    for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
-      fread( data, 1, size, f );
-      glCompressedTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, size, data );
-      gl->updateError();
-      x = (x+1)>>1;
-      y = (y+1)>>1;
-      size = max( li->divSize, x )/li->divSize * max( li->divSize, y )/li->divSize * li->blockBytes;
-    }
-    free( data );
-*/
-  }
-  else if( li->palette ) {
-printf ("palette\n");
-/*
-    //  currently, we unpack palette into BGRA
-    //  I'm not sure we always get pitch...
-    assert( hdr.dwFlags & DDSD_PITCH );
-    assert( hdr.sPixelFormat.dwRGBBitCount == 8 );
-    size_t size = hdr.dwPitchOrLinearSize * ySize;
-    //  And I'm even less sure we don't get padding on the smaller MIP levels...
-    assert( size == x * y * li->blockBytes );
-    format = li->externalFormat;
-    cFormat = li->internalFormat;
-    unsigned char * data = (unsigned char *)malloc( size );
-    unsigned int palette[ 256 ];
-    unsigned int * unpacked = (unsigned int *)malloc( size*sizeof( unsigned int ) );
-    fread( palette, 4, 256, f );
-    for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
-      fread( data, 1, size, f );
-      for( unsigned int zz = 0; zz < size; ++zz ) {
-        unpacked[ zz ] = palette[ data[ zz ] ];
-      }
-      glPixelStorei( GL_UNPACK_ROW_LENGTH, y );
-      glTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, li->externalFormat, li->type, unpacked );
-      gl->updateError();
-      x = (x+1)>>1;
-      y = (y+1)>>1;
-      size = x * y * li->blockBytes;
-    }
-    free( data );
-    free( unpacked );
-*/  
-  }
-  else {
-    if( li->swap ) {
-printf ("swap\n");
+		if( li->compressed ) {
+			printf ("compressed\n");
+			/*
+			size_t size = max( li->divSize, x )/li->divSize * max( li->divSize, y )/li->divSize * li->blockBytes;
+			assert( size == hdr.dwPitchOrLinearSize );
+			assert( hdr.dwFlags & DDSD_LINEARSIZE );
+			unsigned char * data = (unsigned char *)malloc( size );
+			if( !data ) {
+				goto failure;
+			}
+			format = cFormat = li->internalFormat;
+			for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
+				fread( data, 1, size, f );
+				glCompressedTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, size, data );
+				gl->updateError();
+				x = (x+1)>>1;
+				y = (y+1)>>1;
+				size = max( li->divSize, x )/li->divSize * max( li->divSize, y )/li->divSize * li->blockBytes;
+			}
+			free( data );
+			*/
+		} else if( li->palette ) {
+			printf ("palette\n");
+			/*
+			//  currently, we unpack palette into BGRA
+			//  I'm not sure we always get pitch...
+			assert( hdr.dwFlags & DDSD_PITCH );
+			assert( hdr.sPixelFormat.dwRGBBitCount == 8 );
+			size_t size = hdr.dwPitchOrLinearSize * ySize;
+			//  And I'm even less sure we don't get padding on the smaller MIP levels...
+			assert( size == x * y * li->blockBytes );
+			format = li->externalFormat;
+			cFormat = li->internalFormat;
+			unsigned char * data = (unsigned char *)malloc( size );
+			unsigned int palette[ 256 ];
+			unsigned int * unpacked = (unsigned int *)malloc( size*sizeof( unsigned int ) );
+			fread( palette, 4, 256, f );
+			for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
+				fread( data, 1, size, f );
+				for( unsigned int zz = 0; zz < size; ++zz ) {
+				unpacked[ zz ] = palette[ data[ zz ] ];
+				}
+				glPixelStorei( GL_UNPACK_ROW_LENGTH, y );
+				glTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, li->externalFormat, li->type, unpacked );
+				gl->updateError();
+				x = (x+1)>>1;
+				y = (y+1)>>1;
+				size = x * y * li->blockBytes;
+			}
+			free( data );
+			free( unpacked );
+			*/  
+		} else {
+			if( li->swap ) {
+			printf ("swap\n");
 
-/*
-      glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_TRUE );
-*/
-    }
-    size = x * y * li->blockBytes;
+			/*
+			glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_TRUE );
+			*/
+			}
+			size = x * y * li->blockBytes;
 
-printf ("size is %d\n",size);
-/*
-    format = li->externalFormat;
-    cFormat = li->internalFormat;
-    unsigned char * data = (unsigned char *)malloc( size );
-    //fixme: how are MIP maps stored for 24-bit if pitch != ySize*3 ?
-    for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
-      fread( data, 1, size, f );
-      glPixelStorei( GL_UNPACK_ROW_LENGTH, y );
-      glTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, li->externalFormat, li->type, data );
-      gl->updateError();
-      x = (x+1)>>1;
-      y = (y+1)>>1;
-      size = x * y * li->blockBytes;
-    }
-    free( data );
-    glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_FALSE );
-    gl->updateError();
-*/
-  }
-/*
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount-1 );
-  gl->updateError();
+			printf ("size is %d\n",size);
+			/*
+			format = li->externalFormat;
+			cFormat = li->internalFormat;
+			unsigned char * data = (unsigned char *)malloc( size );
+			//fixme: how are MIP maps stored for 24-bit if pitch != ySize*3 ?
+			for( unsigned int ix = 0; ix < mipMapCount; ++ix ) {
+				fread( data, 1, size, f );
+				glPixelStorei( GL_UNPACK_ROW_LENGTH, y );
+				glTexImage2D( GL_TEXTURE_2D, ix, li->internalFormat, x, y, 0, li->externalFormat, li->type, data );
+				gl->updateError();
+				x = (x+1)>>1;
+				y = (y+1)>>1;
+				size = x * y * li->blockBytes;
+			}
+			free( data );
+			glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_FALSE );
+			gl->updateError();
+			*/
+		}
+		/*
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapCount-1 );
+		gl->updateError();
 
-  return true;
+		return true;
 
-failure:
-  return false;
-}
-*/
+		failure:
+		return false;
+		}
+		*/
 
 	} else {
-printf ("put in the dummy file here, and call it quits\n");
+		printf ("put in the dummy file here, and call it quits\n");
 	}
 	FREE_IF_NZ(buffer);
 	return FALSE;
@@ -433,9 +906,14 @@ void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 		FREE_IF_NZ(node->__subTextures.p); /* should be NULL, checking */
 		node->__subTextures.p = MALLOC(struct X3D_Node  **,  6 * sizeof (struct X3D_PixelTexture *));
 		for (i=0; i<6; i++) {
-			node->__subTextures.p[i] = createNewX3DNode(NODE_PixelTexture);
+			struct X3D_PixelTexture *pt;
+			//struct textureTableIndexStruct *tti;
+			pt = (struct X3D_PixelTexture *)createNewX3DNode(NODE_PixelTexture);
+			node->__subTextures.p[i] = X3D_NODE(pt);
 			if(node->_executionContext)
 				add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->__subTextures.p[i]));
+			//tti = getTableIndex(pt->__textureTableIndex);
+			//tti->status = TEX_NEEDSBINDING; //I found I didn't need - yet
 		}
 		node->__subTextures.n=6;
 	}
@@ -447,7 +925,7 @@ void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 
 
 void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
-	int count;
+	int count, iface;
 
 	COMPILE_IF_REQUIRED
 
@@ -465,7 +943,8 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 			getAppearanceProperties()->cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
 
 			/* go through these, back, front, top, bottom, right left */
-			render_node(node->__subTextures.p[count]);
+			iface = lookup_xxyyzz_face_from_count[count];
+			render_node(node->__subTextures.p[iface]);
 		}
 	}
     /* Finished rendering CubeMap, set it back for normal textures */
@@ -477,22 +956,25 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 /* textures - we have got a png (jpeg, etc) file with a cubemap in it; eg, see:
 	http://en.wikipedia.org/wiki/Cube_mapping
 */
-	/* images are stored in an image as 3 "rows", 4 "columns", we pick the data out of these columns */
+/* images are stored in an image as 3 "rows", 4 "columns", we pick the data out of these columns */
 static int offsets[]={
+  /*y,x,   with y-up    */
 	1,2,	/* right 	*/
 	1,0,	/* left 	*/
 	2,1,	/* top		*/
 	0,1,	/* bottom	*/
-	1,1,	/* back		*/
-	1,3};	/* front	*/
-
+	1,1,	/* front	*/
+	1,3};	/* back		*/
+//if assuming the offsets order represents +x,-x,+y,-y,+z,-z then this is LHS (left handed system)
 /* or:
-	--	Top	--	--
-	Left	Front	Right	Back
-	--	Down	--	--
+	----    Top     --      --
+	Left    Front   Right   Back
+	----    Down    --      --
 */
 
-/* fill in the 6 PixelTextures from the data in the texture */
+/* fill in the 6 PixelTextures from the data in the texture 
+	this is for when you have a single .png image with 6 sub-patches
+*/
 void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	int size;
 	int count;
@@ -534,7 +1016,7 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 		int xSubIndex, ySubIndex;
 		int index;
 
-		xSubIndex=offsets[count*2]*size; ySubIndex=offsets[count*2+1]*size;
+		ySubIndex=offsets[count*2]*size; xSubIndex=offsets[count*2+1]*size;
 
 		/* create the MFInt32 array for this face in the PixelTexture */
 		FREE_IF_NZ(pt->image.p);
@@ -542,18 +1024,23 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 		pt->image.p = MALLOC(int *, pt->image.n * sizeof (int));
 		pt->image.p[0] = size;
 		pt->image.p[1] = size;
-		pt->image.p[2] = 4; /* this last one is for RGBA */
+		pt->image.p[2] = 4; /* this last one is for RGBA nchannels/components = 4 */
 		index = 3;
 
-		for (x=xSubIndex; x<xSubIndex+size; x++) {
-			for (y=ySubIndex; y<ySubIndex+size; y++) {
-/*
-			if the image needs to be reversed, but I dont think it does, use this loop
-			for (y=ySubIndex+size-1; y>=ySubIndex; y--) {
-*/
-				val = tex[x*me->x+y];
-				/* remember, this will be in ARGB format, make into RGBA */
-				pt->image.p[index] = ((val & 0xffffff) << 8) | ((val & 0xff000000) >> 24); 
+		for (y=ySubIndex; y<ySubIndex+size; y++) {
+			for (x=xSubIndex; x<xSubIndex+size; x++) {
+				int ipix;
+				unsigned char *rgba;
+				ipix = y*me->x + x; //pixel in big image
+				if(0){
+					/* remember, this will be in ARGB format, make into RGBA */
+					val = tex[ipix];
+					pt->image.p[index] = ((val & 0xffffff) << 8) | ((val & 0xff000000) >> 24); 
+				}else{
+					rgba = (unsigned char *)&tex[ipix];
+					//convert to host-endian red-high int
+					pt->image.p[index] = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + (rgba[3] << 0);
+				}
 				/* printf ("was %x, now %x\n",tex[x*me->x+y], pt->image.p[index]); */
 				index ++;
 			}
@@ -567,4 +1054,77 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	/* get rid of the original texture data now */
 	FREE_IF_NZ(me->texdata);
 }
+
+
+void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
+	//for .DDS and .web3dit that are in cubemap format ie 6 contiguous images in tti->teximage
+	// incoming order of images: +x,-x,+y,-y,+z,-z (or R,L,F,B,T,D ?) */
+	int size;
+	int count;
+
+	struct X3D_ImageCubeMapTexture *node = (struct X3D_ImageCubeMapTexture *)me->scenegraphNode;
+
+	if (node == NULL) { 
+		ERROR_MSG("problem unpacking single image ImageCubeMap\n");
+		return; 
+	}
+
+	if (node->_nodeType != NODE_ImageCubeMapTexture) {
+		ERROR_MSG("internal error - expected ImageCubeMapTexture here");
+		return;
+	}
+
+
+	if (node->__subTextures.n != 6) {
+		ERROR_MSG("unpackImageCubeMap, there should be 6 PixelTexture nodes here\n");
+		return;
+	}
+	/* go through each face, and send the data to the relevant PixelTexture */
+	/* (jas declared target) order: right left, top, bottom, back, front */
+	// (dug9 incoming order from dds/.web3dit cubemap texture, RHS: +x,-x,+y,-y,+z,-z
+	// this should be same as opengl/web3d order
+	uint32 imlookup[] = {0,1,2,3,4,5}; //dug9 lookup order that experimentally seems to work
+	for (count=0; count <6; count++) {
+		int x,y,i,j,k;
+		uint32 val, ioff;
+		uint32 *tex;
+		struct X3D_PixelTexture *pt = X3D_PIXELTEXTURE(node->__subTextures.p[count]);
+
+		/* create the MFInt32 array for this face in the PixelTexture */
+		FREE_IF_NZ(pt->image.p);
+		pt->image.n = me->x*me->y+3;
+		pt->image.p = MALLOC(int *, pt->image.n * sizeof (uint32));
+		pt->image.p[0] = me->x;
+		pt->image.p[1] = me->y;
+		pt->image.p[2] = 4; /* this last one is for RGBA */
+		ioff = imlookup[count] * me->x * me->y;
+		//we are in char rgba order, but we need to convert to endian-specific uint32
+		// which is what texture_load_from_pixelTexture() will be expecting
+		//in imageIsDDS() image reader, we already flipped from top-down image to bottom-up texture order
+		// which pixeltexture is expecting
+		tex = (uint32 *) me->texdata;
+		tex = &tex[ioff];
+		for(j=0;j<me->y;j++){
+			for(i=0;i<me->x;i++){
+				int ipix,jpix;
+				uint32 pixint;
+				unsigned char* rgba;
+
+				ipix = j*me->x + i;  //image row same as image row out
+				//jpix = (me->y-1 -j)*me->x + i;  //flip image vertically - no, pixeltexture is bottom-up like incoming
+				rgba = (unsigned char*)&tex[ipix];
+				pixint = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + rgba[3];
+				pt->image.p[ipix+3] = pixint;
+			}
+		}
+	}
+
+	/* we are now locked-n-loaded */
+	node->__regenSubTextures = FALSE;
+
+	/* get rid of the original texture data now */
+	FREE_IF_NZ(me->texdata);
+}
+
+
 

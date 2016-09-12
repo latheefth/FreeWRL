@@ -170,9 +170,11 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	float *newTexCoords[MAX_MULTITEXTURE];
 	bool temp_points = FALSE;
     struct Multi_Vec2f *textureCoordPoint[MAX_MULTITEXTURE];
+	int ntexdim[MAX_MULTITEXTURE];
 	for(k=0;k<MAX_MULTITEXTURE;k++){
 		textureCoordPoint[k] = NULL;
 		newTexCoords[k] = NULL;
+		ntexdim[k] = 2;
 	}
 	nmtexcoord = 0; //number of multitextureCoordinates 0-4
 
@@ -260,6 +262,8 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 
 	if (r->tcoordtype) {
 		if ((r->tcoordtype != NODE_TextureCoordinate) && 
+			(r->tcoordtype != NODE_TextureCoordinate3D) &&
+			(r->tcoordtype != NODE_TextureCoordinate4D) &&
 			(r->tcoordtype != NODE_MultiTextureCoordinate) &&
 			(r->tcoordtype != NODE_TextureCoordinateGenerator )) {
 			ConsoleMessage ("stream_polyrep, TexCoord expected %d, got %d\n",NODE_TextureCoordinate, r->tcoordtype);
@@ -271,6 +275,23 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 			//ConsoleMessage ("have textureCoord, point.n = %d",tc->point.n);
 			textureCoordPoint[0] = &(texCoordNode->point);
 			nmtexcoord = 1;
+			ntexdim[0] = 2;
+		}
+		if (r->tcoordtype == NODE_TextureCoordinate3D) {
+			//ConsoleMessage ("have textureCoord, point.n = %d",tc->point.n);
+			struct X3D_TextureCoordinate3D *tcn = (struct X3D_TextureCoordinate3D *)texCoordNode;
+			//we'll downcast MFVec3f to MFVec2f to get .n, .p later, and upcaste then based on nexdim
+			textureCoordPoint[0] = (struct Multi_Vec2f*) &(tcn->point);
+			nmtexcoord = 1;
+			ntexdim[0] = 3;
+		}
+		if (r->tcoordtype == NODE_TextureCoordinate4D) {
+			//ConsoleMessage ("have textureCoord, point.n = %d",tc->point.n);
+			struct X3D_TextureCoordinate4D *tcn = (struct X3D_TextureCoordinate4D *)texCoordNode;
+			//we'll downcast MFVec3f to MFVec2f to get .n, .p later, and upcaste then based on nexdim
+			textureCoordPoint[0] =(struct Multi_Vec2f*) &(tcn->point); 
+			nmtexcoord = 1;
+			ntexdim[0] = 4;
 		}
 
 		if (r->tcoordtype == NODE_MultiTextureCoordinate) {
@@ -282,6 +303,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 					if( mtc->texCoord.p[k]->_nodeType == NODE_TextureCoordinate){
 						struct X3D_TextureCoordinate * ttcc = (struct X3D_TextureCoordinate*)mtc->texCoord.p[k];
 						textureCoordPoint[k] = &(ttcc->point);
+						ntexdim[k] = 2;
 						nmtexcoord++;
 					}
 				}
@@ -319,9 +341,9 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 
 	// some nodes will generate our tex coords for us, eg GeoElevationGrid
 	if (!r->GeneratedTexCoords[0]) {
-		newTexCoords[0] = MALLOC (float *, sizeof (float)*2*r->ntri*3); //always malloc at least one
+		newTexCoords[0] = MALLOC (float *, sizeof (float)*ntexdim[0]*r->ntri*3); //always malloc at least one
 		for(k=1;k<nmtexcoord;k++)
-			newTexCoords[k] = MALLOC (float *, sizeof (float)*2*r->ntri*3);
+			newTexCoords[k] = MALLOC (float *, sizeof (float)*ntexdim[k]*r->ntri*3);
 	}
     
 	newcolors=0;	/*  only if we have colours*/
@@ -562,8 +584,10 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		if (!r->GeneratedTexCoords[0]) {
 			for(k=0;k<(max(1,nmtexcoord));k++){ //always do the first one
 				if (textureCoordPoint[k] != NULL) {
+					int ndim;
 					int j = newtcindex[i];
-					struct SFVec2f me;
+					//struct SFVec2f me;
+					float *me;
             
 					// bounds checking
 					if (j>=(textureCoordPoint[k]->n)) {
@@ -576,16 +600,31 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 					// struct SFVec2f is struct SFVec2f { float c[2]; };
  
 					// get the 2 tex coords from here, and copy them over to newTexCoords
-					me = textureCoordPoint[k]->p[j];
-					newTexCoords[k][i*2] = me.c[0];
-					newTexCoords[k][i*2+1] = me.c[1];
+					ndim = ntexdim[k];
+					me = (float*)textureCoordPoint[k]->p; //[j]; //lets hope struct SFVec2f is same layout as float[2]
+					me = &me[j*ndim];
+					newTexCoords[k][i*ndim] = me[0]; //me.c[0];
+					newTexCoords[k][i*ndim+1] = me[1]; //me.c[1];
+					if(ndim>2)
+						newTexCoords[k][i*ndim+2] = me[2]; //me.c[1];
+					if(ndim>3)
+						newTexCoords[k][i*ndim+3] = me[3]; //me.c[1];
 				} else if(k==0) {
 					/* default textures */
 					/* we want the S values to range from 0..1, and the
 						T values to range from 0...S/T */
+					int ndim;
 					ppStreamPoly p = (ppStreamPoly)gglobal()->StreamPoly.prv;
-					newTexCoords[k][i*2]   = (newpoints[i].c[p->Sindex] - p->minVals[p->Sindex])/p->Ssize;
-					newTexCoords[k][i*2+1] = (newpoints[i].c[p->Tindex] - p->minVals[p->Tindex])/p->Ssize;
+					ndim = ntexdim[k];
+					newTexCoords[k][i*ndim]   = (newpoints[i].c[p->Sindex] - p->minVals[p->Sindex])/p->Ssize;
+					newTexCoords[k][i*ndim+1] = (newpoints[i].c[p->Tindex] - p->minVals[p->Tindex])/p->Ssize;
+					if(ndim>2){
+						//problem doesn't seem to be a Rindex, lets hope we never get here?
+						newTexCoords[k][i*ndim+2] = (newpoints[i].c[p->Tindex] - p->minVals[p->Tindex])/p->Ssize;; 
+					}
+					if(ndim>3)
+						newTexCoords[k][i*ndim+3] = 1.0f;  //homogenous w
+
 				}
 			}
 		}
@@ -630,6 +669,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		}
 	}
 	r->ntcoord = nmtexcoord;
+	memcpy(r->ntexdim,ntexdim,4*sizeof(int));
 	FREE_IF_NZ(r->color);
 	FREE_IF_NZ(r->colindex);
 
@@ -749,7 +789,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		if (r->GeneratedTexCoords[k]) {
 			if (r->VBO_buffers[TEXTURE_VBO0+k] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO0+k]);
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[TEXTURE_VBO0+k]);
-			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*2*r->ntri*3,r->GeneratedTexCoords[k], GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*ntexdim[k]*r->ntri*3,r->GeneratedTexCoords[k], GL_STATIC_DRAW);
 			/* finished with these - if we did not use it as a flag later, we could get rid of it */
 			//FREE_IF_NZ(r->GeneratedTexCoords);
 		}
