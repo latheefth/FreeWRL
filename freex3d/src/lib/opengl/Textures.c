@@ -1430,7 +1430,8 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		ry = me->y;
 		dest = me->texdata;
 		if(1){
-			//flip. (but which direction you flipping. And why?)
+			//flip cubemap textures to be y-down following opengl specs table 3-19
+			//'renderman' convention
 			dest = MALLOC (unsigned char *, 4*rx*ry);
 			dp = (uint32 *) dest;
 			sp = (uint32 *) me->texdata;

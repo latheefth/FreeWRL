@@ -168,31 +168,76 @@ c) uv direction per face - (same as DDS)
 	- +y(Top): top of Top is against +z(Back)
 	- -y(Bottom): top of Bottom is against -z(Front)
 
-OPENGL CUBETEXTURE CONVENTION:
-- it has defined constants 
+OPENGL CUBETEXTURE CONVENTION
+https://www.opengl.org/registry/doc/glspec21.20061201.pdf
+section 3.8.6, p.170, table 3.19 shows how your 3D texture coordinate
+is used in the sampler: 
+Major Axis
+Direction  Target                       sc  tc ma
++rx        TEXTURE CUBE MAP POSITIVE X -rz -ry rx
+-rx        TEXTURE CUBE MAP NEGATIVE X  rz -ry rx
++ry        TEXTURE CUBE MAP POSITIVE Y  rx  rz ry
+-ry        TEXTURE CUBE MAP NEGATIVE Y  rx -rz ry
++rz        TEXTURE CUBE MAP POSITIVE Z  rx -ry rz
+-rz        TEXTURE CUBE MAP NEGATIVE Z -rx -ry rz
+Take the +rx - the plus x face. If you're in the center of the cube
+at the origin, looking down the +x axis, in a Y-up RHS system, shouldn't 
+you see +z going to your right, and +y going up, in the 2D texture coordinate 
+system? Opengl has them both negative.
+
+Its a bit bizzarre and makes more sense
+if thinking of texture rows as y-down like images, and xyz as LHS - 2 things 
+that seem un-opengl-like. Someone said its using renderman convention for cubemaps.
+
+There's no way to intercept the output of this table before its used in cubeSampler.
+
+In freewrl we have been flipping texture rows to be y-down in Textures.c L.1432 in move_texture_to_opengl()
+- and for ComposedTexture below we exchange left/right and front/back textures
+- we still need to reflect one axis of our RHS reflection vector to get from our RHS to renderman LHS,
+x hard to find a way to do that in the shader that works for all cubemap faces
+
+http://www.3dcpptutorials.sk/index.php?id=24
+- this developer shows there's a way to do it without flipping your textures y-down
+-- 'just' re-arranging textures and rotating around 180
+-- I tried with composed, and it worked by doing 3 things:
+	a) don't flip y-down in textures.c L.1432
+		if(0){
+			//flip cubemap textures to be y-down following opengl specs table 3-19
+	b) swap faces in pairs so right goes to (our count=1) GL_CUBEMAP_NEGATIVE_X instead of (our count=0) POSITIVE_X
+				case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
+	c) in vertex shader reflect 2 axes of the reflection vector
+		fw_TexCoord[0].yz = -fw_TexCoord[0].yz;
+So could be rolled out for Composed, Generated, Image Cubemaps
+
+
+OpenGL has defined constants for cubemap faces:
 - GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT
 - in numerical order +X, -X, +Y, -Y, +Z, -Z
-- RHS, +Z is Back
   http://learnopengl.com/#!Advanced-OpenGL/Cubemaps
 - assume (untested): uv directions are same as FREEWRL/WEB3DIT and DDS:
 	- top of x,z faces: +y/up
 	- top of Top: adjacent to Back
 	- top of Bottom: adjacent to Front
 
-I've confirmed my proper creation of dds cubemap with Gimp DDS using ATI's GenCubeMap utility
-- GenCubeMap uses an axis numbering sceme that matches DX/DDS conventions
+SUMMARY OF CUBEMAP
+I've confirmed my proper creation of dds cubemap with Gimp DDS using ATI's CubeMapGen utility
+http://developer.amd.com/tools-and-sdks/archive/games-cgi/cubemapgen/
+- CubeMapGen uses an axis numbering scheme that matches DX/DDS conventions
 
 What's odd Sept 11, 2016:
 A. LHS vs RHS
-- I don't seem to need to exchange front and back faces to go from LHS to RHS when loading DDS
+- I don't seem to need to exchange front and back faces to go from DDS LHS to opengl RHS when loading DDS
 - face order matches opengl's POSITIVE-X,... etc
 - and that means after 3 days of trying to understand, I still don't. Something above is likely wrong.
-- opengl redbook doesn't say if LHS or RHS for cubemap
-  H: opengl also LHS
 
 B. reflection wrong
 - when I reflect in ubershader, it doesn't reverse sides like looking in a mirror (GenCubeMap does)
-- reflection seems stretchy in a weird way - is it like reflecting off the far side of the sphere?
+
+C. center of rotation in cubemap seems offset 
+- reflection seems stretchy in a weird way 
+	H0: the center of rotation in the cubemap is somehow wrong, although that makes no sense
+	H1: its like reflecting off the back face of the sphere instead of the front
+
 */
 
 
@@ -235,15 +280,16 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 		/* go through these, right left, top, bottom, front, back, */
 		//                     +x,   -x,  +y,     -y,   +z,   -z    //LHS system
 		//                                              -z,   +z    //RHS system
+		// we appear to be swapping left/right front/back
 		switch (count) {
-			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
-			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
+			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
 
 			case 2: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->top,thistex);  break;}
 			case 3: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->bottom,thistex);   break;}
 
-			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
-			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
+			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
+			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
 		}
         //printf ("rcm, thistex %p, type %s\n",thistex,stringNodeType(thistex->_nodeType));
 		if (thistex != 0) {
