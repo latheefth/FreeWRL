@@ -684,9 +684,10 @@ void main(void) \n\
   //cubemap \n\
   vec4 camera = fw_ModelViewInverseMatrix * vec4(0.0,0.0,0.0,1.0); \n\
   //vec3 u = normalize( vec4(castle_vertex_eye - camera).xyz ); \n\
-  vec3 u = normalize( vec4(vertex_object - camera).xyz ); \n\
+  vec3 u = normalize( vec4(vertex_object + camera).xyz ); \n\
   vec3 v = normalize(fw_Normal); \n\
   fw_TexCoord[0] = normalize(reflect(u,v)); //computed in object space \n\
+  fw_TexCoord[0].st = -fw_TexCoord[0].st; //helps with renderman cubemap convention \n\
   #endif //CUB \n\
   #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
   #undef castle_vertex_eye \n\
