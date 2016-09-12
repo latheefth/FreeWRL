@@ -240,7 +240,7 @@ C. center of rotation in cubemap seems offset
 
 */
 
-
+static int lookup_xxyyzz_face_from_count [] = {0,1,2,3,4,5}; // {1,0,2,3,5,4}; //swaps left-right front-back faces
 
 /* testing */
 //OLDCODE #define CUBE_MAP_SIZE 256
@@ -268,7 +268,7 @@ C. center of rotation in cubemap seems offset
  ****************************************************************************/
 
 void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
-	int count;
+	int count, iface;
 	struct X3D_Node *thistex = 0;
 
         //printf ("render_ComposedCubeMapTexture\n");
@@ -281,15 +281,16 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 		//                     +x,   -x,  +y,     -y,   +z,   -z    //LHS system
 		//                                              -z,   +z    //RHS system
 		// we appear to be swapping left/right front/back
-		switch (count) {
-			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
-			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
+		iface = lookup_xxyyzz_face_from_count[count];
+		switch (iface) {
+			case 0: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->right,thistex); break;}
+			case 1: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->left,thistex);    break;}
 
 			case 2: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->top,thistex);  break;}
 			case 3: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->bottom,thistex);   break;}
 
-			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
-			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
+			case 4: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->front,thistex);   break;}
+			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
 		}
         //printf ("rcm, thistex %p, type %s\n",thistex,stringNodeType(thistex->_nodeType));
 		if (thistex != 0) {
@@ -929,7 +930,7 @@ void compile_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 
 
 void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
-	int count;
+	int count, iface;
 
 	COMPILE_IF_REQUIRED
 
@@ -947,7 +948,8 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 			getAppearanceProperties()->cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
 
 			/* go through these, back, front, top, bottom, right left */
-			render_node(node->__subTextures.p[count]);
+			iface = lookup_xxyyzz_face_from_count[count];
+			render_node(node->__subTextures.p[iface]);
 		}
 	}
     /* Finished rendering CubeMap, set it back for normal textures */
@@ -959,19 +961,20 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 /* textures - we have got a png (jpeg, etc) file with a cubemap in it; eg, see:
 	http://en.wikipedia.org/wiki/Cube_mapping
 */
-	/* images are stored in an image as 3 "rows", 4 "columns", we pick the data out of these columns */
+/* images are stored in an image as 3 "rows", 4 "columns", we pick the data out of these columns */
 static int offsets[]={
+  /*y,x,   with y-up    */
 	1,2,	/* right 	*/
 	1,0,	/* left 	*/
 	2,1,	/* top		*/
 	0,1,	/* bottom	*/
-	1,1,	/* back		*/
-	1,3};	/* front	*/
-
+	1,1,	/* front	*/
+	1,3};	/* back		*/
+//if assuming the offsets order represents +x,-x,+y,-y,+z,-z then this is LHS (left handed system)
 /* or:
-	--	Top	--	--
-	Left	Front	Right	Back
-	--	Down	--	--
+	----    Top     --      --
+	Left    Front   Right   Back
+	----    Down    --      --
 */
 
 /* fill in the 6 PixelTextures from the data in the texture 
@@ -1018,7 +1021,7 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 		int xSubIndex, ySubIndex;
 		int index;
 
-		xSubIndex=offsets[count*2]*size; ySubIndex=offsets[count*2+1]*size;
+		ySubIndex=offsets[count*2]*size; xSubIndex=offsets[count*2+1]*size;
 
 		/* create the MFInt32 array for this face in the PixelTexture */
 		FREE_IF_NZ(pt->image.p);
@@ -1026,18 +1029,23 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 		pt->image.p = MALLOC(int *, pt->image.n * sizeof (int));
 		pt->image.p[0] = size;
 		pt->image.p[1] = size;
-		pt->image.p[2] = 4; /* this last one is for RGBA */
+		pt->image.p[2] = 4; /* this last one is for RGBA nchannels/components = 4 */
 		index = 3;
 
-		for (x=xSubIndex; x<xSubIndex+size; x++) {
-			for (y=ySubIndex; y<ySubIndex+size; y++) {
-/*
-			if the image needs to be reversed, but I dont think it does, use this loop
-			for (y=ySubIndex+size-1; y>=ySubIndex; y--) {
-*/
-				val = tex[x*me->x+y];
-				/* remember, this will be in ARGB format, make into RGBA */
-				pt->image.p[index] = ((val & 0xffffff) << 8) | ((val & 0xff000000) >> 24); 
+		for (y=ySubIndex; y<ySubIndex+size; y++) {
+			for (x=xSubIndex; x<xSubIndex+size; x++) {
+				int ipix;
+				unsigned char *rgba;
+				ipix = y*me->x + x; //pixel in big image
+				if(0){
+					/* remember, this will be in ARGB format, make into RGBA */
+					val = tex[ipix];
+					pt->image.p[index] = ((val & 0xffffff) << 8) | ((val & 0xff000000) >> 24); 
+				}else{
+					rgba = (unsigned char *)&tex[ipix];
+					//convert to host-endian red-high int
+					pt->image.p[index] = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + (rgba[3] << 0);
+				}
 				/* printf ("was %x, now %x\n",tex[x*me->x+y], pt->image.p[index]); */
 				index ++;
 			}
