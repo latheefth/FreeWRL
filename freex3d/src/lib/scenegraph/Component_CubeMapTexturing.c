@@ -225,15 +225,10 @@ http://developer.amd.com/tools-and-sdks/archive/games-cgi/cubemapgen/
 - CubeMapGen uses an axis numbering scheme that matches DX/DDS conventions
 
 What's odd Sept 11, 2016:
-A. LHS vs RHS
-- I don't seem to need to exchange front and back faces to go from DDS LHS to opengl RHS when loading DDS
-- face order matches opengl's POSITIVE-X,... etc
-- and that means after 3 days of trying to understand, I still don't. Something above is likely wrong.
-
-B. reflection wrong
+A. reflection wrong
 - when I reflect in ubershader, it doesn't reverse sides like looking in a mirror (GenCubeMap does)
 
-C. center of rotation in cubemap seems offset 
+B. center of rotation in cubemap seems offset 
 - reflection seems stretchy in a weird way 
 	H0: the center of rotation in the cubemap is somehow wrong, although that makes no sense
 	H1: its like reflecting off the back face of the sphere instead of the front
