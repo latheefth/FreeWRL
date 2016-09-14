@@ -666,6 +666,7 @@ void main(void) \n\
   //fw_TexCoord[0] = vec3(fw_Vertex.x,fw_Vertex.y/4.0,fw_Vertex.z) *.5 + vec3(.5,.5,.5); \n\
   fw_TexCoord[0] = (fw_Vertex.xyz - tex3dBbox[0]); \n\
   fw_TexCoord[0] = fw_TexCoord[0]*tex3dBbox[1]; \n\
+  fw_TexCoord[0] = vec3(1.0,1.0,1.0) - fw_TexCoord[0]; //don't know why, shows correct order \n\
   //fw_TexCoord[0] = fw_Vertex.xyz *.5 + vec3(.5,.5,.5); \n\
   #else //TEX3D \n\
   fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
@@ -1178,8 +1179,8 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   if(clay == 2) ctexel = texture2D(fw_Texture_unit2,texcoord.st);  \n\
   if(flay == 3) ftexel = texture2D(fw_Texture_unit3,texcoord.st);  \n\
   if(clay == 3) ctexel = texture2D(fw_Texture_unit3,texcoord.st); \n\
-  float factor = texcoord.z-(float(flay)*delta); \n\
-  vec4 texel = ftexel*factor + ctexel*(1.0-factor); //lerp \n\
+  float fraction = texcoord.z*depth - float(flay); \n\
+  vec4 texel = ctexel*fraction + ftexel*(1.0-fraction); //lerp \n\
   finalFrag *= texel; \n\
   #endif //TEX3DLAY \n\
   \n\
