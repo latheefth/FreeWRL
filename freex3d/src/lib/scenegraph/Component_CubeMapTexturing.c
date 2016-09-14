@@ -224,14 +224,12 @@ I've confirmed my proper creation of dds cubemap with Gimp DDS using ATI's CubeM
 http://developer.amd.com/tools-and-sdks/archive/games-cgi/cubemapgen/
 - CubeMapGen uses an axis numbering scheme that matches DX/DDS conventions
 
-What's odd Sept 11, 2016:
-A. reflection wrong
-- when I reflect in ubershader, it doesn't reverse sides like looking in a mirror (GenCubeMap does)
-
-B. center of rotation in cubemap seems offset 
-- reflection seems stretchy in a weird way 
-	H0: the center of rotation in the cubemap is somehow wrong, although that makes no sense
-	H1: its like reflecting off the back face of the sphere instead of the front
+WORKING with DDS cubemap and -+-- tee layout single images Sept 12, 2016
+Not done:
+- figure out how/why other browsers (octaga, instantplayer, view3dscene) accept .dds, but show a spiral texture
+- auto-detect 1x6, 2x3 (6x1, 3x2?) and 1x1 (earth/spherical texture) layouts 
+	- InstantReality uses 1x1 spherical image map with single .png
+	x tried 1x6 and 2x3 but other browsers aren't using those layouts either
 
 */
 

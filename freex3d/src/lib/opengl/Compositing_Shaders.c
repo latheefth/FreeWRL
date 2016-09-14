@@ -784,6 +784,12 @@ varying vec3 fw_TexCoord[4]; \n\
 #ifdef TEX3D \n\
 uniform int tex3dDepth; \n\
 #endif //TEX3D \n\
+#ifdef TEX3DLAY \n\
+uniform sampler2D fw_Texture_unit1; \n\
+uniform sampler2D fw_Texture_unit2; \n\
+uniform sampler2D fw_Texture_unit3; \n\
+uniform int textureCount; \n\
+#endif //TEX3DLAY \n\
 #ifdef MTEX \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
@@ -1118,6 +1124,24 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 }\n";
 
 //TEXTURE 3D
+/*	
+	4 scenarios:
+	1. GL has texture3D/EXT_texture3D/OES_texture3D
+	2. GL no texture3D - emulate
+	A. 3D image: source imagery is i) 3D image or ii) composed image with image layers all same size
+	B. 2D layers: source imagery is composed image with z < 7 layers and layers can be different sizes
+		1					2
+	A	texture3D			tiled texture2D	
+	B	multi texure2D		multi texture2D
+
+	for tiled texture2D, there are a few ways to do the tiles:
+	a) vertical strip: nx x (ny * nz) - our first attempt
+		layer 0 at top, and sequential layers follow down
+	b) squarish tiled: ix = iy = ceil(sqrt(nz)); (nx*ix) x (ny*iy)
+		there will be blank squares. Order:
+		y-first layer order: fill column, first at top left, before advancing ix right
+		(option: x-first layer order: fill row, first at top left, before advancing down iy)
+*/
 static const GLchar *plug_fragment_texture3D_apply =	"\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
 \n\
@@ -1133,6 +1157,33 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   \n\
 }\n";
 
+static const GLchar *plug_fragment_texture3Dlayer_apply =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+  #ifdef TEX3DLAY \n\
+  vec3 texcoord = fw_TexCoord[0]; \n\
+  float depth = max(1.0,float(textureCount-1)); \n\
+  float delta = 1.0/depth; \n\
+  texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
+  int flay = int(floor(texcoord.z*depth)); \n\
+  int clay = int(ceil(texcoord.z*depth)); \n\
+  vec4 ftexel, ctexel; \n\
+  //flay = 0; \n\
+  //clay = 1; \n\
+  if(flay == 0) ftexel = texture2D(fw_Texture_unit0,texcoord.st);  \n\
+  if(clay == 0) ctexel = texture2D(fw_Texture_unit0,texcoord.st);  \n\
+  if(flay == 1) ftexel = texture2D(fw_Texture_unit1,texcoord.st);  \n\
+  if(clay == 1) ctexel = texture2D(fw_Texture_unit1,texcoord.st);  \n\
+  if(flay == 2) ftexel = texture2D(fw_Texture_unit2,texcoord.st);  \n\
+  if(clay == 2) ctexel = texture2D(fw_Texture_unit2,texcoord.st);  \n\
+  if(flay == 3) ftexel = texture2D(fw_Texture_unit3,texcoord.st);  \n\
+  if(clay == 3) ctexel = texture2D(fw_Texture_unit3,texcoord.st); \n\
+  float factor = texcoord.z-(float(flay)*delta); \n\
+  vec4 texel = ftexel*factor + ctexel*(1.0-factor); //lerp \n\
+  finalFrag *= texel; \n\
+  #endif //TEX3DLAY \n\
+  \n\
+}\n";
 
 //MULTITEXTURE
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#MultiTexture
@@ -1515,15 +1566,25 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		AddDefine(SHADERPART_FRAGMENT,"TEX",CompleteCode);
 		if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
 			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
-		if(DESIRE(whichOne,TEX3D_APPEARANCE_SHADER)){
+		if(DESIRE(whichOne,TEX3D_SHADER)){
 			//in theory, if the texcoordgen "COORD" and TextureTransform3D are set in scenefile 
 			// and working properly in freewrl, then don't need TEX3D for that node in VERTEX shader
 			// which is using tex3dbbox (shape->_extent reworked) to get vertex coords in 0-1 range
 			// x Sept 4, 2016 either TextureTransform3D or CoordinateGenerator "COORD" isn't working right for Texture3D
 			// so we're using the bbox method
-			if(0) AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode); 
-			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
-			Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+			//vertex str texture coords computed same for both volume and layered tex3d
+			AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode); 
+			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
+			//fragment part different:
+			if(DESIRE(whichOne,TEX3D_LAYER_SHADER)){
+				//up to 6 textures, with lerp between floor,ceil textures
+				AddDefine(SHADERPART_FRAGMENT,"TEX3DLAY",CompleteCode);
+				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3Dlayer_apply,CompleteCode,&unique_int);
+			}else{
+				//TEX3D_VOLUME_SHADER
+				//AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
+				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+			}
 		}else{
 			if(DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)){
 				AddDefine(SHADERPART_VERTEX,"CUB",CompleteCode);

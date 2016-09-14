@@ -482,7 +482,9 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 			(tex->_nodeType == NODE_ComposedTexture3D) ||
 			(tex->_nodeType == NODE_ImageTexture3D) ) {
 			retval |= ONE_TEX_APPEARANCE_SHADER;
-			retval |= TEX3D_APPEARANCE_SHADER;
+			retval |= TEX3D_SHADER; //VOLUME by default
+			if(tex->_nodeType == NODE_ComposedTexture3D)
+				retval |= TEX3D_LAYER_SHADER; //else VOLUME
 		} else if (tex->_nodeType == NODE_MultiTexture) {
 			retval |= MULTI_TEX_APPEARANCE_SHADER;
 		} else if ((tex->_nodeType == NODE_ComposedCubeMapTexture) ||

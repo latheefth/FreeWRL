@@ -368,7 +368,6 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				glUniform4f(me->multitextureColor,mtnode->color.c[0],mtnode->color.c[1],mtnode->color.c[2],mtnode->alpha);
 			}
 		}
-
 		for (i=0; i<tg->RenderFuncs.textureStackTop; i++) {
 			//static int once = 0;
 			//if(once < 10) {
