@@ -46,8 +46,7 @@ struct textureTableIndexStruct {
     int    y;
 	int    z;
     unsigned char *texdata;
-    GLint  Src;
-    GLint  Trc;
+    GLint  repeatSTR[3]; //repeatR - used for non-builtin-Texture3D ie shader will manually apply this rule
 	int textureNumber;
 	int channels; //number of original image file image channels/components 0=no texture default, 1=Intensity 2=IntensityAlpha 3=RGB 4=RGBA
 };

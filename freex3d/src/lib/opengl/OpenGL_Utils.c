@@ -2938,6 +2938,9 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	//texture3D
 	me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
 	me->tex3dBbox = GET_UNIFORM(myProg,"tex3dBbox");
+	me->haveTextureTransform = GET_UNIFORM(myProg,"haveTextureTransform");
+	me->repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+
 
 	/* for FillProperties */
 	me->myPointSize = GET_UNIFORM(myProg, "pointSize");
