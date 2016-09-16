@@ -243,7 +243,7 @@ textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *texture
 int isTex3D(struct X3D_Node *node);
 static void passedInGenTex(struct textureVertexInfo *genTex) {
 	int c;
-	int i, isStrict, isMulti;
+	int i, isStrict, isMulti, isIdentity;
 	GLint texUnit[MAX_MULTITEXTURE];
 	GLint texMode[MAX_MULTITEXTURE];
 	s_shader_capabilities_t *me;
@@ -267,6 +267,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		//it should ignore the singleTextureTransform and use identities. 
 		//strict: This is a change of functionality for freewrl Aug 31, 2016
 	genTexPtr = genTex;
+	isIdentity = TRUE;
 	for (c=0; c<tg->RenderFuncs.textureStackTop; c++) {
 		FW_GL_PUSH_MATRIX(); //POPPED in textureDraw_end
 		FW_GL_LOAD_IDENTITY();
@@ -284,16 +285,15 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 					match = isMulti && tt->_nodeType == NODE_MultiTextureTransform;
 					match = match || !isMulti && tt->_nodeType != NODE_MultiTextureTransform;
 					if(isStrict){
-						if(match) do_textureTransform(tt,c);
+						if(match){
+							 do_textureTransform(tt,c);
+							 isIdentity = FALSE;
+						}
 					}else{
 						do_textureTransform(tt,c);
+						 isIdentity = FALSE;
 					}
 				}
-				//else if(isTex3D(tg->RenderFuncs.texturenode)){
-				//	//special default texture transform for 3D textures posing as 2D textures
-				//	FW_GL_SCALE_F(1.0f,1.0f/(tti->z+1.0f),1.0f);			/*  4*/
-				//	FW_GL_TRANSLATE_F(.5f,.5f,.5f, 0);		/*  2*/
-				//}
 				texture = tg->RenderFuncs.boundTextureStack[c];
 
 				// SET_TEXTURE_UNIT_AND_BIND
@@ -320,28 +320,29 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 		}
 		genTexPtr = genTexPtr->next ? genTexPtr->next : genTexPtr; //duplicate the prior coords if not enough for all MultiTextures
 	}
-	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	/* set up the selected shader for this texture(s) config */
 	if (me != NULL) {
+		struct X3D_Node *tnode = tg->RenderFuncs.texturenode;
 		//printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
 
 		if (me->textureCount != -1) {
 			glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
 		}
 		//TEXTURE 3D
-		if(me->tex3dDepth != -1){
-			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tg->RenderFuncs.texturenode);
-			if(tti)
-				glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
-			else
-				glUniform1i(me->tex3dDepth,1);
-		}
-		//TEXTURE 3D
-		if(me->tex3dBbox != -1){
-			if(tg->RenderFuncs.shapenode){
-				//bounding box of shape, in local coordinates, is needed for Texture3D
-				//when geometry vertices are re-used as default texture3D coordinates
-				//by scaling them into 0-1 range on each axis
+		if(isTex3D(tnode)){
+			if(tnode->_nodeType != NODE_ComposedTexture3D){
+				//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
+				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
+				if(tti)
+					glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
+				else
+					glUniform1i(me->tex3dDepth,1);
+			}
+			//all texture3d
+			if(tg->RenderFuncs.shapenode && isIdentity){
+				//if no TextureTransform3D was explicitly specified for Texture3D, then
+				//bounding box of shape, in local coordinates, is used to scale/translate
+				//geometry vertices into 0-1 range on each axis for re-use as default texture3D coordinates
 				float bbox[6], *bmin, *bmax;
 				struct X3D_Node *sn = tg->RenderFuncs.shapenode;
 				//first vec3 is minimum xyz
@@ -359,7 +360,15 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 					else
 						bmax[i] = 1.0f;
 				}
-				glUniform3fv(me->tex3dBbox,2,bbox);
+				if(1){
+					//shader uses bbox to rescale/shift vertices
+					glUniform3fv(me->tex3dBbox,2,bbox);
+				}else{
+					//special default texture transform for 3D textures posing as 2D textures
+					//FW_GL_LOAD_IDENTITY();
+					FW_GL_TRANSLATE_F(bmin[0],bmin[1],bmin[2]);		
+					FW_GL_SCALE_F(bmax[0],bmax[1],bmax[2]);			
+				}
 			}
 		}
 		if(tg->RenderFuncs.textureStackTop){
@@ -391,6 +400,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	#endif
 	}
 
+	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 
 	PRINT_GL_ERROR_IF_ANY("");
 }

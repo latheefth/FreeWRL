@@ -639,6 +639,7 @@ void main(void) \n\
   #endif //CPV \n\
   \n\
   #ifdef TEX \n\
+  //fw_TexCoord[0] = vec3(fw_MultiTexCoord0,0.0); \n\
   #ifdef TGEN  \n\
   vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
   vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
