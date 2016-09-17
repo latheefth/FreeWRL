@@ -248,9 +248,12 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	GLint texMode[MAX_MULTITEXTURE];
 	s_shader_capabilities_t *me;
 	struct textureVertexInfo *genTexPtr;
+	struct X3D_Node *tnode;
+
 	ppRenderTextures p;
 	ttglobal tg = gglobal();
 	p = (ppRenderTextures)tg->RenderTextures.prv;
+	tnode = tg->RenderFuncs.texturenode;
 
     me = getAppearanceProperties()->currentShaderProperties;
 
@@ -293,6 +296,56 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 						do_textureTransform(tt,c);
 						 isIdentity = FALSE;
 					}
+				}else{
+					//TEXTURE 3D
+					if(1) if(isTex3D(tnode)){
+						if(tnode->_nodeType != NODE_ComposedTexture3D){
+							//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
+							textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
+							if(tti)
+								glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
+							else
+								glUniform1i(me->tex3dDepth,1);
+						}
+						//all texture3d
+						if(tg->RenderFuncs.shapenode && isIdentity){
+							//if no TextureTransform3D was explicitly specified for Texture3D, then
+							//bounding box of shape, in local coordinates, is used to scale/translate
+							//geometry vertices into 0-1 range on each axis for re-use as default texture3D coordinates
+							float bbox[6], *bmin, *bmax;
+							struct X3D_Node *gn;
+							struct X3D_Shape *sn = (struct X3D_Shape *)tg->RenderFuncs.shapenode;
+							POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,sn->geometry,gn);
+							//first vec3 is minimum xyz
+							bmin = bbox;
+							bmax = &bbox[3];
+							for(i=0;i<3;i++){
+								bmin[i] = gn->_extent[i*2 + 1];
+								bmax[i] = gn->_extent[i*2];
+							}
+							//second vec3 is 1/size - so can be applied directly in vertex shader
+							vecdif3f(bmax,bmax,bmin);
+							for(i=0;i<3;i++){
+								if(bmax[i] != 0.0f)
+									bmax[i] = 1.0f/bmax[i];
+								else
+									bmax[i] = 1.0f;
+							}
+							//if(fabs(bmin[0]) > 10.0f)
+							//	printf("bbox shift [%f %f %f] scale [%f %f %f]\n",bmin[0],bmin[1],bmin[2],bmax[0],bmax[1],bmax[2]);
+							
+							//special default texture transform for 3D textures posing as 2D textures
+
+							//the order of applying transform elements seems reversed for texture transforms
+							// but sign on elements is what you expect, excep we are
+							// reversing the direction of Z to LHS (left-hand system) from RHS:
+							//   z = (1 - z)
+							FW_GL_TRANSLATE_F(0.0f,0.0f,1.0f);  //add 1 to reverse Z to LHS
+							FW_GL_SCALE_F(bmax[0],bmax[1],-bmax[2]);  //-ve on bmax2 to reverse Z to LHS
+							FW_GL_TRANSLATE_F(-bmin[0],-bmin[1],-bmin[2]);
+
+						}
+					}
 				}
 				texture = tg->RenderFuncs.boundTextureStack[c];
 
@@ -322,54 +375,11 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 	}
 	/* set up the selected shader for this texture(s) config */
 	if (me != NULL) {
-		struct X3D_Node *tnode = tg->RenderFuncs.texturenode;
+		tnode = tg->RenderFuncs.texturenode;
 		//printf ("passedInGenTex, we have tts %d tc %d\n",tg->RenderFuncs.textureStackTop, me->textureCount);
 
 		if (me->textureCount != -1) {
 			glUniform1i(me->textureCount, tg->RenderFuncs.textureStackTop);
-		}
-		//TEXTURE 3D
-		if(isTex3D(tnode)){
-			if(tnode->_nodeType != NODE_ComposedTexture3D){
-				//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
-				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
-				if(tti)
-					glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
-				else
-					glUniform1i(me->tex3dDepth,1);
-			}
-			//all texture3d
-			if(tg->RenderFuncs.shapenode && isIdentity){
-				//if no TextureTransform3D was explicitly specified for Texture3D, then
-				//bounding box of shape, in local coordinates, is used to scale/translate
-				//geometry vertices into 0-1 range on each axis for re-use as default texture3D coordinates
-				float bbox[6], *bmin, *bmax;
-				struct X3D_Node *sn = tg->RenderFuncs.shapenode;
-				//first vec3 is minimum xyz
-				bmin = bbox;
-				bmax = &bbox[3];
-				for(i=0;i<3;i++){
-					bmin[i] = sn->_extent[i*2 + 1];
-					bmax[i] = sn->_extent[i*2];
-				}
-				//second vec3 is 1/size - so can be applied directly in vertex shader
-				vecdif3f(bmax,bmax,bmin);
-				for(i=0;i<3;i++){
-					if(bmax[i] != 0.0f)
-						bmax[i] = 1.0f/bmax[i];
-					else
-						bmax[i] = 1.0f;
-				}
-				if(1){
-					//shader uses bbox to rescale/shift vertices
-					glUniform3fv(me->tex3dBbox,2,bbox);
-				}else{
-					//special default texture transform for 3D textures posing as 2D textures
-					//FW_GL_LOAD_IDENTITY();
-					FW_GL_TRANSLATE_F(bmin[0],bmin[1],bmin[2]);		
-					FW_GL_SCALE_F(bmax[0],bmax[1],bmax[2]);			
-				}
-			}
 		}
 		if(tg->RenderFuncs.textureStackTop){
 			if(isMultiTexture(tg->RenderFuncs.texturenode)){

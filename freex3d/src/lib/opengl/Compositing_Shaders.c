@@ -465,9 +465,6 @@ uniform mat4 fw_TextureMatrix0; \n\
 attribute vec2 fw_MultiTexCoord0; \n\
 //varying vec3 v_texC; \n\
 varying vec3 fw_TexCoord[4]; \n\
-#ifdef TEX3D \n\
-uniform vec3 tex3dBbox[2]; \n\
-#endif //TEX3D \n\
 #ifdef MTEX \n\
 uniform mat4 fw_TextureMatrix1; \n\
 uniform mat4 fw_TextureMatrix2; \n\
@@ -639,7 +636,11 @@ void main(void) \n\
   #endif //CPV \n\
   \n\
   #ifdef TEX \n\
-  //fw_TexCoord[0] = vec3(fw_MultiTexCoord0,0.0); \n\
+  vec3 texcoord = vec3(fw_MultiTexCoord0,0.0); \n\
+  #ifdef TEX3D \n\
+  //to re-use vertex coords as texturecoords3D, we need them in 0-1 range: CPU calc of fw_TextureMatrix0 \n\
+  texcoord = fw_Vertex.xyz; \n\
+  #endif //TEX3D_NEW \n\
   #ifdef TGEN  \n\
   vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
   vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
@@ -648,36 +649,25 @@ void main(void) \n\
   vec3 r= reflect(u,vertexNorm); \n\
   if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
     float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
-    fw_TexCoord[0] = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
+    texcoord = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
   }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
     /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
     float dotResult = 2.0 * dot(u,r); \n\
-    fw_TexCoord[0] = vec3(u-r)*dotResult; \n\
+    texcoord = vec3(u-r)*dotResult; \n\
   }else if (fw_textureCoordGenType==TCGT_COORD) { \n\
     /* 3D textures can use coords in 0-1 range */ \n\
-    fw_TexCoord[0] = fw_Vertex.xyz; \n\
+    texcoord = fw_Vertex.xyz; \n\
   } else { /* default usage - like default CubeMaps */ \n\
     vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
-    fw_TexCoord[0] =    reflect(u,vertexNorm); \n\
+    texcoord =    reflect(u,vertexNorm); \n\
   } \n\
-  fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_TexCoord[0],0))).stp; \n\
-  #else //TGEN \n\
-  #ifdef TEX3D \n\
-  //to re-use vertex coords as texture3Dcoords, we need them in 0-1 range \n\
-  //fw_TexCoord[0] = vec3(fw_Vertex.x,fw_Vertex.y/4.0,fw_Vertex.z) *.5 + vec3(.5,.5,.5); \n\
-  fw_TexCoord[0] = (fw_Vertex.xyz - tex3dBbox[0]); \n\
-  fw_TexCoord[0] = fw_TexCoord[0]*tex3dBbox[1]; \n\
-  fw_TexCoord[0] = vec3(1.0,1.0,1.0) - fw_TexCoord[0]; //don't know why, shows correct order \n\
-  //fw_TexCoord[0] = fw_Vertex.xyz *.5 + vec3(.5,.5,.5); \n\
-  #else //TEX3D \n\
-  fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
-  #ifdef MTEX \n\
-  fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord1,0,0))).stp; \n\
-  fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord2,0,0))).stp; \n\
-  fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord3,0,0))).stp; \n\
-  #endif //MTEX \n\
-  #endif //TEX3D \n\
   #endif //TGEN \n\
+  fw_TexCoord[0] = vec3(fw_TextureMatrix0 *vec4(texcoord,1.0)); \n\
+  #ifdef MTEX \n\
+  fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord1,1,0))).stp; \n\
+  fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord2,1,0))).stp; \n\
+  fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord3,1,0))).stp; \n\
+  #endif //MTEX \n\
   #endif //TEX \n\
   \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
