@@ -342,28 +342,32 @@ static bool getIfLinePoints(struct X3D_Node *realNode) {
 }
 
 /* is the texCoord field a TextureCoordinateGenerator or not? */
-static int getShapeTextureCoordGen(struct X3D_Node *realNode) {
+struct X3D_Node *getGeomTexCoordField(struct X3D_Node *realGeomNode){
 	struct X3D_Node *tc = NULL;
 	int *fieldOffsetsPtr = NULL;
 
 	//ConsoleMessage ("getShapeTextureCoordGen, node type %s\n",stringNodeType(realNode->_nodeType));
-	if (realNode == NULL) return 0;
+	if (realGeomNode == NULL) return tc;
 
-	fieldOffsetsPtr = (int *)NODE_OFFSETS[realNode->_nodeType];
+	fieldOffsetsPtr = (int *)NODE_OFFSETS[realGeomNode->_nodeType];
 	/*go thru all field*/
 	while (*fieldOffsetsPtr != -1) {
 		if (*fieldOffsetsPtr == FIELDNAMES_texCoord) {
 			// get the pointer stored here...
-			memcpy(&tc,offsetPointer_deref(void*, realNode,*(fieldOffsetsPtr+1)),sizeof(struct X3D_Node *));
-			//ConsoleMessage ("tc is %p\n",tc);
-			//ConsoleMessage ("tc is of type %s\n",stringNodeType(tc->_nodeType));
-			if (tc != NULL) {
-				if (tc->_nodeType == NODE_TextureCoordinateGenerator) return HAVE_TEXTURECOORDINATEGENERATOR;
-			}
+			memcpy(&tc,offsetPointer_deref(void*, realGeomNode,*(fieldOffsetsPtr+1)),sizeof(struct X3D_Node *));
+			break;
 		}
 		fieldOffsetsPtr += 5;
 	}
+	return tc;
 
+}
+static int getShapeTextureCoordGen(struct X3D_Node *realNode) {
+	struct X3D_Node *tc = NULL;
+	tc = getGeomTexCoordField(realNode);
+	if (tc != NULL) {
+		if (tc->_nodeType == NODE_TextureCoordinateGenerator) return HAVE_TEXTURECOORDINATEGENERATOR;
+	}
 	return 0;
 }
 
@@ -825,13 +829,12 @@ void child_Shape (struct X3D_Shape *node) {
 		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
 
 		//see if we have to set up a TextureCoordinateGenerator type here
-		if (node->geometry->_intern) {
-			if (node->geometry->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
-				getAppearanceProperties()->texCoordGeneratorType = node->geometry->_intern->texgentype;
+		if (tmpNG && tmpNG->_intern) {
+			if (tmpNG->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
+				getAppearanceProperties()->texCoordGeneratorType = tmpNG->_intern->texgentype;
 				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
 			}
 		}
-
 
 		if (p->userShaderNode != NULL) {
 			//ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
