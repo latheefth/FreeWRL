@@ -462,16 +462,19 @@ attribute vec3 fw_Normal; \n\
  \n\
 #ifdef TEX \n\
 uniform mat4 fw_TextureMatrix0; \n\
-attribute vec2 fw_MultiTexCoord0; \n\
+attribute vec4 fw_MultiTexCoord0; \n\
 //varying vec3 v_texC; \n\
 varying vec3 fw_TexCoord[4]; \n\
+#ifdef TEX3D \n\
+uniform int tex3dUseVertex; \n\
+#endif //TEX3D \n\
 #ifdef MTEX \n\
 uniform mat4 fw_TextureMatrix1; \n\
 uniform mat4 fw_TextureMatrix2; \n\
 uniform mat4 fw_TextureMatrix3; \n\
-attribute vec2 fw_MultiTexCoord1; \n\
-attribute vec2 fw_MultiTexCoord2; \n\
-attribute vec2 fw_MultiTexCoord3; \n\
+attribute vec4 fw_MultiTexCoord1; \n\
+attribute vec4 fw_MultiTexCoord2; \n\
+attribute vec4 fw_MultiTexCoord3; \n\
 #endif //MTEX \n\
 #ifdef TGEN \n\
  #define TCGT_CAMERASPACENORMAL    0  \n\
@@ -569,6 +572,13 @@ attribute vec4 fw_Color; //castle_ColorPerVertex; \n\
 varying vec4 cpv_Color; \n\
 #endif //CPV \n\
  \n\
+ vec3 dehomogenize(in mat4 matrix, in vec4 vector){ \n\
+	vec4 tempv = vector; \n\
+	if(tempv.w == 0.0) tempv.w = 1.0; \n\
+	vec4 temp = matrix * tempv; \n\
+	float winv = 1.0/temp.w; \n\
+	return temp.xyz * winv; \n\
+ } \n\
 void main(void) \n\
 { \n\
   #ifdef LIT \n\
@@ -634,15 +644,17 @@ void main(void) \n\
   #endif //CPV \n\
   \n\
   #ifdef TEX \n\
-  vec3 texcoord = vec3(fw_MultiTexCoord0,0.0); \n\
+  vec4 texcoord = fw_MultiTexCoord0; \n\
   #ifdef TEX3D \n\
   //to re-use vertex coords as texturecoords3D, we need them in 0-1 range: CPU calc of fw_TextureMatrix0 \n\
-  texcoord = fw_Vertex.xyz; \n\
+  if(tex3dUseVertex == 1) \n\
+    texcoord = vec4(fw_Vertex.xyz,1.0); \n\
   #endif //TEX3D \n\
   #ifdef TGEN  \n\
   { \n\
     vec3 vertexNorm; \n\
     vec4 vertexPos; \n\
+	vec3 texcoord3 = texcoord.xyz; \n\
     vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
     vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
     /* sphereEnvironMapping Calculation */  \n\
@@ -650,25 +662,26 @@ void main(void) \n\
     vec3 r= reflect(u,vertexNorm); \n\
     if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
       float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
-      texcoord = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
+      texcoord3 = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
     }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
       /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
       float dotResult = 2.0 * dot(u,r); \n\
-      texcoord = vec3(u-r)*dotResult; \n\
+      texcoord3 = vec3(u-r)*dotResult; \n\
     }else if (fw_textureCoordGenType==TCGT_COORD) { \n\
       /* 3D textures can use coords in 0-1 range */ \n\
-      texcoord = fw_Vertex.xyz; //xyz; \n\
+      texcoord3 = fw_Vertex.xyz; //xyz; \n\
     } else { /* default usage - like default CubeMaps */ \n\
       vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
-      texcoord =    reflect(u,vertexNorm); \n\
+      texcoord3 =    reflect(u,vertexNorm); \n\
     } \n\
+	texcoord.xyz = texcoord3; \n\
   } \n\
   #endif //TGEN \n\
-  fw_TexCoord[0] = vec3(fw_TextureMatrix0 *vec4(texcoord,1.0)); \n\
+  fw_TexCoord[0] = dehomogenize(fw_TextureMatrix0, texcoord); \n\
   #ifdef MTEX \n\
-  fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord1,1,0))).stp; \n\
-  fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord2,1,0))).stp; \n\
-  fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord3,1,0))).stp; \n\
+  fw_TexCoord[1] = dehomogenize(fw_TextureMatrix1,fw_MultiTexCoord1); \n\
+  fw_TexCoord[2] = dehomogenize(fw_TextureMatrix2,fw_MultiTexCoord2); \n\
+  fw_TexCoord[3] = dehomogenize(fw_TextureMatrix3,fw_MultiTexCoord3); \n\
   #endif //MTEX \n\
   #endif //TEX \n\
   \n\

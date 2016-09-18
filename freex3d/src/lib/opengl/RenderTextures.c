@@ -318,9 +318,10 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 							glUniform1i(me->tex3dDepth,1);
 					}
 					//all texture3d
-					if(tg->RenderFuncs.shapenode && isIdentity){
-						//if no TextureTransform3D was explicitly specified for Texture3D, then
-						//bounding box of shape, in local coordinates, is used to scale/translate
+					if(tg->RenderFuncs.shapenode && isIdentity && genTexPtr->TC_size < 3){
+						//_if_ no TextureTransform3D was explicitly specified for Texture3D, 
+						//_and_ no textureCoordinate3D or textureCoordinate4D was explicilty specified with the goem node
+						//_then_ bounding box of shape, in local coordinates, is used to scale/translate
 						//geometry vertices into 0-1 range on each axis for re-use as default texture3D coordinates
 						float bbox[6], *bmin, *bmax;
 						struct X3D_Node *gn;
@@ -354,6 +355,12 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 						//printf("default tt\n");
 						FW_GL_SCALE_F(bmax[0],bmax[1],bmax[2]);  
 						FW_GL_TRANSLATE_F(-bmin[0],-bmin[1],-bmin[2]);
+					}
+					if(tg->RenderFuncs.shapenode && genTexPtr->TC_size < 3){
+						//3D but no 3D coords supplied - gen from vertex in vertex shader
+						glUniform1i(me->tex3dUseVertex,1); //vertex shader flag to over-ride texCoords with vertex
+					}else{
+						glUniform1i(me->tex3dUseVertex,0); 
 					}
 				}
 
