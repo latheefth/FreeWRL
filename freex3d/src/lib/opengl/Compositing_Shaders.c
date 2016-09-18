@@ -486,8 +486,6 @@ attribute vec2 fw_MultiTexCoord3; \n\
  #define TCGT_SPHERE_REFLECT    9 \n\
  #define TCGT_SPHERE_REFLECT_LOCAL    10 \n\
  uniform int fw_textureCoordGenType; \n\
- vec3 vertexNorm; \n\
- vec4 vertexPos; \n\
 #endif //TGEN \n\
 #endif //TEX \n\
 #ifdef FILL \n\
@@ -640,26 +638,30 @@ void main(void) \n\
   #ifdef TEX3D \n\
   //to re-use vertex coords as texturecoords3D, we need them in 0-1 range: CPU calc of fw_TextureMatrix0 \n\
   texcoord = fw_Vertex.xyz; \n\
-  #endif //TEX3D_NEW \n\
+  #endif //TEX3D \n\
   #ifdef TGEN  \n\
-  vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
-  vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
-  /* sphereEnvironMapping Calculation */  \n\
-  vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n\
-  vec3 r= reflect(u,vertexNorm); \n\
-  if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
-    float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
-    texcoord = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
-  }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
-    /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
-    float dotResult = 2.0 * dot(u,r); \n\
-    texcoord = vec3(u-r)*dotResult; \n\
-  }else if (fw_textureCoordGenType==TCGT_COORD) { \n\
-    /* 3D textures can use coords in 0-1 range */ \n\
-    texcoord = fw_Vertex.xyz; \n\
-  } else { /* default usage - like default CubeMaps */ \n\
-    vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
-    texcoord =    reflect(u,vertexNorm); \n\
+  { \n\
+    vec3 vertexNorm; \n\
+    vec4 vertexPos; \n\
+    vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
+    vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
+    /* sphereEnvironMapping Calculation */  \n\
+    vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n\
+    vec3 r= reflect(u,vertexNorm); \n\
+    if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
+      float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
+      texcoord = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
+    }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
+      /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
+      float dotResult = 2.0 * dot(u,r); \n\
+      texcoord = vec3(u-r)*dotResult; \n\
+    }else if (fw_textureCoordGenType==TCGT_COORD) { \n\
+      /* 3D textures can use coords in 0-1 range */ \n\
+      texcoord = fw_Vertex.xyz; //xyz; \n\
+    } else { /* default usage - like default CubeMaps */ \n\
+      vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
+      texcoord =    reflect(u,vertexNorm); \n\
+    } \n\
   } \n\
   #endif //TGEN \n\
   fw_TexCoord[0] = vec3(fw_TextureMatrix0 *vec4(texcoord,1.0)); \n\
@@ -1139,6 +1141,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 \n\
   #ifdef TEX3D \n\
   vec3 texcoord = fw_TexCoord[0]; \n\
+  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
   float depth = max(1.0,float(tex3dDepth)); \n\
   texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
   texcoord.y += floor(texcoord.z*depth); \n\
@@ -1154,6 +1157,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 \n\
   #ifdef TEX3DLAY \n\
   vec3 texcoord = fw_TexCoord[0]; \n\
+  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
   float depth = max(1.0,float(textureCount-1)); \n\
   float delta = 1.0/depth; \n\
   texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\

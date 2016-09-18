@@ -6209,7 +6209,8 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 			sp = spval;
 			dp = p->FW_TextureView[itexturestackposition]; //[p->textureviewTOS];
 
-			//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
+			//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d sizeof float %d\n",sizeof(GLDOUBLE), sizeof(float));
+			//printmatrix2(dp,"dp");
 			/* convert GLDOUBLE to float */
 			for (i=0; i<16; i++) {
 				*sp = (float) *dp;

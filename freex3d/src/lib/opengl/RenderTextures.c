@@ -208,11 +208,21 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
 		struct X3D_TextureTransform3D  *ttt = (struct X3D_TextureTransform3D *) textureNode;
 		/*  Render transformations according to spec.*/
+		if(1){
+		//printf("scene spcecified, default order\n");
 		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
 		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
 		FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
 		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
 		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
+		}else{
+		//printf("scene spcecified, reverse order\n");
+		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
+		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
+		FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
+		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
+		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
+		}
 	} else if (textureNode->_nodeType == NODE_TextureTransformMatrix3D) {
 		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
 		int i;
@@ -296,57 +306,57 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 						do_textureTransform(tt,c);
 						 isIdentity = FALSE;
 					}
-				}else{
-					//TEXTURE 3D
-					if(1) if(isTex3D(tnode)){
-						if(tnode->_nodeType != NODE_ComposedTexture3D){
-							//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
-							textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
-							if(tti)
-								glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
+				} 
+				//TEXTURE 3D
+				if(isTex3D(tnode)){
+					if(tnode->_nodeType != NODE_ComposedTexture3D){
+						//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
+						textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
+						if(tti)
+							glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
+						else
+							glUniform1i(me->tex3dDepth,1);
+					}
+					//all texture3d
+					if(tg->RenderFuncs.shapenode && isIdentity){
+						//if no TextureTransform3D was explicitly specified for Texture3D, then
+						//bounding box of shape, in local coordinates, is used to scale/translate
+						//geometry vertices into 0-1 range on each axis for re-use as default texture3D coordinates
+						float bbox[6], *bmin, *bmax;
+						struct X3D_Node *gn;
+						struct X3D_Shape *sn = (struct X3D_Shape *)tg->RenderFuncs.shapenode;
+						POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,sn->geometry,gn);
+						//first vec3 is minimum xyz
+						bmin = bbox;
+						bmax = &bbox[3];
+						for(i=0;i<3;i++){
+							bmin[i] = gn->_extent[i*2 + 1];
+							bmax[i] = gn->_extent[i*2];
+						}
+						//second vec3 is 1/size - so can be applied directly in vertex shader
+						vecdif3f(bmax,bmax,bmin);
+						for(i=0;i<3;i++){
+							if(bmax[i] != 0.0f)
+								bmax[i] = 1.0f/bmax[i];
 							else
-								glUniform1i(me->tex3dDepth,1);
+								bmax[i] = 1.0f;
 						}
-						//all texture3d
-						if(tg->RenderFuncs.shapenode && isIdentity){
-							//if no TextureTransform3D was explicitly specified for Texture3D, then
-							//bounding box of shape, in local coordinates, is used to scale/translate
-							//geometry vertices into 0-1 range on each axis for re-use as default texture3D coordinates
-							float bbox[6], *bmin, *bmax;
-							struct X3D_Node *gn;
-							struct X3D_Shape *sn = (struct X3D_Shape *)tg->RenderFuncs.shapenode;
-							POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,sn->geometry,gn);
-							//first vec3 is minimum xyz
-							bmin = bbox;
-							bmax = &bbox[3];
-							for(i=0;i<3;i++){
-								bmin[i] = gn->_extent[i*2 + 1];
-								bmax[i] = gn->_extent[i*2];
-							}
-							//second vec3 is 1/size - so can be applied directly in vertex shader
-							vecdif3f(bmax,bmax,bmin);
-							for(i=0;i<3;i++){
-								if(bmax[i] != 0.0f)
-									bmax[i] = 1.0f/bmax[i];
-								else
-									bmax[i] = 1.0f;
-							}
-							//if(fabs(bmin[0]) > 10.0f)
-							//	printf("bbox shift [%f %f %f] scale [%f %f %f]\n",bmin[0],bmin[1],bmin[2],bmax[0],bmax[1],bmax[2]);
+						//if(fabs(bmin[0]) > 10.0f)
+						//	printf("bbox shift [%f %f %f] scale [%f %f %f]\n",bmin[0],bmin[1],bmin[2],bmax[0],bmax[1],bmax[2]);
 							
-							//special default texture transform for 3D textures posing as 2D textures
+						//special default texture transform for 3D textures posing as 2D textures
 
-							//the order of applying transform elements seems reversed for texture transforms
-							// but sign on elements is what you expect, excep we are
-							// reversing the direction of Z to LHS (left-hand system) from RHS:
-							//   z = (1 - z)
-							FW_GL_TRANSLATE_F(0.0f,0.0f,1.0f);  //add 1 to reverse Z to LHS
-							FW_GL_SCALE_F(bmax[0],bmax[1],-bmax[2]);  //-ve on bmax2 to reverse Z to LHS
-							FW_GL_TRANSLATE_F(-bmin[0],-bmin[1],-bmin[2]);
-
-						}
+						//the order of applying transform elements seems reversed for texture transforms
+						//H: related to order of operands in mat * vec in shader:
+						//   fw_TexCoord[0] = vec3(fw_TextureMatrix0 *vec4(texcoord,1.0)); \n\
+						// but sign on elements is what you expect
+						//flip z from RHS to LHS in fragment shader plug_tex3d apply
+						//printf("default tt\n");
+						FW_GL_SCALE_F(bmax[0],bmax[1],bmax[2]);  
+						FW_GL_TRANSLATE_F(-bmin[0],-bmin[1],-bmin[2]);
 					}
 				}
+
 				texture = tg->RenderFuncs.boundTextureStack[c];
 
 				// SET_TEXTURE_UNIT_AND_BIND
