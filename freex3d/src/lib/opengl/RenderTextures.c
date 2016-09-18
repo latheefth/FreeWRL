@@ -170,12 +170,13 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
 		struct X3D_TextureTransform  *ttt = (struct X3D_TextureTransform *) textureNode;
 		/*  Render transformations according to spec.*/
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#TextureTransform
+		//specs say 'translate, rotate, then scale'
 		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), 0);		/*  5*/
 		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),1);			/*  4*/
 		FW_GL_ROTATE_RADIANS(ttt->rotation,0,0,1);					/*  3*/
 		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), 0);		/*  2*/
 		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), 0);	/*  1*/
-
 	/* is this a MultiTextureTransform? */
 	} else  if (textureNode->_nodeType == NODE_MultiTextureTransform) {
 		struct X3D_MultiTextureTransform *mtt = (struct X3D_MultiTextureTransform *) textureNode;
@@ -209,19 +210,20 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 		struct X3D_TextureTransform3D  *ttt = (struct X3D_TextureTransform3D *) textureNode;
 		/*  Render transformations according to spec.*/
 		if(1){
+		//dug9 Sept 18 2016: I don't know why but reverse order works for 3D, but not 2D textures.
+		//printf("scene spcecified, reverse order\n");
+		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
+		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
+		FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
+		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
+		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
+		}else{
 		//printf("scene spcecified, default order\n");
 		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
 		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
 		FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
 		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
 		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
-		}else{
-		//printf("scene spcecified, reverse order\n");
-		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
-		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
-		FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
-		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
-		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
 		}
 	} else if (textureNode->_nodeType == NODE_TextureTransformMatrix3D) {
 		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
