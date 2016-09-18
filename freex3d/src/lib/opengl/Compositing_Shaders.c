@@ -790,6 +790,7 @@ uniform sampler2D fw_Texture_unit0; \n\
 varying vec3 fw_TexCoord[4]; \n\
 #ifdef TEX3D \n\
 uniform int tex3dDepth; \n\
+uniform int repeatSTR[3]; \n\
 #endif //TEX3D \n\
 #ifdef TEX3DLAY \n\
 uniform sampler2D fw_Texture_unit1; \n\
@@ -1156,7 +1157,13 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   vec3 texcoord = fw_TexCoord[0]; \n\
   texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
   float depth = max(1.0,float(tex3dDepth)); \n\
-  texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
+  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
+  else texcoord.x = mod(texcoord.x,1.0); \n\
+  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
+  else texcoord.y = mod(texcoord.y,1.0); \n\
+  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
+  else texcoord.z = mod(texcoord.z,1.0); \n\
+  //texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
   texcoord.y += floor(texcoord.z*depth); \n\
   texcoord.y /= depth; \n\
   vec4 texel = texture2D(fw_Texture_unit0,texcoord.st); \n\

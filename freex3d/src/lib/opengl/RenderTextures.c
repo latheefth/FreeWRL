@@ -311,9 +311,9 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 				} 
 				//TEXTURE 3D
 				if(isTex3D(tnode)){
+					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
 					if(tnode->_nodeType != NODE_ComposedTexture3D){
 						//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
-						textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
 						if(tti)
 							glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
 						else
@@ -364,6 +364,9 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 					}else{
 						glUniform1i(me->tex3dUseVertex,0); 
 					}
+					if(tti)
+						if(me->repeatSTR > -1)
+							glUniform1iv(me->repeatSTR,3,tti->repeatSTR);
 				}
 
 				texture = tg->RenderFuncs.boundTextureStack[c];
