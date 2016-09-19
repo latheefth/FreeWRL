@@ -43,6 +43,33 @@ X3D Rendering Component
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Polyrep.h"
 
+typedef struct pComponent_Rendering{
+
+	Stack *clipplane_stack;
+
+}* ppComponent_Rendering;
+void *Component_Rendering_constructor(){
+	void *v = MALLOCV(sizeof(struct pComponent_Rendering));
+	memset(v,0,sizeof(struct pComponent_Rendering));
+	return v;
+}
+void Component_Rendering_init(struct tComponent_Rendering *t){
+	//public
+
+	//private
+	t->prv = Component_Rendering_constructor();
+	{
+		ppComponent_Rendering p = (ppComponent_Rendering)t->prv;
+		p->clipplane_stack = newStack(struct X3D_Node*);
+	}
+}
+void Component_Rendering_clear(struct tComponent_Rendering *t){
+	ppComponent_Rendering p = (ppComponent_Rendering)t->prv;
+	deleteVector(struct X3D_Node*,p->clipplane_stack);
+}
+
+
+
 /* find a bounding box that fits the coord structure. save it in the common-node area for extents.*/
 static void findExtentInCoord (struct X3D_Node *node, int count, struct SFVec3f* coord) {
 	int i;
@@ -655,22 +682,36 @@ void compile_LineSet (struct X3D_LineSet *node) {
 			}
 */
 
-int push_child_clipplane(struct X3D_Node *parent){
+void sib_prep_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 	//search for child clipplane
 	//if found and enabled
-	//	 push on stack like push_sensor() 
-	//	somehow add to end of list of clipplanes available to shader (but how precisely?)
-	//  	https://www.opengl.org/discussion_boards/showthread.php/171914-How-to-activate-clip-planes-via-shader
-	//		m_pProgram->SetUniform("ClipPlane[0]", vect, 4, 1);  
-	//		//except construct the name string: k = clipplanestac.n-1; "ClipPlane[%1d]",k
-	//		glEnable(GL_CLIP_DISTANCE0); //except DISTANCEk ?
-	//		might need: to set a flag indicating which shader to use?
-	//  return 1
-	//else 
-	return 0;
+	if(sibAffector && sibAffector->_nodeType == NODE_ClipPlane){
+		//	 push on stack like push_sensor() 
+		struct X3D_ClipPlane * cplane = (struct X3D_ClipPlane*)sibAffector;
+		if(cplane->enabled == TRUE){
+			ppComponent_Rendering p = (ppComponent_Rendering)gglobal()->Component_Rendering.prv;
+
+			stack_push(struct X3D_ClipPlane*,p->clipplane_stack,cplane);
+
+			//	somehow add to end of list of clipplanes available to shader (but how precisely?)
+			//  	https://www.opengl.org/discussion_boards/showthread.php/171914-How-to-activate-clip-planes-via-shader
+			//		m_pProgram->SetUniform("ClipPlane[0]", vect, 4, 1);  
+			//		//except construct the name string: k = clipplanestac.n-1; "ClipPlane[%1d]",k
+			//		glEnable(GL_CLIP_DISTANCE0); //except DISTANCEk ?
+			//		might need: to set a flag indicating which shader to use?
+
+			//else 
+		}
+	}
 }
-void pop_child_clipplane(){
+void sib_fin_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 	//pop clipplane
-	//  somehow remove the last clipplane added
-	//  glDisable(GL_CLIP_DISTANCEk)
+	if(sibAffector && sibAffector->_nodeType == NODE_ClipPlane){
+		struct X3D_ClipPlane * cplane = (struct X3D_ClipPlane*)sibAffector;
+		if(cplane->enabled == TRUE){
+			ppComponent_Rendering p = (ppComponent_Rendering)gglobal()->Component_Rendering.prv;
+
+			stack_pop(struct X3D_ClipPlane*,p->clipplane_stack);
+		}
+	}
 }
