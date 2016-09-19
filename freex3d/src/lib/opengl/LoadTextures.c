@@ -725,7 +725,6 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 						ipix = (i*ny +j)*nx +k;          //if file is like outgoing y-up texture order: first row is bottom of texture
 						jpix = (i*ny +(ny-1-j))*nx + k;  //if file is in y-down image order: first row is top of image
 						kpix = iydown ? jpix : ipix;
-						if(iydown) kpix = 
 						rgba = &rgbablob[kpix*4];
 						//http://www.color-hex.com/ #aabbcc
 						switch(nchan){

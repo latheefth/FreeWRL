@@ -151,6 +151,18 @@ B. else emulate texture3D/sampler3D with 2D tiled texture:
 	Option3: compute 2D-ized texture coordinates on CPU, and use ordinary texture2D sampling (no lerp)
 		problem: geometry node doesn't know if shape>appearance has texture3D, so would need to pre-compute like flat coords
 
+Sept 13, 2016
+	.web3dit image file format developeed which includes volume L,LA,RGB,RGBA and int/float, Up/Down options
+
+4 scenarios:
+	1. GL has texture3D/EXT_texture3D/OES_texture3D
+	2. GL no texture3D - emulate
+	A. 3D image: source imagery is i) 3D image or ii) composed image with image layers all same size
+	B. 2D layers: source imagery is composed image with z < 7 layers and layers can be different sizes
+		1					2
+	A	vol texture3D		tiled texture2D	
+	B	multi texure2D		multi texture2D
+
 */
 
 int isTex3D(struct X3D_Node *node){
@@ -171,25 +183,76 @@ void render_PixelTexture3D (struct X3D_PixelTexture3D *node) {
 	loadTextureNode(X3D_NODE(node),NULL);
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
-
+void move_texture_to_opengl(textureTableIndexStruct_s* me);
 void render_ImageTexture3D (struct X3D_ImageTexture3D *node) {
 	/* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
 	loadTextureNode(X3D_NODE(node),NULL);
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
-
+textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
 void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
 	/* printf ("render_ComposedTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
 	if(node && node->_nodeType == NODE_ComposedTexture3D){
-		int i;
+		int i, ntextures;
 		struct Multi_Node *tex = &node->texture;
-		for(i=0;i<tex->n;i++){
+		//Sep 14, 2016 we assume all ComposedTexture3D are 'LAYERED' TEX3D_LAYER_SHADER / TEX3DLAY
+		if(0){
+			//could switch from layered to volume, if layers all same size?
+			//somewhere around here we could detect if all images are loaded,
+			// and if so, check/test:
+			// A. do they all have the same xy size? if same size,
+			//   then they could be converted to single volume texture
+			//   and i) texture3D or ii) tiled texture2D
+			//   and set shader flag TEX3D_VOLUME_SHADER / TEX3D, TEX3DVOL
+			// B. if different sizes, and z < 7, then treat like multi-texture:
+			//   ii) do sampler2D on either size of z
+			//   and set shader flag TEX3D_LAYER_SHADER / TEX3D, TEX3DLAY
+			// either way if ii)  we have 2 values in frag shader: take floor, ceil or lerp between
+			//
+			int nx, ny, nfound, nsamesize;
+			nfound = nsamesize = 0;
+			for(i=0;i<tex->n;i++){
+				if(tex->p[i] ){
+					textureTableIndexStruct_s *tti;
+					tti = getTableTableFromTextureNode(tex->p[i]);
+					if(tti){
+						if(tti->status == TEX_LOADED){
+							nfound++;
+							if(nfound == 1){
+								nx = tti->x; ny = tti->y;
+								nsamesize = 1;
+							}else{
+								if(tti->x == nx && tti->y == ny) nsamesize++;
+							}
+						}
+					}
+				}
+			}
+			if(nsamesize == nfound && nfound == tex->n){
+				//all 2D textures are loadded and the same size
+				// -can combine into single volume texture
+				printf("ComposedTexture3D all same size textures n %d x %d y %d\n",tex->n,nx,ny);
+				//COMBINE?
+				//TEX3DVOL
+			}else{
+				//not all loaded (so can't trust all same size) or not all same size
+				//so we'll do up to 6 'layers' or texture2Ds, and lerp between floor/ceil in the shader 
+				printf("ComposedTexture3D not all same size textures \n");
+				//TEX3DLAY
+			}
+		}
+       	gglobal()->RenderFuncs.textureStackTop = 0;
+		for(i=0;i<min(tex->n,MAX_MULTITEXTURE);i++){
+			//doing layers, we can only handle up to MAX_MULTITEXTURE textures in the shader
+			//gglobal()->RenderFuncs.textureStackTop = ntextures; /* not multitexture - should have saved to boundTextureStack[0] */
 			loadTextureNode(X3D_NODE(tex->p[i]),NULL);
+        	gglobal()->RenderFuncs.textureStackTop++;
 			//loadMultiTexture(node);
 		}
-		gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+		move_texture_to_opengl(getTableTableFromTextureNode(node)); //load composed texture properties
 	}
 }
 
-void loadImageTexture3D(struct X3D_ImageTexture3D *node){
-}
+//void loadImageTexture3D(struct X3D_ImageTexture3D *node){
+//	//we don't seem to call or need this
+//}

@@ -399,7 +399,9 @@ typedef struct s_shader_capabilities{
 
 	/* texture3D */
 	GLint tex3dDepth; //int nz or 3rd dimension, needed in shader for texture2D emulation of texture3D
-	GLint tex3dBbox; //vec3[2] bounding box of geometry/shape node in local system, used to scale vertices for re-use as 3D texture coords
+	GLint tex3dUseVertex; //bool flag when no 3D texture coords supplied, vertex shader should use vertex
+	GLint repeatSTR;
+	GLint magFilter;
 
 	/* fill properties */
 	GLint hatchColour;

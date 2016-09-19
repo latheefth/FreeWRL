@@ -789,7 +789,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		if (r->GeneratedTexCoords[k]) {
 			if (r->VBO_buffers[TEXTURE_VBO0+k] == 0) glGenBuffers(1,&r->VBO_buffers[TEXTURE_VBO0+k]);
 			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,r->VBO_buffers[TEXTURE_VBO0+k]);
-			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*ntexdim[k]*r->ntri*3,r->GeneratedTexCoords[k], GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER,sizeof (float)*r->ntexdim[k]*r->ntri*3,r->GeneratedTexCoords[k], GL_STATIC_DRAW);
 			/* finished with these - if we did not use it as a flag later, we could get rid of it */
 			//FREE_IF_NZ(r->GeneratedTexCoords);
 		}

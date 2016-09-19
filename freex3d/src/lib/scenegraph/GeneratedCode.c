@@ -11957,7 +11957,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->minificationFilter = newASCIIString("FASTEST");
 			tmp2->textureCompression = newASCIIString("FASTEST");
 			tmp2->texturePriority = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_textureProperties;
 		break;
 		}
 		case NODE_TextureTransform : {

@@ -462,19 +462,19 @@ attribute vec3 fw_Normal; \n\
  \n\
 #ifdef TEX \n\
 uniform mat4 fw_TextureMatrix0; \n\
-attribute vec2 fw_MultiTexCoord0; \n\
+attribute vec4 fw_MultiTexCoord0; \n\
 //varying vec3 v_texC; \n\
 varying vec3 fw_TexCoord[4]; \n\
 #ifdef TEX3D \n\
-uniform vec3 tex3dBbox[2]; \n\
+uniform int tex3dUseVertex; \n\
 #endif //TEX3D \n\
 #ifdef MTEX \n\
 uniform mat4 fw_TextureMatrix1; \n\
 uniform mat4 fw_TextureMatrix2; \n\
 uniform mat4 fw_TextureMatrix3; \n\
-attribute vec2 fw_MultiTexCoord1; \n\
-attribute vec2 fw_MultiTexCoord2; \n\
-attribute vec2 fw_MultiTexCoord3; \n\
+attribute vec4 fw_MultiTexCoord1; \n\
+attribute vec4 fw_MultiTexCoord2; \n\
+attribute vec4 fw_MultiTexCoord3; \n\
 #endif //MTEX \n\
 #ifdef TGEN \n\
  #define TCGT_CAMERASPACENORMAL    0  \n\
@@ -489,8 +489,6 @@ attribute vec2 fw_MultiTexCoord3; \n\
  #define TCGT_SPHERE_REFLECT    9 \n\
  #define TCGT_SPHERE_REFLECT_LOCAL    10 \n\
  uniform int fw_textureCoordGenType; \n\
- vec3 vertexNorm; \n\
- vec4 vertexPos; \n\
 #endif //TGEN \n\
 #endif //TEX \n\
 #ifdef FILL \n\
@@ -574,6 +572,13 @@ attribute vec4 fw_Color; //castle_ColorPerVertex; \n\
 varying vec4 cpv_Color; \n\
 #endif //CPV \n\
  \n\
+ vec3 dehomogenize(in mat4 matrix, in vec4 vector){ \n\
+	vec4 tempv = vector; \n\
+	if(tempv.w == 0.0) tempv.w = 1.0; \n\
+	vec4 temp = matrix * tempv; \n\
+	float winv = 1.0/temp.w; \n\
+	return temp.xyz * winv; \n\
+ } \n\
 void main(void) \n\
 { \n\
   #ifdef LIT \n\
@@ -639,43 +644,45 @@ void main(void) \n\
   #endif //CPV \n\
   \n\
   #ifdef TEX \n\
-  #ifdef TGEN  \n\
-  vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
-  vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
-  /* sphereEnvironMapping Calculation */  \n\
-  vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n\
-  vec3 r= reflect(u,vertexNorm); \n\
-  if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
-    float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
-    fw_TexCoord[0] = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
-  }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
-    /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
-    float dotResult = 2.0 * dot(u,r); \n\
-    fw_TexCoord[0] = vec3(u-r)*dotResult; \n\
-  }else if (fw_textureCoordGenType==TCGT_COORD) { \n\
-    /* 3D textures can use coords in 0-1 range */ \n\
-    fw_TexCoord[0] = fw_Vertex.xyz; \n\
-  } else { /* default usage - like default CubeMaps */ \n\
-    vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
-    fw_TexCoord[0] =    reflect(u,vertexNorm); \n\
-  } \n\
-  fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_TexCoord[0],0))).stp; \n\
-  #else //TGEN \n\
+  vec4 texcoord = fw_MultiTexCoord0; \n\
   #ifdef TEX3D \n\
-  //to re-use vertex coords as texture3Dcoords, we need them in 0-1 range \n\
-  //fw_TexCoord[0] = vec3(fw_Vertex.x,fw_Vertex.y/4.0,fw_Vertex.z) *.5 + vec3(.5,.5,.5); \n\
-  fw_TexCoord[0] = (fw_Vertex.xyz - tex3dBbox[0]); \n\
-  fw_TexCoord[0] = fw_TexCoord[0]*tex3dBbox[1]; \n\
-  //fw_TexCoord[0] = fw_Vertex.xyz *.5 + vec3(.5,.5,.5); \n\
-  #else //TEX3D \n\
-  fw_TexCoord[0] = vec3(vec4(fw_TextureMatrix0 *vec4(fw_MultiTexCoord0,0,0))).stp; \n\
-  #ifdef MTEX \n\
-  fw_TexCoord[1] = vec3(vec4(fw_TextureMatrix1 *vec4(fw_MultiTexCoord1,0,0))).stp; \n\
-  fw_TexCoord[2] = vec3(vec4(fw_TextureMatrix2 *vec4(fw_MultiTexCoord2,0,0))).stp; \n\
-  fw_TexCoord[3] = vec3(vec4(fw_TextureMatrix3 *vec4(fw_MultiTexCoord3,0,0))).stp; \n\
-  #endif //MTEX \n\
+  //to re-use vertex coords as texturecoords3D, we need them in 0-1 range: CPU calc of fw_TextureMatrix0 \n\
+  if(tex3dUseVertex == 1) \n\
+    texcoord = vec4(fw_Vertex.xyz,1.0); \n\
   #endif //TEX3D \n\
+  #ifdef TGEN  \n\
+  { \n\
+    vec3 vertexNorm; \n\
+    vec4 vertexPos; \n\
+	vec3 texcoord3 = texcoord.xyz; \n\
+    vertexNorm = normalize(fw_NormalMatrix * fw_Normal); \n\
+    vertexPos = fw_ModelViewMatrix * fw_Vertex; \n\
+    /* sphereEnvironMapping Calculation */  \n\
+    vec3 u=normalize(vec3(vertexPos)); /* u is normalized position, used below more than once */ \n\
+    vec3 r= reflect(u,vertexNorm); \n\
+    if (fw_textureCoordGenType==TCGT_SPHERE) { /* TCGT_SPHERE  GL_SPHERE_MAP OpenGL Equiv */ \n\
+      float m=2.0 * sqrt(r.x*r.x + r.y*r.y + (r.z*1.0)*(r.z*1.0)); \n\
+      texcoord3 = vec3(r.x/m+0.5,r.y/m+0.5,0.0); \n\
+    }else if (fw_textureCoordGenType==TCGT_CAMERASPACENORMAL) { \n\
+      /* GL_REFLECTION_MAP used for sampling cubemaps */ \n\
+      float dotResult = 2.0 * dot(u,r); \n\
+      texcoord3 = vec3(u-r)*dotResult; \n\
+    }else if (fw_textureCoordGenType==TCGT_COORD) { \n\
+      /* 3D textures can use coords in 0-1 range */ \n\
+      texcoord3 = fw_Vertex.xyz; //xyz; \n\
+    } else { /* default usage - like default CubeMaps */ \n\
+      vec3 u=normalize(vec3(fw_ProjectionMatrix * fw_Vertex)); /* myEyeVertex */  \n\
+      texcoord3 =    reflect(u,vertexNorm); \n\
+    } \n\
+	texcoord.xyz = texcoord3; \n\
+  } \n\
   #endif //TGEN \n\
+  fw_TexCoord[0] = dehomogenize(fw_TextureMatrix0, texcoord); \n\
+  #ifdef MTEX \n\
+  fw_TexCoord[1] = dehomogenize(fw_TextureMatrix1,fw_MultiTexCoord1); \n\
+  fw_TexCoord[2] = dehomogenize(fw_TextureMatrix2,fw_MultiTexCoord2); \n\
+  fw_TexCoord[3] = dehomogenize(fw_TextureMatrix3,fw_MultiTexCoord3); \n\
+  #endif //MTEX \n\
   #endif //TEX \n\
   \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
@@ -783,7 +790,15 @@ uniform sampler2D fw_Texture_unit0; \n\
 varying vec3 fw_TexCoord[4]; \n\
 #ifdef TEX3D \n\
 uniform int tex3dDepth; \n\
+uniform int repeatSTR[3]; \n\
+uniform int magFilter; \n\
 #endif //TEX3D \n\
+#ifdef TEX3DLAY \n\
+uniform sampler2D fw_Texture_unit1; \n\
+uniform sampler2D fw_Texture_unit2; \n\
+uniform sampler2D fw_Texture_unit3; \n\
+uniform int textureCount; \n\
+#endif //TEX3DLAY \n\
 #ifdef MTEX \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
@@ -1118,21 +1133,98 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 }\n";
 
 //TEXTURE 3D
+/*	
+	4 scenarios:
+	1. GL has texture3D/EXT_texture3D/OES_texture3D
+	2. GL no texture3D - emulate
+	A. 3D image: source imagery is i) 3D image or ii) composed image with image layers all same size
+	B. 2D layers: source imagery is composed image with z < 7 layers and layers can be different sizes
+		1					2
+	A	texture3D			tiled texture2D	
+	B	multi texure2D		multi texture2D
+
+	for tiled texture2D, there are a few ways to do the tiles:
+	a) vertical strip: nx x (ny * nz) - our first attempt
+		layer 0 at top, and sequential layers follow down
+	b) squarish tiled: ix = iy = ceil(sqrt(nz)); (nx*ix) x (ny*iy)
+		there will be blank squares. Order:
+		y-first layer order: fill column, first at top left, before advancing ix right
+		(option: x-first layer order: fill row, first at top left, before advancing down iy)
+*/
 static const GLchar *plug_fragment_texture3D_apply =	"\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
 \n\
   #ifdef TEX3D \n\
   vec3 texcoord = fw_TexCoord[0]; \n\
+  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
   float depth = max(1.0,float(tex3dDepth)); \n\
-  texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
-  texcoord.y += floor(texcoord.z*depth); \n\
-  texcoord.y /= depth; \n\
-  vec4 texel = texture2D(fw_Texture_unit0,texcoord.st); \n\
+  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
+  else texcoord.x = mod(texcoord.x,1.0); \n\
+  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
+  else texcoord.y = mod(texcoord.y,1.0); \n\
+  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
+  else texcoord.z = mod(texcoord.z,1.0); \n\
+  vec4 texel; \n\
+  int flay = int(floor(texcoord.z*depth)); \n\
+  int clay = int(ceil(texcoord.z*depth)); \n\
+  clay = clay == tex3dDepth ? 0 : clay; \n\
+  vec4 ftexel, ctexel; \n\
+  vec3 ftexcoord, ctexcoord; \n\
+  ftexcoord = texcoord; \n\
+  ctexcoord = texcoord; \n\
+  ftexcoord.y += float(flay); \n\
+  ftexcoord.y /= depth; \n\
+  ctexcoord.y += float(clay); \n\
+  ctexcoord.y /= depth; \n\
+  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
+  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
+  float fraction = mod(ftexcoord.z*depth,1.0); \n\
+  if(magFilter == 1) \n\
+	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
+  else \n\
+	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
   finalFrag *= texel; \n\
   #endif //TEX3D \n\
   \n\
 }\n";
 
+static const GLchar *plug_fragment_texture3Dlayer_apply =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+  #ifdef TEX3DLAY \n\
+  vec3 texcoord = fw_TexCoord[0]; \n\
+  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
+  float depth = max(1.0,float(textureCount-1)); \n\
+  float delta = 1.0/depth; \n\
+  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
+  else texcoord.x = mod(texcoord.x,1.0); \n\
+  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
+  else texcoord.y = mod(texcoord.y,1.0); \n\
+  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
+  else texcoord.z = mod(texcoord.z,1.0); \n\
+  int flay = int(floor(texcoord.z*depth)); \n\
+  int clay = int(ceil(texcoord.z*depth)); \n\
+  vec4 ftexel, ctexel; \n\
+  //flay = 0; \n\
+  //clay = 1; \n\
+  if(flay == 0) ftexel = texture2D(fw_Texture_unit0,texcoord.st);  \n\
+  if(clay == 0) ctexel = texture2D(fw_Texture_unit0,texcoord.st);  \n\
+  if(flay == 1) ftexel = texture2D(fw_Texture_unit1,texcoord.st);  \n\
+  if(clay == 1) ctexel = texture2D(fw_Texture_unit1,texcoord.st);  \n\
+  if(flay == 2) ftexel = texture2D(fw_Texture_unit2,texcoord.st);  \n\
+  if(clay == 2) ctexel = texture2D(fw_Texture_unit2,texcoord.st);  \n\
+  if(flay == 3) ftexel = texture2D(fw_Texture_unit3,texcoord.st);  \n\
+  if(clay == 3) ctexel = texture2D(fw_Texture_unit3,texcoord.st); \n\
+  float fraction = mod(texcoord.z*depth,1.0); \n\
+  vec4 texel; \n\
+  if(magFilter == 1) \n\
+	texel = mix(ctexel,ftexel,(1.0-fraction)); //lerp GL_LINEAR \n\
+  else \n\
+	texel = fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
+  finalFrag *= texel; \n\
+  #endif //TEX3DLAY \n\
+  \n\
+}\n";
 
 //MULTITEXTURE
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#MultiTexture
@@ -1515,15 +1607,25 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		AddDefine(SHADERPART_FRAGMENT,"TEX",CompleteCode);
 		if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
 			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
-		if(DESIRE(whichOne,TEX3D_APPEARANCE_SHADER)){
+		if(DESIRE(whichOne,TEX3D_SHADER)){
 			//in theory, if the texcoordgen "COORD" and TextureTransform3D are set in scenefile 
 			// and working properly in freewrl, then don't need TEX3D for that node in VERTEX shader
 			// which is using tex3dbbox (shape->_extent reworked) to get vertex coords in 0-1 range
 			// x Sept 4, 2016 either TextureTransform3D or CoordinateGenerator "COORD" isn't working right for Texture3D
 			// so we're using the bbox method
-			if(0) AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode); 
-			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
-			Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+			//vertex str texture coords computed same for both volume and layered tex3d
+			AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode); 
+			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
+			//fragment part different:
+			if(DESIRE(whichOne,TEX3D_LAYER_SHADER)){
+				//up to 6 textures, with lerp between floor,ceil textures
+				AddDefine(SHADERPART_FRAGMENT,"TEX3DLAY",CompleteCode);
+				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3Dlayer_apply,CompleteCode,&unique_int);
+			}else{
+				//TEX3D_VOLUME_SHADER
+				//AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
+				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+			}
 		}else{
 			if(DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)){
 				AddDefine(SHADERPART_VERTEX,"CUB",CompleteCode);

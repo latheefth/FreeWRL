@@ -148,7 +148,7 @@ GLXContext textureContext = NULL;
 int findTextureFile(textureTableIndexStruct_s *entry);
 //void _textureThread(void);
 
-static void move_texture_to_opengl(textureTableIndexStruct_s*);
+void move_texture_to_opengl(textureTableIndexStruct_s*);
 struct Uni_String *newASCIIString(char *str);
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
@@ -1165,7 +1165,7 @@ DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
 
 
 
-static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
+void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	int rx,ry,sx,sy;
 	int x,y;
 	GLint iformat;
@@ -1274,7 +1274,12 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		struct X3D_ImageCubeMapTexture *mi = (struct X3D_ImageCubeMapTexture *) me->scenegraphNode;
 		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
 	}
-
+	//texure3D faked via texture2D (in non-extended GLES2)
+	//.. needs repeats for manual wrap vs clamp, will send in 
+	//.. passedInGenTex
+	me->repeatSTR[0] = Src;
+	me->repeatSTR[1] = Trc;
+	me->repeatSTR[2] = Rrc; 
 
 
 	/* do we have a TextureProperties node? */
@@ -1302,8 +1307,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			borderWidth = tpNode->borderWidth;
 			if (borderWidth < 0) borderWidth=0; if (borderWidth>1) borderWidth = 1;
 
+			// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#t-TextureMagnificationModes
+
 			switch (findFieldInTEXTUREMAGNIFICATIONKEYWORDS(tpNode->magnificationFilter->strptr)) {
-				case TMAG_AVG_PIXEL: magFilter = GL_NEAREST; break;
+				case TMAG_AVG_PIXEL: 
+					magFilter = GL_LINEAR; break; // GL_NEAREST; break;
 				case TMAG_DEFAULT: magFilter = GL_LINEAR; break;
 				case TMAG_FASTEST: magFilter = GL_LINEAR; break;  /* DEFAULT */
 				case TMAG_NEAREST_PIXEL: magFilter = GL_NEAREST; break;
@@ -1490,6 +1498,22 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			
 			/* save this to determine whether we need to do material node
 			  within appearance or not */
+
+			/*
+			repeatS,repeatT,repeatR
+			https://open.gl/textures
+			how the texture should be sampled when a coordinate outside the range of 0to 1 is given
+			- repeat (*1)
+			- mirrored repeat
+			- clamp to edge (*2)
+			- clamp to border
+			subset of opengl supported by web3d:
+			http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#Texturecoordinates
+			(*1) If repeatS is TRUE (the default), the texture map is repeated outside 
+				the [0.0, 1.0] texture coordinate range in the S direction so that it fills the shape.
+			(*2) If repeatS is FALSE, the texture coordinates are clamped in the S direction to lie 
+				within the [0.0, 1.0] range.
+			*/
 				
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Src);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Trc);
@@ -1513,6 +1537,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+			me->magFilter = magFilter ==  GL_LINEAR ? 1 : 0;  //needed in frag shader for TEX3D simulation of texture3D with texture2D
 			
 			/* BGRA is seemingly faster on desktop machines... */
 			//#if defined (GL_BGRA)

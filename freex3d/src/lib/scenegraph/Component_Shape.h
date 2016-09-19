@@ -59,19 +59,20 @@ Proximity sensor macro.
 #define HAVE_TEXTURECOORDINATEGENERATOR 0x00200
 
 /* CubeMapTexturing */
-#define HAVE_CUBEMAP_TEXTURE 0x00400
+#define HAVE_CUBEMAP_TEXTURE  0x00400
 #define FOG_APPEARANCE_SHADER 0X00800
-#define HAVE_FOG_COORDS 0x01000
+#define HAVE_FOG_COORDS       0x01000
 #define TEXTURE_REPLACE_PRIOR 0x02000
 #define TEXALPHA_REPLACE_PRIOR 0x04000
-#define CPV_REPLACE_PRIOR    0x08000
+#define CPV_REPLACE_PRIOR     0x08000
 #define SHADINGSTYLE_FLAT    0x100000
 #define SHADINGSTYLE_GOURAUD 0x200000
 #define SHADINGSTYLE_PHONG   0x400000
 #define SHADINGSTYLE_WIRE    0x800000
-#define MAT_FIRST			 0x1000000
-#define WANT_ANAGLYPH		 0x2000000
-#define TEX3D_APPEARANCE_SHADER 0X4000000
+#define MAT_FIRST            0x1000000
+#define WANT_ANAGLYPH        0x2000000
+#define TEX3D_SHADER         0X4000000
+#define TEX3D_LAYER_SHADER   0x8000000
 
 /* Component_Shader - user-specified shaders. Currently limited in number */
 /* note we start at 0x1000 and count up by 1 for (currently) 255 shaders per program */

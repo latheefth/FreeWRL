@@ -2937,7 +2937,10 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 
 	//texture3D
 	me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
-	me->tex3dBbox = GET_UNIFORM(myProg,"tex3dBbox");
+	me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+	me->magFilter = GET_UNIFORM(myProg,"magFilter");
+	me->repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+
 
 	/* for FillProperties */
 	me->myPointSize = GET_UNIFORM(myProg, "pointSize");
@@ -6208,7 +6211,8 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 			sp = spval;
 			dp = p->FW_TextureView[itexturestackposition]; //[p->textureviewTOS];
 
-			//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d, sizeof float %d",sizeof(GLDOUBLE), sizeof(float));
+			//ConsoleMessage ("sendExplicitMatriciesToShader, sizeof GLDOUBLE %d sizeof float %d\n",sizeof(GLDOUBLE), sizeof(float));
+			//printmatrix2(dp,"dp");
 			/* convert GLDOUBLE to float */
 			for (i=0; i<16; i++) {
 				*sp = (float) *dp;
