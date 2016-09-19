@@ -1164,10 +1164,25 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   else texcoord.y = mod(texcoord.y,1.0); \n\
   if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
   else texcoord.z = mod(texcoord.z,1.0); \n\
-  //texcoord = clamp(texcoord,0.0001,.9999); //clears up boundary effects \n\
-  texcoord.y += floor(texcoord.z*depth); \n\
-  texcoord.y /= depth; \n\
-  vec4 texel = texture2D(fw_Texture_unit0,texcoord.st); \n\
+  vec4 texel; \n\
+  int flay = int(floor(texcoord.z*depth)); \n\
+  int clay = int(ceil(texcoord.z*depth)); \n\
+  clay = clay == tex3dDepth ? 0 : clay; \n\
+  vec4 ftexel, ctexel; \n\
+  vec3 ftexcoord, ctexcoord; \n\
+  ftexcoord = texcoord; \n\
+  ctexcoord = texcoord; \n\
+  ftexcoord.y += float(flay); \n\
+  ftexcoord.y /= depth; \n\
+  ctexcoord.y += float(clay); \n\
+  ctexcoord.y /= depth; \n\
+  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
+  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
+  float fraction = mod(ftexcoord.z*depth,1.0); \n\
+  if(magFilter == 1) \n\
+	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
+  else \n\
+	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
   finalFrag *= texel; \n\
   #endif //TEX3D \n\
   \n\
@@ -1200,7 +1215,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   if(clay == 2) ctexel = texture2D(fw_Texture_unit2,texcoord.st);  \n\
   if(flay == 3) ftexel = texture2D(fw_Texture_unit3,texcoord.st);  \n\
   if(clay == 3) ctexel = texture2D(fw_Texture_unit3,texcoord.st); \n\
-  float fraction = texcoord.z*depth - float(flay); \n\
+  float fraction = mod(texcoord.z*depth,1.0); \n\
   vec4 texel; \n\
   if(magFilter == 1) \n\
 	texel = mix(ctexel,ftexel,(1.0-fraction)); //lerp GL_LINEAR \n\
