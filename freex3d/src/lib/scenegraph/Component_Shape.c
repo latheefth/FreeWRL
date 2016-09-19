@@ -94,7 +94,7 @@ static int hasUserDefinedShader(struct X3D_Node *node) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, node, ap);
 		//ConsoleMessage ("appearance node shaders is %d %p",ap->shaders.n, ap->shaders.p);
 
-		if (ap->shaders.n != 0) {
+		if (ap && ap->shaders.n != 0) {
 			struct X3D_ComposedShader *cps;
 
 			/* ok - what kind of node is here, and are there more than two? */
@@ -105,32 +105,34 @@ static int hasUserDefinedShader(struct X3D_Node *node) {
 			POSSIBLE_PROTO_EXPANSION(struct X3D_ComposedShader *, ap->shaders.p[0], cps);
 
 			//ConsoleMessage ("node type of shaders is :%s:",stringNodeType(cps->_nodeType));
-			if (cps->_nodeType == NODE_ComposedShader) {
-				// might be set in compile_Shader already
-				//ConsoleMessage ("cps->_initialized %d",cps->_initialized);
-				//ConsoleMessage ("cps->_retrievedURLData %d",cps->_retrievedURLData);
+			if(cps){
+				if (cps->_nodeType == NODE_ComposedShader) {
+					// might be set in compile_Shader already
+					//ConsoleMessage ("cps->_initialized %d",cps->_initialized);
+					//ConsoleMessage ("cps->_retrievedURLData %d",cps->_retrievedURLData);
 
-				if (cps->_retrievedURLData) {
-					if (cps->_shaderUserNumber == -1) cps->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
-					rv = cps->_shaderUserNumber;
-				}
-			} else if (cps->_nodeType == NODE_PackagedShader) {
-				// might be set in compile_Shader already
-				if (X3D_PACKAGEDSHADER(cps)->_retrievedURLData) {
-					if (X3D_PACKAGEDSHADER(cps)->_shaderUserNumber == -1) 
-						X3D_PACKAGEDSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
-					rv = X3D_PACKAGEDSHADER(cps)->_shaderUserNumber;
-				}
-			} else if (cps->_nodeType == NODE_ProgramShader) {
-				// might be set in compile_Shader already
-				if (X3D_PROGRAMSHADER(cps)->_retrievedURLData) {
-				if (X3D_PROGRAMSHADER(cps)->_shaderUserNumber == -1) 
-					X3D_PROGRAMSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+					if (cps->_retrievedURLData) {
+						if (cps->_shaderUserNumber == -1) cps->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+						rv = cps->_shaderUserNumber;
+					}
+				} else if (cps->_nodeType == NODE_PackagedShader) {
+					// might be set in compile_Shader already
+					if (X3D_PACKAGEDSHADER(cps)->_retrievedURLData) {
+						if (X3D_PACKAGEDSHADER(cps)->_shaderUserNumber == -1) 
+							X3D_PACKAGEDSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+						rv = X3D_PACKAGEDSHADER(cps)->_shaderUserNumber;
+					}
+				} else if (cps->_nodeType == NODE_ProgramShader) {
+					// might be set in compile_Shader already
+					if (X3D_PROGRAMSHADER(cps)->_retrievedURLData) {
+					if (X3D_PROGRAMSHADER(cps)->_shaderUserNumber == -1) 
+						X3D_PROGRAMSHADER(cps)->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
 
-				rv = X3D_PROGRAMSHADER(cps)->_shaderUserNumber;
+					rv = X3D_PROGRAMSHADER(cps)->_shaderUserNumber;
+					}
+				} else {
+					ConsoleMessage ("shader field of Appearance is a %s, ignoring",stringNodeType(cps->_nodeType));
 				}
-			} else {
-				ConsoleMessage ("shader field of Appearance is a %s, ignoring",stringNodeType(cps->_nodeType));
 			}
 
 		} 
@@ -207,16 +209,18 @@ void child_Appearance (struct X3D_Appearance *node) {
 			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->shaders.p[count], tmpN);
 			
 			/* have we found a valid shader yet? */
-			if (foundGoodShader) {
-				/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
-				/* yes, just tell other shaders that they are not selected */
-				SET_SHADER_SELECTED_FALSE(tmpN);
-			} else {
-				/* render this node; if it is valid, then we call this one the selected one */
-				SET_FOUND_GOOD_SHADER(tmpN);
-				DEBUG_SHADER("running shader (%s) %d of %d\n",
-				stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);
-				render_node(tmpN);
+			if(tmpN){
+				if (foundGoodShader) {
+					/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
+					/* yes, just tell other shaders that they are not selected */
+					SET_SHADER_SELECTED_FALSE(tmpN);
+				} else {
+					/* render this node; if it is valid, then we call this one the selected one */
+					SET_FOUND_GOOD_SHADER(tmpN);
+					DEBUG_SHADER("running shader (%s) %d of %d\n",
+					stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->shaders.n);
+					render_node(tmpN);
+				}
 			}
 		}
 	}
@@ -446,16 +450,17 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 	if (myApp == NULL) return retval;
 
 	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, myApp,realAppearanceNode);
-	if (realAppearanceNode->_nodeType != NODE_Appearance) return retval;
+	if (!realAppearanceNode || realAppearanceNode->_nodeType != NODE_Appearance) return retval;
     
 	if (realAppearanceNode->material != NULL) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->material,realMaterialNode);
-		        
-		if (realMaterialNode->_nodeType == NODE_Material) {
-			retval |= MATERIAL_APPEARANCE_SHADER;
-		}
-		if (realMaterialNode->_nodeType == NODE_TwoSidedMaterial) {
-			retval |= TWO_MATERIAL_APPEARANCE_SHADER;
+		if(realMaterialNode)  {    
+			if (realMaterialNode->_nodeType == NODE_Material) {
+				retval |= MATERIAL_APPEARANCE_SHADER;
+			}
+			if (realMaterialNode->_nodeType == NODE_TwoSidedMaterial) {
+				retval |= TWO_MATERIAL_APPEARANCE_SHADER;
+			}
 		}
 	}
 
@@ -463,12 +468,14 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 	if (realAppearanceNode->fillProperties != NULL) {
 		struct X3D_Node *fp;
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->fillProperties,fp);
-		if (fp->_nodeType != NODE_FillProperties) {
-			ConsoleMessage("getAppearanceShader, fillProperties has a node type of %s",stringNodeType(fp->_nodeType));
-		} else {
-			// is this a FillProperties node, but is it enabled?
-			if (X3D_FILLPROPERTIES(fp)->_enabled)
-				retval |= FILL_PROPERTIES_SHADER;
+		if(fp){
+			if (fp->_nodeType != NODE_FillProperties) {
+				ConsoleMessage("getAppearanceShader, fillProperties has a node type of %s",stringNodeType(fp->_nodeType));
+			} else {
+				// is this a FillProperties node, but is it enabled?
+				if (X3D_FILLPROPERTIES(fp)->_enabled)
+					retval |= FILL_PROPERTIES_SHADER;
+			}
 		}
 	}
 
@@ -478,26 +485,28 @@ static int getAppearanceShader (struct X3D_Node *myApp) {
 		struct X3D_Node *tex;
 
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, realAppearanceNode->texture,tex);
-		if ((tex->_nodeType == NODE_ImageTexture) || 
-			(tex->_nodeType == NODE_MovieTexture) || 
-			(tex->_nodeType == NODE_PixelTexture) ){
-			retval |= ONE_TEX_APPEARANCE_SHADER;
-		} else if( (tex->_nodeType == NODE_PixelTexture3D) ||
-			(tex->_nodeType == NODE_ComposedTexture3D) ||
-			(tex->_nodeType == NODE_ImageTexture3D) ) {
-			retval |= ONE_TEX_APPEARANCE_SHADER;
-			retval |= TEX3D_SHADER; //VOLUME by default
-			if(tex->_nodeType == NODE_ComposedTexture3D)
-				retval |= TEX3D_LAYER_SHADER; //else VOLUME
-		} else if (tex->_nodeType == NODE_MultiTexture) {
-			retval |= MULTI_TEX_APPEARANCE_SHADER;
-		} else if ((tex->_nodeType == NODE_ComposedCubeMapTexture) ||
-					(tex->_nodeType == NODE_ImageCubeMapTexture) || 
-					(tex->_nodeType == NODE_GeneratedCubeMapTexture)) {
-			retval |= HAVE_CUBEMAP_TEXTURE;
-		} else {
-			ConsoleMessage ("getAppearanceShader, texture field %s not supported yet\n",
-			stringNodeType(tex->_nodeType));
+		if(tex){
+			if ((tex->_nodeType == NODE_ImageTexture) || 
+				(tex->_nodeType == NODE_MovieTexture) || 
+				(tex->_nodeType == NODE_PixelTexture) ){
+				retval |= ONE_TEX_APPEARANCE_SHADER;
+			} else if( (tex->_nodeType == NODE_PixelTexture3D) ||
+				(tex->_nodeType == NODE_ComposedTexture3D) ||
+				(tex->_nodeType == NODE_ImageTexture3D) ) {
+				retval |= ONE_TEX_APPEARANCE_SHADER;
+				retval |= TEX3D_SHADER; //VOLUME by default
+				if(tex->_nodeType == NODE_ComposedTexture3D)
+					retval |= TEX3D_LAYER_SHADER; //else VOLUME
+			} else if (tex->_nodeType == NODE_MultiTexture) {
+				retval |= MULTI_TEX_APPEARANCE_SHADER;
+			} else if ((tex->_nodeType == NODE_ComposedCubeMapTexture) ||
+						(tex->_nodeType == NODE_ImageCubeMapTexture) || 
+						(tex->_nodeType == NODE_GeneratedCubeMapTexture)) {
+				retval |= HAVE_CUBEMAP_TEXTURE;
+			} else {
+				ConsoleMessage ("getAppearanceShader, texture field %s not supported yet\n",
+				stringNodeType(tex->_nodeType));
+			}
 		}
 	}
     

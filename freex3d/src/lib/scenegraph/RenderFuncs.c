@@ -2035,17 +2035,18 @@ struct Multi_Vec3f *getCoordinate (struct X3D_Node *innode, char *str) {
 
 	POSSIBLE_PROTO_EXPANSION (struct X3D_Node *, innode,node)
 
+	if(node){
 		xc = X3D_COORD(node);
-	/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */
-
-	if (xc->_nodeType == NODE_Coordinate) {
-		return &(xc->point);
-	} else if (xc->_nodeType == NODE_GeoCoordinate) {
-		COMPILE_IF_REQUIRED_RETURN_NULL_ON_ERROR;
-		gxc = X3D_GEOCOORD(node);
-		return &(gxc->__movedCoords);
-	} else {
-		ConsoleMessage ("%s - coord expected but got %s\n", stringNodeType(xc->_nodeType));
+		/* printf ("getCoordinate, have a %s\n",stringNodeType(xc->_nodeType)); */
+		if (xc->_nodeType == NODE_Coordinate) {
+			return &(xc->point);
+		} else if (xc->_nodeType == NODE_GeoCoordinate) {
+			COMPILE_IF_REQUIRED_RETURN_NULL_ON_ERROR;
+			gxc = X3D_GEOCOORD(node);
+			return &(gxc->__movedCoords);
+		} else {
+			ConsoleMessage ("%s - coord expected but got %s\n", stringNodeType(xc->_nodeType));
+		}
 	}
 	return NULL;
 }

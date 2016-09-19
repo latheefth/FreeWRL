@@ -1968,151 +1968,152 @@ void collide_Text (struct X3D_Text *node)
 
 void make_Text (struct X3D_Text *node)
 {
-    struct X3D_PolyRep *rep_ = node->_intern;
-    double spacing = 1.0;
-    double size = 1.0;
+	struct X3D_PolyRep *rep_ = node->_intern;
+	double spacing = 1.0;
+	double size = 1.0;
 	int isScreenFontStyle;
-    unsigned int fsparams = 0;
+	unsigned int fsparams = 0;
 
 	isScreenFontStyle = FALSE;
-    /* We need both sides */
-    DISABLE_CULL_FACE;
+	/* We need both sides */
+	DISABLE_CULL_FACE;
 
-    if (node->fontStyle) {
-        /* We have a FontStyle. Parse params (except size and spacing) and
-           make up an unsigned int with bits indicating params, to be
-           passed to the Text Renderer
+	if (node->fontStyle) {
+		/* We have a FontStyle. Parse params (except size and spacing) and
+			make up an unsigned int with bits indicating params, to be
+			passed to the Text Renderer
 
-           bit:    0       horizontal  (boolean)
-           bit:    1       leftToRight (boolean)
-           bit:    2       topToBottom (boolean)
-           (style)
-           bit:    3       BOLD        (boolean)
-           bit:    4       ITALIC      (boolean)
-           (family)
-           bit:    5       SERIF
-           bit:    6       SANS
-           bit:    7       TYPEWRITER
-           bit:    8       indicates exact font pointer (future use)
-           (Justify - major)
-           bit:    9       FIRST
-           bit:    10      BEGIN
-           bit:    11      MIDDLE
-           bit:    12      END
-           (Justify - minor)
-           bit:    13      FIRST
-           bit:    14      BEGIN
-           bit:    15      MIDDLE
-           bit:    16      END
+			bit:    0       horizontal  (boolean)
+			bit:    1       leftToRight (boolean)
+			bit:    2       topToBottom (boolean)
+			(style)
+			bit:    3       BOLD        (boolean)
+			bit:    4       ITALIC      (boolean)
+			(family)
+			bit:    5       SERIF
+			bit:    6       SANS
+			bit:    7       TYPEWRITER
+			bit:    8       indicates exact font pointer (future use)
+			(Justify - major)
+			bit:    9       FIRST
+			bit:    10      BEGIN
+			bit:    11      MIDDLE
+			bit:    12      END
+			(Justify - minor)
+			bit:    13      FIRST
+			bit:    14      BEGIN
+			bit:    15      MIDDLE
+			bit:    16      END
 
-           bit: 17-31      spare
-        */
+			bit: 17-31      spare
+		*/
 
-        struct X3D_FontStyle *fsp;
-        unsigned char *lang;
-        unsigned char *style;
-        struct Multi_String family;
-        struct Multi_String justify;
-        int tmp; int tx;
-        struct Uni_String **svptr;
-        unsigned char *stmp;
+		struct X3D_FontStyle *fsp;
+		unsigned char *lang;
+		unsigned char *style;
+		struct Multi_String family;
+		struct Multi_String justify;
+		int tmp; int tx;
+		struct Uni_String **svptr;
+		unsigned char *stmp;
 
-        /* step 0 - is the FontStyle a proto? */
-        POSSIBLE_PROTO_EXPANSION(struct X3D_FontStyle *, node->fontStyle,fsp);
+		/* step 0 - is the FontStyle a proto? */
+		POSSIBLE_PROTO_EXPANSION(struct X3D_FontStyle *, node->fontStyle,fsp);
+		if(fsp){
+			/* fsp = (struct X3D_FontStyle *)node->fontStyle; */
+			if (fsp->_nodeType != NODE_FontStyle && fsp->_nodeType != NODE_ScreenFontStyle) {
+				ConsoleMessage ("Text node has FontStyle of %s\n",stringNodeType(fsp->_nodeType));
+				node->fontStyle = NULL; /* stop dumping these messages */
+			}
 
-        /* fsp = (struct X3D_FontStyle *)node->fontStyle; */
-        if (fsp->_nodeType != NODE_FontStyle && fsp->_nodeType != NODE_ScreenFontStyle) {
-            ConsoleMessage ("Text node has FontStyle of %s\n",stringNodeType(fsp->_nodeType));
-            node->fontStyle = NULL; /* stop dumping these messages */
-        }
+			/* step 0.5 - now that we know FontStyle points ok, go for
+				* the other pointers */
+			lang = (unsigned char *)fsp->language->strptr;
+			style = (unsigned char *)fsp->style->strptr;
 
-        /* step 0.5 - now that we know FontStyle points ok, go for
-         * the other pointers */
-        lang = (unsigned char *)fsp->language->strptr;
-        style = (unsigned char *)fsp->style->strptr;
+			family = fsp->family;
+			justify = fsp->justify;
 
-        family = fsp->family;
-        justify = fsp->justify;
+			/* Step 1 - record the spacing and size, for direct use */
+			spacing = fsp->spacing;
+			size = fsp->size;
+			if(fsp->_nodeType == NODE_ScreenFontStyle){
+				struct X3D_ScreenFontStyle *fsps = (struct X3D_ScreenFontStyle *)fsp;
+				//if the scene file said size='.8' by mistake instead of pointSize='10', 
+				// ..x3d parser will leave pointSize at its default 12.0
+				size = fsps->pointSize; 
+				isScreenFontStyle = TRUE;
+			}
 
-        /* Step 1 - record the spacing and size, for direct use */
-        spacing = fsp->spacing;
-        size = fsp->size;
-		if(fsp->_nodeType == NODE_ScreenFontStyle){
-			struct X3D_ScreenFontStyle *fsps = (struct X3D_ScreenFontStyle *)fsp;
-			//if the scene file said size='.8' by mistake instead of pointSize='10', 
-			// ..x3d parser will leave pointSize at its default 12.0
-			size = fsps->pointSize; 
-			isScreenFontStyle = TRUE;
-		}
+			/* Step 2 - do the SFBools */
+			fsparams = (fsp->horizontal)|(fsp->leftToRight<<1)|(fsp->topToBottom<<2);
 
-        /* Step 2 - do the SFBools */
-        fsparams = (fsp->horizontal)|(fsp->leftToRight<<1)|(fsp->topToBottom<<2);
+			/* Step 3 - the SFStrings - style and language */
+			/* actually, language is not parsed yet */
 
-        /* Step 3 - the SFStrings - style and language */
-        /* actually, language is not parsed yet */
-
-        if (strlen((const char *)style)) {
-            if (!strcmp((const char *)style,"ITALIC")) {fsparams |= 0x10;}
-            else if(!strcmp((const char *)style,"BOLD")) {fsparams |= 0x08;}
-            else if (!strcmp((const char *)style,"BOLDITALIC")) {fsparams |= 0x18;}
-            else if (strcmp((const char *)style,"PLAIN")) {
-                printf ("Warning - FontStyle style %s  assuming PLAIN\n",style);}
-        }
-        if (strlen((const char *)lang)) {
-            printf ("Warning - FontStyle - language param unparsed\n");
-        }
+			if (strlen((const char *)style)) {
+				if (!strcmp((const char *)style,"ITALIC")) {fsparams |= 0x10;}
+				else if(!strcmp((const char *)style,"BOLD")) {fsparams |= 0x08;}
+				else if (!strcmp((const char *)style,"BOLDITALIC")) {fsparams |= 0x18;}
+				else if (strcmp((const char *)style,"PLAIN")) {
+					printf ("Warning - FontStyle style %s  assuming PLAIN\n",style);}
+			}
+			if (strlen((const char *)lang)) {
+				printf ("Warning - FontStyle - language param unparsed\n");
+			}
 
 
-        /* Step 4 - the MFStrings now. Family, Justify. */
-        /* family can be blank, or one of the pre-defined ones. Any number of elements */
+			/* Step 4 - the MFStrings now. Family, Justify. */
+			/* family can be blank, or one of the pre-defined ones. Any number of elements */
 
-        svptr = family.p;
-        for (tmp = 0; tmp < family.n; tmp++) {
-            stmp = (unsigned char *)svptr[tmp]->strptr;
-            if (strlen((const char *)stmp) == 0) {fsparams |=0x20; }
-            else if (!strcmp((const char *)stmp,"SERIF")) { fsparams |= 0x20;}
-            else if(!strcmp((const char *)stmp,"SANS")) { fsparams |= 0x40;}
-            else if (!strcmp((const char *)stmp,"TYPEWRITER")) { fsparams |= 0x80;}
-            /* else { printf ("Warning - FontStyle family %s unknown\n",stmp);}*/
-        }
+			svptr = family.p;
+			for (tmp = 0; tmp < family.n; tmp++) {
+				stmp = (unsigned char *)svptr[tmp]->strptr;
+				if (strlen((const char *)stmp) == 0) {fsparams |=0x20; }
+				else if (!strcmp((const char *)stmp,"SERIF")) { fsparams |= 0x20;}
+				else if(!strcmp((const char *)stmp,"SANS")) { fsparams |= 0x40;}
+				else if (!strcmp((const char *)stmp,"TYPEWRITER")) { fsparams |= 0x80;}
+				/* else { printf ("Warning - FontStyle family %s unknown\n",stmp);}*/
+			}
 
-        svptr = justify.p;
-        tx = justify.n;
-        /* default is "BEGIN" "FIRST" */
-        if (tx == 0) { fsparams |= 0x2400; }
-        else if (tx == 1) { fsparams |= 0x2000; }
-        else if (tx > 2) {
-            printf ("Warning - FontStyle, max 2 elements in Justify\n");
-            tx = 2;
-        }
+			svptr = justify.p;
+			tx = justify.n;
+			/* default is "BEGIN" "FIRST" */
+			if (tx == 0) { fsparams |= 0x2400; }
+			else if (tx == 1) { fsparams |= 0x2000; }
+			else if (tx > 2) {
+				printf ("Warning - FontStyle, max 2 elements in Justify\n");
+				tx = 2;
+			}
 
-        for (tmp = 0; tmp < tx; tmp++) {
-            stmp = (unsigned char *)svptr[tmp]->strptr;
-            if (strlen((const char *)stmp) == 0) {
-                if (tmp == 0) {
-                    fsparams |= 0x400;
-                } else {
-                    fsparams |= 0x2000;
-                }
-            }
-            else if (!strcmp((const char *)stmp,"FIRST")) { fsparams |= (0x200<<(tmp*4));}
-            else if(!strcmp((const char *)stmp,"BEGIN")) { fsparams |= (0x400<<(tmp*4));}
-            else if (!strcmp((const char *)stmp,"MIDDLE")) { fsparams |= (0x800<<(tmp*4));}
-            else if (!strcmp((const char *)stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
-            /* else { printf ("Warning - FontStyle family %s unknown\n",stmp);}*/
-        }
-    } else {
-        /* send in defaults */
-        fsparams = 0x2427;
-    }
+			for (tmp = 0; tmp < tx; tmp++) {
+				stmp = (unsigned char *)svptr[tmp]->strptr;
+				if (strlen((const char *)stmp) == 0) {
+					if (tmp == 0) {
+						fsparams |= 0x400;
+					} else {
+						fsparams |= 0x2000;
+					}
+				}
+				else if (!strcmp((const char *)stmp,"FIRST")) { fsparams |= (0x200<<(tmp*4));}
+				else if(!strcmp((const char *)stmp,"BEGIN")) { fsparams |= (0x400<<(tmp*4));}
+				else if (!strcmp((const char *)stmp,"MIDDLE")) { fsparams |= (0x800<<(tmp*4));}
+				else if (!strcmp((const char *)stmp,"END")) { fsparams |= (0x1000<<(tmp*4));}
+				/* else { printf ("Warning - FontStyle family %s unknown\n",stmp);}*/
+			}
+		} //if(fsp)
+	} else {
+		/* send in defaults */
+		fsparams = 0x2427;
+	}
 
-    /*  do the Text parameters, guess at the number of triangles required*/
-    rep_->ntri = 0;
+	/*  do the Text parameters, guess at the number of triangles required*/
+	rep_->ntri = 0;
 
-    /*
-       printf ("Text, calling FW_rendertext\n");
-       call render text - NULL means get the text from the string
-    */
+	/*
+		printf ("Text, calling FW_rendertext\n");
+		call render text - NULL means get the text from the string
+	*/
 	//normal scene 3D vectorized text
 	node->_isScreen = isScreenFontStyle;
 

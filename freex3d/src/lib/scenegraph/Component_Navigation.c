@@ -338,9 +338,9 @@ void child_Collision (struct X3D_Collision *node) {
 				node->__hit = (node->__hit & 1) ? 2 : 0;
 
 		}
-        	if(node->proxy) {
+		if(node->proxy) {
 			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->proxy,tmpN)
-                       	render_node(tmpN);
+			render_node(tmpN);
 		}
 
 	} else { /*standard group behaviour*/

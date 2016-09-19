@@ -318,34 +318,36 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 						struct X3D_Node *gn;
 						struct X3D_Shape *sn = (struct X3D_Shape *)tg->RenderFuncs.shapenode;
 						POSSIBLE_PROTO_EXPANSION(struct X3D_Node *,sn->geometry,gn);
-						//first vec3 is minimum xyz
-						bmin = bbox;
-						bmax = &bbox[3];
-						for(i=0;i<3;i++){
-							bmin[i] = gn->_extent[i*2 + 1];
-							bmax[i] = gn->_extent[i*2];
-						}
-						//second vec3 is 1/size - so can be applied directly in vertex shader
-						vecdif3f(bmax,bmax,bmin);
-						for(i=0;i<3;i++){
-							if(bmax[i] != 0.0f)
-								bmax[i] = 1.0f/bmax[i];
-							else
-								bmax[i] = 1.0f;
-						}
-						//if(fabs(bmin[0]) > 10.0f)
-						//	printf("bbox shift [%f %f %f] scale [%f %f %f]\n",bmin[0],bmin[1],bmin[2],bmax[0],bmax[1],bmax[2]);
+						if(gn){
+							//first vec3 is minimum xyz
+							bmin = bbox;
+							bmax = &bbox[3];
+							for(i=0;i<3;i++){
+								bmin[i] = gn->_extent[i*2 + 1];
+								bmax[i] = gn->_extent[i*2];
+							}
+							//second vec3 is 1/size - so can be applied directly in vertex shader
+							vecdif3f(bmax,bmax,bmin);
+							for(i=0;i<3;i++){
+								if(bmax[i] != 0.0f)
+									bmax[i] = 1.0f/bmax[i];
+								else
+									bmax[i] = 1.0f;
+							}
+							//if(fabs(bmin[0]) > 10.0f)
+							//	printf("bbox shift [%f %f %f] scale [%f %f %f]\n",bmin[0],bmin[1],bmin[2],bmax[0],bmax[1],bmax[2]);
 							
-						//special default texture transform for 3D textures posing as 2D textures
+							//special default texture transform for 3D textures posing as 2D textures
 
-						//the order of applying transform elements seems reversed for texture transforms
-						//H: related to order of operands in mat * vec in shader:
-						//   fw_TexCoord[0] = vec3(fw_TextureMatrix0 *vec4(texcoord,1.0)); \n\
-						// but sign on elements is what you expect
-						//flip z from RHS to LHS in fragment shader plug_tex3d apply
-						//printf("default tt\n");
-						FW_GL_SCALE_F(bmax[0],bmax[1],bmax[2]);  
-						FW_GL_TRANSLATE_F(-bmin[0],-bmin[1],-bmin[2]);
+							//the order of applying transform elements seems reversed for texture transforms
+							//H: related to order of operands in mat * vec in shader:
+							//   fw_TexCoord[0] = vec3(fw_TextureMatrix0 *vec4(texcoord,1.0)); \n\
+							// but sign on elements is what you expect
+							//flip z from RHS to LHS in fragment shader plug_tex3d apply
+							//printf("default tt\n");
+							FW_GL_SCALE_F(bmax[0],bmax[1],bmax[2]);  
+							FW_GL_TRANSLATE_F(-bmin[0],-bmin[1],-bmin[2]);
+						}
 					}
 					if(tg->RenderFuncs.shapenode && genTexPtr->TC_size < 3){
 						//3D but no 3D coords supplied - gen from vertex in vertex shader

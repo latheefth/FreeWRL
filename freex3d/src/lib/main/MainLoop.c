@@ -3363,7 +3363,7 @@ void fwl_gotoCurrentViewPoint()
 	/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes, t->currboundvpno);
 	printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
 
-	if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+	if (cn && vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
 		t->setViewpointBindInRender = vector_get(struct X3D_Node*,t->viewpointNodes, t->currboundvpno);
 		return;
 	}
@@ -6661,7 +6661,8 @@ static int moreThanOneValidViewpoint( void) {
 				/* printf ("parent found, it is a %s\n",stringNodeType(vp_parent->_nodeType)); */
 
 				/* sigh, find if the ViewpointGroup is active or not */
-				return vpGroupActive((struct X3D_ViewpointGroup *)vp_parent);
+				if(vp_parent)
+					return vpGroupActive((struct X3D_ViewpointGroup *)vp_parent);
 			   }
 			}
 		}
@@ -6692,7 +6693,7 @@ void fwl_Last_ViewPoint() {
 			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
 
-			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+			if (cn && vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
 				if(0){
 					/* whew, we have other vp nodes */
 					send_bind_to(vector_get(struct X3D_Node*, t->viewpointNodes,t->currboundvpno),0);
@@ -6740,7 +6741,7 @@ void fwl_First_ViewPoint() {
 			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
 
-			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+			if (cn && vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
 				if(0){
                 	/* whew, we have other vp nodes */
                 	send_bind_to(vector_get(struct X3D_Node*,t->viewpointNodes,t->currboundvpno),0);
@@ -6784,7 +6785,7 @@ void fwl_Prev_ViewPoint() {
 			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
 
-			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+			if (cn && vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
 
 				if(0){
                 	/* whew, we have other vp nodes */
@@ -6832,7 +6833,7 @@ void fwl_Next_ViewPoint() {
 			/* printf ("NVP, %d of %d, looking at %d\n",ind, totviewpointnodes,vp_to_go_to);
 			printf ("looking at node :%s:\n",X3D_VIEWPOINT(cn)->description->strptr); */
 
-			if (vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
+			if (cn && vpGroupActive((struct X3D_ViewpointGroup *) cn)) {
                 		/* whew, we have other vp nodes */
 				/* dug9 - using the display-thread-synchronous gotoViewpoint style
 					to help order-senstive slerp_viewpoint() process */

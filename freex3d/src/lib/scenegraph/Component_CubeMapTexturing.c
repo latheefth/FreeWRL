@@ -286,7 +286,7 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 			case 5: {POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->back,thistex);  break;}
 		}
         //printf ("rcm, thistex %p, type %s\n",thistex,stringNodeType(thistex->_nodeType));
-		if (thistex != 0) {
+		if (thistex != NULL) {
 			/* we have an image specified for this face */
 			/* the X3D spec says that a X3DTextureNode has to be one of... */
 			if ((thistex->_nodeType == NODE_ImageTexture) ||
