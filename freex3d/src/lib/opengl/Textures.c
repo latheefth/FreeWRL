@@ -148,7 +148,7 @@ GLXContext textureContext = NULL;
 int findTextureFile(textureTableIndexStruct_s *entry);
 //void _textureThread(void);
 
-static void move_texture_to_opengl(textureTableIndexStruct_s*);
+void move_texture_to_opengl(textureTableIndexStruct_s*);
 struct Uni_String *newASCIIString(char *str);
 
 int readpng_init(FILE *infile, ulg *pWidth, ulg *pHeight);
@@ -1165,7 +1165,7 @@ DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
 
 
 
-static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
+void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	int rx,ry,sx,sy;
 	int x,y;
 	GLint iformat;
@@ -1307,8 +1307,11 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			borderWidth = tpNode->borderWidth;
 			if (borderWidth < 0) borderWidth=0; if (borderWidth>1) borderWidth = 1;
 
+			// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/texturing.html#t-TextureMagnificationModes
+
 			switch (findFieldInTEXTUREMAGNIFICATIONKEYWORDS(tpNode->magnificationFilter->strptr)) {
-				case TMAG_AVG_PIXEL: magFilter = GL_NEAREST; break;
+				case TMAG_AVG_PIXEL: 
+					magFilter = GL_LINEAR; break; // GL_NEAREST; break;
 				case TMAG_DEFAULT: magFilter = GL_LINEAR; break;
 				case TMAG_FASTEST: magFilter = GL_LINEAR; break;  /* DEFAULT */
 				case TMAG_NEAREST_PIXEL: magFilter = GL_NEAREST; break;
@@ -1534,6 +1537,7 @@ static void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+			me->magFilter = magFilter ==  GL_LINEAR ? 1 : 0;  //needed in frag shader for TEX3D simulation of texture3D with texture2D
 			
 			/* BGRA is seemingly faster on desktop machines... */
 			//#if defined (GL_BGRA)

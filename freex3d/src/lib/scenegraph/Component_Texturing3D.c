@@ -183,7 +183,7 @@ void render_PixelTexture3D (struct X3D_PixelTexture3D *node) {
 	loadTextureNode(X3D_NODE(node),NULL);
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
-
+void move_texture_to_opengl(textureTableIndexStruct_s* me);
 void render_ImageTexture3D (struct X3D_ImageTexture3D *node) {
 	/* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
 	loadTextureNode(X3D_NODE(node),NULL);
@@ -249,6 +249,7 @@ void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
         	gglobal()->RenderFuncs.textureStackTop++;
 			//loadMultiTexture(node);
 		}
+		move_texture_to_opengl(getTableTableFromTextureNode(node)); //load composed texture properties
 	}
 }
 

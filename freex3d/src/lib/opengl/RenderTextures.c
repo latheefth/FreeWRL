@@ -209,23 +209,11 @@ void do_textureTransform (struct X3D_Node *textureNode, int ttnum) {
 		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
 		struct X3D_TextureTransform3D  *ttt = (struct X3D_TextureTransform3D *) textureNode;
 		/*  Render transformations according to spec.*/
-		//if(0){
-		////dug9 Sept 18 2016: I don't know why but reverse order works for 3D, for simple.x3dv test, but not 2D textures
-		// Sept 19, 2016: I think the simple.x3dv scene was using the wrong translation for what it was trying to accomplish
-		////printf("scene spcecified, reverse order\n");
-		//FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
-		//FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
-		//FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
-		//FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
-		//FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
-		//}else{
-		//printf("scene spcecified, default order\n");
 		FW_GL_TRANSLATE_F(-((ttt->center).c[0]),-((ttt->center).c[1]), -((ttt->center).c[2]));		/*  5*/
 		FW_GL_SCALE_F(((ttt->scale).c[0]),((ttt->scale).c[1]),((ttt->scale).c[2]));			/*  4*/
 		FW_GL_ROTATE_RADIANS(ttt->rotation.c[3], ttt->rotation.c[0],ttt->rotation.c[1],ttt->rotation.c[2]);
 		FW_GL_TRANSLATE_F(((ttt->center).c[0]),((ttt->center).c[1]), ((ttt->center).c[2]));		/*  2*/
 		FW_GL_TRANSLATE_F(((ttt->translation).c[0]), ((ttt->translation).c[1]), ((ttt->translation).c[2]));	/*  1*/
-		//}
 	} else if (textureNode->_nodeType == NODE_TextureTransformMatrix3D) {
 		//ConsoleMessage ("do_textureTransform, node is indeed a NODE_TextureTransform");
 		int i;
@@ -365,9 +353,12 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 					}else{
 						glUniform1i(me->tex3dUseVertex,0); 
 					}
-					if(tti)
+					if(tti){
 						if(me->repeatSTR > -1)
 							glUniform1iv(me->repeatSTR,3,tti->repeatSTR);
+						if(me->magFilter > -1)
+							glUniform1i(me->magFilter,tti->magFilter);
+					}
 				}
 
 				texture = tg->RenderFuncs.boundTextureStack[c];

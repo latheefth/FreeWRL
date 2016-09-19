@@ -2938,6 +2938,7 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	//texture3D
 	me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
 	me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+	me->magFilter = GET_UNIFORM(myProg,"magFilter");
 	me->repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
 
 
