@@ -252,21 +252,17 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	/* do we have to worry about colours? */
 	/* sanity check the colors, if they exist */
 	if (node->color) {
-
-        
 		/* we resort the color nodes so that we have an RGBA color node per vertex */
-
-
 		FREE_IF_NZ (node->__xcolours);
 		node->__xcolours = MALLOC (struct SFColorRGBA *, sizeof(struct SFColorRGBA)*(nVertices+1));
-
 		newcolors = (struct SFColorRGBA *) node->__xcolours;
-			POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
-               		/* cc = (struct X3D_Color *) node->color; */
-               		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-               	        	ConsoleMessage ("make_IndexedLineSet, color node, expected %d got %d\n", NODE_Color, cc->_nodeType);
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
+		/* cc = (struct X3D_Color *) node->color; */
+		if(cc) 
+		if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+			ConsoleMessage ("make_IndexedLineSet, color node, expected %d got %d\n", NODE_Color, cc->_nodeType);
 			return;
-               		}
+		}
 
 		/* 4 choices here - we have colorPerVertex, and, possibly, a ColorIndex */
 
@@ -293,9 +289,9 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 				}
 				colorIndInt = node->colorIndex.p; /* use ColorIndex */
 			} else {
-                /* we are using the simple index for colour selection */
-     	           colorIndShort = node->__vertArr;                 
-            }
+				/* we are using the simple index for colour selection */
+				colorIndShort = node->__vertArr;                 
+			}
 		}
 
 
@@ -305,27 +301,24 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			if (node->coordIndex.p[i] != -1) {
 				/* have a vertex, match colour  */
 				if (node->colorPerVertex) {
-       			             if (colorIndInt != NULL) 
-                		        curcolor = colorIndInt[i];
- 	                  	     else
-                    		    	curcolor = colorIndShort[i];
+					if (colorIndInt != NULL) 
+						curcolor = colorIndInt[i];
+					else
+						curcolor = colorIndShort[i];
 				} else {
-                    			if (colorIndInt != NULL)
-                        		curcolor = colorIndInt[curSeg];
-                    			else
-                        		curcolor = colorIndShort[curSeg];
+					if (colorIndInt != NULL)
+						curcolor = colorIndInt[curSeg];
+					else
+						curcolor = colorIndShort[curSeg];
 				}
-                //ConsoleMessage ("curSeg %d, i %d, node->coordIndex.p %d curcolor %d\n",curSeg,i,node->coordIndex.p[i], curcolor);
+				//ConsoleMessage ("curSeg %d, i %d, node->coordIndex.p %d curcolor %d\n",curSeg,i,node->coordIndex.p[i], curcolor);
 				if ((curcolor < 0) || (curcolor >= cc->color.n)) {
 					ConsoleMessage ("IndexedLineSet, colorIndex %d (for vertex %d or segment %d) out of range (0..%d)\n",
 						curcolor, i, curSeg, cc->color.n);
 					return;
 				}
 
-
 				oldcolor = (struct SFColorRGBA *) &(cc->color.p[curcolor]);
-
-
 
 				/* copy the correct color over for this vertex */
 				if (cc->_nodeType == NODE_Color) {
@@ -334,7 +327,7 @@ void compile_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 				} else {
 					memcpy (newcolors, oldcolor,sizeof(struct SFColorRGBA));
 				}
-                //printf ("colout selected %f %f %f %f\n",newcolors->c[0],newcolors->c[1],newcolors->c[2],newcolors->c[3]);
+				//printf ("colout selected %f %f %f %f\n",newcolors->c[0],newcolors->c[1],newcolors->c[2],newcolors->c[3]);
 				newcolors ++; 
 			} else {
 				curSeg++;
@@ -360,9 +353,9 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 	
 	COMPILE_IF_REQUIRED
 
-        setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
-                node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
-                X3D_NODE(node));
+	setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
+			node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
+			X3D_NODE(node));
 
 
 	/* If we have segments... */
@@ -373,14 +366,13 @@ void render_IndexedLineSet (struct X3D_IndexedLineSet *node) {
 			FW_GL_COLOR_POINTER (4,GL_FLOAT,0,node->__xcolours);
 		}
 
-        indxStartPtr = (ushort **)node->__vertIndx;
-        count  = node->__vertexCount;
+		indxStartPtr = (ushort **)node->__vertIndx;
+		count  = node->__vertexCount;
 
 		for (i=0; i<node->__segCount; i++) {
-            // draw. Note the casting of the last param - it is ok, because we tell that
-            // we are sending in ushorts; it gets around a compiler warning.
-            
-            		sendElementsToGPU(GL_LINE_STRIP,count[i],indxStartPtr[i]);
+			// draw. Note the casting of the last param - it is ok, because we tell that
+			// we are sending in ushorts; it gets around a compiler warning.
+			sendElementsToGPU(GL_LINE_STRIP,count[i],indxStartPtr[i]);
 		}
 	}
 }
@@ -389,14 +381,14 @@ void compile_PointSet (struct X3D_PointSet *node) {
 	struct SFColor *colors=0; int ncolors=0;
 	struct X3D_Color *cc;
 
-    if (node->_pointsVBO == 0) {
-        glGenBuffers(1,(GLuint *) &node->_pointsVBO);
-    }
+	if (node->_pointsVBO == 0) {
+		glGenBuffers(1,(GLuint *) &node->_pointsVBO);
+	}
 
 	/* do nothing, except get the extents here */
 	MARK_NODE_COMPILED
 
-    node->_npoints = 0;
+	node->_npoints = 0;
     
 	if (node->coord) {
 		struct Multi_Vec3f *dtmp;
@@ -404,72 +396,72 @@ void compile_PointSet (struct X3D_PointSet *node) {
 
 		/* find the extents */
 		findExtentInCoord(X3D_NODE(node), dtmp->n, dtmp->p);
-        
-        if (dtmp->n == 0) return;
-    
-        
-        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_pointsVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFVec3f)*dtmp->n, dtmp->p, GL_STATIC_DRAW);
-        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
-        node->_npoints = dtmp->n;
+
+		if (dtmp->n == 0) return;
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_pointsVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFVec3f)*dtmp->n, dtmp->p, GL_STATIC_DRAW);
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
+		node->_npoints = dtmp->n;
 	}
-    
-    if (node->color) {
+
+	if (node->color) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
-        if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-            ConsoleMessage ("make_PointSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
-        } else {
-            ncolors = cc->color.n;
-			colors = cc->color.p;
-        }
-    
-    
-        if(ncolors && ncolors < node->_npoints) {
-            ConsoleMessage ("PointSet has less colors than points - removing color\n");
-            ncolors = 0;
-        } else {
-            if (node->_coloursVBO == 0) {
-                glGenBuffers(1,(GLuint *)&node->_coloursVBO);
-            }
+		if(cc){
+			if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+				ConsoleMessage ("make_PointSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
+			} else {
+				ncolors = cc->color.n;
+				colors = cc->color.p;
+			}
+		}
+
+
+		if(ncolors && ncolors < node->_npoints) {
+			ConsoleMessage ("PointSet has less colors than points - removing color\n");
+			ncolors = 0;
+		} else {
+			if (node->_coloursVBO == 0) {
+				glGenBuffers(1,(GLuint *)&node->_coloursVBO);
+			}
         
-            /* RGB or RGBA? */
-            FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_coloursVBO);
-            if (cc->_nodeType == NODE_Color) {
-                glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFColor)*ncolors, colors, GL_STATIC_DRAW);
-                node->_colourSize = 3;
-            } else {
-                glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFColorRGBA)*ncolors, colors, GL_STATIC_DRAW);
-                node->_colourSize = 4;
-            }
-            FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
-        }
-    }
+			/* RGB or RGBA? */
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, (GLuint) node->_coloursVBO);
+			if (cc->_nodeType == NODE_Color) {
+				glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFColor)*ncolors, colors, GL_STATIC_DRAW);
+				node->_colourSize = 3;
+			} else {
+				glBufferData(GL_ARRAY_BUFFER, sizeof(struct SFColorRGBA)*ncolors, colors, GL_STATIC_DRAW);
+				node->_colourSize = 4;
+			}
+			FW_GL_BINDBUFFER(GL_ARRAY_BUFFER,0);
+		}
+	}
 }
 
 
 void render_PointSet (struct X3D_PointSet *node) {
 	ttglobal tg = gglobal();
-        COMPILE_IF_REQUIRED
+	COMPILE_IF_REQUIRED
 
-        setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
-                node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
-                X3D_NODE(node));
-    
+	setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
+			node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
+			X3D_NODE(node));
+
 	LIGHTING_OFF
 	DISABLE_CULL_FACE
 
-    if (node->_pointsVBO == 0) return;
+	if (node->_pointsVBO == 0) return;
     
-    FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->_pointsVBO);
-    FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
-    
-    // do we have colours?
-    if (node->_coloursVBO != 0) {
-        FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->_coloursVBO);
-        FW_GL_COLOR_POINTER(node->_colourSize,GL_FLOAT,0,0);
-    }
-    //printf ("ps is %d, vbo %d\n",node->_npoints, node->_pointsVBO);
-    
+	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->_pointsVBO);
+	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
+
+	// do we have colours?
+	if (node->_coloursVBO != 0) {
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->_coloursVBO);
+		FW_GL_COLOR_POINTER(node->_colourSize,GL_FLOAT,0,0);
+	}
+	//printf ("ps is %d, vbo %d\n",node->_npoints, node->_pointsVBO);
+
 	sendArraysToGPU(GL_POINTS,0,node->_npoints);
 }
 
@@ -487,16 +479,16 @@ void render_LineSet (struct X3D_LineSet *node) {
 
 	COMPILE_IF_REQUIRED
 	
-        setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
-                node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
-                X3D_NODE(node));
+	setExtent( node->EXTENT_MAX_X, node->EXTENT_MIN_X, node->EXTENT_MAX_Y,
+			node->EXTENT_MIN_Y, node->EXTENT_MAX_Z, node->EXTENT_MIN_Z,
+			X3D_NODE(node));
 
 	/* now, actually draw array */
 	if (node->__segCount > 0) {
 		if (node->color) {
-                	cc = (struct X3D_Color *) node->color;
-			/* is this a Color or ColorRGBA color node? */
-                	if (cc->_nodeType == NODE_Color) {
+			cc = (struct X3D_Color *) node->color;
+	/* is this a Color or ColorRGBA color node? */
+			if (cc->_nodeType == NODE_Color) {
 				FW_GL_COLOR_POINTER (3,GL_FLOAT,0,(float *)cc->color.p);
 			} else {
 				FW_GL_COLOR_POINTER (4,GL_FLOAT,0,(float *)cc->color.p);
@@ -511,15 +503,15 @@ void render_LineSet (struct X3D_LineSet *node) {
 		count  = (GLsizei*) node->vertexCount.p;
 
 		for (i=0; i<node->__segCount; i++) {
-            /*
-            printf ("rendering segment %d of %d, count %d, have starting index of %hu\n",i,node->__segCount, count[i], *indices[i]);
-            {int j; ushort *pt = indices[i];
-                for (j=0; j<count[i]; j++) {
-                    printf ("line segment %d, index %hu\n",i,*pt);
-                    pt++;
-                }
-            }
-             */
+		/*
+		printf ("rendering segment %d of %d, count %d, have starting index of %hu\n",i,node->__segCount, count[i], *indices[i]);
+		{int j; ushort *pt = indices[i];
+			for (j=0; j<count[i]; j++) {
+				printf ("line segment %d, index %hu\n",i,*pt);
+				pt++;
+			}
+		}
+			*/
 			sendElementsToGPU(GL_LINE_STRIP,count[i],indices[i]);
 		}
 	}
@@ -547,8 +539,8 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	if (nvertexc==0) return;
 	totVertexRequired = 0;
 
-    //printf ("compile_LineSet, nvertexc %d\n",nvertexc);
-    
+	//printf ("compile_LineSet, nvertexc %d\n",nvertexc);
+
 
 	/* sanity check vertex counts */
 	for  (c=0; c<nvertexc; c++) {
@@ -578,22 +570,24 @@ void compile_LineSet (struct X3D_LineSet *node) {
 		return;
 	}
  
-       	if (node->color) {
-               	/* cc = (struct X3D_Color *) node->color; */
+	if (node->color) {
+		/* cc = (struct X3D_Color *) node->color; */
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Color *, node->color,cc)
-               	if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
-               	        ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
-               	} else {
-               	        ncolor = cc->color.n;
-		//color = cc->color.p;
-               	}
+		if(cc){
+			if ((cc->_nodeType != NODE_Color) && (cc->_nodeType != NODE_ColorRGBA)) {
+				ConsoleMessage ("make_LineSet, expected %d got %d\n", NODE_Color, cc->_nodeType);
+			} else {
+				ncolor = cc->color.n;
+				//color = cc->color.p;
+			}
+		}
 		/* check that we have enough verticies for the Colors */
 		if (totVertexRequired > ncolor) {
 			ConsoleMessage ("make_LineSet, not enough colors for vertexCount (vertices:%d colors:%d)\n",
 				totVertexRequired, ncolor);
 			return;
 		}
-       	}
+	}
 
 	/* create the index for the arrays. Really simple... Used to index
 	   into the coords, so, eg, __vertArr is [0,1,2], which means use
@@ -616,7 +610,7 @@ void compile_LineSet (struct X3D_LineSet *node) {
 	pt = (GLushort *)node->__vertArr;
 	vpt = (ushort**) node->__vertIndx;
 	for (vtc=0; vtc<nvertexc; vtc++) {
-        //printf ("in position %d of __vertIndx, we have put pointer to %u\n",vtc,*pt);
+		//printf ("in position %d of __vertIndx, we have put pointer to %u\n",vtc,*pt);
 		vpt[vtc] =  (ushort*) pt;
 		pt += vertexC[vtc];
 	}

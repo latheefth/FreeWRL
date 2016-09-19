@@ -992,15 +992,16 @@ void make_genericfaceset(struct X3D_IndexedFaceSet *node) {
 		//we have one fog per co (or if we are short, then duplicate last
 		struct X3D_FogCoordinate *fc2;
 		POSSIBLE_PROTO_EXPANSION (struct X3D_FogCoordinate *,(struct X3D_Node*) fc,fc2)
-
-		if(fc2->depth.n < npoints){
-			fc2->depth.p = REALLOC(fc2->depth.p, npoints * sizeof(float));
-			for(i=fc2->depth.n; i<npoints; i++){
-				fc2->depth.p[i] = fc2->depth.p[fc->depth.n-1];
+		if(fc2){
+			if(fc2->depth.n < npoints){
+				fc2->depth.p = REALLOC(fc2->depth.p, npoints * sizeof(float));
+				for(i=fc2->depth.n; i<npoints; i++){
+					fc2->depth.p[i] = fc2->depth.p[fc->depth.n-1];
+				}
+				fc2->depth.n = npoints;
 			}
-			fc2->depth.n = npoints;
+			fogdepths = fc2->depth.p;
 		}
-		fogdepths = fc2->depth.p;
 	}
 
 	/* just check this parameter here for correctness and, whether to generate other nodes. We
