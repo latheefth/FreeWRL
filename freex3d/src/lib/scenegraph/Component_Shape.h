@@ -73,12 +73,14 @@ Proximity sensor macro.
 #define WANT_ANAGLYPH        0x2000000
 #define TEX3D_SHADER         0X4000000
 #define TEX3D_LAYER_SHADER   0x8000000
+#define CLIPPLANE_SHADER     0x10000000
 
 /* Component_Shader - user-specified shaders. Currently limited in number */
 /* note we start at 0x1000 and count up by 1 for (currently) 255 shaders per program */
-
-#define USER_DEFINED_SHADER_START	0x10000000 //0x001000
-#define USER_DEFINED_SHADER_MASK    0xF0000000 //0x0FF000
+//Sept 20, 2016 I've only got 2 bits left in whichOne for user shaders -a single user shader will still work
+// but will need to split/double/clone/expand whichOne to give more room for castle Effects and more user shaders
+#define USER_DEFINED_SHADER_START	0x40000000 //0x001000   4 0100   
+#define USER_DEFINED_SHADER_MASK    0xC0000000 //0x0FF000   C 1100
 
 
 /*******************************************************/

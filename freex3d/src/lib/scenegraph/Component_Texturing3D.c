@@ -249,7 +249,7 @@ void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
         	gglobal()->RenderFuncs.textureStackTop++;
 			//loadMultiTexture(node);
 		}
-		move_texture_to_opengl(getTableTableFromTextureNode(node)); //load composed texture properties
+		move_texture_to_opengl(getTableTableFromTextureNode(X3D_NODE(node))); //load composed texture properties
 	}
 }
 

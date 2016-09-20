@@ -420,6 +420,8 @@ typedef struct s_shader_capabilities{
 	GLint fogType;
 	GLint fogHaveCoords;
 
+	GLint clipplanes; //Sept 2016
+	GLint nclipplanes;
 
 /* attributes - reduce redundant state chage calls on GPU */
 /*

@@ -43,10 +43,12 @@ X3D Rendering Component
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Polyrep.h"
 
+#define FW_MAXCLIPPLANES 4
+
 typedef struct pComponent_Rendering{
 
 	Stack *clipplane_stack;
-
+	float clipplanes[4*FW_MAXCLIPPLANES];
 }* ppComponent_Rendering;
 void *Component_Rendering_constructor(){
 	void *v = MALLOCV(sizeof(struct pComponent_Rendering));
@@ -60,7 +62,7 @@ void Component_Rendering_init(struct tComponent_Rendering *t){
 	t->prv = Component_Rendering_constructor();
 	{
 		ppComponent_Rendering p = (ppComponent_Rendering)t->prv;
-		p->clipplane_stack = newStack(struct X3D_Node*);
+		p->clipplane_stack = newStack(usehit);
 	}
 }
 void Component_Rendering_clear(struct tComponent_Rendering *t){
@@ -681,7 +683,42 @@ void compile_LineSet (struct X3D_LineSet *node) {
 			   gl_ClipDistance[i] = dot( ClipPlane[i], vec4(MCvertex,1.0));
 			}
 */
+float *getTransformedClipPlanes(){
+	int i,nsend;
+	double modelviewmatrix[16], meinv[16], u2me[16], u2meit[16];
+	ppComponent_Rendering p = (ppComponent_Rendering)gglobal()->Component_Rendering.prv;
 
+	nsend =  min(FW_MAXCLIPPLANES,vectorSize(p->clipplane_stack));
+	//Q. how transform a plane by a matrix?
+	//option 1: 4x4 * 4x1
+	//https://www.opengl.org/discussion_boards/showthread.php/159564-Clever-way-to-transform-plane-by-matrix
+	//option 2: convert abcd plane into normal + 3d point, transform point and normal, then convert back to abcd
+	//http://stackoverflow.com/questions/7685495/transforming-a-3d-plane-by-4x4-matrix
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewmatrix);
+	matinverseAFFINE(meinv,modelviewmatrix);
+
+	for(i=0;i<nsend;i++){
+		//we take from the top-most end of the stack, in case more than MAX, using vectorget
+		int j;
+		struct X3D_ClipPlane *cplane;
+		double dplane[4],dplane2[4];
+		usehit uhit;
+		uhit = vector_get(usehit,p->clipplane_stack,i);
+		cplane = (struct X3D_ClipPlane *)uhit.node;
+		matmultiplyAFFINE(u2me,uhit.mvm,meinv);
+		mattranspose(u2meit,u2me);
+		for(j=0;j<4;j++) dplane[j] = cplane->plane.c[j];
+		transformFULL4d(dplane2,dplane,u2meit);
+		for(j=0;j<4;j++) p->clipplanes[i*4 + j] = dplane2[j];
+	}
+	return p->clipplanes;
+}
+int getClipPlaneCount(){
+	int nsend;
+	ppComponent_Rendering p = (ppComponent_Rendering)gglobal()->Component_Rendering.prv;
+	nsend =  min(FW_MAXCLIPPLANES,vectorSize(p->clipplane_stack));
+	return nsend;
+}
 void sib_prep_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 	//search for child clipplane
 	//if found and enabled
@@ -689,9 +726,27 @@ void sib_prep_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 		//	 push on stack like push_sensor() 
 		struct X3D_ClipPlane * cplane = (struct X3D_ClipPlane*)sibAffector;
 		if(cplane->enabled == TRUE){
+			unsigned int shaderflags;
+			double modelviewmatrix[16];
+			usehit uhit;
 			ppComponent_Rendering p = (ppComponent_Rendering)gglobal()->Component_Rendering.prv;
 
-			stack_push(struct X3D_ClipPlane*,p->clipplane_stack,cplane);
+			shaderflags = getShaderFlags();
+			shaderflags |= CLIPPLANE_SHADER;
+			pushShaderFlags(shaderflags);
+			
+			//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#ClipPlanes
+			//we'll snapshot the modelview matrix and push with clipplane node onto stack, 
+			//for use when applying in leaf shape node
+			uhit.node = cplane; //x3dnode clipplane
+			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewmatrix);
+			memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
+			stack_push(usehit,p->clipplane_stack,uhit); //fat elements do another deep copy
+
+			//jplane = vectorSize(p->clipplane_stack) -1;
+			//if(jplane < FW_MAXCLIPPLANES){
+			//	memcpy(&p->clipplanes[jplane*4],cplane->plane.c,4*sizeof(float));
+			//}
 
 			//	somehow add to end of list of clipplanes available to shader (but how precisely?)
 			//  	https://www.opengl.org/discussion_boards/showthread.php/171914-How-to-activate-clip-planes-via-shader
@@ -700,7 +755,6 @@ void sib_prep_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 			//		glEnable(GL_CLIP_DISTANCE0); //except DISTANCEk ?
 			//		might need: to set a flag indicating which shader to use?
 
-			//else 
 		}
 	}
 }
@@ -710,8 +764,8 @@ void sib_fin_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 		struct X3D_ClipPlane * cplane = (struct X3D_ClipPlane*)sibAffector;
 		if(cplane->enabled == TRUE){
 			ppComponent_Rendering p = (ppComponent_Rendering)gglobal()->Component_Rendering.prv;
-
-			stack_pop(struct X3D_ClipPlane*,p->clipplane_stack);
+			stack_pop(usehit,p->clipplane_stack);
+			popShaderFlags();
 		}
 	}
 }
