@@ -59,28 +59,29 @@ Proximity sensor macro.
 #define HAVE_TEXTURECOORDINATEGENERATOR 0x00200
 
 /* CubeMapTexturing */
-#define HAVE_CUBEMAP_TEXTURE  0x00400
-#define FOG_APPEARANCE_SHADER 0X00800
-#define HAVE_FOG_COORDS       0x01000
-#define TEXTURE_REPLACE_PRIOR 0x02000
+#define HAVE_CUBEMAP_TEXTURE   0x00400
+#define FOG_APPEARANCE_SHADER  0X00800
+#define HAVE_FOG_COORDS        0x01000
+#define TEXTURE_REPLACE_PRIOR  0x02000
 #define TEXALPHA_REPLACE_PRIOR 0x04000
-#define CPV_REPLACE_PRIOR     0x08000
-#define SHADINGSTYLE_FLAT    0x100000
-#define SHADINGSTYLE_GOURAUD 0x200000
-#define SHADINGSTYLE_PHONG   0x400000
-#define SHADINGSTYLE_WIRE    0x800000
-#define MAT_FIRST            0x1000000
-#define WANT_ANAGLYPH        0x2000000
-#define TEX3D_SHADER         0X4000000
-#define TEX3D_LAYER_SHADER   0x8000000
-#define CLIPPLANE_SHADER     0x10000000
+#define CPV_REPLACE_PRIOR      0x08000
+#define SHADINGSTYLE_FLAT      0x10000
+#define SHADINGSTYLE_GOURAUD   0x20000
+#define SHADINGSTYLE_PHONG     0x40000
+#define SHADINGSTYLE_WIRE      0x80000
+#define MAT_FIRST              0x100000
+#define WANT_ANAGLYPH          0x200000
+#define TEX3D_SHADER           0X400000
+#define TEX3D_LAYER_SHADER     0x800000
+#define CLIPPLANE_SHADER       0x1000000
+//reserved for volume, particle, hanim 3 bits 2,4,8
 
 /* Component_Shader - user-specified shaders. Currently limited in number */
 /* note we start at 0x1000 and count up by 1 for (currently) 255 shaders per program */
-//Sept 20, 2016 I've only got 2 bits left in whichOne for user shaders -a single user shader will still work
-// but will need to split/double/clone/expand whichOne to give more room for castle Effects and more user shaders
-#define USER_DEFINED_SHADER_START	0x40000000 //0x001000   4 0100   
-#define USER_DEFINED_SHADER_MASK    0xC0000000 //0x0FF000   C 1100
+//Sept 20, 2016 I've only got 4 bits reserved in whichOne for user shaders -a single user shader will still work
+// but may need to split/double/clone/expand whichOne to give more room for castle Effects and more user shaders
+#define USER_DEFINED_SHADER_START	0x10000000 //0x001000   4 0100   
+#define USER_DEFINED_SHADER_MASK    0xF0000000 //0x0FF000   C 1100
 
 
 /*******************************************************/
