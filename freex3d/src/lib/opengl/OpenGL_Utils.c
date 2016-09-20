@@ -2956,6 +2956,10 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	me->fogScale = GET_UNIFORM(myProg,"fw_fogparams.fogScale");
 	me->fogType = GET_UNIFORM(myProg,"fw_fogparams.fogType");
 
+	/* clipplane */
+	me->clipplanes = GET_UNIFORM(myProg,"fw_clipplanes");
+	me->nclipplanes = GET_UNIFORM(myProg,"fw_nclipplanes");
+
 	/* TextureCoordinateGenerator */
 	me->texCoordGenType = GET_UNIFORM(myProg,"fw_textureCoordGenType");
 
@@ -6355,6 +6359,16 @@ void sendFogToShader(s_shader_capabilities_t *me) {
 	//SEND_INT(fogHaveCoords,fogparams->haveCoords);
 	profile_end("sendvec");
 
+}
+float *getTransformedClipPlanes();
+int getClipPlaneCount();
+void sendClipplanesToShader(s_shader_capabilities_t *me){
+	int i, nsend;
+
+	float *clipplanes = getTransformedClipPlanes();
+	nsend = getClipPlaneCount();
+	GLUNIFORM4FV(me->clipplanes,nsend,clipplanes);
+	GLUNIFORM1I(me->nclipplanes,nsend);
 }
 
 void sendMaterialsToShader(s_shader_capabilities_t *me) {

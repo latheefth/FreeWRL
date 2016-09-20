@@ -1482,6 +1482,31 @@ void PLUG_fog_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
 } \n\
 ";
 
+static const GLchar *vertex_plug_clip_apply =	"\
+#ifdef CLIP \n\
+#define FW_MAXCLIPPLANES 4 \n\
+uniform int fw_nclipplanes; \n\
+uniform vec4 fw_clipplanes[FW_MAXCLIPPLANES]; \n\
+varying float fw_ClipDistance[FW_MAXCLIPPLANES]; \n\
+ \n\
+void PLUG_vertex_object_space (in vec4 vertex_object, in vec3 normal_object){ \n\
+  for ( int i=0; i<fw_nclipplanes; i++ ) \n\
+    fw_ClipDistance[i] = dot( fw_clipplanes[i], vertex_object); \n\
+} \n\
+#endif //CLIP \n\
+";
+
+static const GLchar *frag_plug_clip_apply =	"\
+#ifdef CLIP \n\
+#define FW_MAXCLIPPLANES 4 \n\
+uniform int fw_nclipplanes; \n\
+varying float fw_ClipDistance[FW_MAXCLIPPLANES]; \n\
+void PLUG_fog_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+	for(int i=0;i<fw_nclipplanes;i++) \n\
+      if(normal_eye_fragment.z > fw_ClipDistance[i]) discard;  \n\
+} \n\
+#endif //CLIP \n\
+";
 
 #if defined(GL_ES_VERSION_2_0)
 static int isMobile = TRUE;
@@ -1660,6 +1685,14 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		if(DESIRE(whichOne,HAVE_FOG_COORDS))
 			AddDefine(SHADERPART_VERTEX,"FOGCOORD",CompleteCode);
 		Plug(SHADERPART_FRAGMENT,plug_fog_apply,CompleteCode,&unique_int);	
+	}
+	//CLIPPLANE
+	//FOG
+	if(DESIRE(whichOne,CLIPPLANE_SHADER)){
+		AddDefine(SHADERPART_VERTEX,"CLIP",CompleteCode);	
+		Plug(SHADERPART_VERTEX,vertex_plug_clip_apply,CompleteCode,&unique_int);	
+		AddDefine(SHADERPART_FRAGMENT,"CLIP",CompleteCode);	
+		Plug(SHADERPART_FRAGMENT,frag_plug_clip_apply,CompleteCode,&unique_int);	
 	}
 
 	// stripUnusedDefines(CompleteCode);

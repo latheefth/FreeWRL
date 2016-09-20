@@ -788,6 +788,7 @@ PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
 
 	/* send along lighting, material, other visible properties */
 	sendFogToShader(mysp);
+	sendClipplanesToShader(mysp);
 	sendMaterialsToShader(mysp);
 	sendMatriciesToShader(mysp);
 

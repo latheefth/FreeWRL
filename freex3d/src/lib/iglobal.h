@@ -289,6 +289,9 @@ iOLDCODE	}Component_Networking;
 		void *prv;
 	}Component_Picking;
 #endif
+	struct tComponent_Rendering{
+		void *prv;
+	}Component_Rendering;
 	struct tComponent_Shape{
 		void *prv;
 	}Component_Shape;

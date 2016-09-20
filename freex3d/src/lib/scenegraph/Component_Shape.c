@@ -663,7 +663,7 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 				int k;
 				struct X3D_Node* p[6];
 				struct X3D_ComposedCubeMapTexture * ccmt;
-				ccmt = appearance->texture;
+				ccmt = (struct X3D_ComposedCubeMapTexture *)appearance->texture;
 				p[0] = ccmt->top;
 				p[1] = ccmt->left;
 				p[2] = ccmt->front;
