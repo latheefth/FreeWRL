@@ -749,6 +749,12 @@ our %Nodes = (
 		__wireindicesVBO =>["SFInt32", 0, "initializeOnly", 0],
  	],"X3DGeometryNode"),
 
+	"Teapot" => new VRML::NodeType("Teapot", [
+                metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__ifsnode => ["FreeWRLPTR", 0, "initializeOnly", 0],
+ 	],"X3DGeometryNode"),
+
+
 
 	###################################################################################
 

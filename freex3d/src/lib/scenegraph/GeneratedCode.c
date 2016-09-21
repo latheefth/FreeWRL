@@ -112,6 +112,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__geoSystem",
 	"__highest",
 	"__hit",
+	"__ifsnode",
 	"__inRange",
 	"__inittime",
 	"__isX3D",
@@ -2243,6 +2244,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"StringSensor",
 	"SurfaceEmitter",
 	"Switch",
+	"Teapot",
 	"TexCoordChaser2D",
 	"TexCoordDamper2D",
 	"Text",
@@ -3005,6 +3007,12 @@ struct X3D_Virt virt_SurfaceEmitter = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 void child_Switch(struct X3D_Switch *);
 struct X3D_Virt virt_Switch = { NULL,NULL,(void *)child_Switch,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
+void render_Teapot(struct X3D_Teapot *);
+void rendray_Teapot(struct X3D_Teapot *);
+void collide_Teapot(struct X3D_Teapot *);
+void compile_Teapot(struct X3D_Teapot *);
+struct X3D_Virt virt_Teapot = { NULL,(void *)render_Teapot,NULL,NULL,(void *)rendray_Teapot,NULL,NULL,NULL,(void *)collide_Teapot,(void *)compile_Teapot};
+
 struct X3D_Virt virt_TexCoordChaser2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_TexCoordDamper2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -3344,6 +3352,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_StringSensor,
 	 &virt_SurfaceEmitter,
 	 &virt_Switch,
+	 &virt_Teapot,
 	 &virt_TexCoordChaser2D,
 	 &virt_TexCoordDamper2D,
 	 &virt_Text,
@@ -6501,6 +6510,11 @@ const int OFFSETS_Switch[] = {
 	(int) FIELDNAMES_whichChoice, (int) offsetof (struct X3D_Switch, whichChoice),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
+const int OFFSETS_Teapot[] = {
+	(int) FIELDNAMES___ifsnode, (int) offsetof (struct X3D_Teapot, __ifsnode),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Teapot, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
 const int OFFSETS_TexCoordChaser2D[] = {
 	(int) FIELDNAMES__buffer, (int) offsetof (struct X3D_TexCoordChaser2D, _buffer),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__bufferendtime, (int) offsetof (struct X3D_TexCoordChaser2D, _bufferendtime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
@@ -7213,6 +7227,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_StringSensor,
 	OFFSETS_SurfaceEmitter,
 	OFFSETS_Switch,
+	OFFSETS_Teapot,
 	OFFSETS_TexCoordChaser2D,
 	OFFSETS_TexCoordDamper2D,
 	OFFSETS_Text,
@@ -7745,6 +7760,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_StringSensor : {tmp = MALLOC (struct X3D_StringSensor *, sizeof (struct X3D_StringSensor)); break;}
 		case NODE_SurfaceEmitter : {tmp = MALLOC (struct X3D_SurfaceEmitter *, sizeof (struct X3D_SurfaceEmitter)); break;}
 		case NODE_Switch : {tmp = MALLOC (struct X3D_Switch *, sizeof (struct X3D_Switch)); break;}
+		case NODE_Teapot : {tmp = MALLOC (struct X3D_Teapot *, sizeof (struct X3D_Teapot)); break;}
 		case NODE_TexCoordChaser2D : {tmp = MALLOC (struct X3D_TexCoordChaser2D *, sizeof (struct X3D_TexCoordChaser2D)); break;}
 		case NODE_TexCoordDamper2D : {tmp = MALLOC (struct X3D_TexCoordDamper2D *, sizeof (struct X3D_TexCoordDamper2D)); break;}
 		case NODE_Text : {tmp = MALLOC (struct X3D_Text *, sizeof (struct X3D_Text)); break;}
@@ -11794,6 +11810,14 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->removeChildren.n=0; tmp2->removeChildren.p=0;
 			tmp2->whichChoice = -1;
 			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_Teapot : {
+			struct X3D_Teapot * tmp2;
+			tmp2 = (struct X3D_Teapot *) tmp;
+			tmp2->__ifsnode = 0;
+			tmp2->metadata = NULL;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_TexCoordChaser2D : {
@@ -16390,6 +16414,15 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," whichChoice (SFInt32) \t%d\n",tmp->whichChoice);
 		    break;
 		}
+		case NODE_Teapot : {
+			struct X3D_Teapot *tmp;
+			tmp = (struct X3D_Teapot *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+		    break;
+		}
 		case NODE_TexCoordChaser2D : {
 			struct X3D_TexCoordChaser2D *tmp;
 			tmp = (struct X3D_TexCoordChaser2D *) node;
@@ -17277,6 +17310,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_StringSensor: return X3DKeyDeviceSensorNode; break;
 	case NODE_SurfaceEmitter: return X3DParticleEmitterNode; break;
 	case NODE_Switch: return X3DGroupingNode; break;
+	case NODE_Teapot: return X3DGeometryNode; break;
 	case NODE_TexCoordChaser2D: return X3DChaserNode; break;
 	case NODE_TexCoordDamper2D: return X3DDamperNode; break;
 	case NODE_Text: return X3DTextNode; break;

@@ -2936,6 +2936,11 @@ EVENT_IN(Switch,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
 EXPOSED_FIELD(Switch,whichChoice,sfint32,whichChoice,FIELDTYPE_SFInt32)
 END_NODE(Switch)
 
+/* Teapot node */
+BEGIN_NODE(Teapot)
+EXPOSED_FIELD(Teapot,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+END_NODE(Teapot)
+
 /* TexCoordChaser2D node */
 BEGIN_NODE(TexCoordChaser2D)
 FIELD(TexCoordChaser2D,duration,sftime,duration,FIELDTYPE_SFTime)
