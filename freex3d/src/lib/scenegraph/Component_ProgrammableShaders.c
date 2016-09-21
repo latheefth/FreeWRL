@@ -1283,3 +1283,17 @@ void render_ProgramShader (struct X3D_ProgramShader *node) {
 	if (node->isValid) 
 		setUserShaderNode(X3D_NODE(node));
 }
+
+// castle compositing shader effects system
+// http://castle-engine.sourceforge.net/compositing_shaders.php
+// thanks to Michalis Kamburelis for permission to implement in freewrl/libfreewrl
+// Effect node is like ComposedShader, 
+// EffectPart node is like ShaderPart
+void compile_Effect (struct X3D_Effect *node) {
+	printf("compile_effect not implemented\n");
+}
+void render_Effect (struct X3D_Effect *node) {
+	//COMPILE_IF_REQUIRED
+	//if (node->isValid) setUserShaderNode(X3D_NODE(node));
+	printf("render_effect not implemented\n");
+}

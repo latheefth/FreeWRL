@@ -224,6 +224,32 @@ void child_Appearance (struct X3D_Appearance *node) {
 			}
 		}
 	}
+
+	/* castle Effects here/supported?? */
+	if (node->effects.n !=0) {
+		int count;
+		int foundGoodShader = FALSE;
+		
+		for (count=0; count<node->effects.n; count++) {
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->effects.p[count], tmpN);
+			
+			/* have we found a valid shader yet? */
+			if(tmpN){
+				//if (foundGoodShader) {
+				//	/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
+				//	/* yes, just tell other shaders that they are not selected */
+				//	SET_SHADER_SELECTED_FALSE(tmpN);
+				//} else {
+				//	/* render this node; if it is valid, then we call this one the selected one */
+				//	SET_FOUND_GOOD_SHADER(tmpN);
+					DEBUG_SHADER("running shader (%s) %d of %d\n",
+					stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->effects.n);
+					render_node(tmpN);
+				//}
+			}
+		}
+	}
+
 }
 
 

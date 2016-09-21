@@ -54,6 +54,7 @@ END_NODE(Anchor)
 
 /* Appearance node */
 BEGIN_NODE(Appearance)
+EXPOSED_FIELD(Appearance,effects,mfnode,effects,FIELDTYPE_MFNode)
 EXPOSED_FIELD(Appearance,fillProperties,sfnode,fillProperties,FIELDTYPE_SFNode)
 EXPOSED_FIELD(Appearance,lineProperties,sfnode,lineProperties,FIELDTYPE_SFNode)
 EXPOSED_FIELD(Appearance,material,sfnode,material,FIELDTYPE_SFNode)
@@ -701,6 +702,23 @@ EXPOSED_FIELD(EdgeEnhancementVolumeStyle,gradientThreshold,sffloat,gradientThres
 EXPOSED_FIELD(EdgeEnhancementVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(EdgeEnhancementVolumeStyle,surfaceNormals,sfnode,surfaceNormals,FIELDTYPE_SFNode)
 END_NODE(EdgeEnhancementVolumeStyle)
+
+/* Effect node */
+BEGIN_NODE(Effect)
+EVENT_IN(Effect,activate,sfbool,activate,FIELDTYPE_SFBool)
+EVENT_OUT(Effect,isSelected,sfbool,isSelected,FIELDTYPE_SFBool)
+EVENT_OUT(Effect,isValid,sfbool,isValid,FIELDTYPE_SFBool)
+FIELD(Effect,language,sfstring,language,FIELDTYPE_SFString)
+EXPOSED_FIELD(Effect,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(Effect,parts,mfnode,parts,FIELDTYPE_MFNode)
+END_NODE(Effect)
+
+/* EffectPart node */
+BEGIN_NODE(EffectPart)
+EXPOSED_FIELD(EffectPart,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(EffectPart,type,sfstring,type,FIELDTYPE_SFString)
+EXPOSED_FIELD(EffectPart,url,mfstring,url,FIELDTYPE_MFString)
+END_NODE(EffectPart)
 
 /* ElevationGrid node */
 BEGIN_NODE(ElevationGrid)

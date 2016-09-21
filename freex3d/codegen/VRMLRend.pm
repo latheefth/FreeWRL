@@ -336,7 +336,8 @@ our %defaultContainerType = (
 	ImageBackdropBackground	=>"children",
 	CalibratedCameraSensor	=>"children",
 	TrackingSensor		=>"children",
-	
+	Effect			=>"children",
+	EffectPart		=>"parts",
 );
 
 
@@ -394,6 +395,7 @@ our %RendC = map {($_=>1)} qw/
 	ProgramShader
 	PackagedShader
 	ComposedShader
+	Effect
 	PixelTexture
 	ImageTexture
 	MultiTexture
@@ -606,6 +608,7 @@ our %CompileC = map {($_=>1)} qw/
 	ComposedShader
 	ProgramShader
 	PackagedShader
+	Effect
 	MetadataMFFloat
 	MetadataMFRotation
 	MetadataMFVec3f

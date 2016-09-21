@@ -434,6 +434,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"duration_changed",
 	"easeInEaseOut",
 	"edgeColor",
+	"effects",
 	"elapsedTime",
 	"emissiveColor",
 	"emitter",
@@ -1229,6 +1230,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"displayed",
 	"easeInEaseOut",
 	"edgeColor",
+	"effects",
 	"emissiveColor",
 	"enabled",
 	"enabledAxes",
@@ -2059,6 +2061,8 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"DoubleAxisHingeJoint",
 	"EaseInEaseOut",
 	"EdgeEnhancementVolumeStyle",
+	"Effect",
+	"EffectPart",
 	"ElevationGrid",
 	"EspduTransform",
 	"ExplosionEmitter",
@@ -2459,6 +2463,12 @@ struct X3D_Virt virt_DoubleAxisHingeJoint = { NULL,NULL,NULL,NULL,NULL,NULL,NULL
 struct X3D_Virt virt_EaseInEaseOut = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 struct X3D_Virt virt_EdgeEnhancementVolumeStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+void render_Effect(struct X3D_Effect *);
+void compile_Effect(struct X3D_Effect *);
+struct X3D_Virt virt_Effect = { NULL,(void *)render_Effect,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Effect};
+
+struct X3D_Virt virt_EffectPart = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_ElevationGrid(struct X3D_ElevationGrid *);
 struct X3D_Virt virt_ElevationGrid = { NULL,(void *)render_ElevationGrid,NULL,NULL,(void *)rendray_ElevationGrid,(void *)make_ElevationGrid,NULL,NULL,(void *)collide_ElevationGrid,NULL};
@@ -3167,6 +3177,8 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_DoubleAxisHingeJoint,
 	 &virt_EaseInEaseOut,
 	 &virt_EdgeEnhancementVolumeStyle,
+	 &virt_Effect,
+	 &virt_EffectPart,
 	 &virt_ElevationGrid,
 	 &virt_EspduTransform,
 	 &virt_ExplosionEmitter,
@@ -3405,6 +3417,7 @@ const int OFFSETS_Anchor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Appearance[] = {
+	(int) FIELDNAMES_effects, (int) offsetof (struct X3D_Appearance, effects),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_fillProperties, (int) offsetof (struct X3D_Appearance, fillProperties),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_lineProperties, (int) offsetof (struct X3D_Appearance, lineProperties),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_material, (int) offsetof (struct X3D_Appearance, material),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4107,6 +4120,30 @@ const int OFFSETS_EdgeEnhancementVolumeStyle[] = {
 	(int) FIELDNAMES_gradientThreshold, (int) offsetof (struct X3D_EdgeEnhancementVolumeStyle, gradientThreshold),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_EdgeEnhancementVolumeStyle, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_surfaceNormals, (int) offsetof (struct X3D_EdgeEnhancementVolumeStyle, surfaceNormals),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_Effect[] = {
+	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_Effect, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__retrievedURLData, (int) offsetof (struct X3D_Effect, _retrievedURLData),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderLoadThread, (int) offsetof (struct X3D_Effect, _shaderLoadThread),  (int) FIELDTYPE_FreeWRLThread, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderUserDefinedFields, (int) offsetof (struct X3D_Effect, _shaderUserDefinedFields),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderUserNumber, (int) offsetof (struct X3D_Effect, _shaderUserNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_activate, (int) offsetof (struct X3D_Effect, activate),  (int) FIELDTYPE_SFBool, (int) KW_inputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isSelected, (int) offsetof (struct X3D_Effect, isSelected),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isValid, (int) offsetof (struct X3D_Effect, isValid),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_language, (int) offsetof (struct X3D_Effect, language),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Effect, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_parts, (int) offsetof (struct X3D_Effect, parts),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_EffectPart[] = {
+	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_EffectPart, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_EffectPart, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_EffectPart, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderUserDefinedFields, (int) offsetof (struct X3D_EffectPart, _shaderUserDefinedFields),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_EffectPart, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_type, (int) offsetof (struct X3D_EffectPart, type),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_url, (int) offsetof (struct X3D_EffectPart, url),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ElevationGrid[] = {
@@ -7042,6 +7079,8 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_DoubleAxisHingeJoint,
 	OFFSETS_EaseInEaseOut,
 	OFFSETS_EdgeEnhancementVolumeStyle,
+	OFFSETS_Effect,
+	OFFSETS_EffectPart,
 	OFFSETS_ElevationGrid,
 	OFFSETS_EspduTransform,
 	OFFSETS_ExplosionEmitter,
@@ -7575,6 +7614,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_DoubleAxisHingeJoint : {tmp = MALLOC (struct X3D_DoubleAxisHingeJoint *, sizeof (struct X3D_DoubleAxisHingeJoint)); break;}
 		case NODE_EaseInEaseOut : {tmp = MALLOC (struct X3D_EaseInEaseOut *, sizeof (struct X3D_EaseInEaseOut)); break;}
 		case NODE_EdgeEnhancementVolumeStyle : {tmp = MALLOC (struct X3D_EdgeEnhancementVolumeStyle *, sizeof (struct X3D_EdgeEnhancementVolumeStyle)); break;}
+		case NODE_Effect : {tmp = MALLOC (struct X3D_Effect *, sizeof (struct X3D_Effect)); break;}
+		case NODE_EffectPart : {tmp = MALLOC (struct X3D_EffectPart *, sizeof (struct X3D_EffectPart)); break;}
 		case NODE_ElevationGrid : {tmp = MALLOC (struct X3D_ElevationGrid *, sizeof (struct X3D_ElevationGrid)); break;}
 		case NODE_EspduTransform : {tmp = MALLOC (struct X3D_EspduTransform *, sizeof (struct X3D_EspduTransform)); break;}
 		case NODE_ExplosionEmitter : {tmp = MALLOC (struct X3D_ExplosionEmitter *, sizeof (struct X3D_ExplosionEmitter)); break;}
@@ -7837,6 +7878,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Appearance : {
 			struct X3D_Appearance * tmp2;
 			tmp2 = (struct X3D_Appearance *) tmp;
+			tmp2->effects.n=0; tmp2->effects.p=0;
 			tmp2->fillProperties = NULL;
 			tmp2->lineProperties = NULL;
 			tmp2->material = NULL;
@@ -8755,6 +8797,36 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->surfaceNormals = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_renderStyle;
+		break;
+		}
+		case NODE_Effect : {
+			struct X3D_Effect * tmp2;
+			tmp2 = (struct X3D_Effect *) tmp;
+			tmp2->_initialized = FALSE;
+			tmp2->_retrievedURLData = FALSE;
+			tmp2->_shaderLoadThread = _THREAD_NULL_;
+			tmp2->_shaderUserDefinedFields = NULL;
+			tmp2->_shaderUserNumber = -1;
+			tmp2->activate = 0;
+			tmp2->isSelected = TRUE;
+			tmp2->isValid = TRUE;
+			tmp2->language = newASCIIString("");
+			tmp2->metadata = NULL;
+			tmp2->parts.n=0; tmp2->parts.p=0;
+			tmp2->_defaultContainer = FIELDNAMES_children;
+		break;
+		}
+		case NODE_EffectPart : {
+			struct X3D_EffectPart * tmp2;
+			tmp2 = (struct X3D_EffectPart *) tmp;
+			tmp2->__loadResource = 0;
+			tmp2->__loadstatus = 0;
+			tmp2->_parentResource = getInputResource();
+			tmp2->_shaderUserDefinedFields = NULL;
+			tmp2->metadata = NULL;
+			tmp2->type = newASCIIString("VERTEX");
+			tmp2->url.n=0; tmp2->url.p=0;
+			tmp2->_defaultContainer = FIELDNAMES_parts;
 		break;
 		}
 		case NODE_ElevationGrid : {
@@ -12525,6 +12597,8 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_Appearance *tmp;
 			tmp = (struct X3D_Appearance *) node;
 			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," effects (MFNode):\n");
+			for (i=0; i<tmp->effects.n; i++) { dump_scene(fp,level+1,tmp->effects.p[i]); }
 			spacer fprintf (fp," fillProperties (SFNode):\n"); dump_scene(fp,level+1,tmp->fillProperties); 
 			spacer fprintf (fp," lineProperties (SFNode):\n"); dump_scene(fp,level+1,tmp->lineProperties); 
 			spacer fprintf (fp," material (SFNode):\n"); dump_scene(fp,level+1,tmp->material); 
@@ -13441,6 +13515,29 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 			spacer fprintf (fp," surfaceNormals (SFNode):\n"); dump_scene(fp,level+1,tmp->surfaceNormals); 
+		    break;
+		}
+		case NODE_Effect : {
+			struct X3D_Effect *tmp;
+			tmp = (struct X3D_Effect *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," parts (MFNode):\n");
+			for (i=0; i<tmp->parts.n; i++) { dump_scene(fp,level+1,tmp->parts.p[i]); }
+		    break;
+		}
+		case NODE_EffectPart : {
+			struct X3D_EffectPart *tmp;
+			tmp = (struct X3D_EffectPart *) node;
+			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
+			spacer fprintf (fp," type (SFString) \t%s\n",tmp->type->strptr);
+			spacer fprintf (fp," url (MFString): \n");
+			for (i=0; i<tmp->url.n; i++) { spacer fprintf (fp,"			%d: \t%s\n",i,tmp->url.p[i]->strptr); }
 		    break;
 		}
 		case NODE_ElevationGrid : {
@@ -17125,6 +17222,8 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_DoubleAxisHingeJoint: return X3DRigidJointNode; break;
 	case NODE_EaseInEaseOut: return X3DInterpolatorNode; break;
 	case NODE_EdgeEnhancementVolumeStyle: return X3DComposableVolumeRenderStyleNode; break;
+	case NODE_Effect: return X3DShaderNode; break;
+	case NODE_EffectPart: return X3DUrlObject; break;
 	case NODE_ElevationGrid: return X3DGeometryNode; break;
 	case NODE_EspduTransform: return X3DGroupingNode; break;
 	case NODE_ExplosionEmitter: return X3DParticleEmitterNode; break;
