@@ -775,6 +775,7 @@ void child_Shape (struct X3D_Shape *node) {
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 		int colorSource, alphaSource, isLit;  
+		s_shader_capabilities_t *scap;
 		unsigned int shader_requirements;
 
 		RENDER_MATERIAL_SUBNODES(node->appearance);
@@ -803,7 +804,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 		shader_requirements = node->_shaderTableEntry;  
 		
-		if(!p->userShaderNode){
+		if(!p->userShaderNode || !(shader_requirements >= USER_DEFINED_SHADER_START)){
 			//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
 			// New concept of operations Aug 26, 2016
 			// in the specs there are some things that can replace other things (but not the reverse)
@@ -861,7 +862,9 @@ void child_Shape (struct X3D_Shape *node) {
 			//if(shader_requirements & FOG_APPEARANCE_SHADER)
 			//	printf("fog in child_shape\n");
 		}
-		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
+		scap = getMyShader(shader_requirements);
+		enableGlobalShader(scap);
+		//enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
 
 		//see if we have to set up a TextureCoordinateGenerator type here
 		if (tmpNG && tmpNG->_intern) {
@@ -870,8 +873,8 @@ void child_Shape (struct X3D_Shape *node) {
 				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
 			}
 		}
-
-		if (p->userShaderNode != NULL) {
+		//userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
+		if (p->userShaderNode != NULL && shader_requirements >= USER_DEFINED_SHADER_START) {
 			//ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
 			switch (p->userShaderNode->_nodeType) {
 				case NODE_ComposedShader:

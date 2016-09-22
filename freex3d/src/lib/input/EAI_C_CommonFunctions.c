@@ -766,7 +766,7 @@ void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value
 			mfstringtmp[0] = '"';
 			mfstringtmp[len+1] = '"';
 			mfstringtmp[len+2] = '\0';
-			if(!MFS_warning_given){
+			if(0) if(!MFS_warning_given){
 				ConsoleMessage("Warning - an MFString needs internal quotes ie '%s' should be '%s'\n",value,mfstringtmp);
 				MFS_warning_given = 1;
 			}
