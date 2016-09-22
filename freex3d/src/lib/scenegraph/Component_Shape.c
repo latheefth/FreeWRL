@@ -774,7 +774,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-		int colorSource, alphaSource, isLit;  
+		int colorSource, alphaSource, isLit, isUserShader; 
 		s_shader_capabilities_t *scap;
 		unsigned int shader_requirements;
 
@@ -803,8 +803,9 @@ void child_Shape (struct X3D_Shape *node) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpNG);
 
 		shader_requirements = node->_shaderTableEntry;  
-		
-		if(!p->userShaderNode || !(shader_requirements >= USER_DEFINED_SHADER_START)){
+		isUserShader = shader_requirements >= USER_DEFINED_SHADER_START ? TRUE : FALSE;
+		//if(!p->userShaderNode || !(shader_requirements >= USER_DEFINED_SHADER_START)){
+		if(!isUserShader){
 			//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
 			// New concept of operations Aug 26, 2016
 			// in the specs there are some things that can replace other things (but not the reverse)
@@ -874,7 +875,10 @@ void child_Shape (struct X3D_Shape *node) {
 			}
 		}
 		//userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
-		if (p->userShaderNode != NULL && shader_requirements >= USER_DEFINED_SHADER_START) {
+		//if (p->userShaderNode != NULL && shader_requirements >= USER_DEFINED_SHADER_START) {
+		if(isUserShader && p->userShaderNode){
+			//we come in here right after a COMPILE pass in APPEARANCE which renders the shader, which sets p->userShaderNode
+			//if nothing changed with appearance -no compile pass- we don't come in here again
 			//ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
 			switch (p->userShaderNode->_nodeType) {
 				case NODE_ComposedShader:
