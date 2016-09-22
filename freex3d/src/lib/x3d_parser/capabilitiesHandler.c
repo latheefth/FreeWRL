@@ -47,7 +47,7 @@ static const int capabilities[] = {
 	COM_EnvironmentalSensor,	3, /* May 12, 2009 */
 	COM_Text,	1, 		/* May 12, 2009 */
 	COM_NURBS,	0, 		/* May 12, 2009 */
-	COM_CubeMapTexturing,	1, 	/* May 12, 2009 */
+	COM_CubeMapTexturing,	3, 	/* Sep 13, 2016 */
 	COM_EventUtilities,	1, 	/* May 12, 2009 */
 	COM_Interpolation,	3, 	/* May 12, 2009 */
 	COM_Shaders,	1, 		/* May 12, 2009 */

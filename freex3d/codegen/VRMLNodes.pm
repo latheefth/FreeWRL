@@ -548,6 +548,7 @@ our %Nodes = (
 		material => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		shaders => ["MFNode", [], "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		effects => ["MFNode", [], "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		texture => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		textureTransform => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	],"X3DAppearanceNode"),
@@ -748,6 +749,12 @@ our %Nodes = (
 		__pindices => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		__wireindicesVBO =>["SFInt32", 0, "initializeOnly", 0],
  	],"X3DGeometryNode"),
+
+	"Teapot" => new VRML::NodeType("Teapot", [
+                metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__ifsnode => ["FreeWRLPTR", 0, "initializeOnly", 0],
+ 	],"X3DGeometryNode"),
+
 
 
 	###################################################################################
@@ -2723,6 +2730,34 @@ our %Nodes = (
 			__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
 			_shaderUserDefinedFields => ["SFNode", "NULL", "initializeOnly", 0],
 	], "X3DUrlObject"),
+
+	# castle EffectPart made from ShaderPart
+	"EffectPart" => new VRML::NodeType("EffectPart", [
+			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			url => ["MFString", [], "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			type => ["SFString","VERTEX","inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+			__loadstatus =>["SFInt32",0,"initializeOnly", 0],
+			_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
+			__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
+			_shaderUserDefinedFields => ["SFNode", "NULL", "initializeOnly", 0],
+	], "X3DUrlObject"),
+
+	# castle Effect made from ComposedShader
+	"Effect" => new VRML::NodeType("Effect", [
+			activate =>["SFBool",undef,"inputOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			parts => ["MFNode",[],"inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			isSelected => ["SFBool", "TRUE","outputOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			isValid => ["SFBool", "TRUE","outputOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			language => ["SFString", "", "initializeOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+
+			_initialized => ["SFBool", "FALSE" ,"initializeOnly", 0],
+			_shaderUserDefinedFields => ["SFNode", "NULL", "initializeOnly", 0],
+			_shaderUserNumber => ["SFInt32",-1,"initializeOnly",0],
+			_shaderLoadThread => ["FreeWRLThread", 0, "initializeOnly",0],
+			_retrievedURLData => ["SFBool", "FALSE" ,"initializeOnly", 0],
+	],"X3DShaderNode"),
+
 
 	###################################################################################
 

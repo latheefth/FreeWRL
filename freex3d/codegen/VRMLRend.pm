@@ -154,6 +154,7 @@ our %defaultContainerType = (
 	StaticGroup		=>"children",
 	StringSensor		=>"children",
 	Switch 			=>"children",
+	Teapot 			=>"geometry",
 	Text 			=>"geometry",
 	TextureBackground 	=>"children",
 	TextureCoordinate 	=>"texCoord",
@@ -335,7 +336,8 @@ our %defaultContainerType = (
 	ImageBackdropBackground	=>"children",
 	CalibratedCameraSensor	=>"children",
 	TrackingSensor		=>"children",
-	
+	Effect			=>"children",
+	EffectPart		=>"parts",
 );
 
 
@@ -362,6 +364,7 @@ our %RendC = map {($_=>1)} qw/
 	Cone
 	Sphere
 	IndexedFaceSet
+	Teapot
 	Extrusion
 	ElevationGrid
 	Arc2D
@@ -392,6 +395,7 @@ our %RendC = map {($_=>1)} qw/
 	ProgramShader
 	PackagedShader
 	ComposedShader
+	Effect
 	PixelTexture
 	ImageTexture
 	MultiTexture
@@ -588,6 +592,7 @@ our %CompileC = map {($_=>1)} qw/
 	Cone
 	Cylinder
 	Sphere
+	Teapot
 	GeoLocation
 	GeoCoordinate
 	GeoElevationGrid
@@ -603,6 +608,7 @@ our %CompileC = map {($_=>1)} qw/
 	ComposedShader
 	ProgramShader
 	PackagedShader
+	Effect
 	MetadataMFFloat
 	MetadataMFRotation
 	MetadataMFVec3f
@@ -740,6 +746,7 @@ our %CollisionC = map {($_=>1)} qw/
 	Box
 	Cone
 	Cylinder
+	Teapot
 	ElevationGrid
 	IndexedFaceSet
 	IndexedQuadSet
@@ -833,6 +840,7 @@ our %RendRayC = map {($_=>1)} qw/
 	Sphere
 	Cylinder
 	Cone
+	Teapot
 	GeoElevationGrid
 	ElevationGrid
 	Text

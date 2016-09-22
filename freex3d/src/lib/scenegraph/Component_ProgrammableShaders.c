@@ -459,7 +459,8 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 	}
 
 	if (currentShader == 0) {
-		ConsoleMessage ("%s","error finding associated Shape node for Shade node");
+		ConsoleMessage("."); //loading
+		//ConsoleMessage ("%s","error finding associated Shape node for Shade node");
 		return;
 	}
 
@@ -738,9 +739,9 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		/* ask the shader for its handle for this variable */
 
 		/* try Uniform  */
-        //printf ("looking to get_Uniform for shader %d, variable :%s:\n",myShader, fieldDecl_getShaderScriptName(myf));
-        
-		myVar = GET_UNIFORM(myShader,fieldDecl_getShaderScriptName(myf));
+        printf ("looking to get_Uniform for shader %d, variable :%s:\n",myShader, namePtr);
+		myVar = GET_UNIFORM(myShader,namePtr);
+		//myVar = GET_UNIFORM(myShader,fieldDecl_getShaderScriptName(myf));
 		if (myVar == INT_ID_UNDEFINED) {
 			if (GET_ATTRIB(myShader,fieldDecl_getShaderScriptName(myf)) != INT_ID_UNDEFINED)
 			ConsoleMessage ("Shader variable :%s: is declared as an attribute; we can not do much with this",fieldDecl_getShaderScriptName(myf));
@@ -913,7 +914,50 @@ static void *thread_compile_ComposedShader(void *args) {
 	SUPPORT_GLSL_ONLY
 		
 	/* ok so far, go through the parts */
-	LOCATE_SHADER_PARTS(ShaderPart,parts)
+	//LOCATE_SHADER_PARTS(ShaderPart,parts)
+
+	//#define LOCATE_SHADER_PARTS(myNodeType, myField) 
+	for (i=0; i<node->parts.n; i++) { 
+		struct X3D_ShaderPart *prog; 
+		prog = (struct X3D_ShaderPart *) node->parts.p[i]; 
+		vertShaderSource[i] = NULL; 
+		fragShaderSource[i] = NULL; 
+ 
+		if (prog!=NULL) { 
+			if (prog->_nodeType == NODE_ShaderPart) { 
+				/* compile this program */ 
+ 
+				if (!((strcmp (prog->type->strptr,"VERTEX")) && (strcmp(prog->type->strptr,"FRAGMENT")))) { 
+					char *myText = NULL; /* pointer to text to send in */ 
+					char *cptr; /* returned caracter pointer pointer */ 
+						 
+					cptr = prog->url.p[0]->strptr; /*shader_initCodeFromMFUri(&prog->url);*/ 
+					if (cptr == NULL) { 
+						ConsoleMessage ("error reading url for :%s:",stringNodeType(NODE_ShaderPart)); 
+						myText = "";
+					} else { 
+						myText = cptr; 
+						/* assign this text to VERTEX or FRAGMENT buffers */ 
+						if (!strcmp(prog->type->strptr,"VERTEX")) { 
+							vertShaderSource[i] = STRDUP(myText); 
+							haveVertShaderText = TRUE; 
+						} else { 
+							fragShaderSource[i] = STRDUP(myText); 
+							haveFragShaderText = TRUE; 
+						} 
+						/* printf ("Shader text for type %s is  %s\n",prog->type->strptr,myText); */ 
+						/*FREE_IF_NZ(cptr);*/ 
+					}
+				} else { 
+					ConsoleMessage ("%s, invalid Type, got \"%s\"",stringNodeType(NODE_ShaderPart), prog->type->strptr); 
+					node->isValid = FALSE; 
+				} 
+			} else { 
+				ConsoleMessage ("Shader, expected \"%s\", got \"%s\"",stringNodeType(NODE_ShaderPart), stringNodeType(prog->_nodeType)); 
+				node->isValid = FALSE; 
+			} 
+		} 
+	} 
 	
 	//if (haveFragShaderText) ConsoleMessage ("have frag shader text");
 	// if (haveVertShaderText) ConsoleMessage ("have vert shader text");
@@ -1068,7 +1112,7 @@ static void *thread_compile_ProgramShader (void *args){
 
 
 static int shader_initCode(struct X3D_ShaderProgram *node, char* buffer){
-	node->url.p[0]->strptr = buffer;
+	node->url.p[0]->strptr = STRDUP(buffer); //something else -in rexources?- seems to free buffer so we copy here
 	node->url.n = 1;
 	return TRUE;
 }
@@ -1223,11 +1267,13 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 	struct myArgs *args;
 	ttglobal tg = gglobal();
 	if(shaderprograms_loaded_but_not_compiled(&node->parts)){ //if all the program parts are downloaded and loaded but not compiled yet
-		set_shaderprograms_compiled(&node->parts);
+		//set_shaderprograms_compiled(&node->parts);
 		args = MALLOC(struct myArgs *, sizeof (struct myArgs));
 		args->node  = X3D_NODE(node);
 		args->tg  = tg;
-		if(1){
+		//before sept 22, 2016 - got both async and sync working, but if problems in future with uniforms not setting,
+		// check child_shape to make sure user shader compiled before uniform initialization
+		if(0){
 			//asynchronous
 			if (TEST_NULL_THREAD(node->_shaderLoadThread)) {
 				pthread_create (&(node->_shaderLoadThread), NULL,
@@ -1237,6 +1283,7 @@ void compile_ComposedShader (struct X3D_ComposedShader *node) {
 			//synchronous
 			thread_compile_ComposedShader(args);
 		}
+		set_shaderprograms_compiled(&node->parts);
 	}
 }
 
@@ -1282,4 +1329,26 @@ void render_ProgramShader (struct X3D_ProgramShader *node) {
 	COMPILE_IF_REQUIRED
 	if (node->isValid) 
 		setUserShaderNode(X3D_NODE(node));
+}
+
+// castle compositing shader effects system
+// http://castle-engine.sourceforge.net/compositing_shaders.php
+// thanks to Michalis Kamburelis for permission to implement in freewrl/libfreewrl
+// Effect node is like ComposedShader, 
+// EffectPart node is like ShaderPart
+void compile_Effect (struct X3D_Effect *node) {
+	printf("compile_effect not implemented\n");
+	//get a unique number for this effect - a bit mask
+	//get the parts
+	//prepare uniforms for events
+	//but don't compile (until needed later)
+}
+void render_Effect (struct X3D_Effect *node) {
+	//COMPILE_IF_REQUIRED
+	//if (node->isValid) setUserShaderNode(X3D_NODE(node));
+	//push effect onto effect stack, with unique effect bit mask
+	printf("render_effect not implemented\n");
+}
+void fin_Effect (struct X3D_Effect *node) {
+	//pop effect and bit mask off effect stack
 }

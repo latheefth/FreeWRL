@@ -224,6 +224,32 @@ void child_Appearance (struct X3D_Appearance *node) {
 			}
 		}
 	}
+
+	/* castle Effects here/supported?? */
+	if (node->effects.n !=0) {
+		int count;
+		int foundGoodShader = FALSE;
+		
+		for (count=0; count<node->effects.n; count++) {
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->effects.p[count], tmpN);
+			
+			/* have we found a valid shader yet? */
+			if(tmpN){
+				//if (foundGoodShader) {
+				//	/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
+				//	/* yes, just tell other shaders that they are not selected */
+				//	SET_SHADER_SELECTED_FALSE(tmpN);
+				//} else {
+				//	/* render this node; if it is valid, then we call this one the selected one */
+				//	SET_FOUND_GOOD_SHADER(tmpN);
+					DEBUG_SHADER("running shader (%s) %d of %d\n",
+					stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->effects.n);
+					render_node(tmpN);
+				//}
+			}
+		}
+	}
+
 }
 
 
@@ -748,7 +774,8 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-		int colorSource, alphaSource, isLit;  
+		int colorSource, alphaSource, isLit, isUserShader; 
+		s_shader_capabilities_t *scap;
 		unsigned int shader_requirements;
 
 		RENDER_MATERIAL_SUBNODES(node->appearance);
@@ -776,8 +803,9 @@ void child_Shape (struct X3D_Shape *node) {
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpNG);
 
 		shader_requirements = node->_shaderTableEntry;  
-		
-		if(!p->userShaderNode){
+		isUserShader = shader_requirements >= USER_DEFINED_SHADER_START ? TRUE : FALSE;
+		//if(!p->userShaderNode || !(shader_requirements >= USER_DEFINED_SHADER_START)){
+		if(!isUserShader){
 			//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
 			// New concept of operations Aug 26, 2016
 			// in the specs there are some things that can replace other things (but not the reverse)
@@ -835,7 +863,9 @@ void child_Shape (struct X3D_Shape *node) {
 			//if(shader_requirements & FOG_APPEARANCE_SHADER)
 			//	printf("fog in child_shape\n");
 		}
-		enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
+		scap = getMyShader(shader_requirements);
+		enableGlobalShader(scap);
+		//enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
 
 		//see if we have to set up a TextureCoordinateGenerator type here
 		if (tmpNG && tmpNG->_intern) {
@@ -844,8 +874,11 @@ void child_Shape (struct X3D_Shape *node) {
 				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
 			}
 		}
-
-		if (p->userShaderNode != NULL) {
+		//userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
+		//if (p->userShaderNode != NULL && shader_requirements >= USER_DEFINED_SHADER_START) {
+		if(isUserShader && p->userShaderNode){
+			//we come in here right after a COMPILE pass in APPEARANCE which renders the shader, which sets p->userShaderNode
+			//if nothing changed with appearance -no compile pass- we don't come in here again
 			//ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
 			switch (p->userShaderNode->_nodeType) {
 				case NODE_ComposedShader:
