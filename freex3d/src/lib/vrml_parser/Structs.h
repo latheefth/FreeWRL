@@ -9398,6 +9398,7 @@ struct X3D_Teapot {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
+	int solid;
 	void * __ifsnode;
 };
 extern struct X3D_Virt virt_Teapot;

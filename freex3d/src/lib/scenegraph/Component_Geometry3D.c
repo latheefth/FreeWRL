@@ -2496,6 +2496,7 @@ void compile_Teapot (struct X3D_Teapot *tnode){
 			teapot_coord->point.n = teapot_coord_n;
 			teapotifs->coordIndex.p = teapot_coordindex_p;
 			teapotifs->coordIndex.n = teapot_coordindex_n;
+			teapotifs->solid = tnode->solid;
 		}
 		tnode->__ifsnode = teapotifs;
 		make_IndexedFaceSet(tnode->__ifsnode);
