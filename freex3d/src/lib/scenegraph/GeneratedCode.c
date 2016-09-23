@@ -6550,6 +6550,7 @@ const int OFFSETS_Switch[] = {
 const int OFFSETS_Teapot[] = {
 	(int) FIELDNAMES___ifsnode, (int) offsetof (struct X3D_Teapot, __ifsnode),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_Teapot, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_solid, (int) offsetof (struct X3D_Teapot, solid),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_TexCoordChaser2D[] = {
@@ -11889,6 +11890,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Teapot *) tmp;
 			tmp2->__ifsnode = 0;
 			tmp2->metadata = NULL;
+			tmp2->solid = TRUE;
 			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}

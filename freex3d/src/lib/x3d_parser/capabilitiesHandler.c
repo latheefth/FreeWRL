@@ -41,7 +41,7 @@
 /* table showing which levels are supported by which component */
 static const int capabilities[] = {
 	COM_Geometry2D,	2, 		/* May 12, 2009 */
-	COM_Rendering,	4, 		/* May 12, 2009 */
+	COM_Rendering,	5, 		/* Sep 22, 2016 */
 	COM_Picking,	0, 	/* May 12, 2009 */
 	COM_DIS,	0, 		/* May 12, 2009 */
 	COM_EnvironmentalSensor,	3, /* May 12, 2009 */

@@ -2957,6 +2957,7 @@ END_NODE(Switch)
 /* Teapot node */
 BEGIN_NODE(Teapot)
 EXPOSED_FIELD(Teapot,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+FIELD(Teapot,solid,sfbool,solid,FIELDTYPE_SFBool)
 END_NODE(Teapot)
 
 /* TexCoordChaser2D node */
