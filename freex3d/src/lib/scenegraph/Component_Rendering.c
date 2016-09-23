@@ -687,17 +687,17 @@ float *getTransformedClipPlanes(){
 	#define tactic_one_shot 1
 	#define tactic_point_plus_normal 2
 	int i,nsend, tactic;
-	double modelviewmatrix[16], meinv[16], u2me[16], me2u[16], me2ut[16], me2uit[16], u2met[16], u2meit[16], *M, *MI, *MIT;
+	double modelviewmatrix[16], meinv[16], u2me[16], me2u[16], me2ut[16], u2met[16],  *M, *MIT;
 	ppComponent_Rendering p = (ppComponent_Rendering)gglobal()->Component_Rendering.prv;
 
 	nsend =  min(FW_MAXCLIPPLANES,vectorSize(p->clipplane_stack));
 	//Q. how transform a plane by a matrix?
 	//option 1: 4x4 * 4x1
 	//https://www.opengl.org/discussion_boards/showthread.php/159564-Clever-way-to-transform-plane-by-matrix
-	tactic = tactic_one_shot;
+	//tactic = tactic_one_shot; //works
 	//option 2: convert abcd plane into normal + 3d point, transform point and normal, then convert back to abcd
 	//http://stackoverflow.com/questions/7685495/transforming-a-3d-plane-by-4x4-matrix
-	//tactic = tactic_point_plus_normal;
+	tactic = tactic_point_plus_normal; //works
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewmatrix);
 	matinverseAFFINE(meinv,modelviewmatrix);
 
@@ -709,33 +709,24 @@ float *getTransformedClipPlanes(){
 		usehit uhit;
 		uhit = vector_get(usehit,p->clipplane_stack,i);
 		cplane = (struct X3D_ClipPlane *)uhit.node;
-		if(1)
-			matmultiplyAFFINE(u2me,uhit.mvm,meinv);
-		else
-			matmultiplyAFFINE(u2me,meinv,uhit.mvm);
+		matmultiplyAFFINE(u2me,uhit.mvm,meinv);
 		mattranspose(u2met,u2me);
 		matinverseAFFINE(me2u,u2me);
 		mattranspose(me2ut,me2u);
-		if(0){
-			//if we are going the wrong way, we'll just invert
-			//me2u
-			M = me2u;
-			MIT = u2met;
-		}else{
-			//u2me
-			M = u2me;
-			MIT = me2ut;
-		}
+		M = u2me;    //matrix, for transforming point
+		MIT = me2ut;  //matrix inverse transpose, for transforming normal
+
 		for(j=0;j<4;j++) dplane[j] = cplane->plane.c[j]; //float to double
 		if(tactic == tactic_one_shot){
+			//works
 			transformFULL4d(dplane2,dplane,MIT);
 		}
 		else 
 		{
-			//tactic_point_plus_normal
+			//tactic_point_plus_normal - works
 			//vector4 O = (xyz * d, 1)
 			double O4[4], N4[4], d;
-			vecscaled(O4,dplane,dplane[3]);
+			vecscaled(O4,dplane,-dplane[3]);
 			O4[3] = 1.0;
 			//vector4 N = (xyz, 0)
 			veccopyd(N4,dplane);
@@ -747,8 +738,8 @@ float *getTransformedClipPlanes(){
 			//xyz = N.xyz
 			veccopyd(dplane2,N4);
 			//d = dot(O.xyz, N.xyz)	
-			d = vecdot(O4,N4);
-			dplane2[3] = d;
+			d = vecdotd(O4,N4);
+			dplane2[3] = -d;
 		}
 		for(j=0;j<4;j++) p->clipplanes[i*4 + j] = dplane2[j]; //double to float
 	}
@@ -779,7 +770,7 @@ void sib_prep_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 			//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#ClipPlanes
 			//we'll snapshot the modelview matrix and push with clipplane node onto stack, 
 			//for use when applying in leaf shape node
-			uhit.node = cplane; //x3dnode clipplane
+			uhit.node = X3D_NODE(cplane); //x3dnode clipplane
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewmatrix);
 			memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
 			stack_push(usehit,p->clipplane_stack,uhit); //fat elements do another deep copy
