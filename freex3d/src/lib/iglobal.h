@@ -264,6 +264,9 @@ typedef struct iiglobal //InstanceGlobal
 	struct tComponent_ParticleSystems{
 		void *prv;
 	}Component_ParticleSystems;
+	struct tComponent_ProgrammableShaders{
+		void *prv;
+	}Component_ProgrammableShaders;
 	struct tComponent_RigidBodyPhysics{
 		void *prv;
 	}Component_RigidBodyPhysics;

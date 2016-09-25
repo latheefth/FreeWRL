@@ -2464,9 +2464,8 @@ struct X3D_Virt virt_EaseInEaseOut = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,N
 
 struct X3D_Virt virt_EdgeEnhancementVolumeStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-void render_Effect(struct X3D_Effect *);
 void compile_Effect(struct X3D_Effect *);
-struct X3D_Virt virt_Effect = { NULL,(void *)render_Effect,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Effect};
+struct X3D_Virt virt_Effect = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_Effect};
 
 struct X3D_Virt virt_EffectPart = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 

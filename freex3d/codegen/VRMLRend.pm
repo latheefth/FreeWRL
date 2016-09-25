@@ -395,7 +395,6 @@ our %RendC = map {($_=>1)} qw/
 	ProgramShader
 	PackagedShader
 	ComposedShader
-	Effect
 	PixelTexture
 	ImageTexture
 	MultiTexture

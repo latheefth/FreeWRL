@@ -102,6 +102,37 @@ FIELDTYPE_MFVec4d
 #include "Component_ProgrammableShaders.h"
 #include "../scenegraph/RenderFuncs.h"
 
+
+
+
+typedef struct pComponent_ProgrammableShaders{
+	Stack *effect_stack;
+
+}* ppComponent_ProgrammableShaders;
+void *Component_ProgrammableShaders_constructor(){
+	void *v = MALLOCV(sizeof(struct pComponent_ProgrammableShaders));
+	memset(v,0,sizeof(struct pComponent_ProgrammableShaders));
+	return v;
+}
+void Component_ProgrammableShaders_init(struct tComponent_ProgrammableShaders *t){
+	//public
+	//private
+	t->prv = Component_ProgrammableShaders_constructor();
+	{
+		ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)t->prv;
+		p->effect_stack = newStack(struct X3D_Node*);
+	}
+}
+void Component_ProgrammableShaders_clear(struct tComponent_ProgrammableShaders *t){
+	//public
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)t->prv;
+
+	deleteVector(struct X3D_Node*,p->effect_stack);
+}
+
+
+
+
 /* we do support older versions of shaders; but not all info logs are printed if we
    have OpenGL prior to 2.0 */
 
@@ -1343,12 +1374,32 @@ void compile_Effect (struct X3D_Effect *node) {
 	//prepare uniforms for events
 	//but don't compile (until needed later)
 }
-void render_Effect (struct X3D_Effect *node) {
+static int effect_stack_count = 0;
+void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
+	unsigned int shaderflags;
+	struct X3D_Effect *node; 
+	ttglobal tg = gglobal();
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->RenderFuncs.prv;
+	node = (struct X3D_Effect*)sibAffector;
 	//COMPILE_IF_REQUIRED
 	//if (node->isValid) setUserShaderNode(X3D_NODE(node));
 	//push effect onto effect stack, with unique effect bit mask
-	printf("render_effect not implemented\n");
+	effect_stack_count++;
+	printf("sib_prep_effect not implemented %d\n",effect_stack_count);
+	shaderflags = getShaderFlags();
+	shaderflags |= node->_shaderUserNumber;
+	pushShaderFlags(shaderflags);
+	stack_push(struct X3D_Node*,p->effect_stack,sibAffector);
+
 }
-void fin_Effect (struct X3D_Effect *node) {
+void sib_fin_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
+	struct X3D_Effect *node; 
+	ttglobal tg = gglobal();
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->RenderFuncs.prv;
+	node = (struct X3D_Effect*)sibAffector;
 	//pop effect and bit mask off effect stack
+	effect_stack_count--;
+	printf("sib_fin_effect not implemented %d\n",effect_stack_count);
+	stack_pop(struct X3D_Node*,p->effect_stack);
+	popShaderFlags();
 }

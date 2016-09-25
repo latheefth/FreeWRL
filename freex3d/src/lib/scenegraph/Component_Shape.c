@@ -227,27 +227,29 @@ void child_Appearance (struct X3D_Appearance *node) {
 
 	/* castle Effects here/supported?? */
 	if (node->effects.n !=0) {
-		int count;
-		int foundGoodShader = FALSE;
+		//int count;
+		//int foundGoodShader = FALSE;
+		prep_sibAffectors(X3D_NODE(node),&node->effects);
 		
-		for (count=0; count<node->effects.n; count++) {
-			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->effects.p[count], tmpN);
-			
-			/* have we found a valid shader yet? */
-			if(tmpN){
-				//if (foundGoodShader) {
-				//	/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
-				//	/* yes, just tell other shaders that they are not selected */
-				//	SET_SHADER_SELECTED_FALSE(tmpN);
-				//} else {
-				//	/* render this node; if it is valid, then we call this one the selected one */
-				//	SET_FOUND_GOOD_SHADER(tmpN);
-					DEBUG_SHADER("running shader (%s) %d of %d\n",
-					stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->effects.n);
-					render_node(tmpN);
-				//}
-			}
-		}
+		//for (count=0; count<node->effects.n; count++) {
+		//	POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->effects.p[count], tmpN);
+		//	
+		//	/* have we found a valid shader yet? */
+		//	if(tmpN){
+		//		//if (foundGoodShader) {
+		//		//	/* printf ("skipping shader %d of %d\n",count, node->shaders.n); */
+		//		//	/* yes, just tell other shaders that they are not selected */
+		//		//	SET_SHADER_SELECTED_FALSE(tmpN);
+		//		//} else {
+		//		//	/* render this node; if it is valid, then we call this one the selected one */
+		//		//	SET_FOUND_GOOD_SHADER(tmpN);
+		//			DEBUG_SHADER("running shader (%s) %d of %d\n",
+		//			stringNodeType(X3D_NODE(tmpN)->_nodeType),count, node->effects.n);
+		//			//render_node(tmpN);
+		//			prep_sibAffectors(node,&node->effects);
+		//		//}
+		//	}
+		//}
 	}
 
 }
@@ -778,7 +780,8 @@ void child_Shape (struct X3D_Shape *node) {
 		s_shader_capabilities_t *scap;
 		unsigned int shader_requirements;
 
-		RENDER_MATERIAL_SUBNODES(node->appearance);
+		//prep_Appearance
+		RENDER_MATERIAL_SUBNODES(node->appearance); //child_Appearance
 
 
 
@@ -929,9 +932,18 @@ void child_Shape (struct X3D_Shape *node) {
 		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
 		#endif
 
+		//fin_Appearance
+		if(node->appearance){
+			struct X3D_Appearance *tmpA;
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,node->appearance,tmpA);
+			if(tmpA->effects.n)
+				fin_sibAffectors(X3D_NODE(tmpA),&tmpA->effects);
+		}
+
 	}
 
 	/* any shader turned on? if so, turn it off */
+
 	//ConsoleMessage("turning shader off");
 	finishedWithGlobalShader();
 	p->material_twoSided = NULL;

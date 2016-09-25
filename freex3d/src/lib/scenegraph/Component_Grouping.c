@@ -233,6 +233,7 @@ void sib_prep_DirectionalLight(struct X3D_Node *parent, struct X3D_Node *sibAffe
 void sib_prep_SpotlLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
 void sib_prep_PointLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
 void sib_prep_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+void sib_prep_Effect(struct X3D_Node *parent, struct X3D_Node *sibAffector);
 
 void sib_prep(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 	switch(sibAffector->_nodeType){
@@ -246,10 +247,8 @@ void sib_prep(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 			sib_prep_LocalFog(parent,sibAffector); break;
 		case NODE_ClipPlane:
 			sib_prep_ClipPlane(parent,sibAffector); break;
-		//case NODE_Effect: //not implemented yet
-		//	sib_prep_Effect(parent,sibAffector); break;
-		//case NODE_EffectPart: // "
-		//	sib_prep_EffectPart(parent,sibAffector); break;
+		case NODE_Effect: 
+			sib_prep_Effect(parent,sibAffector); break;
 		default:
 			break;
 	}
@@ -260,6 +259,7 @@ void sib_fin_DirectionalLight(struct X3D_Node *parent, struct X3D_Node *sibAffec
 void sib_fin_SpotlLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
 void sib_fin_PointLight(struct X3D_Node *parent, struct X3D_Node *sibAffector);
 void sib_fin_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector);
+void sib_fin_Effect(struct X3D_Node *parent, struct X3D_Node *sibAffector);
 
 void sib_fin(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 	switch(sibAffector->_nodeType){
@@ -273,10 +273,8 @@ void sib_fin(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 			sib_fin_LocalFog(parent,sibAffector); break;
 		case NODE_ClipPlane:
 			sib_fin_ClipPlane(parent,sibAffector); break;
-		//case NODE_Effect: //not implemented yet
-		//	sib_fin_Effect(parent,sibAffector); break;
-		//case NODE_EffectPart: // "
-		//	sib_fin_EffectPart(parent,sibAffector); break;
+		case NODE_Effect:
+			sib_fin_Effect(parent,sibAffector); break;
 		default:
 			break;
 	}
@@ -292,8 +290,11 @@ void prep_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors){
 }
 void fin_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors){
 	if(affectors->n){
-		int j;
-		for(j=0;j<affectors->n;j++){
+		int j,jj;
+		for(jj=0;jj<affectors->n;jj++){
+			//we go backwards so any sib_fin popping is in reverse order to any sib_prep pushing,
+			// in case multiple push to same stack, as with multiple Effects
+			j = affectors->n - jj - 1; 
 			struct X3D_Node *sa = affectors->p[j];
 			sib_fin(parent,sa);
 		}
