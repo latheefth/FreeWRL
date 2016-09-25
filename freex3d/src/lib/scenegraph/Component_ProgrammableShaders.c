@@ -457,8 +457,11 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 	int i,j;
 	GLfloat* sourceData;
 	GLuint currentShader = 0;	
+	shaderflagsstruct shaderflags;
 	struct CRStruct *CRoutes = getCRoutes();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+	memset(&shaderflags,0,sizeof(shaderflagsstruct));
 
 	// ProgramShaders have fields for each ShaderProgram field, and we can have a couple of fields
 	// here. Thus myObj* has more than one pointer.
@@ -477,7 +480,10 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 				struct X3D_Shape *sh = vector_get(struct X3D_Shape *, ap->_parentVector, j);
 				//ConsoleMessage ("and parent of appearance is %s",stringNodeType(sh->_nodeType));
 				if (sh->_nodeType == NODE_Shape) {
-					currentShader = X3D_SHAPE(sh)->_shaderTableEntry;
+					//currentShader = X3D_SHAPE(sh)->_shaderflags_usershaders; //_shaderTableEntry;
+					shaderflags.base = sh->_shaderflags_base;
+					shaderflags.effects = sh->_shaderflags_effects;
+					shaderflags.usershaders = sh->_shaderflags_usershaders;
 				}
 			}
 		}
@@ -489,7 +495,8 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 		}
 	}
 
-	if (currentShader == 0) {
+	//if (currentShader == 0) {
+	if(!shaderflags.base && !shaderflags.usershaders){
 		ConsoleMessage("."); //loading
 		//ConsoleMessage ("%s","error finding associated Shape node for Shade node");
 		return;
@@ -497,7 +504,8 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 
 	// turning shader on...
 	//ConsoleMessage ("calling getMyShader here wrwe");
-	enableGlobalShader(getMyShader(currentShader));
+	//shaderflags.usershaders = currentShader;
+	enableGlobalShader(getMyShaders(shaderflags)); //currentShader));
     
 	myObj[0] = NULL;
 	myObj[1] = NULL;
@@ -1375,21 +1383,28 @@ void compile_Effect (struct X3D_Effect *node) {
 	//but don't compile (until needed later)
 }
 static int effect_stack_count = 0;
+shaderflagsstruct getShaderFlags();
 void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
-	unsigned int shaderflags;
+	//unsigned int shaderflags;
+	shaderflagsstruct shaderflags;
 	struct X3D_Effect *node; 
 	ttglobal tg = gglobal();
 	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->RenderFuncs.prv;
 	node = (struct X3D_Effect*)sibAffector;
 	//COMPILE_IF_REQUIRED
-	//if (node->isValid) setUserShaderNode(X3D_NODE(node));
-	//push effect onto effect stack, with unique effect bit mask
-	effect_stack_count++;
-	printf("sib_prep_effect not implemented %d\n",effect_stack_count);
-	shaderflags = getShaderFlags();
-	shaderflags |= node->_shaderUserNumber;
-	pushShaderFlags(shaderflags);
-	stack_push(struct X3D_Node*,p->effect_stack,sibAffector);
+	//unlike user shaders, we don't compile Effects - they are pasted into the ubershader which is compiled
+	// from Shape, so we put them on a stack/queue/list here so ubershader can paste them all
+	if(node->isValid){
+		//push effect onto effect stack, with unique effect bit mask
+		effect_stack_count++;
+		printf("sib_prep_effect not implemented %d\n",effect_stack_count);
+		if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+
+		shaderflags = getShaderFlags();
+		shaderflags.effects |= 1L << node->_shaderUserNumber;
+		pushShaderFlags(shaderflags);
+		stack_push(struct X3D_Node*,p->effect_stack,sibAffector);
+	}
 
 }
 void sib_fin_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
@@ -1398,8 +1413,10 @@ void sib_fin_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->RenderFuncs.prv;
 	node = (struct X3D_Effect*)sibAffector;
 	//pop effect and bit mask off effect stack
-	effect_stack_count--;
-	printf("sib_fin_effect not implemented %d\n",effect_stack_count);
-	stack_pop(struct X3D_Node*,p->effect_stack);
-	popShaderFlags();
+	if(node->isValid){
+		effect_stack_count--;
+		printf("sib_fin_effect not implemented %d\n",effect_stack_count);
+		stack_pop(struct X3D_Node*,p->effect_stack);
+		popShaderFlags();
+	}
 }

@@ -33,11 +33,42 @@ Proximity sensor macro.
 /*******************************************************/
 
 
-// Bit-wise operations here - these can be OR'd together to
-// create the specific shader we want.
-//
-// DO NOT MESS UP THE BITS! (look at these in binary for 
-// proper or-ing of the values)
+/*
+
+ Bit-wise operations here - these can be OR'd together to
+ create the specific shader we want.
+
+ DO NOT MESS UP THE BITS! (look at these in binary for 
+ proper or-ing of the values)
+
+Sept 25, 2016:
+shaderflags changed from int to struct { int, int, int }
+{
+ base, built from bit flags, and is also a fallback if userShader is desired but doesn't compile
+ effect (castle Effect)
+ user shader number (programmableShader)
+}
+- Could have done one long long int with 3 ranges, or int[3] instead; struct seems handy.
+- In general needed more breathing room, especially for new effects which are bit mask or-able together, unlike
+  user shaders that do only one user shader at a time
+- now to test if its a usershader, just test if .usershaders != 0 (they start at 1)
+- need to memset(,0,) the struct if creating fresh
+- if need more bits in the future, add another member or change one to longlong
+	 and look for places where we see if its == ie in opengl_utils.c
+	 if (me->whichOne.base == rq_cap0.base && me->whichOne.effects == rq_cap0.effects && me->whichOne.usershaders == rq_cap0.usershaders) {
+
+*/
+
+typedef struct {
+int base;
+int effects;
+int usershaders; 
+} shaderflagsstruct;
+
+shaderflagsstruct getShaderFlags();
+
+
+
 
 #define NO_APPEARANCE_SHADER 0x0001
 #define MATERIAL_APPEARANCE_SHADER 0x0002
@@ -74,14 +105,9 @@ Proximity sensor macro.
 #define TEX3D_SHADER           0X400000
 #define TEX3D_LAYER_SHADER     0x800000
 #define CLIPPLANE_SHADER       0x1000000
-//reserved for volume, particle, hanim 3 bits 2,4,8
+//can go up to 2^32 - for future components like volume, particle, hanim 
 
-/* Component_Shader - user-specified shaders. Currently limited in number */
-/* note we start at 0x1000 and count up by 1 for (currently) 255 shaders per program */
-//Sept 20, 2016 I've only got 4 bits reserved in whichOne for user shaders -a single user shader will still work
-// but may need to split/double/clone/expand whichOne to give more room for castle Effects and more user shaders
-#define USER_DEFINED_SHADER_START	0x10000000 //0x001000   4 0100   
-#define USER_DEFINED_SHADER_MASK    0xF0000000 //0x0FF000   C 1100
+
 
 
 /*******************************************************/

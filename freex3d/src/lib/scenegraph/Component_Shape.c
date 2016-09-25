@@ -142,7 +142,7 @@ static int hasUserDefinedShader(struct X3D_Node *node) {
 
 	// ok - did we find an integer between 0 and some MAX_SUPPORTED_USER_SHADERS value?
 	if (rv == NO_SHADER) rv = 0; 
-	else rv = USER_DEFINED_SHADER_START * (rv+1);
+	//else rv = USER_DEFINED_SHADER_START * (rv+1);
 
 	//ConsoleMessage ("rv is going to be %x",rv);
 
@@ -732,7 +732,8 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 }
 
 
-unsigned int getShaderFlags();
+//unsigned int getShaderFlags();
+shaderflagsstruct getShaderFlags();
 struct X3D_Node *getFogParams();
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpNG;  
@@ -778,7 +779,8 @@ void child_Shape (struct X3D_Shape *node) {
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 		int colorSource, alphaSource, isLit, isUserShader; 
 		s_shader_capabilities_t *scap;
-		unsigned int shader_requirements;
+		//unsigned int shader_requirements;
+		shaderflagsstruct shader_requirements;
 
 		//prep_Appearance
 		RENDER_MATERIAL_SUBNODES(node->appearance); //child_Appearance
@@ -805,8 +807,10 @@ void child_Shape (struct X3D_Shape *node) {
 
 		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpNG);
 
-		shader_requirements = node->_shaderTableEntry;  
-		isUserShader = shader_requirements >= USER_DEFINED_SHADER_START ? TRUE : FALSE;
+		shader_requirements.base = node->_shaderflags_base; //_shaderTableEntry;  
+		shader_requirements.effects = node->_shaderflags_effects;
+		shader_requirements.usershaders = node->_shaderflags_usershaders;
+		isUserShader = shader_requirements.usershaders ? TRUE : FALSE; // >= USER_DEFINED_SHADER_START ? TRUE : FALSE;
 		//if(!p->userShaderNode || !(shader_requirements >= USER_DEFINED_SHADER_START)){
 		if(!isUserShader){
 			//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
@@ -841,32 +845,33 @@ void child_Shape (struct X3D_Shape *node) {
 			channels = getImageChannelCountFromTTI(node->appearance);
 
 			if(modulation == 0)
-				shader_requirements |= MAT_FIRST; //strict use of table 17-3, CPV can replace mat.diffuse, so texture > cpv > diffuse > 111
+				shader_requirements.base |= MAT_FIRST; //strict use of table 17-3, CPV can replace mat.diffuse, so texture > cpv > diffuse > 111
 
-			if(shader_requirements & COLOUR_MATERIAL_SHADER){
+			if(shader_requirements.base & COLOUR_MATERIAL_SHADER){
 				//printf("has a color node\n");
 				//lets turn it off, and see if we get texture
 				//shader_requirements &= ~(COLOUR_MATERIAL_SHADER);
 				if(modulation == 0) 
-					shader_requirements |= CPV_REPLACE_PRIOR;
+					shader_requirements.base |= CPV_REPLACE_PRIOR;
 			}
 
 			if(channels && (channels == 3 || channels == 4) && modulation < 2)
-				shader_requirements |= TEXTURE_REPLACE_PRIOR;
+				shader_requirements.base |= TEXTURE_REPLACE_PRIOR;
 			//if the image has a real alpha, we may want to turn off alpha modulation, 
 			// see comment about modulate in Compositing_Shaders.c
 			if(channels && (channels == 2 || channels == 4) && modulation == 0)
-				shader_requirements |= TEXALPHA_REPLACE_PRIOR;
+				shader_requirements.base |= TEXALPHA_REPLACE_PRIOR;
 
 			//getShaderFlags() are from non-leaf-node shader influencers: 
 			//   fog, local_lights, clipplane, Effect/EffectPart (for CastlePlugs) ...
 			// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
 			// - so they are ORd here before selecting a shader permutation
-			shader_requirements |= getShaderFlags(); 
+			shader_requirements.base |= getShaderFlags().base; 
+			shader_requirements.effects |= getShaderFlags().effects;
 			//if(shader_requirements & FOG_APPEARANCE_SHADER)
 			//	printf("fog in child_shape\n");
 		}
-		scap = getMyShader(shader_requirements);
+		scap = getMyShaders(shader_requirements);
 		enableGlobalShader(scap);
 		//enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
 
@@ -1012,14 +1017,19 @@ void compile_Shape (struct X3D_Shape *node) {
 	whichAppearanceShader = getAppearanceShader(tmpN);
 
 	/* in case we had no appearance, etc, we do the bland NO_APPEARANCE_SHADER */
-	node->_shaderTableEntry= (whichShapeColorShader | whichShapeFogShader | whichAppearanceShader | 
-				hasTextureCoordinateGenerator | whichUnlitGeometry | userDefinedShader);
+	//node->_shaderTableEntry= 
+	node->_shaderflags_base = (whichShapeColorShader | whichShapeFogShader | whichAppearanceShader | 
+				hasTextureCoordinateGenerator | whichUnlitGeometry ); //| userDefinedShader);
+	node->_shaderflags_usershaders = userDefinedShader;
+	node->_shaderflags_effects = 0;
 
 
+	//if (node->_shaderTableEntry == NOTHING) 
+	//	node->_shaderTableEntry = NO_APPEARANCE_SHADER;
 
+	if (node->_shaderflags_base == NOTHING) 
+		node->_shaderflags_base = NO_APPEARANCE_SHADER;
 
-	if (node->_shaderTableEntry == NOTHING) 
-		node->_shaderTableEntry = NO_APPEARANCE_SHADER;
 
 	//printf ("compile_Shape, node->_shaderTableEntry is %x\n",node->_shaderTableEntry);
 

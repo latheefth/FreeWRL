@@ -247,9 +247,11 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_screendata",
 	"_selected",
 	"_shaderLoadThread",
-	"_shaderTableEntry",
 	"_shaderUserDefinedFields",
 	"_shaderUserNumber",
+	"_shaderflags_base",
+	"_shaderflags_effects",
+	"_shaderflags_usershaders",
 	"_sideVBO",
 	"_sizeUnits",
 	"_sortedChildren",
@@ -6312,7 +6314,9 @@ const int OFFSETS_Shape[] = {
 	(int) FIELDNAMES___Samples, (int) offsetof (struct X3D_Shape, __Samples),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___occludeCheckCount, (int) offsetof (struct X3D_Shape, __occludeCheckCount),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___visible, (int) offsetof (struct X3D_Shape, __visible),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__shaderTableEntry, (int) offsetof (struct X3D_Shape, _shaderTableEntry),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderflags_base, (int) offsetof (struct X3D_Shape, _shaderflags_base),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderflags_effects, (int) offsetof (struct X3D_Shape, _shaderflags_effects),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderflags_usershaders, (int) offsetof (struct X3D_Shape, _shaderflags_usershaders),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_appearance, (int) offsetof (struct X3D_Shape, appearance),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_Shape, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_Shape, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11599,7 +11603,9 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__Samples = -1;
 			tmp2->__occludeCheckCount = -1;
 			tmp2->__visible = 0;
-			tmp2->_shaderTableEntry = 0;
+			tmp2->_shaderflags_base = 0;
+			tmp2->_shaderflags_effects = 0;
+			tmp2->_shaderflags_usershaders = 0;
 			tmp2->appearance = NULL;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;

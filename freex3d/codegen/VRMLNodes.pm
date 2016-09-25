@@ -596,7 +596,9 @@ our %Nodes = (
 		__occludeCheckCount =>["SFInt32",-1,"initializeOnly", 0], # for Occlusion tests.
 		__Samples =>["SFInt32",-1,"initializeOnly", 0],		# Occlude samples from last pass
 
-		_shaderTableEntry =>["SFInt32",0,"initializeOnly",0], # shaders
+		_shaderflags_base =>["SFInt32",0,"initializeOnly",0], # shaders
+		_shaderflags_effects =>["SFInt32",0,"initializeOnly",0], # shaders
+		_shaderflags_usershaders =>["SFInt32",0,"initializeOnly",0], # shaders
 
 
 	],"X3DBoundedObject"),

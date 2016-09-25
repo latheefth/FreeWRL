@@ -168,7 +168,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->sensor_stack = newStack(struct currayhit);
 		p->ray_stack = newStack(struct point_XYZ3);
 		p->usehits_stack = newStack(usehit);
-		p->shaderflags_stack = newStack(unsigned int);
+		p->shaderflags_stack = newStack(shaderflagsstruct); //newStack(unsigned int);
 		p->fog_stack = newStack(struct X3D_Node*);
 		p->localLight_stack = newStack(int);
 		//t->t_r123 = (void *)&p->t_r123;
@@ -240,7 +240,8 @@ void RenderFuncs_clear(struct tRenderFuncs *t){
 	deleteVector(struct currayhit,p->sensor_stack);
 	deleteVector(struct point_XYZ3,p->ray_stack);
 	deleteVector(usehit,p->usehits_stack);
-	deleteVector(unsigned int,p->shaderflags_stack);
+	//deleteVector(unsigned int,p->shaderflags_stack);
+	deleteVector(shaderflagsstruct,p->shaderflags_stack);
 	deleteVector(struct X3D_Node*,p->fog_stack);
 	deleteVector(int,p->localLight_stack);
 }
@@ -1314,15 +1315,18 @@ void profile_print_all(){
 }
 
 
-unsigned int getShaderFlags(){
+//unsigned int getShaderFlags(){
+shaderflagsstruct getShaderFlags(){
 	//return top-of-stack global shaderflags
-	unsigned int retval;
+	//unsigned int retval;
+	shaderflagsstruct retval;
 	ttglobal tg = gglobal();
 	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
-	retval = stack_top(unsigned int,p->shaderflags_stack);
+	//retval = stack_top(unsigned int,p->shaderflags_stack);
+	retval = stack_top(shaderflagsstruct,p->shaderflags_stack);
 	return retval;
 }
-void pushShaderFlags(unsigned int flags){
+void pushShaderFlags(shaderflagsstruct flags){ //unsigned int flags){
 	//at root level, before render_hier, you would push 0000000
 	//and pop after render_hier
 	//for prep_LocalFog you would call this to push (and pop in fin_LocalFog)
@@ -1331,14 +1335,16 @@ void pushShaderFlags(unsigned int flags){
 	//and will be |= with shape->_shaderTableEntry flags in child_shape
 	ttglobal tg = gglobal();
 	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
-	stack_push(unsigned int,p->shaderflags_stack,flags);
+	//stack_push(unsigned int,p->shaderflags_stack,flags);
+	stack_push(shaderflagsstruct,p->shaderflags_stack,flags);
 
 }
 void popShaderFlags(){
 	//
 	ttglobal tg = gglobal();
 	ppRenderFuncs p = (ppRenderFuncs)tg->RenderFuncs.prv;
-	stack_pop(unsigned int,p->shaderflags_stack);
+	//stack_pop(unsigned int,p->shaderflags_stack);
+	stack_pop(shaderflagsstruct,p->shaderflags_stack);
 
 }
 struct X3D_Node *getFogParams(){
@@ -1762,10 +1768,11 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 #include "../x3d_parser/Bindable.h"
 void push_globalRenderFlags(){
 	//call in render_hier for geom or blend passes
-	unsigned int shaderflags;
+	//unsigned int shaderflags;
+	shaderflagsstruct shaderflags;
 	ttglobal tg = gglobal();
 	shaderflags = getShaderFlags(); //take a copy (which should be 0000000 at root level)
-
+	memset(&shaderflags,0,sizeof(shaderflagsstruct));
 	//modify copy
 	//A. if there's a bound (non local) fog, copy its state to fog_state
 	if(vectorSize(getActiveBindableStacks(tg)->fog) > 0){
@@ -1774,23 +1781,23 @@ void push_globalRenderFlags(){
 		if(fog->visibilityRange > 0.0f){
 			//enabled
 			//set fog bit in renderflags
-			shaderflags |= FOG_APPEARANCE_SHADER;
+			shaderflags.base |= FOG_APPEARANCE_SHADER;
 			//push fogparams
 			pushFogParams((struct X3D_Node*)fog);
 		}
 	}
 	//B. Anaglyph?
 	if(Viewer()->anaglyph || Viewer()->anaglyphB)
-		shaderflags |= WANT_ANAGLYPH;
+		shaderflags.base |= WANT_ANAGLYPH;
 
 	//C. ShadingStyle ie 0 flat, 1 gouraud, 2 phong, 3 wire
 	switch(fwl_getShadingStyle()){
-		case 0: shaderflags |= SHADINGSTYLE_FLAT; break;
-		case 1: shaderflags |= SHADINGSTYLE_GOURAUD; break;
-		case 2: shaderflags |= SHADINGSTYLE_PHONG; break;
-		case 3: shaderflags |= SHADINGSTYLE_WIRE; break;
+		case 0: shaderflags.base |= SHADINGSTYLE_FLAT; break;
+		case 1: shaderflags.base |= SHADINGSTYLE_GOURAUD; break;
+		case 2: shaderflags.base |= SHADINGSTYLE_PHONG; break;
+		case 3: shaderflags.base |= SHADINGSTYLE_WIRE; break;
 		default:
-			shaderflags |= SHADINGSTYLE_GOURAUD; break;
+			shaderflags.base |= SHADINGSTYLE_GOURAUD; break;
 	}
 
 	pushShaderFlags(shaderflags); //push nodified copy
@@ -1816,11 +1823,13 @@ void render_hier(struct X3D_Node *g, int rwhat) {
 	/// not needed now - see below GLDOUBLE modelMatrix[16];
 
 	ppRenderFuncs p;
+	shaderflagsstruct shaderflags;
 	ttglobal tg = gglobal();
 	ttrenderstate rs;
 	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 	rs = renderstate();
-	pushShaderFlags(0);
+	memset(&shaderflags,0,sizeof(shaderflagsstruct));
+	pushShaderFlags(shaderflags);
 
 	rs->render_vp = rwhat & VF_Viewpoint;
 	rs->render_geom =  rwhat & VF_Geom;

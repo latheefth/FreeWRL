@@ -413,7 +413,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 
 		/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 		if (node->__simpleDisk) {
-			if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+			if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 				//wireframe triangles
 				sendElementsToGPU(GL_LINES,((node->__numPoints-1)*4 -1 ),node->__wireindices); //should be segs x 2 lines/seg = (pts-1) x 2 lines / pt
 			}else{
@@ -421,7 +421,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 			}
 		}
 		else{
-			if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+			if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 				//wireframe triangles
 				sendElementsToGPU(GL_LINES,(node->__numPoints*4 -4 -1),node->__wireindices); //(nseg -1)*4 = (npts-2)*2 = npts*2 -4
 			}else{
@@ -520,7 +520,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 
 
-		if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+		if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 			//wireframe triangles
 			sendElementsToGPU(GL_LINES,(node->vertices.n*2),node->__wireindices); //(nseg -1)*4 = (npts-2)*2 = npts*2 -4
 		}else{
@@ -593,7 +593,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
-	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+	if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 		//wireframe triangles
 		static ushort wireindices [] = { 0, 1, 1, 2, 2, 0, 3, 4, 4, 5, 5, 3 };
 		sendElementsToGPU(GL_LINES,6*2,wireindices); //(nseg -1)*4 = (npts-2)*2 = npts*2 -4

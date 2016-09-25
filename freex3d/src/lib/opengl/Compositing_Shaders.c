@@ -1516,7 +1516,8 @@ static int isMobile = FALSE;
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
-	const GLchar **fragmentSource, unsigned int whichOne, int usePhongShading) 
+	const GLchar **fragmentSource, shaderflagsstruct whichOne, //unsigned int whichOne, 
+	int usePhongShading) 
 {
 	//for building the Builtin (similar to fixed-function pipeline, except from shader parts)
 	//in OpenGL_Utils.c L.2553 set usingCastlePlugs = 1 to get in here.
@@ -1526,7 +1527,7 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	char *CompleteCode[3];
 	char *vs, *fs;
 	retval = FALSE;
-	if(whichOne & USER_DEFINED_SHADER_MASK) 
+	if(whichOne.usershaders ) //& USER_DEFINED_SHADER_MASK) 
 		return retval; //not supported yet as of Aug 9, 2016
 	retval = TRUE;
 
@@ -1558,13 +1559,13 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//Lit
 	//Fog
 	//analglyph
-	if(DESIRE(whichOne,WANT_ANAGLYPH))
+	if(DESIRE(whichOne.base,WANT_ANAGLYPH))
 		Plug(SHADERPART_FRAGMENT,plug_fragment_end_anaglyph,CompleteCode,&unique_int);  //works, converts frag to gray
 	//color per vertex
-	if DESIRE(whichOne,COLOUR_MATERIAL_SHADER) {
+	if DESIRE(whichOne.base,COLOUR_MATERIAL_SHADER) {
 		AddDefine(SHADERPART_VERTEX,"CPV",CompleteCode);
 		AddDefine(SHADERPART_FRAGMENT,"CPV",CompleteCode);
-		if(DESIRE(whichOne,CPV_REPLACE_PRIOR)){
+		if(DESIRE(whichOne.base,CPV_REPLACE_PRIOR)){
 			AddDefine(SHADERPART_VERTEX,"CPVREP",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"CPVREP",CompleteCode);
 		}
@@ -1572,19 +1573,19 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	//material appearance
 	//2 material appearance
 	//phong vs gourard
-	if(DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) || DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER)){
+	if(DESIRE(whichOne.base,MATERIAL_APPEARANCE_SHADER) || DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER)){
 		//if(isLit)
-		if(DESIRE(whichOne,MAT_FIRST)){
+		if(DESIRE(whichOne.base,MAT_FIRST)){
 			//strict table 17-3 with no other modulation means Texture > CPV > mat.diffuse > (111)
 			AddDefine(SHADERPART_VERTEX,"MATFIR",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"MATFIR",CompleteCode);
 		}
-		if(DESIRE(whichOne,SHADINGSTYLE_PHONG)){
+		if(DESIRE(whichOne.base,SHADINGSTYLE_PHONG)){
 			//when we say phong in freewrl, we really mean per-fragment lighting
 			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"LITE",CompleteCode);  //add some lights
 			Plug(SHADERPART_FRAGMENT,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
-			if(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
+			if(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER))
 				AddDefine(SHADERPART_FRAGMENT,"TWO",CompleteCode);
 			//but even if we mean per-fragment, for another dot product per fragment we can upgrade
 			//from blinn-phong to phong and get the real phong reflection model 
@@ -1595,12 +1596,12 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
 			AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
 			Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
-			if(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER))
+			if(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER))
 				AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
 		}
 	}
 	//lines and points 
-	if( DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) ) {
+	if( DESIRE(whichOne.base,HAVE_LINEPOINTS_APPEARANCE) ) {
 		AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
 		AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
 		AddDefine(SHADERPART_VERTEX,"LINE",CompleteCode);
@@ -1624,15 +1625,15 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	*/
 	#define NOT_MODULATE_IMG_AND_MAT_ALPHAS 1  
 
-	if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
-		DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ||
-		DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ||
-		DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
+	if (DESIRE(whichOne.base,ONE_TEX_APPEARANCE_SHADER) ||
+		DESIRE(whichOne.base,HAVE_TEXTURECOORDINATEGENERATOR) ||
+		DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE) ||
+		DESIRE(whichOne.base,MULTI_TEX_APPEARANCE_SHADER)) {
 		AddDefine(SHADERPART_VERTEX,"TEX",CompleteCode);
 		AddDefine(SHADERPART_FRAGMENT,"TEX",CompleteCode);
-		if(DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) )
+		if(DESIRE(whichOne.base,HAVE_TEXTURECOORDINATEGENERATOR) )
 			AddDefine(SHADERPART_VERTEX,"TGEN",CompleteCode);
-		if(DESIRE(whichOne,TEX3D_SHADER)){
+		if(DESIRE(whichOne.base,TEX3D_SHADER)){
 			//in theory, if the texcoordgen "COORD" and TextureTransform3D are set in scenefile 
 			// and working properly in freewrl, then don't need TEX3D for that node in VERTEX shader
 			// which is using tex3dbbox (shape->_extent reworked) to get vertex coords in 0-1 range
@@ -1642,7 +1643,7 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 			AddDefine(SHADERPART_VERTEX,"TEX3D",CompleteCode); 
 			AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
 			//fragment part different:
-			if(DESIRE(whichOne,TEX3D_LAYER_SHADER)){
+			if(DESIRE(whichOne.base,TEX3D_LAYER_SHADER)){
 				//up to 6 textures, with lerp between floor,ceil textures
 				AddDefine(SHADERPART_FRAGMENT,"TEX3DLAY",CompleteCode);
 				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3Dlayer_apply,CompleteCode,&unique_int);
@@ -1652,16 +1653,16 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
 			}
 		}else{
-			if(DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)){
+			if(DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE)){
 				AddDefine(SHADERPART_VERTEX,"CUB",CompleteCode);
 				AddDefine(SHADERPART_FRAGMENT,"CUB",CompleteCode);
-			} else if(DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)){
+			} else if(DESIRE(whichOne.base,MULTI_TEX_APPEARANCE_SHADER)){
 				AddDefine(SHADERPART_VERTEX,"MTEX",CompleteCode);
 				AddDefine(SHADERPART_FRAGMENT,"MTEX",CompleteCode);
 			}
-			if(DESIRE(whichOne,TEXTURE_REPLACE_PRIOR) )
+			if(DESIRE(whichOne.base,TEXTURE_REPLACE_PRIOR) )
 				AddDefine(SHADERPART_FRAGMENT,"TEXREP",CompleteCode);
-			if(DESIRE(whichOne,TEXALPHA_REPLACE_PRIOR))
+			if(DESIRE(whichOne.base,TEXALPHA_REPLACE_PRIOR))
 				AddDefine(SHADERPART_VERTEX,"TAREP",CompleteCode);
 
 			Plug(SHADERPART_FRAGMENT,plug_fragment_texture_apply,CompleteCode,&unique_int);
@@ -1674,21 +1675,21 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	}
 
 	//fill properties / hatching
-	if(DESIRE(whichOne,FILL_PROPERTIES_SHADER)) {
+	if(DESIRE(whichOne.base,FILL_PROPERTIES_SHADER)) {
 		AddDefine(SHADERPART_VERTEX,"FILL",CompleteCode);		
 		AddDefine(SHADERPART_FRAGMENT,"FILL",CompleteCode);		
 	}
 	//FOG
-	if(DESIRE(whichOne,FOG_APPEARANCE_SHADER)){
+	if(DESIRE(whichOne.base,FOG_APPEARANCE_SHADER)){
 		AddDefine(SHADERPART_VERTEX,"FOG",CompleteCode);		
 		AddDefine(SHADERPART_FRAGMENT,"FOG",CompleteCode);	
-		if(DESIRE(whichOne,HAVE_FOG_COORDS))
+		if(DESIRE(whichOne.base,HAVE_FOG_COORDS))
 			AddDefine(SHADERPART_VERTEX,"FOGCOORD",CompleteCode);
 		Plug(SHADERPART_FRAGMENT,plug_fog_apply,CompleteCode,&unique_int);	
 	}
 	//CLIPPLANE
 	//FOG
-	if(DESIRE(whichOne,CLIPPLANE_SHADER)){
+	if(DESIRE(whichOne.base,CLIPPLANE_SHADER)){
 		AddDefine(SHADERPART_VERTEX,"CLIP",CompleteCode);	
 		Plug(SHADERPART_VERTEX,vertex_plug_clip_apply,CompleteCode,&unique_int);	
 		AddDefine(SHADERPART_FRAGMENT,"CLIP",CompleteCode);	

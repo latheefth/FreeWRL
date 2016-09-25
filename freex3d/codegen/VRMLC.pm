@@ -1575,6 +1575,7 @@ struct Uni_String {
 	int touched;
 };
 
+
 /* Internal representation of IndexedFaceSet, Text, Extrusion & ElevationGrid:
  * set of triangles.
  * done so that we get rid of concave polygons etc.
