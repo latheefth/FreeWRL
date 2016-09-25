@@ -104,9 +104,10 @@ FIELDTYPE_MFVec4d
 
 
 
-
+#define MAX_EFFECTS 32
 typedef struct pComponent_ProgrammableShaders{
 	Stack *effect_stack;
+	int effectCount;
 
 }* ppComponent_ProgrammableShaders;
 void *Component_ProgrammableShaders_constructor(){
@@ -121,6 +122,7 @@ void Component_ProgrammableShaders_init(struct tComponent_ProgrammableShaders *t
 	{
 		ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)t->prv;
 		p->effect_stack = newStack(struct X3D_Node*);
+		p->effectCount = 0;
 	}
 }
 void Component_ProgrammableShaders_clear(struct tComponent_ProgrammableShaders *t){
@@ -1375,6 +1377,20 @@ void render_ProgramShader (struct X3D_ProgramShader *node) {
 // thanks to Michalis Kamburelis for permission to implement in freewrl/libfreewrl
 // Effect node is like ComposedShader, 
 // EffectPart node is like ShaderPart
+
+int getNextFreeEffectSlot() {
+	int rv;
+	ttglobal tg = gglobal();
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
+
+	p->effectCount++;
+	if (p->effectCount == MAX_EFFECTS) return -1;
+
+	rv = p->effectCount;
+
+	return rv;
+}
+
 void compile_Effect (struct X3D_Effect *node) {
 	printf("compile_effect not implemented\n");
 	//get a unique number for this effect - a bit mask
@@ -1389,7 +1405,7 @@ void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 	shaderflagsstruct shaderflags;
 	struct X3D_Effect *node; 
 	ttglobal tg = gglobal();
-	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->RenderFuncs.prv;
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
 	node = (struct X3D_Effect*)sibAffector;
 	//COMPILE_IF_REQUIRED
 	//unlike user shaders, we don't compile Effects - they are pasted into the ubershader which is compiled
@@ -1398,7 +1414,7 @@ void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 		//push effect onto effect stack, with unique effect bit mask
 		effect_stack_count++;
 		printf("sib_prep_effect not implemented %d\n",effect_stack_count);
-		if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeUserDefinedShaderSlot();
+		if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeEffectSlot();
 
 		shaderflags = getShaderFlags();
 		shaderflags.effects |= 1L << node->_shaderUserNumber;
@@ -1410,7 +1426,7 @@ void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 void sib_fin_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 	struct X3D_Effect *node; 
 	ttglobal tg = gglobal();
-	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->RenderFuncs.prv;
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
 	node = (struct X3D_Effect*)sibAffector;
 	//pop effect and bit mask off effect stack
 	if(node->isValid){
