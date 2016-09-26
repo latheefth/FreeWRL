@@ -45,10 +45,10 @@ Bindable nodes - Background, TextureBackground, Fog, NavigationInfo, Viewpoint, 
 #include "Bindable.h"
 #include "../scenegraph/quaternion.h"
 #include "../scenegraph/Viewer.h"
+#include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/Component_Geospatial.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../scenegraph/Component_ProgrammableShaders.h"
-#include "../scenegraph/Component_Shape.h"
 #include "../ui/common.h"
 #include "../scenegraph/LinearAlgebra.h"
 

@@ -228,7 +228,7 @@ void render_Box (struct X3D_Box *node) {
 
 	/* do the array drawing; sides are simple 0-1-2-3, 4-5-6-7, etc quads */
 	//if(fwl_getShadingStyle() == 3){
-	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+	if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 		//wireframe triangles
 		sendElementsToGPU(GL_LINES,72,boxwireindices);
 	}else{
@@ -511,7 +511,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 
 		FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei)sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));
 		   //The starting point of the VBO, for the vertices
-		if(DESIRE(getShaderFlags(),SHADINGSTYLE_FLAT)){
+		if(DESIRE(getShaderFlags().base,SHADINGSTYLE_FLAT)){
 			//The starting point of normals, (3+3+2)*4  = 32 +  bytes away
 			FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(32));   
 		}else{
@@ -527,7 +527,7 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		textureDraw_start(&mtf);
 		/* FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, ConeIndxVBO); */
 
-		if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+		if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 			//wireframe triangles
 			sendElementsToGPU(GL_LINES,node->__cylinderTriangles *2,node->__wireindices);
 		}else{
@@ -731,7 +731,7 @@ void render_Cone (struct X3D_Cone *node) {
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, node->__coneVBO);
 
 	FW_GL_VERTEX_POINTER(3, GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(0));   //The starting point of the VBO, for the vertices
-	if(DESIRE(getShaderFlags(),SHADINGSTYLE_FLAT)){
+	if(DESIRE(getShaderFlags().base,SHADINGSTYLE_FLAT)){
 		//The starting point of normals, (3+3+2)*4  = 32 +  bytes away
 		FW_GL_NORMAL_POINTER(GL_FLOAT, (GLsizei) sizeof(struct MyVertex), (GLfloat *)BUFFER_OFFSET(32));   
 	}else{
@@ -747,7 +747,7 @@ void render_Cone (struct X3D_Cone *node) {
 	mtf.TC_pointer = BUFFER_OFFSET(24);
 	textureDraw_start(&mtf);
 PRINT_GL_ERROR_IF_ANY("END1 render_geom");
-	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+	if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 		//wireframe triangles
 		sendElementsToGPU(GL_LINES,node->__coneTriangles *2,node->__wireindices);
 	}else{
@@ -974,7 +974,7 @@ void render_Sphere (struct X3D_Sphere *node) {
 	mtf.TC_pointer = BUFFER_OFFSET(24);
 	textureDraw_start(&mtf);
 
-	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+	if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 		//wireframe triangles
 		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, node->__wireindicesVBO);
 		sendElementsToGPU(GL_LINES,TRISINSPHERE *3, (ushort *)BUFFER_OFFSET(0)); //node->__wireindices);

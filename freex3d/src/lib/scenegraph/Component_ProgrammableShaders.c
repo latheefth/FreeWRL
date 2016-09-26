@@ -102,6 +102,39 @@ FIELDTYPE_MFVec4d
 #include "Component_ProgrammableShaders.h"
 #include "../scenegraph/RenderFuncs.h"
 
+
+
+#define MAX_EFFECTS 32
+typedef struct pComponent_ProgrammableShaders{
+	Stack *effect_stack;
+	int effectCount;
+
+}* ppComponent_ProgrammableShaders;
+void *Component_ProgrammableShaders_constructor(){
+	void *v = MALLOCV(sizeof(struct pComponent_ProgrammableShaders));
+	memset(v,0,sizeof(struct pComponent_ProgrammableShaders));
+	return v;
+}
+void Component_ProgrammableShaders_init(struct tComponent_ProgrammableShaders *t){
+	//public
+	//private
+	t->prv = Component_ProgrammableShaders_constructor();
+	{
+		ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)t->prv;
+		p->effect_stack = newStack(struct X3D_Node*);
+		p->effectCount = 0;
+	}
+}
+void Component_ProgrammableShaders_clear(struct tComponent_ProgrammableShaders *t){
+	//public
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)t->prv;
+
+	deleteVector(struct X3D_Node*,p->effect_stack);
+}
+
+
+
+
 /* we do support older versions of shaders; but not all info logs are printed if we
    have OpenGL prior to 2.0 */
 
@@ -426,8 +459,11 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 	int i,j;
 	GLfloat* sourceData;
 	GLuint currentShader = 0;	
+	shaderflagsstruct shaderflags;
 	struct CRStruct *CRoutes = getCRoutes();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+	memset(&shaderflags,0,sizeof(shaderflagsstruct));
 
 	// ProgramShaders have fields for each ShaderProgram field, and we can have a couple of fields
 	// here. Thus myObj* has more than one pointer.
@@ -446,7 +482,10 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 				struct X3D_Shape *sh = vector_get(struct X3D_Shape *, ap->_parentVector, j);
 				//ConsoleMessage ("and parent of appearance is %s",stringNodeType(sh->_nodeType));
 				if (sh->_nodeType == NODE_Shape) {
-					currentShader = X3D_SHAPE(sh)->_shaderTableEntry;
+					//currentShader = X3D_SHAPE(sh)->_shaderflags_usershaders; //_shaderTableEntry;
+					shaderflags.base = sh->_shaderflags_base;
+					shaderflags.effects = sh->_shaderflags_effects;
+					shaderflags.usershaders = sh->_shaderflags_usershaders;
 				}
 			}
 		}
@@ -458,7 +497,8 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 		}
 	}
 
-	if (currentShader == 0) {
+	//if (currentShader == 0) {
+	if(!shaderflags.base && !shaderflags.usershaders){
 		ConsoleMessage("."); //loading
 		//ConsoleMessage ("%s","error finding associated Shape node for Shade node");
 		return;
@@ -466,7 +506,8 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 
 	// turning shader on...
 	//ConsoleMessage ("calling getMyShader here wrwe");
-	enableGlobalShader(getMyShader(currentShader));
+	//shaderflags.usershaders = currentShader;
+	enableGlobalShader(getMyShaders(shaderflags)); //currentShader));
     
 	myObj[0] = NULL;
 	myObj[1] = NULL;
@@ -1336,6 +1377,20 @@ void render_ProgramShader (struct X3D_ProgramShader *node) {
 // thanks to Michalis Kamburelis for permission to implement in freewrl/libfreewrl
 // Effect node is like ComposedShader, 
 // EffectPart node is like ShaderPart
+
+int getNextFreeEffectSlot() {
+	int rv;
+	ttglobal tg = gglobal();
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
+
+	p->effectCount++;
+	if (p->effectCount == MAX_EFFECTS) return -1;
+
+	rv = p->effectCount;
+	//printf("getNextFreeEffectSlot %d\n",rv);
+	return rv;
+}
+
 void compile_Effect (struct X3D_Effect *node) {
 	printf("compile_effect not implemented\n");
 	//get a unique number for this effect - a bit mask
@@ -1343,12 +1398,47 @@ void compile_Effect (struct X3D_Effect *node) {
 	//prepare uniforms for events
 	//but don't compile (until needed later)
 }
-void render_Effect (struct X3D_Effect *node) {
+static int effect_stack_count = 0;
+shaderflagsstruct getShaderFlags();
+void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
+	//unsigned int shaderflags;
+	shaderflagsstruct shaderflags;
+	struct X3D_Effect *node; 
+	ttglobal tg = gglobal();
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
+	node = (struct X3D_Effect*)sibAffector;
 	//COMPILE_IF_REQUIRED
-	//if (node->isValid) setUserShaderNode(X3D_NODE(node));
-	//push effect onto effect stack, with unique effect bit mask
-	printf("render_effect not implemented\n");
+	//unlike user shaders, we don't compile Effects - they are pasted into the ubershader which is compiled
+	// from Shape, so we put them on a stack/queue/list here so ubershader can paste them all
+	if(node->isValid){
+		//push effect onto effect stack, with unique effect bit mask
+		effect_stack_count++;
+		//printf("sib_prep_effect not implemented %d\n",effect_stack_count);
+		if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeEffectSlot();
+
+		shaderflags = getShaderFlags();
+		shaderflags.effects |= 1L << node->_shaderUserNumber;
+		pushShaderFlags(shaderflags);
+		stack_push(struct X3D_Node*,p->effect_stack,sibAffector);
+	}
+
 }
-void fin_Effect (struct X3D_Effect *node) {
+void sib_fin_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
+	struct X3D_Effect *node; 
+	ttglobal tg = gglobal();
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
+	node = (struct X3D_Effect*)sibAffector;
 	//pop effect and bit mask off effect stack
+	if(node->isValid){
+		effect_stack_count--;
+		//printf("sib_fin_effect not implemented %d\n",effect_stack_count);
+		stack_pop(struct X3D_Node*,p->effect_stack);
+		popShaderFlags();
+	}
+}
+
+Stack *getEffectStack(){
+	ttglobal tg = gglobal();
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
+	return p->effect_stack;
 }

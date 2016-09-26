@@ -18,7 +18,7 @@ extern "C"
 //#endif
 #include <config.h>
 #include "display.h"
-#include "opengl/OpenGL_Utils.h"
+//#include "opengl/OpenGL_Utils.h"
 #include "opengl/textures.h"
 #ifdef DEBUG_MALLOC
 void *freewrlMalloc(int line, char *file, size_t sz, int zeroData);

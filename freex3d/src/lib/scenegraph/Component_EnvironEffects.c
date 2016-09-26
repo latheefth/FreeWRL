@@ -182,8 +182,10 @@ FOG - state as of July 2016:
 #include "../scenegraph/LinearAlgebra.h"
 #define FOGTYPE_LINEAR 1
 #define FOGTYPE_EXPONENTIAL 2
-unsigned int getShaderFlags();
-void pushShaderFlags(unsigned int flags);
+//unsigned int getShaderFlags();
+shaderflagsstruct getShaderFlags();
+//void pushShaderFlags(unsigned int flags);
+void pushShaderFlags(shaderflagsstruct flags);
 void popShaderFlags();
 struct X3D_Node *getFogParams();
 void pushFogParams(struct X3D_Node *fogparams);
@@ -241,13 +243,14 @@ void prep_LocalFog(struct X3D_Node *node){
 	//Q. how do we handle sibling effects in freewrl?
 	struct X3D_LocalFog *fog = (struct X3D_LocalFog*)node;
 	if(fog->enabled && fog->visibilityRange > 0.0f){
-		unsigned int shaderflags;
+		//unsigned int shaderflags;
+		shaderflagsstruct shaderflags;
 		//compute fogScale
 		render_Fog((struct X3D_Fog*)node);
 		//push fog parameters on fogParams stack
 		//copy and push shader requirements stack with fog bit set
 		shaderflags = getShaderFlags();
-		shaderflags |= FOG_APPEARANCE_SHADER;
+		shaderflags.base |= FOG_APPEARANCE_SHADER;
 		pushShaderFlags(shaderflags);
 		pushFogParams((struct X3D_Node*)fog);
 	}

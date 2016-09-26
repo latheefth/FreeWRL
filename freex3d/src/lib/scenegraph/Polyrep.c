@@ -833,7 +833,7 @@ void render_polyrep(void *node) {
 	if (pr->VBO_buffers[NORMAL_VBO]!=0 ) { 
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, pr->VBO_buffers[NORMAL_VBO]);
 		FW_GL_NORMAL_POINTER(GL_FLOAT,0,0);
-		if(DESIRE(getShaderFlags(),SHADINGSTYLE_FLAT) ) {
+		if(DESIRE(getShaderFlags().base,SHADINGSTYLE_FLAT) ) {
 			if(pr->last_normal_type != 1) 
 				glBufferData(GL_ARRAY_BUFFER,sizeof (GLfloat)*3*pr->ntri*3,pr->flat_normal,GL_STATIC_DRAW); /* OpenGL-ES */
 			pr->last_normal_type = 1;
@@ -877,7 +877,7 @@ void render_polyrep(void *node) {
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER,pr->VBO_buffers[INDEX_VBO]);
 	FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,0);
 
-	if(DESIRE(getShaderFlags(),SHADINGSTYLE_WIRE)){
+	if(DESIRE(getShaderFlags().base,SHADINGSTYLE_WIRE)){
 		//wireframe triangles
 		if(pr->last_index_type != 1)
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof (GLushort)*pr->ntri*3*2,pr->wire_indices,GL_STATIC_DRAW); /* OpenGL-ES */

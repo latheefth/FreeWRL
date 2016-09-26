@@ -86,7 +86,8 @@ static void fw_glLoadMatrixd(GLDOUBLE *val);
 
 
 struct shaderTableEntry {
-	unsigned int whichOne;
+	//unsigned int whichOne;
+	shaderflagsstruct whichOne;
 	s_shader_capabilities_t *myCapabilities;
 
 };
@@ -117,40 +118,6 @@ static void makeAndCompileShader(struct shaderTableEntry *);
 #define MATRIX_SIZE 16		/* 4 x 4 matrix */
 typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
 
-
-
-typedef struct pOpenGL_Utils{
-	// list of all X3D nodes in this system.
-	// scene graph is tree-structured. this is a linear list.
-	struct Vector *linearNodeTable;
-	// how many holes might we have in this table, due to killing nodes, etc?
-	int potentialHoleCount;
-
-	float cc_red, cc_green, cc_blue, cc_alpha;
-	pthread_mutex_t  memtablelock;// = PTHREAD_MUTEX_INITIALIZER;
-	MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
-	MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
-	MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
-
-	int modelviewTOS;// = 0;
-	int projectionviewTOS;// = 0;
-	int textureviewTOS;// = 0;
-	//int pickrayviewTOS;// = 0;
-
-	int whichMode;// = GL_MODELVIEW;
-	GLDOUBLE *currentMatrix;// = FW_ModelView[0];
-#ifdef GLEW_MX
-	GLEWContext glewC;
-#endif
-
-	struct Vector *myShaderTable; /* list of all active shaders requested by input */
-	int userDefinedShaderCount;	/* if the user actually has a Shader node */
-	char *userDefinedFragmentShader[MAX_USER_DEFINED_SHADERS];
-	char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
-
-	int shadingStyle; //0=flat, 1=gouraud, 2=phong 3=wireframe
-	int maxStackUsed;
-}* ppOpenGL_Utils;
 
 #ifdef DISABLER
 void fwl_glGenQueries(GLsizei n, GLuint* ids)
@@ -209,12 +176,45 @@ void fwl_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params)
 }
 #endif
 
+
+typedef struct pOpenGL_Utils{
+	// list of all X3D nodes in this system.
+	// scene graph is tree-structured. this is a linear list.
+	struct Vector *linearNodeTable;
+	// how many holes might we have in this table, due to killing nodes, etc?
+	int potentialHoleCount;
+
+	float cc_red, cc_green, cc_blue, cc_alpha;
+	pthread_mutex_t  memtablelock;// = PTHREAD_MUTEX_INITIALIZER;
+	MATRIX4 FW_ModelView[MAX_LARGE_MATRIX_STACK];
+	MATRIX4 FW_ProjectionView[MAX_SMALL_MATRIX_STACK];
+	MATRIX4 FW_TextureView[MAX_SMALL_MATRIX_STACK];
+
+	int modelviewTOS;// = 0;
+	int projectionviewTOS;// = 0;
+	int textureviewTOS;// = 0;
+	//int pickrayviewTOS;// = 0;
+
+	int whichMode;// = GL_MODELVIEW;
+	GLDOUBLE *currentMatrix;// = FW_ModelView[0];
+#ifdef GLEW_MX
+	GLEWContext glewC;
+#endif
+
+	struct Vector *myShaderTable; /* list of all active shaders requested by input */
+	int userDefinedShaderCount;	/* if the user actually has a Shader node */
+	char *userDefinedFragmentShader[MAX_USER_DEFINED_SHADERS];
+	char *userDefinedVertexShader[MAX_USER_DEFINED_SHADERS];
+
+	int shadingStyle; //0=flat, 1=gouraud, 2=phong 3=wireframe
+	int maxStackUsed;
+}* ppOpenGL_Utils;
+
 void *OpenGL_Utils_constructor(){
 	void *v = MALLOCV(sizeof(struct pOpenGL_Utils));
 	memset(v,0,sizeof(struct pOpenGL_Utils));
 	return v;
 }
-
 void OpenGL_Utils_init(struct tOpenGL_Utils *t)
 {
 	//public
@@ -347,10 +347,10 @@ int getNextFreeUserDefinedShaderSlot() {
 	ttglobal tg = gglobal();
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
+	p->userDefinedShaderCount++;
 	if (p->userDefinedShaderCount == MAX_USER_DEFINED_SHADERS) return -1;
 
 	rv = p->userDefinedShaderCount;
-	p->userDefinedShaderCount++;
 
 	return rv;
 }
@@ -1372,14 +1372,15 @@ static void shaderErrorLog(GLuint myShader, char *which) {
 
 
 /* find a shader that matches the capabilities requested. If no match, recreate it */
-s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
+s_shader_capabilities_t *getMyShaders(shaderflagsstruct rq_cap0) { //unsigned int rq_cap0) {
 
 	/* GL_ES_VERSION_2_0 has GL_SHADER_COMPILER */
 	#ifdef GL_SHADER_COMPILER
 	GLboolean b;
 	static bool haveDoneThis = false;
 	#endif
-	unsigned int rq_cap;
+	//unsigned int rq_cap;
+	shaderflagsstruct rq_cap;
 	int i;
 
 
@@ -1393,7 +1394,8 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
 
 	for (i=0; i<vectorSize(myShaderTable); i++) {
 		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
-		if (me->whichOne == rq_cap) {
+		if (me->whichOne.base == rq_cap0.base && me->whichOne.effects == rq_cap0.effects && me->whichOne.usershaders == rq_cap0.usershaders) {
+			//printf("getMyShaders chosen shader caps base %d effects %d user %d\n",me->whichOne.base,me->whichOne.effects,me->whichOne.usershaders);
 			return me->myCapabilities;
 		}
 	}
@@ -1488,8 +1490,12 @@ s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
 	return new->myCapabilities;
 }
 
-
-
+s_shader_capabilities_t *getMyShader(unsigned int rq_cap0) {
+	shaderflagsstruct rq_cap0s;
+	memset(&rq_cap0s,0,sizeof(shaderflagsstruct));
+	rq_cap0s.base = rq_cap0;
+	return getMyShaders(rq_cap0s);
+}
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
 
 /* VERTEX inputs */
@@ -2145,7 +2151,7 @@ const static GLchar *pointSizeAss="gl_PointSize = pointSize; \n";
 
 
 static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEndMarker], 
-	const GLchar *fragmentSource[fragmentEndMarker], unsigned int whichOne) {
+	const GLchar *fragmentSource[fragmentEndMarker], shaderflagsstruct whichOne) { //unsigned int whichOne) {
 
 	bool doThis;
 	bool didADSLmaterial;
@@ -2172,7 +2178,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 	GLint range[2]; GLint precision;
 
 	// see where we are doing the lighting. Use highest precision there, if we can.
-	if (DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
+	if (DESIRE(whichOne.base,SHADINGSTYLE_PHONG)) {
 		glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER,GL_HIGH_FLOAT, range, &precision);
 		if (precision!=0) {
 			haveHighPrecisionFragmentShaders=true;
@@ -2242,17 +2248,17 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 	#endif //VERBOSE for GL_ES_VERSION_2_0
 
 	#ifdef VERBOSE
-	if DESIRE(whichOne,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
-	if DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
-	if DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want TWO_MATERIAL_APPEARANCE_SHADER");
-	if DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER)ConsoleMessage("want ONE_TEX_APPEARANCE_SHADER");
-	if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)ConsoleMessage("want MULTI_TEX_APPEARANCE_SHADER");
-	if DESIRE(whichOne,COLOUR_MATERIAL_SHADER)ConsoleMessage("want COLOUR_MATERIAL_SHADER");
-	if DESIRE(whichOne,FILL_PROPERTIES_SHADER)ConsoleMessage("want FILL_PROPERTIES_SHADER");
-	if DESIRE(whichOne,HAVE_LINEPOINTS_COLOR)ConsoleMessage ("want LINE_POINTS_COLOR");
-	if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
-	if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ConsoleMessage ("want HAVE_TEXTURECOORDINATEGENERATOR");
-	if DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
+	if DESIRE(whichOne.base,NO_APPEARANCE_SHADER) ConsoleMessage ("want NO_APPEARANCE_SHADER");
+	if DESIRE(whichOne.base,MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want MATERIAL_APPEARANCE_SHADER");
+	if DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER) ConsoleMessage ("want TWO_MATERIAL_APPEARANCE_SHADER");
+	if DESIRE(whichOne.base,ONE_TEX_APPEARANCE_SHADER)ConsoleMessage("want ONE_TEX_APPEARANCE_SHADER");
+	if DESIRE(whichOne.base,MULTI_TEX_APPEARANCE_SHADER)ConsoleMessage("want MULTI_TEX_APPEARANCE_SHADER");
+	if DESIRE(whichOne.base,COLOUR_MATERIAL_SHADER)ConsoleMessage("want COLOUR_MATERIAL_SHADER");
+	if DESIRE(whichOne.base,FILL_PROPERTIES_SHADER)ConsoleMessage("want FILL_PROPERTIES_SHADER");
+	if DESIRE(whichOne.base,HAVE_LINEPOINTS_COLOR)ConsoleMessage ("want LINE_POINTS_COLOR");
+	if DESIRE(whichOne.base,HAVE_LINEPOINTS_APPEARANCE)ConsoleMessage ("want LINE_POINTS_APPEARANCE");
+	if DESIRE(whichOne.base,HAVE_TEXTURECOORDINATEGENERATOR) ConsoleMessage ("want HAVE_TEXTURECOORDINATEGENERATOR");
+	if DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE) ConsoleMessage ("want HAVE_CUBEMAP_TEXTURE");
 	#endif //VERBOSE
 #undef VERBOSE
 
@@ -2294,7 +2300,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 
 	/* User defined shaders - only give the defines, let the user do the rest */
 
-	if ((whichOne & USER_DEFINED_SHADER_MASK) == 0) {
+	if (!whichOne.usershaders) { // & USER_DEFINED_SHADER_MASK) == 0) {
 		/* initialize */
 
 		/* Generic things first */
@@ -2310,7 +2316,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		if(Viewer()->anaglyph || Viewer()->anaglyphB)
 			fragmentSource[fragmentMainEnd] = anaglyphGrayFragEnd;
 		else {
-			if (DESIRE(whichOne,SHADINGSTYLE_PHONG)) fragmentSource[fragmentMainEnd] = discardInFragEnd;
+			if (DESIRE(whichOne.base,SHADINGSTYLE_PHONG)) fragmentSource[fragmentMainEnd] = discardInFragEnd;
 			else fragmentSource[fragmentMainEnd] = fragEnd;
 			//fragmentSource[fragmentMainEnd] = discardInFragEnd;
 		}
@@ -2320,7 +2326,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 
 		/* specific strings for specific shader capabilities */
 
-		if DESIRE(whichOne,COLOUR_MATERIAL_SHADER) {
+		if DESIRE(whichOne.base,COLOUR_MATERIAL_SHADER) {
 			vertexSource[vertexSimpleColourDeclare] = vertSimColDec;
 			vertexSource[vertFrontColourDeclare] = varyingFrontColour;
 			vertexSource[vertexSimpleColourCalculation] = vertSimColUse;
@@ -2330,7 +2336,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 			fragmentSource[fragmentSimpleColourAssign] = fragSimColAss;
 		}
 
-		if DESIRE(whichOne,NO_APPEARANCE_SHADER) {
+		if DESIRE(whichOne.base,NO_APPEARANCE_SHADER) {
 			fragmentSource[fragmentSimpleColourAssign] = fragNoAppAss;
 			vertexSource[vertexPointSizeDeclare] = pointSizeDeclare;
 			vertexSource[vertexPointSizeAssign] = pointSizeAss;
@@ -2341,11 +2347,11 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		/* One or TWO material no texture shaders - one material, choose between
 			Phong shading (slower) or Gouraud shading (faster). */
 
-		if (DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
-			doThis = (DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) ||
-				(DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER));
+		if (DESIRE(whichOne.base,SHADINGSTYLE_PHONG)) {
+			doThis = (DESIRE(whichOne.base,MATERIAL_APPEARANCE_SHADER)) ||
+				(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER));
 		} else {
-			doThis = DESIRE(whichOne,TWO_MATERIAL_APPEARANCE_SHADER);
+			doThis = DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER);
 		}
 
 		if (doThis) {
@@ -2366,7 +2372,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		/* TWO_MATERIAL_APPEARANCE_SHADER - this does not crop up
 				that often, so just use the PHONG shader. */
 		didADSLmaterial = false;
-		if((DESIRE(whichOne,MATERIAL_APPEARANCE_SHADER)) && (!DESIRE(whichOne,SHADINGSTYLE_PHONG))) {
+		if((DESIRE(whichOne.base,MATERIAL_APPEARANCE_SHADER)) && (!DESIRE(whichOne.base,SHADINGSTYLE_PHONG))) {
 			vertexSource[vertexNormalDeclare] = vertNormDec;
 			vertexSource[vertexLightDefines] = lightDefines0;
 			vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
@@ -2382,7 +2388,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		}
 
 
-		if DESIRE(whichOne,HAVE_LINEPOINTS_APPEARANCE) {
+		if DESIRE(whichOne.base,HAVE_LINEPOINTS_APPEARANCE) {
 			vertexSource[vertexLightDefines] = lightDefines0;
 			vertexSource[vertFrontColourDeclare] = varyingFrontColour;
 			vertexSource[vertexOneMaterialDeclare] = vertOneMatDec;
@@ -2399,10 +2405,10 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 
 
 		/* texturing - MULTI_TEX builds on ONE_TEX */
-		if (DESIRE(whichOne,ONE_TEX_APPEARANCE_SHADER) ||
-			DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) ||
-			DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE) ||
-			DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER)) {
+		if (DESIRE(whichOne.base,ONE_TEX_APPEARANCE_SHADER) ||
+			DESIRE(whichOne.base,HAVE_TEXTURECOORDINATEGENERATOR) ||
+			DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE) ||
+			DESIRE(whichOne.base,MULTI_TEX_APPEARANCE_SHADER)) {
 			vertexSource[vertexTexCoordInputDeclare] = vertTexCoordDec;
 			vertexSource[vertexTexCoordOutputDeclare] = varyingTexCoord;
 			vertexSource[vertexTextureMatrixDeclare] = vertTexMatrixDec;
@@ -2416,7 +2422,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		}
 
 		/* Cubemaps - do not multi-texture these yet */
-		if (DESIRE(whichOne,HAVE_CUBEMAP_TEXTURE)) {
+		if (DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE)) {
 			vertexSource[vertexSingleTextureCalculation] = vertSingTexCubeCalc;
 
 			fragmentSource[fragmentTex0Declare] = fragTex0CubeDec;
@@ -2424,7 +2430,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		}
 
 		/* MULTI_TEX builds on ONE_TEX */
-		if DESIRE(whichOne,MULTI_TEX_APPEARANCE_SHADER) {
+		if DESIRE(whichOne.base,MULTI_TEX_APPEARANCE_SHADER) {
 			/* we have to do the material params, in case we need to
 				modulate/play with this. */
 
@@ -2443,7 +2449,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 		}
 
 		/* TextureCoordinateGenerator - do calcs in Vertex, fragment like one texture */
-		if DESIRE(whichOne,HAVE_TEXTURECOORDINATEGENERATOR) {
+		if DESIRE(whichOne.base,HAVE_TEXTURECOORDINATEGENERATOR) {
 			/* the vertex single texture calculation is different from normal single texture */
 			/* pass in the type of generator, and do the calculations */
 			vertexSource[vertexTextureMatrixDeclare] = vertTexCoordGenDec;
@@ -2453,7 +2459,7 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 
 		}
 
-			if DESIRE(whichOne,FILL_PROPERTIES_SHADER) {
+			if DESIRE(whichOne.base,FILL_PROPERTIES_SHADER) {
 				/* just add on top of the other shaders the fill properties "stuff" */
 
 				vertexSource[vertexHatchPositionDeclare] = varyingHatchPosition;
@@ -2467,13 +2473,14 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 
 	} else {  // user defined shaders
 
-		if (whichOne >= USER_DEFINED_SHADER_START) {
+		if (whichOne.usershaders) { // >= USER_DEFINED_SHADER_START) {
 			int me = 0;
 			ppOpenGL_Utils p;
 			ttglobal tg = gglobal();
 			p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 
-			me = (whichOne / USER_DEFINED_SHADER_START) -1;
+			//me = (whichOne / USER_DEFINED_SHADER_START) -1;
+			me = whichOne.usershaders;
 			//ConsoleMessage ("HAVE USER DEFINED SHADER %x",whichOne);
 
 			// add the following:
@@ -2562,12 +2569,14 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 
 //see Composite_Shading.c for CastlePlugs details.
 int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
-	const GLchar **fragmentSource, unsigned int whichOne);
+	const GLchar **fragmentSource, shaderflagsstruct whichOne); // unsigned int whichOne);
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], 
-		unsigned int whichOne) {
+	shaderflagsstruct whichOne) {
+		//unsigned int whichOne) {
 	int iret, userDefined, usingCastlePlugs = 1;
-	userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
+	//userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
+	userDefined = whichOne.usershaders ? TRUE : FALSE;
 
 	if(usingCastlePlugs && !userDefined) { // && !DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
 		//new Aug 2016 castle plugs

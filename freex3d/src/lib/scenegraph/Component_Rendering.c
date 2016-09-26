@@ -758,13 +758,14 @@ void sib_prep_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 		//	 push on stack like push_sensor() 
 		struct X3D_ClipPlane * cplane = (struct X3D_ClipPlane*)sibAffector;
 		if(cplane->enabled == TRUE){
-			unsigned int shaderflags;
+			//unsigned int shaderflags;
+			shaderflagsstruct shaderflags;
 			double modelviewmatrix[16];
 			usehit uhit;
 			ppComponent_Rendering p = (ppComponent_Rendering)gglobal()->Component_Rendering.prv;
 
 			shaderflags = getShaderFlags();
-			shaderflags |= CLIPPLANE_SHADER;
+			shaderflags.base |= CLIPPLANE_SHADER;
 			pushShaderFlags(shaderflags);
 			
 			//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#ClipPlanes

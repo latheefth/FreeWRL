@@ -29,7 +29,7 @@ Screen snapshot.
 #define __FREEWRL_OPENGL_UTILS_H__
 
 // number of Shader nodes available per invocation
-#define MAX_USER_DEFINED_SHADERS 4
+#define MAX_USER_DEFINED_SHADERS 40 //Sept 2016, changed from 4 to 40. In theory could do 2^32 - we have an int32 now just for user shaders
 
 int getNextFreeUserDefinedShaderSlot();
 void kill_userDefinedShaders();
@@ -128,6 +128,7 @@ struct multiTexParams {
 void do_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void markForDispose(struct X3D_Node *node, int recursive);
 
+//s_shader_capabilities_t *getMyShaders(shaderflagsstruct ); //moved to component_shape.h where shaderflagsstruct defined
 s_shader_capabilities_t *getMyShader(unsigned int);
 
 void sendMatriciesToShader(s_shader_capabilities_t *me);
