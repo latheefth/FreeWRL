@@ -871,6 +871,7 @@ void child_Shape (struct X3D_Shape *node) {
 			//if(shader_requirements & FOG_APPEARANCE_SHADER)
 			//	printf("fog in child_shape\n");
 		}
+		//printf("child_shape shader_requirements base %d effects %d user %d\n",shader_requirements.base,shader_requirements.effects,shader_requirements.usershaders);
 		scap = getMyShaders(shader_requirements);
 		enableGlobalShader(scap);
 		//enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));

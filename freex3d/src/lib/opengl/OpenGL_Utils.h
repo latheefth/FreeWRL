@@ -128,7 +128,7 @@ struct multiTexParams {
 void do_textureTransform (struct X3D_Node *textureNode, int ttnum);
 void markForDispose(struct X3D_Node *node, int recursive);
 
-s_shader_capabilities_t *getMyShaders(shaderflagsstruct ); 
+//s_shader_capabilities_t *getMyShaders(shaderflagsstruct ); //moved to component_shape.h where shaderflagsstruct defined
 s_shader_capabilities_t *getMyShader(unsigned int);
 
 void sendMatriciesToShader(s_shader_capabilities_t *me);

@@ -200,14 +200,15 @@ void replaceAll(char *buffer,int bsize, char *oldstr, char *newstr){
 //  EffectPartType: TShaderType;
 //  PlugValue: string;
 //  CompleteCode: TShaderSource);
-
+//char *strpbrk(const char *str1, const char *str2) finds the first character in the string str1 that matches any character specified in str2. This does not include the terminating null-characters.
 void extractPlugName(char *start, char *PlugName,char *PlugDeclaredParameters){
 	//from the addon shader, get the name PLUG_<name>(declaredParameters)
 	char *pns, *pne, *pps, *ppe;
 	int len;
 	pns = strstr(start,"PLUG_");
 	pns += strlen("PLUG_");
-	pne = strchr(pns,' ');
+	//pne = strchr(pns,' ');
+	pne = strpbrk(pns," (");
 	len = pne - pns;
 	strncpy(PlugName,pns,len);
 	PlugName[len] = '\0';
@@ -385,18 +386,33 @@ void AddDefine( int EffectPartType, const char *defineName, char **CompleteCode)
 //      for each EffectPart in Effect.parts do
 //        Plug(EffectPart.type, GetUrl(EffectPart.url), CompleteCode)
 //end
-
-void EnableEffects( struct Multi_Node *Effects, char **CompletedCode, int *unique_int){
+void EnableEffect(struct X3D_Node * node, char **CompletedCode, int *unique_int){
 	int i, ipart;
-	for(i=0;i<Effects->n;i++){
-		struct X3D_ShaderPart *node = (struct X3D_ShaderPart *)Effects->p[i];
-		if(node->_nodeType == NODE_ShaderPart){
-			if(!strcmp(node->type->strptr,"FRAGMENT"))
+	char *str;
+	struct X3D_Effect *effect = (struct X3D_Effect *)node;
+	for(i=0;i<effect->parts.n;i++){
+		struct X3D_EffectPart *part = (struct X3D_EffectPart*)effect->parts.p[i];
+		if(part->_nodeType == NODE_EffectPart){
+			if(!strcmp(part->type->strptr,"FRAGMENT"))
 				ipart = SHADERPART_FRAGMENT;
-			else if(!strcmp(node->type->strptr,"VERTEX"))
+			else if(!strcmp(part->type->strptr,"VERTEX"))
 				ipart = SHADERPART_VERTEX;
-			Plug(ipart,node->url.p[0]->strptr, CompletedCode, unique_int);
+			str = part->url.p[0]->strptr;
+			if(!strncmp(str,"data:text/plain,",strlen("data:text/plain,")))
+				str += strlen("data:text/plain,");
+			Plug(ipart,str, CompletedCode, unique_int);
 		}
+	}
+}
+Stack *getEffectStack();
+void EnableEffects( char **CompletedCode, int *unique_int){
+	int i;
+	Stack *effect_stack;
+	effect_stack = getEffectStack();
+	for(i=0;i<vectorSize(effect_stack);i++){
+		struct X3D_Node *node = vector_get(struct X3D_Node*,effect_stack,i);
+		if(node->_nodeType == NODE_Effect)
+			EnableEffect(node,CompletedCode,unique_int);
 	}
 }
 
@@ -1695,6 +1711,8 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		AddDefine(SHADERPART_FRAGMENT,"CLIP",CompleteCode);	
 		Plug(SHADERPART_FRAGMENT,frag_plug_clip_apply,CompleteCode,&unique_int);	
 	}
+
+	EnableEffects(CompleteCode,&unique_int);
 
 	// stripUnusedDefines(CompleteCode);
     // http://freecode.com/projects/unifdef/  example: unifdef -UTEX -UGMTEX shader.vs > out.vs will strip the TEX and MTEX sections out

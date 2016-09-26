@@ -1395,6 +1395,7 @@ s_shader_capabilities_t *getMyShaders(shaderflagsstruct rq_cap0) { //unsigned in
 	for (i=0; i<vectorSize(myShaderTable); i++) {
 		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
 		if (me->whichOne.base == rq_cap0.base && me->whichOne.effects == rq_cap0.effects && me->whichOne.usershaders == rq_cap0.usershaders) {
+			//printf("getMyShaders chosen shader caps base %d effects %d user %d\n",me->whichOne.base,me->whichOne.effects,me->whichOne.usershaders);
 			return me->myCapabilities;
 		}
 	}

@@ -66,7 +66,7 @@ int usershaders;
 } shaderflagsstruct;
 
 shaderflagsstruct getShaderFlags();
-
+s_shader_capabilities_t *getMyShaders(shaderflagsstruct);
 
 
 

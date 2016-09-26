@@ -1387,7 +1387,7 @@ int getNextFreeEffectSlot() {
 	if (p->effectCount == MAX_EFFECTS) return -1;
 
 	rv = p->effectCount;
-
+	//printf("getNextFreeEffectSlot %d\n",rv);
 	return rv;
 }
 
@@ -1413,7 +1413,7 @@ void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 	if(node->isValid){
 		//push effect onto effect stack, with unique effect bit mask
 		effect_stack_count++;
-		printf("sib_prep_effect not implemented %d\n",effect_stack_count);
+		//printf("sib_prep_effect not implemented %d\n",effect_stack_count);
 		if (node->_shaderUserNumber == -1) node->_shaderUserNumber = getNextFreeEffectSlot();
 
 		shaderflags = getShaderFlags();
@@ -1431,8 +1431,14 @@ void sib_fin_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 	//pop effect and bit mask off effect stack
 	if(node->isValid){
 		effect_stack_count--;
-		printf("sib_fin_effect not implemented %d\n",effect_stack_count);
+		//printf("sib_fin_effect not implemented %d\n",effect_stack_count);
 		stack_pop(struct X3D_Node*,p->effect_stack);
 		popShaderFlags();
 	}
+}
+
+Stack *getEffectStack(){
+	ttglobal tg = gglobal();
+	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
+	return p->effect_stack;
 }
