@@ -1106,13 +1106,12 @@ void main(void) \n\
   #endif //TEX \n\
   \n\
   /* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
-  #define normal_eye_fragment vec3(0.0) \n\
+  #define normal_eye_fragment castle_normal_eye //vec3(0.0) \n\
   \n\
   #ifdef FILL \n\
   fillPropCalc(fragment_color, hatchPosition, algorithm); \n\
   #endif //FILL \n\
   \n\
-  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
   #ifdef LIT \n\
   #ifndef MATFIR \n\
   //modulate texture with mat.diffuse \n\
@@ -1122,6 +1121,7 @@ void main(void) \n\
   fragment_color.rgb = clamp(fragment_color.rgb + castle_ColorES, 0.0, 1.0); \n\
   #endif //LIT \n\
   \n\
+  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
   /* PLUG: steep_parallax_shadow_apply (fragment_color) */ \n\
   /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */ \n\
   \n\
@@ -1712,6 +1712,7 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 		Plug(SHADERPART_FRAGMENT,frag_plug_clip_apply,CompleteCode,&unique_int);	
 	}
 
+	//EFFECTS - castle game engine effect nodes X3D_Effect with plugs applied here
 	EnableEffects(CompleteCode,&unique_int);
 
 	// stripUnusedDefines(CompleteCode);
