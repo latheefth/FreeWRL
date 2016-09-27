@@ -1610,25 +1610,23 @@ static BOOL parser_fieldValue(struct VRMLParser* me, struct X3D_Node *node, int 
 /* Specific initialization of node fields */
 void parser_specificInitNode_B(struct X3D_Node* n, struct VRMLParser* me)
 {
-    switch(n->_nodeType)
-    {
-
 #define NODE_SPECIFIC_INIT(type, code) \
-   case NODE_##type: \
-   { \
-    struct X3D_##type* node=(struct X3D_##type*)n; \
-    code \
-	break; \
-   }
+	case NODE_##type: \
+	{ \
+		struct X3D_##type* node=(struct X3D_##type*)n; \
+		code \
+		break; \
+	}
 
-        /* Scripts get a script object associated to them */
-        NODE_SPECIFIC_INIT(Script, node->__scriptObj=new_Shader_ScriptB(X3D_NODE(node));)
-
-        NODE_SPECIFIC_INIT(ShaderProgram, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
-        NODE_SPECIFIC_INIT(PackagedShader, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
-        NODE_SPECIFIC_INIT(ComposedShader, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
-
-            }
+	switch(n->_nodeType)
+	{
+		/* Scripts get a script object associated to them */
+		NODE_SPECIFIC_INIT(Script, node->__scriptObj=new_Shader_ScriptB(X3D_NODE(node));)
+		NODE_SPECIFIC_INIT(ShaderProgram, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
+		NODE_SPECIFIC_INIT(PackagedShader, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
+		NODE_SPECIFIC_INIT(ComposedShader, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
+		NODE_SPECIFIC_INIT(Effect, node->_shaderUserDefinedFields=X3D_NODE(new_Shader_ScriptB(X3D_NODE(node)));)
+	}
 }
 
 /* ************************************************************************** */
@@ -2590,6 +2588,7 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 			case NODE_ShaderProgram: shader=(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
 			case NODE_PackagedShader: shader=(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 			case NODE_ComposedShader: shader=(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+			case NODE_Effect: shader=(struct Shader_Script *)(X3D_EFFECT(node)->_shaderUserDefinedFields); break;
 			case NODE_LayerSet: 
 				push_binding_stack_set(node); break;
 			case NODE_LayoutLayer:
@@ -2699,7 +2698,6 @@ static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind) {
 #endif
 				continue;
 			}
-
 
 			if(shader && parser_interfaceDeclaration(me, NULL, shader)) {
 #ifdef CPARSERVERBOSE
@@ -5033,7 +5031,7 @@ BOOL nodeTypeSupportsUserFields(struct X3D_Node *node)
 	BOOL user = FALSE;
 	user = node->_nodeType == NODE_Proto || node->_nodeType == NODE_Script || 
 		   node->_nodeType == NODE_ComposedShader || node->_nodeType == NODE_ShaderProgram ||  
-		   node->_nodeType == NODE_PackagedShader ? TRUE : FALSE;
+		   node->_nodeType == NODE_PackagedShader || node->_nodeType == NODE_Effect ? TRUE : FALSE;
 	return user;
 }
 

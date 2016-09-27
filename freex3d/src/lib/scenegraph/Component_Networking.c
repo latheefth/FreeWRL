@@ -393,6 +393,14 @@ void render_LoadSensor (struct X3D_LoadSensor *node) {
 			}
 
 			break;
+		case NODE_Effect: 
+			{
+				struct Shader_Script *shader;
+				shader=(struct Shader_Script *)(X3D_EFFECT(cnode)->_shaderUserDefinedFields); 
+				if(shader->loaded) nowFinished++;
+			}
+
+			break;
 		case NODE_MovieTexture: //july 2016 - ordered fields in movietexture to match audioclip
 		case NODE_AudioClip:
 			{

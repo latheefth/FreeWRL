@@ -524,6 +524,9 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 			case NODE_ComposedShader:
 				myObj[0] = (struct Shader_Script *)(X3D_COMPOSEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
 				break;
+			case NODE_Effect:
+				myObj[0] = (struct Shader_Script *)(X3D_EFFECT(to_ptr->routeToNode)->_shaderUserDefinedFields);
+				break;
 			case NODE_PackagedShader:
 				myObj[0] = (struct Shader_Script *)(X3D_PACKAGEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
 				break;
@@ -721,6 +724,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 
 	if (node->_nodeType==NODE_ShaderProgram) me = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
 	else if (node->_nodeType == NODE_ComposedShader) me = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
+	else if (node->_nodeType == NODE_Effect) me = (struct Shader_Script *) X3D_EFFECT(node)->_shaderUserDefinedFields;
 	else {
 		printf ("send_fieldToShader, expected a ShaderProgram or ComposedShader, got %s\n",
 			stringNodeType(node->_nodeType));
@@ -753,8 +757,9 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 	/* is there any fields? */
 	if (me == NULL) return;
 
-	/* this script should NOT be loaded... */
-	if (me->loaded) ConsoleMessage ("ShaderProgram is flagged as being loaded, hmmm");
+	/* this script should NOT be loaded... or so we thought but now we have Effects which we route to,
+		and fieldvalues need to be re-sent when they change */
+	//if (me->loaded) ConsoleMessage ("ShaderProgram is flagged as being loaded, hmmm");
 
 
 	for(i=0; i!=vectorSize(me->fields); ++i) {
@@ -780,7 +785,7 @@ static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
 		/* ask the shader for its handle for this variable */
 
 		/* try Uniform  */
-        printf ("looking to get_Uniform for shader %d, variable :%s:\n",myShader, namePtr);
+        //printf ("looking to get_Uniform for shader %d, variable :%s:\n",myShader, namePtr);
 		myVar = GET_UNIFORM(myShader,namePtr);
 		//myVar = GET_UNIFORM(myShader,fieldDecl_getShaderScriptName(myf));
 		if (myVar == INT_ID_UNDEFINED) {
@@ -865,7 +870,7 @@ void sendInitialFieldsToShader(struct X3D_Node * node) {
 			}
 			X3D_PROGRAMSHADER(node)->_initialized = TRUE;
 			break;
-		}
+			}
 
 
 		case NODE_ComposedShader: {
@@ -873,7 +878,13 @@ void sendInitialFieldsToShader(struct X3D_Node * node) {
 				send_fieldToShader(myShader, X3D_NODE(node));
 			X3D_COMPOSEDSHADER(node)->_initialized = TRUE;
 			break;
-		}
+			}
+		case NODE_Effect: {
+			/* anything to do here? */ 
+				send_fieldToShader(myShader, X3D_NODE(node));
+			//X3D_EFFECT(node)->_initialized = TRUE;
+			break;
+			}
 	}
 }
 
@@ -1392,11 +1403,17 @@ int getNextFreeEffectSlot() {
 }
 
 void compile_Effect (struct X3D_Effect *node) {
-	printf("compile_effect not implemented\n");
-	//get a unique number for this effect - a bit mask
-	//get the parts
-	//prepare uniforms for events
-	//but don't compile (until needed later)
+	//printf("compile_effect not implemented\n");
+	int i, is_valid;
+	struct myArgs *args;
+	ttglobal tg = gglobal();
+
+	is_valid = TRUE;
+	for(i=0;i<node->parts.n;i++){
+		is_valid = is_valid && shaderprogram_loaded(X3D_SHADERPROGRAM(node->parts.p[i]));
+	}
+	node->isValid = is_valid;
+	if(node->isValid) 	MARK_NODE_COMPILED
 }
 static int effect_stack_count = 0;
 shaderflagsstruct getShaderFlags();
@@ -1407,7 +1424,7 @@ void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 	ttglobal tg = gglobal();
 	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
 	node = (struct X3D_Effect*)sibAffector;
-	//COMPILE_IF_REQUIRED
+	COMPILE_IF_REQUIRED
 	//unlike user shaders, we don't compile Effects - they are pasted into the ubershader which is compiled
 	// from Shape, so we put them on a stack/queue/list here so ubershader can paste them all
 	if(node->isValid){
@@ -1441,4 +1458,20 @@ Stack *getEffectStack(){
 	ttglobal tg = gglobal();
 	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
 	return p->effect_stack;
+}
+void update_effect_uniforms(){
+	Stack * effect_stack;
+	effect_stack =  getEffectStack();
+	if(effect_stack && effect_stack->n){
+		int i;
+		for(i=0;i<effect_stack->n;i++){
+			struct X3D_Effect *effect = vector_get(struct X3D_Effect*,effect_stack,i);
+			if (effect->isValid) {
+				if (!effect->_initialized) {
+					sendInitialFieldsToShader(X3D_NODE(effect));
+				}
+			}
+		}
+	}
+
 }

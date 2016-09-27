@@ -622,6 +622,10 @@ int getRoutingInfo (struct VRMLLexer *myLexer, struct X3D_Node *node, int *offs,
 		*myObj = (struct Shader_Script *) X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
 		break; }
+	case NODE_Effect: {
+		*myObj = (struct Shader_Script *) X3D_EFFECT(node)->_shaderUserDefinedFields;
+		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));
+		break; }
 	case NODE_ShaderProgram: {
 		*myObj = (struct Shader_Script *) X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields;
 		error = !(getFieldFromScript (myLexer, name,*myObj,offs,type,accessType));        
@@ -1320,6 +1324,8 @@ void **shaderFields(struct X3D_Node* node){
 		shaderfield = &X3D_SCRIPT(node)->__scriptObj; break;
 	case NODE_ComposedShader:
 		shaderfield = (void**)&X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields; break;
+	case NODE_Effect:
+		shaderfield = (void**)&X3D_EFFECT(node)->_shaderUserDefinedFields; break;
 	case NODE_ShaderProgram:
 		shaderfield = (void**)&X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields; break;
 	case NODE_PackagedShader:
@@ -1661,6 +1667,7 @@ static void parseAttributes(void *ud) {
 			switch (thisNode->_nodeType) {
 				case NODE_Script:
 				case NODE_ComposedShader: 
+				case NODE_Effect: 
 				case NODE_ShaderProgram:
 				case NODE_PackagedShader: {
 					int rv, offs, type, accessType;
@@ -1970,6 +1977,7 @@ void parseScriptProtoField_B(void *ud, char **atts) {
 				{ 
 					case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
 					case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+					case NODE_Effect: shader =(struct Shader_Script *)(X3D_EFFECT(node)->_shaderUserDefinedFields); break;
 					case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
 					case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 				}

@@ -2734,7 +2734,7 @@ our %Nodes = (
 			_shaderUserDefinedFields => ["SFNode", "NULL", "initializeOnly", 0],
 	], "X3DUrlObject"),
 
-	# castle EffectPart made from ShaderPart
+	# castle EffectPart made from ShaderPart - fields in same order
 	"EffectPart" => new VRML::NodeType("EffectPart", [
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			url => ["MFString", [], "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2745,7 +2745,7 @@ our %Nodes = (
 			_shaderUserDefinedFields => ["SFNode", "NULL", "initializeOnly", 0],
 	], "X3DUrlObject"),
 
-	# castle Effect made from ComposedShader
+	# castle Effect made from ComposedShader - fields in same order
 	"Effect" => new VRML::NodeType("Effect", [
 			activate =>["SFBool",undef,"inputOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			parts => ["MFNode",[],"inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],

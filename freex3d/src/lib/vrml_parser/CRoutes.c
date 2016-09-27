@@ -870,6 +870,7 @@ void CRoutes_RegisterSimple(
 	switch (from->_nodeType) {
 		case NODE_Script:
 		case NODE_ComposedShader:
+		case NODE_Effect:
 		case NODE_PackagedShader:
 		//JAS case NODE_ShaderProgram: 
         case NODE_ProgramShader:
@@ -879,6 +880,7 @@ void CRoutes_RegisterSimple(
 	switch (to->_nodeType) {
 		case NODE_Script:
 		case NODE_ComposedShader:
+		case NODE_Effect:
 		case NODE_PackagedShader:
 		//JAS case NODE_ShaderProgram:
         case NODE_ProgramShader:
@@ -917,6 +919,7 @@ int usesBuiltin(struct X3D_Node* node){
 		switch(node->_nodeType){
 			case NODE_Script:
 			case NODE_ComposedShader:
+			case NODE_Effect:
 			case NODE_ShaderProgram :
 			case NODE_PackagedShader:
 			case NODE_Proto:
@@ -2372,6 +2375,7 @@ union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mo
 		case NODE_ShaderProgram:
 		case NODE_ComposedShader:
 		case NODE_PackagedShader:
+		case NODE_Effect:
 		case NODE_Script:
 			{
 				struct Shader_Script* shader = NULL;
@@ -2380,6 +2384,7 @@ union anyVrml* get_anyVrml(struct X3D_Node* node, int offset, int *type, int *mo
 				{ 
 					case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(fromNode)->__scriptObj); break;
 					case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(fromNode)->_shaderUserDefinedFields); break;
+					case NODE_Effect: shader =(struct Shader_Script *)(X3D_EFFECT(fromNode)->_shaderUserDefinedFields); break;
 					case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(fromNode)->_shaderUserDefinedFields); break;
 					case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(fromNode)->_shaderUserDefinedFields); break;
 				}
@@ -2570,6 +2575,7 @@ void propagate_events_B() {
 			{
 				case NODE_ShaderProgram:
 				case NODE_ComposedShader:
+				case NODE_Effect:
 				case NODE_PackagedShader:
 				case NODE_Script:
 					{
@@ -2580,6 +2586,7 @@ void propagate_events_B() {
 						{ 
 							case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(fromNode)->__scriptObj); break;
 							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(fromNode)->_shaderUserDefinedFields); break;
+							case NODE_Effect: shader =(struct Shader_Script *)(X3D_EFFECT(fromNode)->_shaderUserDefinedFields); break;
 							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(fromNode)->_shaderUserDefinedFields); break;
 							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(fromNode)->_shaderUserDefinedFields); break;
 						}
@@ -2699,6 +2706,7 @@ void propagate_events_B() {
 						case NODE_ShaderProgram:
 						case NODE_ComposedShader:
 						case NODE_PackagedShader:
+						case NODE_Effect:
 						case NODE_Script:
 							{
 								struct Shader_Script* shader = NULL;
@@ -2707,6 +2715,7 @@ void propagate_events_B() {
 								{ 
   									case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(toNode)->__scriptObj); break;
   									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->_shaderUserDefinedFields); break;
+  									case NODE_Effect: shader =(struct Shader_Script *)(X3D_EFFECT(toNode)->_shaderUserDefinedFields); break;
   									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->_shaderUserDefinedFields); break;
   									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->_shaderUserDefinedFields); break;
 								}
@@ -2839,12 +2848,14 @@ void propagate_events_B() {
 							break;
 						case NODE_ShaderProgram:
 						case NODE_ComposedShader:
+						case NODE_Effect:
 						case NODE_PackagedShader:
 							{
 								struct Shader_Script* shader = NULL;
 								switch(toNode->_nodeType) 
 								{ 
   									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->_shaderUserDefinedFields); break;
+  									case NODE_Effect: shader =(struct Shader_Script *)(X3D_EFFECT(toNode)->_shaderUserDefinedFields); break;
   									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->_shaderUserDefinedFields); break;
   									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->_shaderUserDefinedFields); break;
 								}

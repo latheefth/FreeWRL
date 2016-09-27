@@ -735,6 +735,8 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 //unsigned int getShaderFlags();
 shaderflagsstruct getShaderFlags();
 struct X3D_Node *getFogParams();
+void update_effect_uniforms();
+
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpNG;  
 	//int channels;
@@ -914,6 +916,10 @@ void child_Shape (struct X3D_Shape *node) {
 
 					break;
 			}
+		}
+		//update effect field uniforms
+		if(shader_requirements.effects){
+			update_effect_uniforms();
 		}
 
 

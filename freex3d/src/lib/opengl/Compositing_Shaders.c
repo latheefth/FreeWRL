@@ -411,8 +411,9 @@ void EnableEffects( char **CompletedCode, int *unique_int){
 	effect_stack = getEffectStack();
 	for(i=0;i<vectorSize(effect_stack);i++){
 		struct X3D_Node *node = vector_get(struct X3D_Node*,effect_stack,i);
-		if(node->_nodeType == NODE_Effect)
+		if(node->_nodeType == NODE_Effect){
 			EnableEffect(node,CompletedCode,unique_int);
+		}
 	}
 }
 
