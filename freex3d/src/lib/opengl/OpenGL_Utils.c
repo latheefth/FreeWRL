@@ -5494,6 +5494,7 @@ BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,
 				case NODE_Script:
 				case NODE_ComposedShader:
 				case NODE_ShaderProgram :
+				case NODE_Effect :
 				case NODE_PackagedShader:
 					{
 						int j; //, nameIndex;
@@ -5506,6 +5507,7 @@ BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,
 							case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
 							case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
 							case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
+							case NODE_Effect: shader =(struct Shader_Script *)(X3D_EFFECT(node)->_shaderUserDefinedFields); break;
 						}
 						if (shader)
 							for(j=0; j!=vectorSize(shader->fields); ++j)
@@ -5840,6 +5842,7 @@ struct Shader_Script *getShader(struct X3D_Node *node){
 	{
 		case NODE_Script:         shader =(struct Shader_Script *)(X3D_SCRIPT(node)->__scriptObj); break;
 		case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields); break;
+		case NODE_Effect: shader =(struct Shader_Script *)(X3D_EFFECT(node)->_shaderUserDefinedFields); break;
 		case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields); break;
 		case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields); break;
 	}
@@ -5850,6 +5853,7 @@ void setShader(struct X3D_Node *node, struct Shader_Script *shader){
 	{
 		case NODE_Script:         X3D_SCRIPT(node)->__scriptObj = (void *)shader; break;
 		case NODE_ComposedShader: X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
+		case NODE_Effect: X3D_EFFECT(node)->_shaderUserDefinedFields = (void *)shader;; break;
 		case NODE_ShaderProgram:  X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields = (void *)shader;; break;
 		case NODE_PackagedShader: X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields = (void *)shader;; break;
 	}

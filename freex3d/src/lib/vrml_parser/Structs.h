@@ -2451,6 +2451,7 @@ struct X3D_Node {
 #define X3D_ANCHOR(node) ((struct X3D_Anchor*)node)
 #define X3D_COLLISION(node) ((struct X3D_Collision*)node)
 #define X3D_COMPOSEDSHADER(node) ((struct X3D_ComposedShader*)node)
+#define X3D_EFFECT(node) ((struct X3D_Effect*)node)
 #define X3D_PACKAGEDSHADER(node) ((struct X3D_PackagedShader*)node)
 #define X3D_PROGRAMSHADER(node) ((struct X3D_ProgramShader*)node)
 #define X3D_SHADERPROGRAM(node) ((struct X3D_ShaderProgram*)node)
