@@ -1392,11 +1392,17 @@ int getNextFreeEffectSlot() {
 }
 
 void compile_Effect (struct X3D_Effect *node) {
-	printf("compile_effect not implemented\n");
-	//get a unique number for this effect - a bit mask
-	//get the parts
-	//prepare uniforms for events
-	//but don't compile (until needed later)
+	//printf("compile_effect not implemented\n");
+	int i, is_valid;
+	struct myArgs *args;
+	ttglobal tg = gglobal();
+
+	is_valid = TRUE;
+	for(i=0;i<node->parts.n;i++){
+		is_valid = is_valid && shaderprogram_loaded(X3D_SHADERPROGRAM(node->parts.p[i]));
+	}
+	node->isValid = is_valid;
+	if(node->isValid) 	MARK_NODE_COMPILED
 }
 static int effect_stack_count = 0;
 shaderflagsstruct getShaderFlags();
@@ -1407,7 +1413,7 @@ void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 	ttglobal tg = gglobal();
 	ppComponent_ProgrammableShaders p = (ppComponent_ProgrammableShaders)tg->Component_ProgrammableShaders.prv;
 	node = (struct X3D_Effect*)sibAffector;
-	//COMPILE_IF_REQUIRED
+	COMPILE_IF_REQUIRED
 	//unlike user shaders, we don't compile Effects - they are pasted into the ubershader which is compiled
 	// from Shape, so we put them on a stack/queue/list here so ubershader can paste them all
 	if(node->isValid){
