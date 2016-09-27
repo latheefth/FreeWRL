@@ -4533,8 +4533,7 @@ int isSiblingAffector(struct X3D_Node *node){
 		case NODE_PointLight:
 		case NODE_LocalFog:
 		case NODE_ClipPlane:
-		//case NODE_Effect: //not implemented yet
-		//case NODE_EffectPart: // "
+		case NODE_Effect:
 			ret = 1; break;
 		default:
 			ret = 0; break;
@@ -4849,12 +4848,9 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(ClipPlane)
 					ADD_TO_PARENT_SIBAFFECTORS
 				END_NODE
-				//BEGIN_NODE(Effect)
-				//	ADD_TO_PARENT_SIBAFFECTORS
-				//END_NODE
-				//BEGIN_NODE(EffectPart)
-				//	ADD_TO_PARENT_SIBAFFECTORS
-				//END_NODE
+				BEGIN_NODE(Effect)
+					ADD_TO_PARENT_SIBAFFECTORS
+				END_NODE
 
 
 				/* some nodes, like Extrusions, have "set_" fields same as normal internal fields,
