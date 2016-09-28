@@ -2496,7 +2496,8 @@ struct X3D_Virt virt_FogCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,N
 struct X3D_Virt virt_FontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 void render_GeneratedCubeMapTexture(struct X3D_GeneratedCubeMapTexture *);
-struct X3D_Virt virt_GeneratedCubeMapTexture = { NULL,(void *)render_GeneratedCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_GeneratedCubeMapTexture(struct X3D_GeneratedCubeMapTexture *);
+struct X3D_Virt virt_GeneratedCubeMapTexture = { NULL,(void *)render_GeneratedCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeneratedCubeMapTexture};
 
 void compile_GeoCoordinate(struct X3D_GeoCoordinate *);
 struct X3D_Virt virt_GeoCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeoCoordinate};
@@ -4337,7 +4338,10 @@ const int OFFSETS_FontStyle[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_GeneratedCubeMapTexture[] = {
+	(int) FIELDNAMES___regenSubTextures, (int) offsetof (struct X3D_GeneratedCubeMapTexture, __regenSubTextures),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___subTextures, (int) offsetof (struct X3D_GeneratedCubeMapTexture, __subTextures),  (int) FIELDTYPE_MFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_GeneratedCubeMapTexture, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_GeneratedCubeMapTexture, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_GeneratedCubeMapTexture, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_size, (int) offsetof (struct X3D_GeneratedCubeMapTexture, size),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_textureProperties, (int) offsetof (struct X3D_GeneratedCubeMapTexture, textureProperties),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9080,7 +9084,10 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_GeneratedCubeMapTexture : {
 			struct X3D_GeneratedCubeMapTexture * tmp2;
 			tmp2 = (struct X3D_GeneratedCubeMapTexture *) tmp;
+			tmp2->__regenSubTextures = FALSE;
+			tmp2->__subTextures.n=0; tmp2->__subTextures.p=0;
 			tmp2->__textureTableIndex = 0;
+			tmp2->_parentResource = getInputResource();
 			tmp2->metadata = NULL;
 			tmp2->size = 128;
 			tmp2->textureProperties = NULL;

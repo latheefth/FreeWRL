@@ -1685,9 +1685,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		thisTexture = ict->__textureTableIndex;
 		mfurl = &ict->url;
 	} else if (thisTextureType==NODE_GeneratedCubeMapTexture){
-		ict = (struct X3D_GeneratedCubeMapTexture*) node;
-		thisTexture = ict->__textureTableIndex;
-		mfurl = &ict->url;
+		gct = (struct X3D_GeneratedCubeMapTexture*) node;
+		thisTexture = gct->__textureTableIndex;
 	} else if (thisTextureType==NODE_PixelTexture3D){
 		struct X3D_PixelTexture3D *pt3d;
 		pt3d = (struct X3D_PixelTexture3D*) node;

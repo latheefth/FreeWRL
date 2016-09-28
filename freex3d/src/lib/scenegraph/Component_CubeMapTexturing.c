@@ -1147,14 +1147,181 @@ void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
  * GeneratedCubeMapTextures
  *
  ****************************************************************************/
+ #include "RenderFuncs.h"
+ typedef struct pComponent_CubeMapTexturing{
+	Stack * gencube_stack;
+}* ppComponent_CubeMapTexturing;
+void *Component_CubeMapTexturing_constructor(){
+	void *v = MALLOCV(sizeof(struct pComponent_CubeMapTexturing));
+	memset(v,0,sizeof(struct pComponent_CubeMapTexturing));
+	return v;
+}
+void Component_CubeMapTexturing_init(struct tComponent_CubeMapTexturing *t){
+	//public
+	//private
+	t->prv = Component_CubeMapTexturing_constructor();
+	{
+		ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)t->prv;
+		p->gencube_stack = newStack(usehit);
+	}
+}
+void Component_CubeMapTexturing_clear(struct tComponent_CubeMapTexturing *t){
+	//public
+	//private
+	{
+		ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)t->prv;
+		deleteVector(usehit,p->gencube_stack);
+	}
+}
+//ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)gglobal()->Component_CubeMapTexturing.prv;
+
  // uni_string update ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
  // int size
 void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
+	if (node->__subTextures.n == 0) {
+		int i;
+
+		/* printf ("changed_ImageCubeMapTexture - creating sub-textures\n"); */
+		FREE_IF_NZ(node->__subTextures.p); /* should be NULL, checking */
+		node->__subTextures.p = MALLOC(struct X3D_Node  **,  6 * sizeof (struct X3D_PixelTexture *));
+		for (i=0; i<6; i++) {
+			struct X3D_PixelTexture *pt;
+			//struct textureTableIndexStruct *tti;
+			pt = (struct X3D_PixelTexture *)createNewX3DNode(NODE_PixelTexture);
+			node->__subTextures.p[i] = X3D_NODE(pt);
+			if(node->_executionContext)
+				add_node_to_broto_context(X3D_PROTO(node->_executionContext),X3D_NODE(node->__subTextures.p[i]));
+			//tti = getTableIndex(pt->__textureTableIndex);
+			//tti->status = TEX_NEEDSBINDING; //I found I didn't need - yet
+			//tti->z = 6;
+
+		}
+		node->__subTextures.n=6;
+	}
+
+	/* tell the whole system to re-create the data for these sub-children */
+	node->__regenSubTextures = TRUE;
+	MARK_NODE_COMPILED
 }
 void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
-	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
-    
-	/* set this back for "normal" textures. */
-	getAppearanceProperties()->cubeFace = 0;
+	if(!strcmp(node->update->strptr,"ALWAYS") || !strcmp(node->update->strptr,"NEXT_FRAME_ONLY")){
+		ttrenderstate rs;
+		rs = renderstate();
+		if(rs->render_geom && !rs->render_cube){
+			//add (node,modelviewmatrix) for next frame
+			//programmer: please clear the gencube stack once per frame
+			int i, isAdded;
+			usehit uhit;
+			double modelviewMatrix[16];
+			ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)gglobal()->Component_CubeMapTexturing.prv;	
+			//check if already added, only add once for simplification
+			isAdded = FALSE;
+			for(i=0;i<vectorSize(p->gencube_stack);i++){
+				uhit = vector_get(usehit,p->gencube_stack,i);
+				if(uhit.node == X3D_NODE(node)){
+					 isAdded = TRUE;
+					 break;
+				}
+			}
+			if(!isAdded){
+				//GL_GET_MODELVIEWMATRIX
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+				//strip viewmatrix - will happen when we invert one of the USEUSE pair, and multiply
+				usehit uhit;
+				uhit.node = X3D_NODE(node);
+				memcpy(uhit.mvm,modelviewMatrix,16*sizeof(double)); //deep copy
+				vector_pushBack(usehit,p->gencube_stack,uhit);  //fat elements do another deep copy
+			}
+		}
+	}
+	//render what we have now
+	int count, iface;
 
+	COMPILE_IF_REQUIRED
+
+	/* do we have to split this CubeMap raw data apart? */
+	if (node->__regenSubTextures) {
+		/* Yes! Get the image data from the file, and split it apart */
+		// ?? loadTextureNode(X3D_NODE(node),NULL);
+	} else {
+		/* we have the 6 faces from the image, just go through and render them as a cube */
+		if (node->__subTextures.n == 0) return; /* not generated yet - see changed_ImageCubeMapTexture */
+
+		for (count=0; count<6; count++) {
+
+			/* set up the appearanceProperties to indicate a CubeMap */
+			getAppearanceProperties()->cubeFace = GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+count;
+
+			/* go through these, back, front, top, bottom, right left */
+			iface = lookup_xxyyzz_face_from_count[count];
+			render_node(node->__subTextures.p[iface]);
+		}
+	}
+    /* Finished rendering CubeMap, set it back for normal textures */
+    getAppearanceProperties()->cubeFace = 0; 
+}
+//Stack *getGenCubeList(){
+//	ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)gglobal()->Component_CubeMapTexturing.prv;	
+//	return p->gencube_stack;
+//}
+void generate_GeneratedCubeMapTextures(){
+	//call from mainloop once per frame:
+	//foreach cubemaptexture location in cubgen list
+	//  foreach 6 sides
+	//    set viewpoint pose
+	//    render scene to fbo
+	//  convert fbo to regular cubemap texture
+	//clear cubegen list
+	Stack *gencube_stack;
+	ttglobal tg = gglobal();
+	ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)tg->Component_CubeMapTexturing.prv;	
+
+	gencube_stack = p->gencube_stack;
+	if(vectorSize(gencube_stack)){
+		int i, j, n;
+		n = vectorSize(gencube_stack);
+		for(i=0;i<n;i++){
+			//set size of tile
+			//create fbo or fbo tiles collection for generatedcubemap
+			for(j=0;j<6;j++){
+				//set viewpoint matrix for side
+				//set fbo or fbo-tile
+				//doglClearColor();
+				//setup_projection(); 
+				//BackEndClearBuffer(2); //scissor test in here
+
+				clearLightTable();//turns all lights off- will turn them on for VF_globalLight and scope-wise for non-global in VF_geom
+
+
+				/*  turn light #0 off only if it is not a headlight.*/
+				if (!fwl_get_headlight()) {
+					setLightState(HEADLIGHT_LIGHT,FALSE);
+					setLightType(HEADLIGHT_LIGHT,2); // DirectionalLight
+				}
+
+				/*  Other lights*/
+				PRINT_GL_ERROR_IF_ANY("XEvents::render, before render_hier");
+
+				render_hier(rootNode(), VF_globalLight );
+				PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_globalLight)");
+				render_hier(rootNode(), VF_Other );
+
+				/*  4. Nodes (not the blended ones)*/
+				profile_start("hier_geom");
+				render_hier(rootNode(), VF_Geom | VF_Cube);
+				profile_end("hier_geom");
+				PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
+
+				/*  5. Blended Nodes*/
+				if (tg->RenderFuncs.have_transparency) {
+					/*  render the blended nodes*/
+					render_hier(rootNode(), VF_Geom | VF_Blend | VF_Cube);
+					PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
+				}
+			}
+			//compile_generatedcubemaptexture // convert to opengl
+		}
+		//clear cubegen list
+		gencube_stack->n = 0;
+	}
 }

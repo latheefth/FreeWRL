@@ -4554,6 +4554,9 @@ struct X3D_GeneratedCubeMapTexture {
 	int size;
 	struct X3D_Node *textureProperties;
 	int __textureTableIndex;
+	void * _parentResource;
+	struct Multi_Node __subTextures;
+	int __regenSubTextures;
 };
 extern struct X3D_Virt virt_GeneratedCubeMapTexture;
 /***********************/

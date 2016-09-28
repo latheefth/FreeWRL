@@ -5527,6 +5527,7 @@ void setup_pickray(int x, int y){
 	setPickrayXY(x,y);
 	setup_pickray0();
 }
+void generate_GeneratedCubeMapTextures();
 /* Render the scene */
 static void render()
 {
@@ -5538,6 +5539,7 @@ static void render()
 	ttglobal tg = gglobal();
 	p = (ppMainloop)tg->Mainloop.prv;
 
+	generate_GeneratedCubeMapTextures();
 	setup_projection();
 	set_viewmatrix();
 	update_navigation();
