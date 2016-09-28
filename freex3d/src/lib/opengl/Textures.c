@@ -464,6 +464,9 @@ int getTextureTableIndexFromFromTextureNode(struct X3D_Node *node){
 	} else if (thisTextureType==NODE_ImageCubeMapTexture){
 		struct X3D_ImageCubeMapTexture* ict = (struct X3D_ImageCubeMapTexture*) node;
 		thisTexture = ict->__textureTableIndex;
+	} else if (thisTextureType==NODE_GeneratedCubeMapTexture){
+		struct X3D_GeneratedCubeMapTexture* ict = (struct X3D_GeneratedCubeMapTexture*) node;
+		thisTexture = ict->__textureTableIndex;
 	} else if (thisTextureType==NODE_PixelTexture3D){
 		struct X3D_PixelTexture3D* pt = (struct X3D_PixelTexture3D*) node;
 		thisTexture = pt->__textureTableIndex;
@@ -497,9 +500,7 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 
 	if ((it->_nodeType == NODE_ImageTexture) || (it->_nodeType == NODE_PixelTexture) ||
 		(it->_nodeType == NODE_ImageCubeMapTexture) ||
-/* JAS - still to implement 
 		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
-*/ 
 		(it->_nodeType == NODE_PixelTexture3D) ||
 		(it->_nodeType == NODE_ImageTexture3D) ||
 		(it->_nodeType == NODE_ComposedTexture3D) ||
@@ -559,20 +560,20 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 				mt->__textureTableIndex = textureNumber;
 				break; }
                 
-	/* JAS still to implement 
-			case NODE_GeneratedCubeMapTexture: {
-				struct X3D_GeneratedCubeMapTexture *v1t;
-				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
-				v1t->__textureTableIndex = textureNumber; 
-				break;
-			}
-	*/
 			case NODE_ImageCubeMapTexture: {
 				struct X3D_ImageCubeMapTexture *v1t;
 				v1t = (struct X3D_ImageCubeMapTexture *) tmp;
 				v1t->__textureTableIndex = textureNumber;
 				break;
 			}
+
+			case NODE_GeneratedCubeMapTexture: {
+				struct X3D_GeneratedCubeMapTexture *v1t;
+				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
+				v1t->__textureTableIndex = textureNumber; 
+				break;
+			}
+
 			}
 
 			/* set the scenegraphNode here */
@@ -623,18 +624,17 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 				mt = (struct X3D_MovieTexture *) tmp;
 				textureNumber = &mt->__textureTableIndex;
 				break; }
-                
-	/* JAS still to implement 
-			case NODE_GeneratedCubeMapTexture: {
-				struct X3D_GeneratedCubeMapTexture *v1t;
-				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
-				textureNumber = &v1t->__textureTableIndex; 
-				break; }
-	*/
+
 			case NODE_ImageCubeMapTexture: {
 				struct X3D_ImageCubeMapTexture *v1t;
 				v1t = (struct X3D_ImageCubeMapTexture *) tmp;
 				textureNumber = &v1t->__textureTableIndex;
+				break; }
+                
+			case NODE_GeneratedCubeMapTexture: {
+				struct X3D_GeneratedCubeMapTexture *v1t;
+				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
+				textureNumber = &v1t->__textureTableIndex; 
 				break; }
 			}
 			if(textureNumber){
@@ -880,13 +880,11 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	    		releaseTexture(node); 
 		break;
 
-/* JAS - still to implement
-		case NODE_GeneratedCubeMapTexture:
+		case NODE_ImageCubeMapTexture:
 	    		releaseTexture(node); 
 		break;
 
-*/
-		case NODE_ImageCubeMapTexture:
+		case NODE_GeneratedCubeMapTexture:
 	    		releaseTexture(node); 
 		break;
 
@@ -1273,6 +1271,9 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	} else if (me->nodeType == NODE_ImageCubeMapTexture) {
 		struct X3D_ImageCubeMapTexture *mi = (struct X3D_ImageCubeMapTexture *) me->scenegraphNode;
 		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
+	} else if (me->nodeType == NODE_GeneratedCubeMapTexture) {
+		struct X3D_GeneratedCubeMapTexture *mi = (struct X3D_GeneratedCubeMapTexture *) me->scenegraphNode;
+		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
 	}
 	//texure3D faked via texture2D (in non-extended GLES2)
 	//.. needs repeats for manual wrap vs clamp, will send in 
@@ -1461,7 +1462,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	} else {
 
-		if (me->nodeType == NODE_ImageCubeMapTexture ) {
+		if (me->nodeType == NODE_ImageCubeMapTexture || me->nodeType == NODE_GeneratedCubeMapTexture) {
 			if(me->z == 1){
 				/* if we have an single 2D image, ImageCubeMap, we have most likely got a png map; 
 				   ________
@@ -1656,10 +1657,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 	struct X3D_ImageCubeMapTexture *ict;
-    
-/* JAS still to implement
 	struct X3D_GeneratedCubeMapTexture *gct;
-*/
+
 	textureTableIndexStruct_s *myTableIndex;
 	//float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 	ppTextures p;
@@ -1683,6 +1682,10 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		mfurl = &mt->url;
 	} else if (thisTextureType==NODE_ImageCubeMapTexture){
 		ict = (struct X3D_ImageCubeMapTexture*) node;
+		thisTexture = ict->__textureTableIndex;
+		mfurl = &ict->url;
+	} else if (thisTextureType==NODE_GeneratedCubeMapTexture){
+		ict = (struct X3D_GeneratedCubeMapTexture*) node;
 		thisTexture = ict->__textureTableIndex;
 		mfurl = &ict->url;
 	} else if (thisTextureType==NODE_PixelTexture3D){

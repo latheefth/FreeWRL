@@ -231,6 +231,37 @@ Not done:
 	- InstantReality uses 1x1 spherical image map with single .png
 	x tried 1x6 and 2x3 but other browsers aren't using those layouts either
 
+GENERATEDCUBEMAP aka dynamic cubemap
+a general algorithm: 7 more passes through scenegraph:
+A search scenegraph for generatedcubemap locations
+B foreach generatedcubemap location
+	foreach 6 faces
+		render scenegraph to fbo without generatedcubemap consumers
+	convert fbo to cubemap
+C render scenegraph normally with generatedcubemap consumers
+
+Strange conciderations:
+- if there are 2 generatedcubemap consumers side by side, in theory you should
+	 have infinite re-renderings to get all the reflections back and forth between them
+	 (we will ignore other generatedcubemap consumers when generating)
+- if a generatedcubemap is DEF/USED, which location would you use
+	(we will snapshot generatedcubemap locations (node,modelviewmatrix), sort by node, 
+		and eliminated node duplicates. So don't DEF/USE in scene - you'll get only one)
+
+
+dynamic cubemap links:
+http://www.mbroecker.com/project_dynamic_cubemaps.html
+http://richardssoftware.net/Home/Post/26
+- DX
+http://webglsamples.org/dynamic-cubemap/dynamic-cubemap.html
+- webgl sample
+http://stackoverflow.com/questions/4775798/rendering-dynamic-cube-maps-in-opengl-with-frame-buffer-objects
+http://users.csc.calpoly.edu/~ssueda/teaching/CSC471/2016S/demos/khongton/index.html
+http://math.hws.edu/graphicsbook/source/webgl/cube-camera.html
+https://www.opengl.org/discussion_boards/showthread.php/156906-Dynamic-cubemap-FBO
+https://github.com/WebGLSamples/WebGLSamples.github.io/tree/master/dynamic-cubemap
+
+
 */
 
 static int lookup_xxyyzz_face_from_count [] = {0,1,2,3,4,5}; // {1,0,2,3,5,4}; //swaps left-right front-back faces
@@ -305,11 +336,6 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
      getAppearanceProperties()->cubeFace = 0;
 }
 
-/****************************************************************************
- *
- * GeneratedCubeMapTextures
- *
- ****************************************************************************/
 
 
 /* is this a DDS file? If so, get it, and subdivide it. Ignore MIPMAPS for now */
@@ -870,16 +896,6 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 }
 
 
-void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
-        /* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
-        loadTextureNode(X3D_NODE(node),NULL);
-        gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
-    
-    /* set this back for "normal" textures. */
-    getAppearanceProperties()->cubeFace = 0;
-
-}
-
 
 /****************************************************************************
  *
@@ -1126,3 +1142,19 @@ void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
 
 
 
+/****************************************************************************
+ *
+ * GeneratedCubeMapTextures
+ *
+ ****************************************************************************/
+ // uni_string update ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
+ // int size
+void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
+}
+void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
+	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
+    
+	/* set this back for "normal" textures. */
+	getAppearanceProperties()->cubeFace = 0;
+
+}
