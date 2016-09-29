@@ -885,7 +885,7 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 		break;
 
 		case NODE_GeneratedCubeMapTexture:
-	    		releaseTexture(node); 
+	    		//releaseTexture(node); 
 		break;
 
 		case NODE_PixelTexture3D:
@@ -1442,15 +1442,22 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		if(1){
 			//flip cubemap textures to be y-down following opengl specs table 3-19
 			//'renderman' convention
-			dest = MALLOC (unsigned char *, 4*rx*ry);
-			dp = (uint32 *) dest;
+			//stack method: row chunks at a time
+			uint32 tp[512];
+			int cy, cyy, icsize;
 			sp = (uint32 *) me->texdata;
-			//even though you talk about cx, rx, I think you're flipping in y
-			//and just lucky rx=ry.        
-			for (cx=0; cx<rx; cx++) {
-				memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
+			for (cy=0; cy<ry/2; cy++) {
+				cyy = ry - cy -1;
+				for(cx=0;cx<rx;cx+=512){
+					icsize = min(512,rx-cx-1)*4;
+					memcpy(tp,&sp[cy*rx + cx],icsize);
+					memcpy(&sp[cy*rx + cx],&sp[cyy*rx + cx],icsize);
+					memcpy(&sp[cyy*rx + cx],tp,icsize);
+				}
 			}
+			//printf("__flipping__\n"); //are we in here on every frame? yes, for generatedcubemaptexture, no for other cubemaps
 		}
+		generateMipMaps = 0;
 		myTexImage2D(generateMipMaps, getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
 		/* last thing to do at the end of the setup for the 6th face */

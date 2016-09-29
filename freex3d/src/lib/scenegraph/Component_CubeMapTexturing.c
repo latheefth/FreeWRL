@@ -1196,10 +1196,10 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 			//tti->z = 6;
 
 		}
-		//node->__subTextures.n=6;
+		node->__subTextures.n=6;
 		tti = getTableIndex(node->__textureTableIndex);
 		tti->status = TEX_NEEDSBINDING; //I found I didn't need - yet
-		tti->z = 6;
+		//tti->z = 6;
 	}
 
 	/* tell the whole system to re-create the data for these sub-children */
@@ -1248,7 +1248,9 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 	if (node->__regenSubTextures) {
 		/* Yes! Get the image data from the file, and split it apart */
 		loadTextureNode(X3D_NODE(node),NULL);
-	} else {
+	} 
+	//else 
+	{
 		/* we have the 6 faces from the image, just go through and render them as a cube */
 		if (node->__subTextures.n == 0) return; /* not generated yet - see changed_ImageCubeMapTexture */
 
@@ -1331,14 +1333,14 @@ double x;
 double y;
 double z;
 } sideangle[6] = {
-{ 90.0,0.0,1.0,0.0},
-{-90.0,0.0,1.0,0.0},
-{ 90.0,0.1,0.0,0.0},
-{-90.0,0.1,0.0,0.0},
-{  0.0,0.0,1.0,0.0},
-{180.0,0.0,1.0,0.0},
+{ 90.0,0.0,1.0,0.0}, //+x
+{-90.0,0.0,1.0,0.0}, //-x
+{ 90.0,1.0,0.0,0.0}, //+y
+{-90.0,1.0,0.0,0.0}, //-y
+{  0.0,0.0,1.0,0.0}, //+z (lhs)
+{180.0,0.0,1.0,0.0}, //-z
 };
-
+void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
 void generate_GeneratedCubeMapTextures(){
 	//call from mainloop once per frame:
 	//foreach cubemaptexture location in cubgen list
@@ -1370,7 +1372,10 @@ void generate_GeneratedCubeMapTextures(){
 			tti = getTableIndex(node->__textureTableIndex);
 			//set size of tile
 			if(tti->ifbobuffer == 0){
+				// https://www.opengl.org/wiki/Framebuffer_Object
 				glGenFramebuffers(1, &tti->ifbobuffer);
+				pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
+
 				glGenRenderbuffers(1, &tti->idepthbuffer);
 				glBindRenderbuffer(GL_RENDERBUFFER, tti->idepthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, FW_GL_DEPTH_COMPONENT, isize,isize);
@@ -1381,11 +1386,14 @@ void generate_GeneratedCubeMapTextures(){
 					struct X3D_PixelTexture * nodep;
 					nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
 					ttip = getTableIndex(nodep->__textureTableIndex);
+					glGenTextures(1,&ttip->OpenGLTexture);
 					glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+j, GL_TEXTURE_2D, ttip->OpenGLTexture, 0);
 				}
+				popnset_framebuffer(tti->ifbobuffer);
 			}
-			pushnset_framebuffer(tti->ifbobuffer); //we push here, in case higher up we are already rendering the whole scene to an fbo
+			pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
 
 			if(isize != tti->x ){
 				//size change 
@@ -1397,9 +1405,9 @@ void generate_GeneratedCubeMapTextures(){
 
 				nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
 				ttip = getTableIndex(nodep->__textureTableIndex);
-				glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ttip->OpenGLTexture, 0);
-				glClearColor(0.0f,0.0f,0.0f,1.0f);
+				//glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
+				//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ttip->OpenGLTexture, 0);
+				glClearColor(1.0f,0.0f,0.0f,1.0f);
 				FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				//set viewpoint matrix for side
@@ -1454,10 +1462,34 @@ void generate_GeneratedCubeMapTextures(){
 				FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
 				FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
 	
+				if(1){
+					//color pixels green, to see if they show up
+					for(int k=0;k<isize*isize;k++)
+						ttip->texdata[k*4 + 1] = 255;
+				}
 				FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+				if(0){
+					//color pixels green, to see if they show up
+					for(int k=0;k<isize*isize;k++)
+						ttip->texdata[k*4 + 1] = 255;
+				}
 				ttip->x = isize;
 				ttip->y = isize;
 				ttip->z = 1;
+				ttip->hasAlpha = 1;
+				ttip->channels = 4;
+				ttip->status = TEX_NEEDSBINDING;
+				if(0){
+					//write out tti as web3dit image file for diagnostic viewing
+					//void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname)
+					static int framecount = 0;
+					framecount++;
+					if(framecount == 50){
+						char namebuf[100];
+						sprintf(namebuf,"%s%d.web3dit","cubemapface_",j);
+						saveImage_web3dit(ttip, namebuf);
+					}
+				}
 			}
 			popnset_framebuffer();
 			//compile_generatedcubemaptexture // convert to opengl
