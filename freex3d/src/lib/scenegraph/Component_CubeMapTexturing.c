@@ -1356,7 +1356,7 @@ void generate_GeneratedCubeMapTextures(){
 		int i, j, n;
 
 		n = vectorSize(gencube_stack);
-		if(0) for(i=0;i<n;i++){
+		for(i=0;i<n;i++){
 			usehit uhit;
 			int isize;
 			double modelviewmatrix[16];
@@ -1391,7 +1391,7 @@ void generate_GeneratedCubeMapTextures(){
 				//size change 
 			}
 			//create fbo or fbo tiles collection for generatedcubemap
-			if(0) for(j=0;j<node->__subTextures.n;j++){  //should be 6
+			for(j=0;j<node->__subTextures.n;j++){  //should be 6
 				textureTableIndexStruct_s* ttip;
 				struct X3D_PixelTexture * nodep;
 
@@ -1440,6 +1440,24 @@ void generate_GeneratedCubeMapTextures(){
 					render_hier(rootNode(), VF_Geom | VF_Blend | VF_Cube);
 					PRINT_GL_ERROR_IF_ANY("XEvents::render, render_hier(VF_Geom)");
 				}
+
+				//if you can figure out how to use regular texture in cubemap, then there may be a shortcut
+				//for now, we'll pull the fbo pixels back into cpu space and put them in pixeltexture
+				GLuint pixelType = GL_RGBA;
+				int bytesPerPixel = 4;
+				if(!ttip->texdata || ttip->x != isize){
+					FREE_IF_NZ(ttip->texdata);
+					ttip->texdata = MALLOC (GLvoid *, bytesPerPixel*isize*isize*sizeof(char));
+				}
+
+				/* grab the data */
+				FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
+				FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
+	
+				FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+				ttip->x = isize;
+				ttip->y = isize;
+				ttip->z = 1;
 			}
 			popnset_framebuffer();
 			//compile_generatedcubemaptexture // convert to opengl

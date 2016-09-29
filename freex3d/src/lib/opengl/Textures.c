@@ -1463,7 +1463,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	} else {
 
-		if (me->nodeType == NODE_ImageCubeMapTexture ) {
+		if (me->nodeType == NODE_ImageCubeMapTexture) {
 			if(me->z == 1){
 				/* if we have an single 2D image, ImageCubeMap, we have most likely got a png map; 
 				   ________
@@ -1490,8 +1490,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			}
 			//now the __subTextures individual face textures will show as single faces above
 		} else if(me->nodeType == NODE_GeneratedCubeMapTexture){
-			//we need to prepare 6 (cubemap?) textures for use in FBO (framebufferobject) rendering during generation
-			//unpackImageCubeMap6(me);
+			//already unpacked into 6 separate PixelTexture tti->texdata during cubemap generation
 			me->status = TEX_LOADED; /* finito */
 		} else {
 

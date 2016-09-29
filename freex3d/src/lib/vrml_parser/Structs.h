@@ -4550,13 +4550,13 @@ struct X3D_GeneratedCubeMapTexture {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
-	struct Uni_String *update;
-	int size;
 	struct X3D_Node *textureProperties;
 	int __textureTableIndex;
 	void * _parentResource;
 	struct Multi_Node __subTextures;
 	int __regenSubTextures;
+	struct Uni_String *update;
+	int size;
 };
 extern struct X3D_Virt virt_GeneratedCubeMapTexture;
 /***********************/
@@ -5182,12 +5182,12 @@ struct X3D_ImageCubeMapTexture {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
-	struct Multi_String url;
 	struct X3D_Node *textureProperties;
 	int __textureTableIndex;
 	void * _parentResource;
 	struct Multi_Node __subTextures;
 	int __regenSubTextures;
+	struct Multi_String url;
 };
 extern struct X3D_Virt virt_ImageCubeMapTexture;
 /***********************/
