@@ -1413,6 +1413,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	/* is this a CubeMap? If so, lets try this... */
 
 	if (getAppearanceProperties()->cubeFace != 0) {
+		//this is a single cubmap face pixeltexture tti (ie from __subTextures in ImageCubemap)
 		unsigned char *dest = me->texdata;
 		uint32 *sp, *dp;
 
@@ -1462,7 +1463,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	} else {
 
-		if (me->nodeType == NODE_ImageCubeMapTexture || me->nodeType == NODE_GeneratedCubeMapTexture) {
+		if (me->nodeType == NODE_ImageCubeMapTexture ) {
 			if(me->z == 1){
 				/* if we have an single 2D image, ImageCubeMap, we have most likely got a png map; 
 				   ________
@@ -1487,6 +1488,11 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				unpackImageCubeMap6(me);
 				me->status = TEX_LOADED; /* finito */
 			}
+			//now the __subTextures individual face textures will show as single faces above
+		} else if(me->nodeType == NODE_GeneratedCubeMapTexture){
+			//we need to prepare 6 (cubemap?) textures for use in FBO (framebufferobject) rendering during generation
+			//unpackImageCubeMap6(me);
+			me->status = TEX_LOADED; /* finito */
 		} else {
 
 			/* a pointer to the tex data. We increment the pointer for movie texures */

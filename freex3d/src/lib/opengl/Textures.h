@@ -40,6 +40,8 @@ struct textureTableIndexStruct {
 	int    status;
 	int    hasAlpha;
 	GLuint OpenGLTexture;
+	GLuint ifbobuffer; //in case this texture is used as an fbo render target
+	GLuint idepthbuffer; //in case this texture is used as an fbo render target
 	int    frames;
 	char   *filename;
     int    x;
