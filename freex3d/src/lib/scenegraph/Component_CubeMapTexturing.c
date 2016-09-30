@@ -1178,6 +1178,16 @@ void Component_CubeMapTexturing_clear(struct tComponent_CubeMapTexturing *t){
 
  // uni_string update ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
  // int size
+
+void pushnset_framebuffer(int ibuffer);
+void popnset_framebuffer();
+
+#ifdef GL_DEPTH_COMPONENT32
+#define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT32
+#else
+#define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
+#endif
+
 void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 	if (node->__subTextures.n == 0) {
 		int i;
@@ -1203,6 +1213,39 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 		tti->x = tti->y = node->size; 
 		//tti->z = 6;
 		loadTextureNode(X3D_NODE(node),NULL);
+		if(tti->ifbobuffer == 0){
+			int j, isize;
+			isize = node->size; //node->size is initializeOnly, we will ignore any change during run
+			tti->x = isize; //by storing and retrieving initial size from here
+			// https://www.opengl.org/wiki/Framebuffer_Object
+			glGenFramebuffers(1, &tti->ifbobuffer);
+			pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
+
+			glGenRenderbuffers(1, &tti->idepthbuffer);
+			glBindRenderbuffer(GL_RENDERBUFFER, tti->idepthbuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, FW_GL_DEPTH_COMPONENT, isize,isize);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, tti->idepthbuffer);
+
+			for(j=0;j<node->__subTextures.n;j++){  //should be 6
+				textureTableIndexStruct_s* ttip;
+				struct X3D_PixelTexture * nodep;
+				nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
+				ttip = getTableIndex(nodep->__textureTableIndex);
+				//glGenTextures(1,&ttip->OpenGLTexture);
+				//glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
+
+				//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+				//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+j, GL_TEXTURE_2D, ttip->OpenGLTexture, 0);
+			}
+			glGenTextures(1,&tti->OpenGLTexture);
+			glBindTexture(GL_TEXTURE_2D, tti->OpenGLTexture);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tti->OpenGLTexture, 0);
+
+			popnset_framebuffer(tti->ifbobuffer);
+		}
+
 	}
 
 	/* tell the whole system to re-create the data for these sub-children */
@@ -1215,6 +1258,9 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 //double *get_view_matrixd();
 void get_view_matrix(double *savePosOri, double *saveView);
 void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
+	int count, iface;
+
+	COMPILE_IF_REQUIRED
 
 	if(!strcmp(node->update->strptr,"ALWAYS") || !strcmp(node->update->strptr,"NEXT_FRAME_ONLY")){
 		ttrenderstate rs;
@@ -1224,7 +1270,6 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 			//programmer: please clear the gencube stack once per frame
 			int i, isAdded;
 			usehit uhit;
-			double modelviewMatrix[16];
 			ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)gglobal()->Component_CubeMapTexturing.prv;	
 			//check if already added, only add once for simplification
 			isAdded = FALSE;
@@ -1236,14 +1281,20 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 				}
 			}
 			if(!isAdded){
+				double modelviewMatrix[16], mvmInverse[16];
 				double worldmatrix[16], viewmatrix[16], bothinverse[16], saveView[16], savePosOri[16];
 				//GL_GET_MODELVIEWMATRIX
 				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 				get_view_matrix(savePosOri,saveView);
 				matmultiplyAFFINE(viewmatrix,saveView,savePosOri);
-				matinverseAFFINE(bothinverse,viewmatrix);
+				//matinverseAFFINE(bothinverse,viewmatrix);
+				matinverseAFFINE(mvmInverse,modelviewMatrix);
 
-				matmultiplyAFFINE(worldmatrix,bothinverse,modelviewMatrix);
+				//matmultiplyAFFINE(worldmatrix,bothinverse,modelviewMatrix);
+				//matmultiplyAFFINE(worldmatrix,modelviewMatrix,bothinverse);
+
+				matmultiplyAFFINE(worldmatrix,viewmatrix,mvmInverse);
+
 				//strip viewmatrix - will happen when we invert one of the USEUSE pair, and multiply
 				usehit uhit;
 				uhit.node = X3D_NODE(node);
@@ -1254,16 +1305,15 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 					//set back to NONE
 					freeASCIIString(node->update);
 					node->update = newASCIIString("NONE");
-					MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_GeneratedCubeMapTexture, update));
+					//not sure why, but I don't seem to need to mark event
+					//MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_GeneratedCubeMapTexture, update));
+					//printf("MARK_EVENT\n");
 				}
 			}
 
 		}
 	}
 	//render what we have now
-	int count, iface;
-
-	COMPILE_IF_REQUIRED
 
 	/* do we have to split this CubeMap raw data apart? */
 	//if (node->__regenSubTextures) {
@@ -1292,14 +1342,7 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 //	ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)gglobal()->Component_CubeMapTexturing.prv;	
 //	return p->gencube_stack;
 //}
-void pushnset_framebuffer(int ibuffer);
-void popnset_framebuffer();
 
-#ifdef GL_DEPTH_COMPONENT32
-#define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT32
-#else
-#define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
-#endif
 
 //we'll do a different matrix rotation for each face, using sideangle struct:
 static struct {
@@ -1349,45 +1392,11 @@ void generate_GeneratedCubeMapTextures(){
 			uhit = vector_get(usehit,gencube_stack,i);
 			node = (struct X3D_GeneratedCubeMapTexture*)uhit.node;
 			memcpy(modelviewmatrix,uhit.mvm,16*sizeof(double));
-			//matinverseAFFINE(modelviewmatrix,uhit.mvm);
-			//if(iframe == 50)
-			//	printf("50");
 
+			//compile_generatedcubemap - creates framebufferobject fbo
 			tti = getTableIndex(node->__textureTableIndex);
 
-			//set size of tile
-			if(tti->ifbobuffer == 0){
-				isize = node->size; //node->size is initializeOnly, we will ignore any change during run
-				tti->x = isize; //by storing and retrieving initial size from here
-				// https://www.opengl.org/wiki/Framebuffer_Object
-				glGenFramebuffers(1, &tti->ifbobuffer);
-				pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
-
-				glGenRenderbuffers(1, &tti->idepthbuffer);
-				glBindRenderbuffer(GL_RENDERBUFFER, tti->idepthbuffer);
-				glRenderbufferStorage(GL_RENDERBUFFER, FW_GL_DEPTH_COMPONENT, isize,isize);
-				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, tti->idepthbuffer);
-
-				for(j=0;j<node->__subTextures.n;j++){  //should be 6
-					textureTableIndexStruct_s* ttip;
-					struct X3D_PixelTexture * nodep;
-					nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
-					ttip = getTableIndex(nodep->__textureTableIndex);
-					//glGenTextures(1,&ttip->OpenGLTexture);
-					//glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
-
-					//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
-					//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+j, GL_TEXTURE_2D, ttip->OpenGLTexture, 0);
-				}
-				glGenTextures(1,&tti->OpenGLTexture);
-				glBindTexture(GL_TEXTURE_2D, tti->OpenGLTexture);
-
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tti->OpenGLTexture, 0);
-
-				popnset_framebuffer(tti->ifbobuffer);
-			}
-			isize = tti->x;
+			isize = tti->x; //set in compile_
 			pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
 			//GLuint attachments [1] = {GL_COLOR_ATTACHMENT0};
 			//glDrawBuffers(1,attachments); //'draw' is implied in GL_RENDERBUFFER above
