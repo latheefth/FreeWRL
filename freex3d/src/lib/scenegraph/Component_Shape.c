@@ -784,7 +784,7 @@ void child_Shape (struct X3D_Shape *node) {
 	memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 
 	if((renderstate()->render_cube) && hasGeneratedCubeMapTexture(node->appearance))
-		return; //don't draw if this node uses a generatedcubemaptexture and its a cubemaptexture generation pass
+		return; //don't draw if this node uses a generatedcubemaptexture and its a cubemaptexture generation pass; is there more optimal place to do this?
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {

@@ -1636,6 +1636,7 @@ const int EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 	"rtpHeaderExpected",
 	"shape",
 	"side",
+	"size",
 	"solid",
 	"sortOrder",
 	"spacing",
@@ -4343,7 +4344,7 @@ const int OFFSETS_GeneratedCubeMapTexture[] = {
 	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_GeneratedCubeMapTexture, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_GeneratedCubeMapTexture, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_GeneratedCubeMapTexture, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_size, (int) offsetof (struct X3D_GeneratedCubeMapTexture, size),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_size, (int) offsetof (struct X3D_GeneratedCubeMapTexture, size),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_textureProperties, (int) offsetof (struct X3D_GeneratedCubeMapTexture, textureProperties),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_update, (int) offsetof (struct X3D_GeneratedCubeMapTexture, update),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
@@ -13773,7 +13774,6 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp," size (SFInt32) \t%d\n",tmp->size);
 			spacer fprintf (fp," update (SFString) \t%s\n",tmp->update->strptr);
 		    break;
 		}

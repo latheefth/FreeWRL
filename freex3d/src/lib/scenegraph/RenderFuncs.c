@@ -1606,15 +1606,12 @@ void render_node(struct X3D_Node *node) {
 	}
 
 	if(p->renderstate.render_geom && !p->renderstate.render_sensitive && virt->rend) {
-		//dont render generatedcubemap consumers when generating generatedcubemap
-		//if(! (p->renderstate.render_cube && node->_renderFlags & VF_Cube)) {  
 			DEBUG_RENDER("rs 3\n");
 			PRINT_GL_ERROR_IF_ANY("BEFORE render_geom"); PRINT_NODE(node,virt);
 			profile_start("rend");
 			virt->rend(node);
 			profile_end("rend");
 			PRINT_GL_ERROR_IF_ANY("render_geom"); PRINT_NODE(node,virt);
-		//}
 	}
 	if(p->renderstate.render_other && virt->other )
 	{

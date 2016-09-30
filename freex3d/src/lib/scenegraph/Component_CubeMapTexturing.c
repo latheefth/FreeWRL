@@ -1200,11 +1200,13 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 		node->__subTextures.n=6;
 		tti = getTableIndex(node->__textureTableIndex);
 		tti->status = TEX_NEEDSBINDING; //I found I didn't need - yet
+		tti->x = tti->y = node->size; 
 		//tti->z = 6;
+		loadTextureNode(X3D_NODE(node),NULL);
 	}
 
 	/* tell the whole system to re-create the data for these sub-children */
-	node->__regenSubTextures = TRUE;
+	//node->__regenSubTextures = TRUE;
 
 	MARK_NODE_COMPILED
 	//we leave it up to shape nodes to detect if they have generatedcubemaptexture 
@@ -1248,7 +1250,14 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 				//memcpy(uhit.mvm,modelviewMatrix,16*sizeof(double)); //deep copy
 				memcpy(uhit.mvm,worldmatrix,16*sizeof(double)); //deep copy
 				vector_pushBack(usehit,p->gencube_stack,uhit);  //fat elements do another deep copy
+				if(!strcmp(node->update->strptr,"NEXT_FRAME_ONLY")){
+					//set back to NONE
+					freeASCIIString(node->update);
+					node->update = newASCIIString("NONE");
+					MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_GeneratedCubeMapTexture, update));
+				}
 			}
+
 		}
 	}
 	//render what we have now
@@ -1257,10 +1266,9 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 	COMPILE_IF_REQUIRED
 
 	/* do we have to split this CubeMap raw data apart? */
-	if (node->__regenSubTextures) {
-		/* Yes! Get the image data from the file, and split it apart */
-		loadTextureNode(X3D_NODE(node),NULL);
-	} 
+	//if (node->__regenSubTextures) {
+	//	loadTextureNode(X3D_NODE(node),NULL);
+	//} 
 	//else 
 	{
 		/* we have the 6 faces from the image, just go through and render them as a cube */
@@ -1340,15 +1348,17 @@ void generate_GeneratedCubeMapTextures(){
 
 			uhit = vector_get(usehit,gencube_stack,i);
 			node = (struct X3D_GeneratedCubeMapTexture*)uhit.node;
-			isize = node->size;
 			memcpy(modelviewmatrix,uhit.mvm,16*sizeof(double));
 			//matinverseAFFINE(modelviewmatrix,uhit.mvm);
 			//if(iframe == 50)
 			//	printf("50");
 
 			tti = getTableIndex(node->__textureTableIndex);
+
 			//set size of tile
 			if(tti->ifbobuffer == 0){
+				isize = node->size; //node->size is initializeOnly, we will ignore any change during run
+				tti->x = isize; //by storing and retrieving initial size from here
 				// https://www.opengl.org/wiki/Framebuffer_Object
 				glGenFramebuffers(1, &tti->ifbobuffer);
 				pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
@@ -1377,6 +1387,7 @@ void generate_GeneratedCubeMapTextures(){
 
 				popnset_framebuffer(tti->ifbobuffer);
 			}
+			isize = tti->x;
 			pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
 			//GLuint attachments [1] = {GL_COLOR_ATTACHMENT0};
 			//glDrawBuffers(1,attachments); //'draw' is implied in GL_RENDERBUFFER above
@@ -1385,9 +1396,6 @@ void generate_GeneratedCubeMapTextures(){
 			pushnset_viewport(vp); //something to push so we can pop-and-set below, so any mainloop GL_BACK viewport is restored
 			glViewport(0,0,isize,isize); //viewport we want 
 
-			if(isize != tti->x ){
-				//size change 
-			}
 			//create fbo or fbo tiles collection for generatedcubemap
 			//method: we draw each face to a single framebuffer texture, 
 			// and readpixels back into 6 PixelTexture tti->texdata, so its a bit like ImageCubeMap except 
@@ -1467,7 +1475,7 @@ void generate_GeneratedCubeMapTextures(){
 				ttip->channels = 4;
 				ttip->status = TEX_NEEDSBINDING;
 				if(0){
-					//write out tti as web3dit image file for diagnostic viewing
+					//write out tti as web3dit image files for diagnostic viewing, can use for BackGround node
 					//void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname)
 					if(iframe == 50){
 						char namebuf[100];
