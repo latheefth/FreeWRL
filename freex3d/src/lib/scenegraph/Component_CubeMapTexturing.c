@@ -1207,6 +1207,8 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 	node->__regenSubTextures = TRUE;
 
 	MARK_NODE_COMPILED
+	//we leave it up to shape nodes to detect if they have generatedcubemaptexture 
+	// and if so not draw themselves on VF_Cube pass
 }
 //double *get_view_matrixd();
 void get_view_matrix(double *savePosOri, double *saveView);
@@ -1290,53 +1292,8 @@ void popnset_framebuffer();
 #else
 #define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
 #endif
-int create_cubmapfbo(int isize){
-	int useMip;
-	GLint itexturebuffer,ibuffer, idepthbuffer;
 
-	glGenTextures(1, &itexturebuffer);
-		//bind to set some parameters
-		glBindTexture(GL_TEXTURE_2D, itexturebuffer);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-		useMip = 0;
-		if(useMip){
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); // automatic mipmap generation included in OpenGL v1.4
-		}else{
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-		}
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
-		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-		//unbind - will rebind during render to reset width, height as needed
-		glBindTexture(GL_TEXTURE_2D, 0); 
-
-	glGenFramebuffers(1, &ibuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
-
-	// create a renderbuffer object to store depth info
-	// NOTE: A depth renderable image should be attached the FBO for depth test.
-	// If we don't attach a depth renderable image to the FBO, then
-	// the rendering output will be corrupted because of missing depth test.
-	// If you also need stencil test for your rendering, then you must
-	// attach additional image to the stencil attachement point, too.
-	glGenRenderbuffers(1, &idepthbuffer);
-		//bind to set some parameters
-		glBindRenderbuffer(GL_RENDERBUFFER, idepthbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, FW_GL_DEPTH_COMPONENT, isize,isize);
-		//unbind
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	// attach a texture to FBO color attachement point
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, itexturebuffer, 0);
-
-	// attach a renderbuffer to depth attachment point
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, idepthbuffer);
-	//unbind framebuffer till render
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	return ibuffer;
-}
+//we'll do a different matrix rotation for each face, using sideangle struct:
 static struct {
 double angle;
 double x;
@@ -1345,11 +1302,12 @@ double z;
 } sideangle[6] = {
 { 90.0,0.0,1.0,0.0}, //+x
 {-90.0,0.0,1.0,0.0}, //-x
-{-90.0,1.0,0.0,0.0}, //+y
-{ 90.0,1.0,0.0,0.0}, //-y
+{-90.0,1.0,0.0,0.0}, //+y  weird but works
+{ 90.0,1.0,0.0,0.0}, //-y  "
 {  0.0,0.0,1.0,0.0}, //+z (lhs)
 {180.0,0.0,1.0,0.0}, //-z
 };
+
 void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
 void fw_gluPerspective_2(GLDOUBLE xcenter, GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
 void pushnset_viewport(float *vpFraction);
@@ -1420,7 +1378,7 @@ void generate_GeneratedCubeMapTextures(){
 				popnset_framebuffer(tti->ifbobuffer);
 			}
 			pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
-			GLuint attachments [1] = {GL_COLOR_ATTACHMENT0};
+			//GLuint attachments [1] = {GL_COLOR_ATTACHMENT0};
 			//glDrawBuffers(1,attachments); //'draw' is implied in GL_RENDERBUFFER above
 			//glReadBuffer(GL_COLOR_ATTACHMENT0); //'read' is implied in GL_RENDERBUFFER
 			float vp[4] = {0.0f,1.0f,0.0f,1.0f}; //arbitrary
@@ -1440,10 +1398,11 @@ void generate_GeneratedCubeMapTextures(){
 
 				nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
 				ttip = getTableIndex(nodep->__textureTableIndex);
-				//we won't directly generate cubemap textures here, but looks interesting
+				//we won't directly generate cubemap textures here, but looks interesting as possible 
+				//  shotcut to skip readpixels below
 				//glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
 				//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+j, GL_TEXTURE_2D, ttip->OpenGLTexture, 0);
-				glClearColor(1.0f,0.0f,0.0f,1.0f);
+				glClearColor(1.0f,0.0f,0.0f,1.0f); //red, for diagnostics during debugging
 				FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				//set viewpoint matrix for side

@@ -149,7 +149,14 @@ static int hasUserDefinedShader(struct X3D_Node *node) {
 	//ConsoleMessage ("hasUserDefinedShader, returning %p",*shaderTableEntry);
 	return rv;
 }
-
+int hasGeneratedCubeMapTexture(struct X3D_Appearance *appearance){
+	int ret = FALSE;
+	struct X3D_Appearance *tmpN;   
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, appearance,tmpN)
+	if(tmpN && tmpN->texture)
+		if(tmpN->texture->_nodeType == NODE_GeneratedCubeMapTexture) ret = TRUE;
+	return ret;
+}
 // Save the shader node from the render_*Shader so that we can send in parameters when required
 void setUserShaderNode(struct X3D_Node *me) {
 	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
@@ -765,7 +772,6 @@ void child_Shape (struct X3D_Shape *node) {
 		render_node(tmpNG);
 		return;
 	}
-
 	p = (ppComponent_Shape)tg->Component_Shape.prv;
 
 	/* initialization. This will get overwritten if there is a texture in an Appearance
@@ -776,6 +782,9 @@ void child_Shape (struct X3D_Shape *node) {
 	/* copy the material stuff in preparation for copying all to the shader */
 	memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 	memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
+
+	if((renderstate()->render_cube) && hasGeneratedCubeMapTexture(node->appearance))
+		return; //don't draw if this node uses a generatedcubemaptexture and its a cubemaptexture generation pass
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
