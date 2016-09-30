@@ -1237,20 +1237,24 @@ our %Nodes = (
 
 	"GeneratedCubeMapTexture" => new VRML::NodeType("GeneratedCubeMapTexture", [
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		update => ["SFString","NONE","inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		size => ["SFInt32",128,"inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
-		textureProperties => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__textureTableIndex => ["SFInt32", 0, "initializeOnly", 0],
-	],"X3DEnvironmentTextureNode"),
-
-	"ImageCubeMapTexture" => new VRML::NodeType("ImageCubeMapTexture", [
-		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		url => ["MFString",[],"inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		textureProperties => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__textureTableIndex => ["SFInt32", 0, "initializeOnly", 0],
 		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__subTextures => ["MFNode",[],"initializeOnly",0],
 		__regenSubTextures => ["SFBool","FALSE","initializeOnly",0],
+		update => ["SFString","NONE","inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		size => ["SFInt32",128,"initializeOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
+	],"X3DEnvironmentTextureNode"),
+
+	#same order of fields up to __regenSubtextures as GeneratedCubeMapTexture
+	"ImageCubeMapTexture" => new VRML::NodeType("ImageCubeMapTexture", [
+		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		textureProperties => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__textureTableIndex => ["SFInt32", 0, "initializeOnly", 0],
+		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
+		__subTextures => ["MFNode",[],"initializeOnly",0],
+		__regenSubTextures => ["SFBool","FALSE","initializeOnly",0],
+		url => ["MFString",[],"inputOutput", "(SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	],"X3DEnvironmentTextureNode"),
 
 

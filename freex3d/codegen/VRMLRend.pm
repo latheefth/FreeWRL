@@ -567,6 +567,7 @@ our %ChildC = map {($_=>1)} qw/
 our %CompileC = map {($_=>1)} qw/
 	Shape
 	ImageCubeMapTexture
+	GeneratedCubeMapTexture
 	Transform
 	Group
 	Proto

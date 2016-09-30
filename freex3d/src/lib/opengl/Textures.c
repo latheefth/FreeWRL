@@ -464,6 +464,9 @@ int getTextureTableIndexFromFromTextureNode(struct X3D_Node *node){
 	} else if (thisTextureType==NODE_ImageCubeMapTexture){
 		struct X3D_ImageCubeMapTexture* ict = (struct X3D_ImageCubeMapTexture*) node;
 		thisTexture = ict->__textureTableIndex;
+	} else if (thisTextureType==NODE_GeneratedCubeMapTexture){
+		struct X3D_GeneratedCubeMapTexture* ict = (struct X3D_GeneratedCubeMapTexture*) node;
+		thisTexture = ict->__textureTableIndex;
 	} else if (thisTextureType==NODE_PixelTexture3D){
 		struct X3D_PixelTexture3D* pt = (struct X3D_PixelTexture3D*) node;
 		thisTexture = pt->__textureTableIndex;
@@ -497,9 +500,7 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 
 	if ((it->_nodeType == NODE_ImageTexture) || (it->_nodeType == NODE_PixelTexture) ||
 		(it->_nodeType == NODE_ImageCubeMapTexture) ||
-/* JAS - still to implement 
 		(it->_nodeType == NODE_GeneratedCubeMapTexture) ||
-*/ 
 		(it->_nodeType == NODE_PixelTexture3D) ||
 		(it->_nodeType == NODE_ImageTexture3D) ||
 		(it->_nodeType == NODE_ComposedTexture3D) ||
@@ -559,20 +560,20 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 				mt->__textureTableIndex = textureNumber;
 				break; }
                 
-	/* JAS still to implement 
-			case NODE_GeneratedCubeMapTexture: {
-				struct X3D_GeneratedCubeMapTexture *v1t;
-				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
-				v1t->__textureTableIndex = textureNumber; 
-				break;
-			}
-	*/
 			case NODE_ImageCubeMapTexture: {
 				struct X3D_ImageCubeMapTexture *v1t;
 				v1t = (struct X3D_ImageCubeMapTexture *) tmp;
 				v1t->__textureTableIndex = textureNumber;
 				break;
 			}
+
+			case NODE_GeneratedCubeMapTexture: {
+				struct X3D_GeneratedCubeMapTexture *v1t;
+				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
+				v1t->__textureTableIndex = textureNumber; 
+				break;
+			}
+
 			}
 
 			/* set the scenegraphNode here */
@@ -623,18 +624,17 @@ void registerTexture0(int iaction, struct X3D_Node *tmp) {
 				mt = (struct X3D_MovieTexture *) tmp;
 				textureNumber = &mt->__textureTableIndex;
 				break; }
-                
-	/* JAS still to implement 
-			case NODE_GeneratedCubeMapTexture: {
-				struct X3D_GeneratedCubeMapTexture *v1t;
-				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
-				textureNumber = &v1t->__textureTableIndex; 
-				break; }
-	*/
+
 			case NODE_ImageCubeMapTexture: {
 				struct X3D_ImageCubeMapTexture *v1t;
 				v1t = (struct X3D_ImageCubeMapTexture *) tmp;
 				textureNumber = &v1t->__textureTableIndex;
+				break; }
+                
+			case NODE_GeneratedCubeMapTexture: {
+				struct X3D_GeneratedCubeMapTexture *v1t;
+				v1t = (struct X3D_GeneratedCubeMapTexture *) tmp;
+				textureNumber = &v1t->__textureTableIndex; 
 				break; }
 			}
 			if(textureNumber){
@@ -880,14 +880,12 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	    		releaseTexture(node); 
 		break;
 
-/* JAS - still to implement
-		case NODE_GeneratedCubeMapTexture:
+		case NODE_ImageCubeMapTexture:
 	    		releaseTexture(node); 
 		break;
 
-*/
-		case NODE_ImageCubeMapTexture:
-	    		releaseTexture(node); 
+		case NODE_GeneratedCubeMapTexture:
+	    		//releaseTexture(node); 
 		break;
 
 		case NODE_PixelTexture3D:
@@ -1273,6 +1271,9 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	} else if (me->nodeType == NODE_ImageCubeMapTexture) {
 		struct X3D_ImageCubeMapTexture *mi = (struct X3D_ImageCubeMapTexture *) me->scenegraphNode;
 		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
+	} else if (me->nodeType == NODE_GeneratedCubeMapTexture) {
+		struct X3D_GeneratedCubeMapTexture *mi = (struct X3D_GeneratedCubeMapTexture *) me->scenegraphNode;
+		tpNode = X3D_TEXTUREPROPERTIES(mi->textureProperties);
 	}
 	//texure3D faked via texture2D (in non-extended GLES2)
 	//.. needs repeats for manual wrap vs clamp, will send in 
@@ -1412,6 +1413,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	/* is this a CubeMap? If so, lets try this... */
 
 	if (getAppearanceProperties()->cubeFace != 0) {
+		//this is a single cubmap face pixeltexture tti (ie from __subTextures in ImageCubemap)
 		unsigned char *dest = me->texdata;
 		uint32 *sp, *dp;
 
@@ -1440,15 +1442,22 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		if(1){
 			//flip cubemap textures to be y-down following opengl specs table 3-19
 			//'renderman' convention
-			dest = MALLOC (unsigned char *, 4*rx*ry);
-			dp = (uint32 *) dest;
+			//stack method: row chunks at a time
+			uint32 tp[512];
+			int cy, cyy, icsize;
 			sp = (uint32 *) me->texdata;
-			//even though you talk about cx, rx, I think you're flipping in y
-			//and just lucky rx=ry.        
-			for (cx=0; cx<rx; cx++) {
-				memcpy(&dp[(rx-cx-1)*ry],&sp[cx*ry], ry*4);
+			for (cy=0; cy<ry/2; cy++) {
+				cyy = ry - cy -1;
+				for(cx=0;cx<rx;cx+=512){
+					icsize = min(512,rx-cx-1)*4;
+					memcpy(tp,&sp[cy*rx + cx],icsize);
+					memcpy(&sp[cy*rx + cx],&sp[cyy*rx + cx],icsize);
+					memcpy(&sp[cyy*rx + cx],tp,icsize);
+				}
 			}
+			//printf("__flipping__\n"); //are we in here on every frame? yes, for generatedcubemaptexture, no for other cubemaps
 		}
+		generateMipMaps = 0;
 		myTexImage2D(generateMipMaps, getAppearanceProperties()->cubeFace, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
 		/* last thing to do at the end of the setup for the 6th face */
@@ -1461,7 +1470,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	} else {
 
-		if (me->nodeType == NODE_ImageCubeMapTexture ) {
+		if (me->nodeType == NODE_ImageCubeMapTexture) {
 			if(me->z == 1){
 				/* if we have an single 2D image, ImageCubeMap, we have most likely got a png map; 
 				   ________
@@ -1486,6 +1495,10 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				unpackImageCubeMap6(me);
 				me->status = TEX_LOADED; /* finito */
 			}
+			//now the __subTextures individual face textures will show as single faces above
+		} else if(me->nodeType == NODE_GeneratedCubeMapTexture){
+			//already unpacked into 6 separate PixelTexture tti->texdata during cubemap generation
+			me->status = TEX_LOADED; /* finito */
 		} else {
 
 			/* a pointer to the tex data. We increment the pointer for movie texures */
@@ -1656,10 +1669,8 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct X3D_PixelTexture *pt;
 	struct X3D_MovieTexture *mt;
 	struct X3D_ImageCubeMapTexture *ict;
-    
-/* JAS still to implement
 	struct X3D_GeneratedCubeMapTexture *gct;
-*/
+
 	textureTableIndexStruct_s *myTableIndex;
 	//float dcol[] = {0.8f, 0.8f, 0.8f, 1.0f};
 	ppTextures p;
@@ -1685,6 +1696,9 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 		ict = (struct X3D_ImageCubeMapTexture*) node;
 		thisTexture = ict->__textureTableIndex;
 		mfurl = &ict->url;
+	} else if (thisTextureType==NODE_GeneratedCubeMapTexture){
+		gct = (struct X3D_GeneratedCubeMapTexture*) node;
+		thisTexture = gct->__textureTableIndex;
 	} else if (thisTextureType==NODE_PixelTexture3D){
 		struct X3D_PixelTexture3D *pt3d;
 		pt3d = (struct X3D_PixelTexture3D*) node;

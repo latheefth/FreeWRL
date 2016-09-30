@@ -914,7 +914,7 @@ END_NODE(FontStyle)
 /* GeneratedCubeMapTexture node */
 BEGIN_NODE(GeneratedCubeMapTexture)
 EXPOSED_FIELD(GeneratedCubeMapTexture,metadata,sfnode,metadata,FIELDTYPE_SFNode)
-EXPOSED_FIELD(GeneratedCubeMapTexture,size,sfint32,size,FIELDTYPE_SFInt32)
+FIELD(GeneratedCubeMapTexture,size,sfint32,size,FIELDTYPE_SFInt32)
 FIELD(GeneratedCubeMapTexture,textureProperties,sfnode,textureProperties,FIELDTYPE_SFNode)
 EXPOSED_FIELD(GeneratedCubeMapTexture,update,sfstring,update,FIELDTYPE_SFString)
 END_NODE(GeneratedCubeMapTexture)

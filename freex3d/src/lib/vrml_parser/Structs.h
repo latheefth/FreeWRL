@@ -1970,36 +1970,37 @@ extern const int FIELD_COUNT;
 #define FIELD_rtpHeaderExpected	69
 #define FIELD_shape	70
 #define FIELD_side	71
-#define FIELD_solid	72
-#define FIELD_sortOrder	73
-#define FIELD_spacing	74
-#define FIELD_spatialize	75
-#define FIELD_specific	76
-#define FIELD_speedFactor	77
-#define FIELD_spine	78
-#define FIELD_startAngle	79
-#define FIELD_stripCount	80
-#define FIELD_style	81
-#define FIELD_subcategory	82
-#define FIELD_surfaceArea	83
-#define FIELD_texCoordIndex	84
-#define FIELD_texCoordKey	85
-#define FIELD_texCoordRamp	86
-#define FIELD_textureProperties	87
-#define FIELD_title	88
-#define FIELD_topToBottom	89
-#define FIELD_type	90
-#define FIELD_uClosed	91
-#define FIELD_uKnot	92
-#define FIELD_vClosed	93
-#define FIELD_vKnot	94
-#define FIELD_weightFunctions1	95
-#define FIELD_weightFunctions2	96
-#define FIELD_xDimension	97
-#define FIELD_xSpacing	98
-#define FIELD_yScale	99
-#define FIELD_zDimension	100
-#define FIELD_zSpacing	101
+#define FIELD_size	72
+#define FIELD_solid	73
+#define FIELD_sortOrder	74
+#define FIELD_spacing	75
+#define FIELD_spatialize	76
+#define FIELD_specific	77
+#define FIELD_speedFactor	78
+#define FIELD_spine	79
+#define FIELD_startAngle	80
+#define FIELD_stripCount	81
+#define FIELD_style	82
+#define FIELD_subcategory	83
+#define FIELD_surfaceArea	84
+#define FIELD_texCoordIndex	85
+#define FIELD_texCoordKey	86
+#define FIELD_texCoordRamp	87
+#define FIELD_textureProperties	88
+#define FIELD_title	89
+#define FIELD_topToBottom	90
+#define FIELD_type	91
+#define FIELD_uClosed	92
+#define FIELD_uKnot	93
+#define FIELD_vClosed	94
+#define FIELD_vKnot	95
+#define FIELD_weightFunctions1	96
+#define FIELD_weightFunctions2	97
+#define FIELD_xDimension	98
+#define FIELD_xSpacing	99
+#define FIELD_yScale	100
+#define FIELD_zDimension	101
+#define FIELD_zSpacing	102
 
 
 /* Table of built-in keywords */
@@ -4550,10 +4551,13 @@ struct X3D_GeneratedCubeMapTexture {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
-	struct Uni_String *update;
-	int size;
 	struct X3D_Node *textureProperties;
 	int __textureTableIndex;
+	void * _parentResource;
+	struct Multi_Node __subTextures;
+	int __regenSubTextures;
+	struct Uni_String *update;
+	int size;
 };
 extern struct X3D_Virt virt_GeneratedCubeMapTexture;
 /***********************/
@@ -5179,12 +5183,12 @@ struct X3D_ImageCubeMapTexture {
        struct X3D_Node* _executionContext; /* scene or protoInstance */
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
-	struct Multi_String url;
 	struct X3D_Node *textureProperties;
 	int __textureTableIndex;
 	void * _parentResource;
 	struct Multi_Node __subTextures;
 	int __regenSubTextures;
+	struct Multi_String url;
 };
 extern struct X3D_Virt virt_ImageCubeMapTexture;
 /***********************/
