@@ -1496,7 +1496,7 @@ typedef struct contenttype_quadrant {
 	float offset_fraction[2];
 } contenttype_quadrant;
 void loadIdentityMatrix (double *mat);
-static void get_view_matrix(double *savePosOri, double *saveView);
+void get_view_matrix(double *savePosOri, double *saveView);
 static void set_view_matrix(double *savePosOri, double *saveView);
 
 static void set_quadrant_viewmatrix(double *savePosOri, double *saveView, int iq) {
@@ -1626,7 +1626,7 @@ typedef struct contenttype_stereo_sidebyside {
 	//in theory could put screenbase here, will get from old viewer for now
 } contenttype_stereo_sidebyside;
 void loadIdentityMatrix (double *mat);
-static void get_view_matrix(double *savePosOri, double *saveView);
+void get_view_matrix(double *savePosOri, double *saveView);
 static void set_view_matrix(double *savePosOri, double *saveView);
 void compute_sidebyside_viewport_and_fiducial(int iside, ivec4 *ivport, ivec2 *fidcenter){
 	int screenwidth2;
@@ -3186,8 +3186,17 @@ int fwl_hwnd_to_windex(void *hWnd){
 	return 0;
 }
 
-
-static void get_view_matrix(double *savePosOri, double *saveView) {
+//double *get_view_matrixd() {
+//	bindablestack *bstack;
+//	ppMainloop p;
+//	ttglobal tg = gglobal();
+//	p = (ppMainloop)tg->Mainloop.prv;
+//
+//	bstack = getActiveBindableStacks(tg);
+//	return bstack->viewtransformmatrix;
+//
+//}
+void get_view_matrix(double *savePosOri, double *saveView) {
 	//iq 2 3
 	//   0 1
 	//no comprendo - por que no veo difference.
