@@ -940,6 +940,7 @@ our %ComponentC = map {($_=>1)} qw/
 	Texturing
 	Texturing3D
 	Time
+	VolumeRendering
 /;
 
 

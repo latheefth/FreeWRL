@@ -141,7 +141,16 @@ void LoadTextures_init(struct tLoadTextures *t)
 //s_list_t* texture_request_list = NULL;
 //bool loader_waiting = false;
 
-
+enum {
+	IMAGETYPE_UNKNOWN = 0,
+	IMAGETYPE_PNG = 1,
+	IMAGETYPE_JPEG,
+	IMAGETYPE_GIF,
+	IMAGETYPE_DDS,
+	IMAGETYPE_WEB3DIT,
+	IMAGETYPE_NRRD,
+	IMAGETYPE_VOL,
+};
 static int sniffImageFileHeader(char *filename) {
 // return value:
 // 0 unknown
@@ -161,15 +170,27 @@ static int sniffImageFileHeader(char *filename) {
 	fread(header,20,1,fp);
 	fclose(fp);
 
-	iret = 0;
+	iret = IMAGETYPE_UNKNOWN;
 	if(!strncmp(&header[1],"PNG",3))
-		iret = 1;
+		iret = IMAGETYPE_PNG;
 
-	if(!strncmp(header,"ÿØÿ",3))
-		iret = 2;
+	if(!strncmp(header,"ÿØÿ",3)) //JPEG
+		iret = IMAGETYPE_JPEG;
 
 	if(!strncmp(header,"GIF",3))
-		iret = 3;
+		iret = IMAGETYPE_GIF;
+
+	if(!strncmp(header,"DDS ",4)) // MS .dds cubemap and 3d textures
+		iret = IMAGETYPE_DDS;
+
+	if(!strncmp(header,"web3dit",7)) //.web3dit dug9/freewrl invention
+		iret = IMAGETYPE_WEB3DIT;
+
+	if(!strncmp(header,"NRRD",4))  //.nrrd 3D volume texture
+		iret = IMAGETYPE_NRRD;
+
+	if(!strncmp(header,"vol",3)) //.vol 3D volume
+		iret = IMAGETYPE_VOL;
 
 	return iret;
 }
@@ -1016,6 +1037,548 @@ The endian is one of
 
 }
 
+// NRRD MIT ===========================>>>>>>>>>>>>>>
+// a mini-nrrd reader, with MIT licence
+// Oct 2, 2016: only luminance / scalar-value-per-voxel implemented, only unsigned char type tested
+//#include <endian.h> //windows doesn't have
+#define IS_LITTLE_ENDIAN (1 == *(unsigned char *)&(const int){1})   //found on internet
+int isMachineLittleEndian(){
+	//dug9: this will/should detect at runtime between big and little endian host machines
+	// which reverse byte order- but not mixed endian ie pdp endian
+	unsigned short int one = 1;
+	unsigned char *c;
+	int iret, itest;
+	c = (unsigned char *)&one;
+	iret = (c[0] == 1) ? TRUE : FALSE;
+	itest = IS_LITTLE_ENDIAN ? TRUE : FALSE;
+	if(iret != itest) printf("endian confusion\n");
+	return iret;
+}
+enum {
+NRRDFIELD_type = 1,
+NRRDFIELD_dimension,
+NRRDFIELD_sizes,
+NRRDFIELD_spacing,
+NRRDFIELD_encoding,
+NRRDFIELD_endian,
+};
+struct {
+const char *fieldname;
+int len;
+const int fieldtype;
+} nrrdfields [] = {
+{"type:",5,NRRDFIELD_type},
+{"dimension:",10,NRRDFIELD_dimension},
+{"sizes:",6,NRRDFIELD_sizes},
+{"spacings:",9,NRRDFIELD_spacing},
+{"encoding:",9,NRRDFIELD_encoding},
+{"endian:",7,NRRDFIELD_endian},
+{NULL,0,0},
+};
+enum {
+CDATATYPE_char = 1,
+CDATATYPE_uchar,
+CDATATYPE_short,
+CDATATYPE_ushort,
+CDATATYPE_int,
+CDATATYPE_uint,
+CDATATYPE_longlong,
+CDATATYPE_ulonglong,
+CDATATYPE_float,
+CDATATYPE_double,
+};
+struct {
+const char * stypes[7];
+const int itype;
+const int bsize;
+const char * fmt;
+} nrrddatatypes [] = {
+{{"signed char", "int8_t", "int8",  NULL,NULL,NULL,NULL},	CDATATYPE_char, 1, "%hh"},
+{{"uchar", "unsigned char", "uint8", "uint8_t",	NULL,NULL,NULL}, CDATATYPE_uchar, 1, "%hhu" },
+{{"short", "short int", "signed short", "signed short int", "int16", "int16_t", NULL}, CDATATYPE_short, 2, "%hd" },
+{{"ushort", "unsigned short", "unsigned short int", "uint16", "uint16_t", NULL, NULL}, CDATATYPE_ushort, 2, "%hu" },
+{{"int", "signed int", "int32", "int32_t", NULL, NULL, NULL},	CDATATYPE_int, 4, "%d"},
+{{"uint", "unsigned int", "uint32", "uint32_t", NULL, NULL, NULL}, CDATATYPE_uint, 4, "%u" },
+{{"longlong", "long long", "long long int", "signed long long", "signed long long int", "int64", "int64_t"}, CDATATYPE_longlong, 8, "%lld"},
+{{"ulonglong", "unsigned long long", "unsigned long long int", "uint64", "uint64_t", NULL, NULL}, CDATATYPE_ulonglong, 8, "%llu" },
+{{"float", NULL,NULL,NULL,NULL, NULL,NULL},CDATATYPE_float,4, "%f" },
+{{"double", NULL,NULL,NULL,NULL, NULL,NULL},CDATATYPE_double,8, "%lf"},
+{{NULL,NULL,NULL,NULL, NULL,NULL,NULL},0},
+};
+enum {
+NRRDENDIAN_LITTLE = 1,
+NRRDENDIAN_BIG,
+};
+enum {
+NRRDENCODING_RAW = 1,
+NRRDENCODING_ASCII,
+};
+int loadImage_nrrd(struct textureTableIndexStruct *tti, char *fname){
+/*
+	license on this function: MIT or equivalent
+	volume / 3D images, for VolumeRendering and Texturing3D components
+	http://teem.sourceforge.net/nrrd/format.html
+	subset implemented here: assumes luminance-only (scalar per voxel)
+	(see the kinds[] field for more general interpretation of the rows)
+	we will skip non-basic / optional fields and key/values since we aren't also writing back out in a full cycle
+	The headers are ascii, and you can type the file to the console to see the header
+C:>type brain.nrrd
+NRRD0001
+content: "MRI Brain for 3DVisualizer"
+type: unsigned char
+dimension: 3
+sizes: 512 512 230
+spacings: 1 1 0.4
+encoding: raw
+
+C:>type supine.nrrd
+NRRD0001
+content: "Torso Supine"
+type: unsigned short
+dimension: 3
+sizes: 512 512 426
+spacings: 1 1 1
+endian: little
+encoding: raw
+
+*/
+	int iret;
+	FILE *fp;
+	iret = FALSE;
+
+	fp = fopen(fname,"r+b"); //need +b for binary mode, to read over nulls
+	if (fp != NULL) {
+		unsigned long long i,j,k;
+		int ifieldtype, idatatype, kdatatype, idim, ilen, isize[3], iendian, iencoding, ifound,slen,klen, bsize;
+		float spacing[3];
+		char line [2048];
+		char cendian[256], cencoding[256];
+		char *remainder;
+		const char *fmt;
+
+		fgets(line,2047,fp);
+		if(strncmp(line,"NRRD",4)){
+			//not our type
+			fclose(fp);
+			return iret;
+		}
+
+		iendian = 0;// NRRDENDIAN_LITTLE;
+		idim = 0; //3;
+		idatatype = 0; // CDATATYPE_int;
+		isize[0] = isize[1] = isize[2] = 0;
+		spacing[0] = spacing[1] = spacing[2] = 0.0f;
+		iencoding = 0; //NRRDENCODING_RAW;
+		bsize = 1; //binary size of voxel, in bytes, for mallocing
+		kdatatype = 0; //index into nrrddatatypes array
+		//read header field, one per loop:
+		for(;;){
+			fgets(line,2047,fp);
+			i = 0;
+			ifieldtype = 0; //unknown
+			ilen = 0; //length of field string
+			if(strlen(line) < 3){
+				// '...the data (following the blank line after the header) ..'
+				break; //nrrd signals end of header with blank line ie \n' or \r\n
+			}
+
+			//see if we have a matching field from the sub-list that we care about 
+			for(;;){
+				if(!nrrdfields[i].fieldname)break;
+				if(!strncmp(line,nrrdfields[i].fieldname,nrrdfields[i].len)){
+					ifieldtype = nrrdfields[i].fieldtype;
+					ilen = nrrdfields[i].len;
+					break;
+				}
+				i++;
+			}
+			remainder = &line[ilen];
+			switch(ifieldtype){
+				case NRRDFIELD_type:
+					//find first non-blank byte where it starts ie 'unsigned short int'
+					for(i=0;i<10;i++){
+						if(remainder[0] == ' ') remainder = &remainder[1];
+						else break;
+					}
+					slen = strlen(remainder);
+					//find last non-blank, non CRLF 
+					klen = slen;
+					for(i=0;i<slen;i++){
+						char c = remainder[slen-1 -i];
+						if(c == '\n' || c == '\r' || c == ' ') klen--;
+						else break;
+					}
+					//compare known types to the full remainder string ie "unsigned short int"
+					k = 0;
+					ifound = FALSE;
+					for(;;){
+						if(nrrddatatypes[k].itype == 0) break;
+						for(j=0;j<7;j++){
+							if(nrrddatatypes[k].stypes[j]){  //some are null
+								if(!strncmp(remainder,nrrddatatypes[k].stypes[j],klen)){
+									ifound = TRUE;
+									idatatype = nrrddatatypes[k].itype;
+									kdatatype = k;
+									bsize = nrrddatatypes[k].bsize;
+									fmt = nrrddatatypes[k].fmt;
+									break; //break out of 0,7 loop
+								}
+							}
+						}
+						if(ifound) break;
+						k++;
+					}
+					break;
+				case NRRDFIELD_dimension:
+					sscanf(remainder,"%d",&idim);
+					idim = min(3,idim); //we can't use more yet ie a time-varying 3D image or separate R,G,B or X,Y,Z per voxel - just scalar per voxel
+					break;
+				case NRRDFIELD_sizes:
+					switch(idim){
+						case 1:
+							sscanf(remainder,"%d",&isize[0]);break;
+						case 2:
+							sscanf(remainder,"%d%d",&isize[0],&isize[1]);break;
+						case 3:
+							sscanf(remainder,"%d%d%d",&isize[0],&isize[1],&isize[2]);break;
+						default:
+							break;
+					}
+					break;
+				case NRRDFIELD_spacing:
+					//H: we don't need spacing
+					switch(idim){
+						case 1:
+							sscanf(remainder,"%f",&spacing[0]);break;
+						case 2:
+							sscanf(remainder,"%f%f",&spacing[0],&spacing[1]);break;
+						case 3:
+							sscanf(remainder,"%f%f%f",&spacing[0],&spacing[1],&spacing[2]);break;
+						default:
+							break;
+					}
+					break;
+				case NRRDFIELD_encoding:
+					sscanf(remainder,"%s",cencoding);
+					if(!strcmp(cencoding,"raw"))
+						iencoding = NRRDENCODING_RAW;
+					else if(!strcmp(cencoding,"ascii"))
+						iencoding = NRRDENCODING_ASCII;
+					break;
+
+					break;
+				case NRRDFIELD_endian:
+					sscanf(remainder,"%s",cendian);
+					if(!strcmp(cendian,"little"))
+						iendian = NRRDENDIAN_LITTLE;
+					else if(!strcmp(cendian,"big"))
+						iendian = NRRDENDIAN_BIG;
+					break;
+				//we may need kinds[] which say how to interpret the scalars, otherwise limited to scalar-per-voxel
+				//range field? would be helpful when compressing voxel significant bits into displayable unsigned char range
+				default:
+					//skip fields and key/value stuff we dont need or care about for our display app
+					break;	
+			}
+		}
+		if(1){
+			printf("iendian %d idatatype %d iencoding %d idim %d isizes %d %d %d bsize %d\n",
+					iendian,idatatype,iencoding,idim,isize[0],isize[1],isize[2], bsize);
+			printf("spacing %f %f %f\n",spacing[0],spacing[1],spacing[2]);
+			printf("machine endian isLittle=%d\n",isMachineLittleEndian());
+			printf("hows that?\n");
+
+		}
+		if(idim <3) isize[2] = 1;
+		if(idim <2) isize[1] = 1;
+		
+		//malloc data buffer
+		unsigned long long nvoxel = isize[0] * isize[1] * isize[2];
+		unsigned long long totalbytes = nvoxel * bsize;
+		unsigned char *data = MALLOC(unsigned char *,totalbytes);
+		memset(data,4,totalbytes);
+		unsigned char *voxel = MALLOC(unsigned char *, bsize);
+		//read data
+		if(iencoding == NRRDENCODING_RAW){
+			int dataLittleEndian;
+			size_t nelem_read, element_size = 0L;
+			element_size = bsize;
+			//for(i=0;i<nvoxel;i++){
+				nelem_read = fread(data,element_size, nvoxel,fp);
+			//}
+			printf("num elems read = %llu elemsize %ld bytes requeted = %llu %llu\n",(unsigned long long)nelem_read,(long)bsize,bsize*nvoxel,totalbytes);
+			//endian conversion
+			dataLittleEndian = iendian == NRRDENDIAN_LITTLE ? TRUE : FALSE;
+			if(isMachineLittleEndian() != dataLittleEndian){
+				//data endian doesnt match machine endian - swap unconditionally
+				for(i=0;i<nvoxel;i++){
+					char * voxel = &data[i*bsize];
+					for(j=0;j<bsize/2;j++){
+						k = bsize -1 - j;
+						char c = voxel[j];
+						voxel[j] = voxel[k];
+						voxel[k] = c;
+					}
+				}
+			}
+		}else if(iencoding == NRRDENCODING_ASCII){
+			int kvox = 0;
+			//read all slices
+			for(i=0;i<isize[2];i++){
+				//read a slice
+				for(j=0;j<isize[1];j++){
+					//read a row
+					for(k=0;k<isize[0];k++){
+						//read a voxel - unfamiliar theory/method, dont trust
+						fscanf(fp,fmt,voxel);
+						//put voxel in data
+						memcpy(&data[kvox*bsize],voxel,bsize);
+					}
+				}
+			}
+		}
+		//we have binary data in voxel datatype described in file
+		//currently (Oct 2, 2016) this function assumes scalar-per-voxel aka luminance or alpha
+
+		//find range of data so we can compress range into unsigned char range 0-255 from much bigger ints and floats
+		double dhi, dlo; 
+		//initialize range - use maxint, minint or just init to first pixel which we do here
+		voxel = &data[0];
+		switch(idatatype){
+			case CDATATYPE_char: 
+				dlo = -127.0;
+				dhi = 127.0; //or is it 128?
+			break;
+			case CDATATYPE_uchar: 
+				dlo = 0.0;
+				dhi = 255.0;
+			break;
+			case CDATATYPE_short: 
+				dlo = dhi = (double) *(short*)(voxel);
+			break;
+			case CDATATYPE_ushort: 
+				dlo = dhi = (double) *(unsigned short*)(voxel);
+				printf("initial range for ushort hi %lf lo %lf\n",dhi,dlo);
+			break;
+			case CDATATYPE_int: 
+				dlo = dhi = (double) *(long*)(voxel);
+			break;
+			case CDATATYPE_uint: 
+				dlo = dhi = (double) *(unsigned long*)(voxel);
+			break;
+			case CDATATYPE_longlong: 
+				dlo = dhi = (double) *(long long *)(voxel);
+			break;
+			case CDATATYPE_ulonglong: 
+				dlo = dhi = (double) *(unsigned long long *)(voxel);
+			break;
+			case CDATATYPE_float: 
+				dlo = dhi = (double) *(float*)(voxel);
+			break;
+			case CDATATYPE_double: 
+				dlo = dhi = *(double*)(voxel);
+			break;
+			default:
+				break;
+		}
+		//find lower and upper of range by looking at every value
+		for(i=0;i<nvoxel;i++){
+			unsigned char *voxel;
+			unsigned char A;
+			unsigned char *rgba = &tti->texdata[i*4];
+			//LUM-ALPHA with RGB=1, A= voxel scalar
+			voxel = &data[i*bsize];
+			switch(idatatype){
+				case CDATATYPE_char: 
+					dlo = min(dlo,(double)*(char*)(voxel));
+					dhi = max(dhi,(double)*(char*)(voxel));
+				break;
+				case CDATATYPE_uchar: 
+					dlo = min(dlo,(double)*(unsigned char*)(voxel));
+					dhi = max(dhi,(double)*(unsigned char*)(voxel));
+				break;
+				case CDATATYPE_short: 
+					dlo = min(dlo,(double)*(short*)(voxel));
+					dhi = max(dhi,(double)*(short*)(voxel));
+				break;
+				case CDATATYPE_ushort: 
+					dlo = min(dlo,(double)*(unsigned short*)(voxel));
+					dhi = max(dhi,(double)*(unsigned short*)(voxel));
+				break;
+				case CDATATYPE_int: 
+					dlo = min(dlo,(double)*(long*)(voxel));
+					dhi = max(dhi,(double)*(long*)(voxel));
+				break;
+				case CDATATYPE_uint: 
+					dlo = min(dlo,(double)*(unsigned long*)(voxel));
+					dhi = max(dhi,(double)*(unsigned long*)(voxel));
+				break;
+				case CDATATYPE_longlong: 
+					dlo = min(dlo,(double)*(unsigned long long*)(voxel));
+					dhi = max(dhi,(double)*(unsigned long long*)(voxel));
+				break;
+				case CDATATYPE_ulonglong: 
+					dlo = min(dlo,(double)*(unsigned long*)(voxel));
+					dhi = max(dhi,(double)*(unsigned long*)(voxel));
+				break;
+				case CDATATYPE_float: 
+					dlo = min(dlo,(double)*(float*)(voxel));
+					dhi = max(dhi,(double)*(float*)(voxel));
+				break;
+				case CDATATYPE_double: 
+					dlo = min(dlo,(double)*(float*)(voxel));
+					dhi = max(dhi,(double)*(float*)(voxel));
+				break;
+				default:
+					break;
+			}
+		}
+		double d255range = 255.0/(dhi - dlo); 
+		if(1) printf("nrrd image voxel range hi %lf lo %lf 255range scale factor %lf\n",dhi,dlo,d255range);
+		//now convert to display usable data type which currently is RGBA
+		tti->texdata = MALLOC(unsigned char *,nvoxel * 4); //4 for RGBA
+		tti->channels = 2; //1=lum 2=lum-alpha 3=rgb 4=rgba //doing 2-channel allows modulation of material color
+		tti->hasAlpha = TRUE;
+		tti->x = isize[0];
+		tti->y = isize[1];
+		tti->z = isize[2];
+		int counts[256]; //histogram
+		memset(counts,0,256*sizeof(int));
+		for(i=0;i<nvoxel;i++){
+			unsigned char *voxel;
+			unsigned char A;
+			unsigned char *rgba = &tti->texdata[i*4];
+			//LUM-ALPHA with RGB=1, A= voxel scalar
+			voxel = &data[i*bsize];
+			if(0){
+				//no range-scale method - might be needed for experiments
+				switch(idatatype){
+					case CDATATYPE_char: 
+						A = (char)(voxel[0]) + 127; //convert from signed char to unsigned
+					break;
+					case CDATATYPE_uchar: 
+						A = voxel[0];
+					break;
+					case CDATATYPE_short: 
+						A = (unsigned char) ((*(short *)voxel) / 255) + 127; //scale into uchar range, assumes short range is fully used
+					break;
+					case CDATATYPE_ushort: 
+						{
+						static unsigned short lastushort = 1;
+						unsigned short thisushort;
+						memcpy(&thisushort,voxel,bsize);
+						//thisushort = *(unsigned short*)voxel;
+						//A = (unsigned char) ((*(unsigned short *)voxel) / 255); //scale into uchar range, "
+						//A = (*(unsigned short *)voxel) >> 8;
+						//A = ((*(unsigned short *)voxel) << 8) >> 8;
+						//A = (unsigned char) abs(*(unsigned short *)voxel)/256;
+						thisushort /= 256;
+						//if(thisushort != lastushort)
+						//	printf("%d ", (int)thisushort);
+						counts[thisushort]++;
+						lastushort = thisushort;
+						A = (unsigned char) thisushort;
+						}
+					break;
+					case CDATATYPE_int: 
+						A = (unsigned char)((*((long *)voxel))/65536/255 + 127);
+					break;
+					case CDATATYPE_uint: 
+						A = (unsigned char) ((*((unsigned long *)voxel))/65536/255);
+					break;
+					case CDATATYPE_longlong: 
+						A = (unsigned char) ((*((long long *)voxel))/65536/65536/255 + 127);
+					break;
+					case CDATATYPE_ulonglong: 
+						A = (unsigned char) ((*((unsigned long long *)voxel))/65536/65536/255);
+					break;
+					//case CDATATYPE_float: 
+					//	A = (unsigned char) ((int)((*((float *)voxel))/range + range/2.0f) + 127) ;
+					//break;
+					//case CDATATYPE_double: 
+					//	A = (unsigned char) ((int)((*((double *)voxel))/range + range/2.0f) + 127) ;
+					//break;
+					default:
+						break;
+				}
+			} else {
+				//range scaling method
+				double dtemp, dtemp2;
+				unsigned int lutemp;
+				unsigned short utemp;
+				unsigned char uctemp;
+
+				switch(idatatype){
+					case CDATATYPE_char: 
+						A = (char)(voxel[0]) + 127; //convert from signed char to unsigned
+					break;
+					case CDATATYPE_uchar: 
+						A = voxel[0];
+					break;
+					case CDATATYPE_short: 
+						dtemp = (double)(*(short *)voxel);
+						A = (unsigned char)(unsigned short)(unsigned int)((dtemp - dlo)*d255range);
+					break;
+					case CDATATYPE_ushort: 
+						dtemp = (double)(*(unsigned short *)voxel);
+						//dtemp2 = (dtemp - dlo)*d255range;
+						//lutemp = (unsigned int)dtemp2;
+						//utemp = (unsigned short)lutemp;
+						//uctemp = (unsigned char)utemp;
+						//A = uctemp;
+						//tip: get it into 0-255 range while still double, then cast to uchar
+						A = (unsigned char)(unsigned short)(unsigned int)((dtemp - dlo)*d255range);
+						//A = (unsigned char)(unsigned short)(unsigned int)dtemp2;
+						//printf("[%lf %lu %u %d]  ",dtemp2,lutemp,utemp,(int)uctemp);
+					break;
+					case CDATATYPE_int: 
+						dtemp = (double)(*(long *)voxel);
+						A = (unsigned char)(unsigned short)(unsigned int)((dtemp - dlo)*d255range);
+					break;
+					case CDATATYPE_uint: 
+						dtemp = (double)(*(unsigned long *)voxel);
+						A = (unsigned char)(unsigned short)(unsigned int)((dtemp - dlo)*d255range);
+					break;
+					case CDATATYPE_longlong: 
+						dtemp = (double)(*(long long *)voxel);
+						A = (unsigned char)(unsigned short)(unsigned int)((dtemp - dlo)*d255range);
+					break;
+					case CDATATYPE_ulonglong: 
+						dtemp = (double)(*(unsigned long long *)voxel);
+						A = (unsigned char)(unsigned short)(unsigned int)((dtemp - dlo)*d255range);
+					break;
+					case CDATATYPE_float: 
+						dtemp = (double)(*(float *)voxel);
+						A = (unsigned char)(unsigned short)(unsigned int)((dtemp - dlo)*d255range);
+					break;
+					case CDATATYPE_double: 
+						dtemp = (double)(*(double *)voxel);
+						A = (unsigned char)(unsigned short)(unsigned int)((dtemp - dlo)*d255range);
+					break;
+					default:
+						break;
+				}
+				counts[(int)A]++; //histogram accumulation
+
+
+			}
+			//this displays nice in texturing3D as 'white bones x-ray'
+			rgba[0] = 255;
+			rgba[1] = 255;
+			rgba[2] = 255;
+			rgba[3] = A;
+		}
+		//print histogram to console
+		if(0) for(i=0;i<256;i++)
+			if(counts[i] != 0) 
+				printf("counts[%ld]=%ld\n",(long)i,(long)counts[i]);
+		FREE_IF_NZ(data); //free the raw data we malloced, now that we have rgba, unless we plan to do more processing on scalar values later.
+	}
+	return TRUE;
+
+}
+//<<< NRRD MIT ================================
+
 
 #if defined(_ANDROID) || defined(ANDROIDNDK)
 // sometimes (usually?) we have to flip an image vertically. 
@@ -1754,20 +2317,51 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 /* Android, put it here... */
 	
 #if defined(ANDROIDNDK)
+	int imtype, ret;
 	char * fname = STRDUP(filename);
-	//if (loadImage3D_x3di3d(this_tex, fname))
-	//	return TRUE;
-	if(loadImage_web3dit(this_tex,fname)){
-		return TRUE;
-	}
-	if (loadImage3DVol(this_tex, fname))
-		return TRUE;
-	if (textureIsDDS(this_tex, fname)) {
-		//saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //good for testing round trip
-		return TRUE;
+	imtype = sniffImageFileHeader(fname);
+
+	ret = FALSE;
+	switch(imtype){
+		case IMAGETYPE_PNG:
+			#ifdef HAVE_LIBPNG_H
+			ret = loadImageTexture_png(this_tex, filename);
+			#endif
+			break;
+		case IMAGETYPE_JPEG:
+			#ifdef HAVE_LIBJPEG_H
+			ret = loadImageTexture_jpeg(this_tex, filename);
+			#endif
+			break;
+		case IMAGETYPE_GIF:
+			#ifdef HAVE_LIBGIF_H
+			loadImageTexture_gif(this_tex, filename);
+			#endif
+			break;
+		case IMAGETYPE_DDS:
+			ret = textureIsDDS(this_tex, fname); break;
+		case IMAGETYPE_WEB3DIT:
+			ret = loadImage_web3dit(this_tex,fname); break;
+		case IMAGETYPE_NRRD:
+			ret = loadImage_nrrd(this_tex,fname); break;
+		case IMAGETYPE_VOL:
+			ret = loadImage3DVol(this_tex, fname); break;
+		case IMAGETYPE_UNKNOWN:
+		default:
+			ret = FALSE;
 	}
 
-	__reallyloadImageTexture(this_tex, filename);
+	//if(loadImage_web3dit(this_tex,fname)){
+	//	return TRUE;
+	//}
+	//if (loadImage3DVol(this_tex, fname))
+	//	return TRUE;
+	//if (textureIsDDS(this_tex, fname)) {
+	//	//saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //good for testing round trip
+	//	return TRUE;
+	//}
+
+	//__reallyloadImageTexture(this_tex, filename);
 
 	/*
 	// if we got null for data, lets assume that there was not a file there
@@ -1835,67 +2429,43 @@ ConsoleMessage(me);}
 /* WINDOWS */
 #if defined (_MSC_VER) 
 	char *fname;
-	int ret;
+	int ret, imtype;
 
 	fname = STRDUP(filename);
-	//if(loadImage3D_x3di3d(this_tex, fname)){
-	// //works but superceded by more general web3dit format
-	//	return TRUE;
-	//}
-	if(loadImage_web3dit(this_tex,fname)){
-		return TRUE;
-	}
-	if(loadImage3DVol(this_tex, fname)){
-		return TRUE;
-	}
-	if(textureIsDDS(this_tex, fname)){
-		////saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //obsolete/superceded now with more advanced web3dit
-		//saveImage_web3dit(this_tex, "temp2.web3dit"); //good for testing round trip
-		return TRUE;
+	imtype = sniffImageFileHeader(fname);
+
+	ret = FALSE;
+	switch(imtype){
+		case IMAGETYPE_PNG:
+		case IMAGETYPE_JPEG:
+		case IMAGETYPE_GIF:
+			ret = loadImage(this_tex, fname); 
+			#ifndef GL_ES_VERSION_2_0
+			texture_swap_B_R(this_tex); //just for windows desktop gdiplusimage loading
+			#endif
+			{
+				int nchan;
+				if(imtype == IMAGETYPE_JPEG){
+					nchan = 3; //jpeg always rgb, no alpha
+				}else{
+					nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
+				}
+				if(nchan > -1) this_tex->channels = nchan;
+			}
+			break;
+		case IMAGETYPE_DDS:
+			ret = textureIsDDS(this_tex, fname); break;
+		case IMAGETYPE_WEB3DIT:
+			ret = loadImage_web3dit(this_tex,fname); break;
+		case IMAGETYPE_NRRD:
+			ret = loadImage_nrrd(this_tex,fname); break;
+		case IMAGETYPE_VOL:
+			ret = loadImage3DVol(this_tex, fname); break;
+		case IMAGETYPE_UNKNOWN:
+		default:
+			ret = FALSE;
 	}
 
-	//gdiplus image loader on desktop, wicimageloader on uwp
-	ret = loadImage(this_tex, fname); // BGRA in src_windows/gdiplusimageloader.cpp
-#ifndef GL_ES_VERSION_2_0
-	texture_swap_B_R(this_tex); //just for windows desktop gdiplusimage loading
-#endif
-    if (!ret) {
-		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", fname);
-	}else{
-#ifdef GL_ES_VERSION_2_0
-		if(0){
-			//swap red and blue // BGRA - converts back from BGRA to RGBA because no GL_BGRA defined for ANGLE in textures.c 
-			//search for GL_RGBA in textures.c
-			int x,y,i,j,k,m;
-			unsigned char R,B,*data;
-			x = this_tex->x;
-			y = this_tex->y;
-			data = this_tex->texdata;
-			for(i=0,k=0;i<y;i++)
-			{
-				for(j=0;j<x;j++,k++)
-				{
-					m=k*4;
-					R = data[m];
-					B = data[m+2];
-					data[m] = B;
-					data[m+2] = R;
-				}
-			}
-		}
-#endif
-	}
-	{
-		int nchan, imtype;
-		imtype = sniffImageFileHeader(filename);
-		if(imtype == 2){
-			nchan = 3; //jpeg always rgb, no alpha
-		}else{
-			nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
-		}
-		//nchan = sniffImageChannels(fname);
-		if(nchan > -1) this_tex->channels = nchan;
-	}
 	FREE(fname);
 	return (ret != 0);
 
@@ -1908,73 +2478,90 @@ ConsoleMessage(me);}
 #if !defined (_MSC_VER) && !defined(_ANDROID) && !defined(ANDROIDNDK)
 	Imlib_Image image;
 	Imlib_Load_Error error_return;
-	if(loadImage_web3dit(this_tex,filename)){
-		return TRUE;
+	char *fname;
+	int ret, imtype;
+
+	fname = STRDUP(filename);
+	imtype = sniffImageFileHeader(fname);
+	ret = FALSE;
+
+	switch(imtype){
+		case IMAGETYPE_DDS:
+			ret = textureIsDDS(this_tex, fname); break;
+		case IMAGETYPE_WEB3DIT:
+			ret = loadImage_web3dit(this_tex,fname); break;
+		case IMAGETYPE_NRRD:
+			ret = loadImage_nrrd(this_tex,fname); break;
+		case IMAGETYPE_VOL:
+			ret = loadImage3DVol(this_tex, fname); break;
+		case IMAGETYPE_PNG:
+		case IMAGETYPE_JPEG:
+		case IMAGETYPE_GIF:
+		case IMAGETYPE_UNKNOWN:
+		default:
+			ret = FALSE;
+			//image = imlib_load_image_immediately(filename);
+			//image = imlib_load_image(filename);
+			image = imlib_load_image_with_error_return(filename,&error_return);
+
+			if (!image) {
+				char *es = NULL;
+				switch(error_return){
+					case IMLIB_LOAD_ERROR_NONE: es = "IMLIB_LOAD_ERROR_NONE";break;
+					case IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST: es = "IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST";break;
+					case IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY: es = "IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY";break;
+					case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ: es = "IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ";break;
+					case IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT: es = "IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT";break;
+					case IMLIB_LOAD_ERROR_PATH_TOO_LONG: es = "IMLIB_LOAD_ERROR_PATH_TOO_LONG";break;
+					case IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT: es = "IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT";break;
+					case IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY: es = "IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY";break;
+					case IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE: es = "IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE";break;
+					case IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS: es = "IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS";break;
+					case IMLIB_LOAD_ERROR_OUT_OF_MEMORY: es = "IMLIB_LOAD_ERROR_OUT_OF_MEMORY";break;
+					case IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS: es = "IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS";break;
+					case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE: es = "IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE";break;
+					case IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE: es = "IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE";break;
+					case IMLIB_LOAD_ERROR_UNKNOWN:
+					default:
+					es = "IMLIB_LOAD_ERROR_UNKNOWN";break;
+				}
+				ERROR_MSG("imlib load error = %d %s\n",error_return,es);
+				ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
+				return FALSE;
+			}
+			DEBUG_TEX("load_texture_from_file: Imlib2 succeeded to load image: %s\n", filename);
+
+			imlib_context_set_image(image);
+			imlib_image_flip_vertical(); /* FIXME: do we really need this ? */
+
+			/* store actual filename, status, ... */
+			this_tex->filename = filename;
+			this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
+			this_tex->channels = this_tex->hasAlpha ? 4 : 3;
+			this_tex->frames = 1;
+			this_tex->x = imlib_image_get_width();
+			this_tex->y = imlib_image_get_height();
+
+			this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
+			{
+				int nchan, imtype;
+				if(imtype == IMAGETYPE_JPEG)
+					nchan = 3; //jpeg always rgb, no alpha
+				else
+					nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
+				//nchan = sniffImageChannels(fname);
+				if(nchan > -1) this_tex->channels = nchan;
+			}
+			//(Sept 5, 2016 change) assuming imlib gives BGRA:
+			texture_swap_B_R(this_tex); 
+			//this_tex->data should now be RGBA. (if not comment above line)
+			break;
 	}
-	if (loadImage3DVol(this_tex, filename))
-		return TRUE;
-	if (textureIsDDS(this_tex, filename)) {
-		//saveImage3D_x3di3d(this_tex,"temp2.x3di3d"); //good for testing round trip
-		return TRUE;
-	}
 
-	//image = imlib_load_image_immediately(filename);
-	//image = imlib_load_image(filename);
-	image = imlib_load_image_with_error_return(filename,&error_return);
+	FREE(fname);
+	return (ret != 0);
 
-	if (!image) {
-		char *es = NULL;
-		switch(error_return){
-			case IMLIB_LOAD_ERROR_NONE: es = "IMLIB_LOAD_ERROR_NONE";break;
-			case IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST: es = "IMLIB_LOAD_ERROR_FILE_DOES_NOT_EXIST";break;
-			case IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY: es = "IMLIB_LOAD_ERROR_FILE_IS_DIRECTORY";break;
-			case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ: es = "IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_READ";break;
-			case IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT: es = "IMLIB_LOAD_ERROR_NO_LOADER_FOR_FILE_FORMAT";break;
-			case IMLIB_LOAD_ERROR_PATH_TOO_LONG: es = "IMLIB_LOAD_ERROR_PATH_TOO_LONG";break;
-			case IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT: es = "IMLIB_LOAD_ERROR_PATH_COMPONENT_NON_EXISTANT";break;
-			case IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY: es = "IMLIB_LOAD_ERROR_PATH_COMPONENT_NOT_DIRECTORY";break;
-			case IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE: es = "IMLIB_LOAD_ERROR_PATH_POINTS_OUTSIDE_ADDRESS_SPACE";break;
-			case IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS: es = "IMLIB_LOAD_ERROR_TOO_MANY_SYMBOLIC_LINKS";break;
-			case IMLIB_LOAD_ERROR_OUT_OF_MEMORY: es = "IMLIB_LOAD_ERROR_OUT_OF_MEMORY";break;
-			case IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS: es = "IMLIB_LOAD_ERROR_OUT_OF_FILE_DESCRIPTORS";break;
-			case IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE: es = "IMLIB_LOAD_ERROR_PERMISSION_DENIED_TO_WRITE";break;
-			case IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE: es = "IMLIB_LOAD_ERROR_OUT_OF_DISK_SPACE";break;
-			case IMLIB_LOAD_ERROR_UNKNOWN:
-			default:
-			es = "IMLIB_LOAD_ERROR_UNKNOWN";break;
-		}
-		ERROR_MSG("imlib load error = %d %s\n",error_return,es);
-		ERROR_MSG("load_texture_from_file: failed to load image: %s\n", filename);
-		return FALSE;
-	}
-	DEBUG_TEX("load_texture_from_file: Imlib2 succeeded to load image: %s\n", filename);
 
-	imlib_context_set_image(image);
-	imlib_image_flip_vertical(); /* FIXME: do we really need this ? */
-
-	/* store actual filename, status, ... */
-	this_tex->filename = filename;
-	this_tex->hasAlpha = (imlib_image_has_alpha() == 1);
-	this_tex->channels = this_tex->hasAlpha ? 4 : 3;
-	this_tex->frames = 1;
-	this_tex->x = imlib_image_get_width();
-	this_tex->y = imlib_image_get_height();
-
-	this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
-	{
-		int nchan, imtype;
-		imtype = sniffImageFileHeader(filename);
-		if(imtype == 2)
-			nchan = 3; //jpeg always rgb, no alpha
-		else
-			nchan = sniffImageChannels_bruteForce(this_tex->texdata, this_tex->x, this_tex->y); 
-		//nchan = sniffImageChannels(fname);
-		if(nchan > -1) this_tex->channels = nchan;
-	}
-	//(Sept 5, 2016 change) assuming imlib gives BGRA:
-	texture_swap_B_R(this_tex); 
-	//this_tex->data should now be RGBA. (if not comment above line)
-	return TRUE;
 #endif
 
 // OLD_IPHONE_AQUA /* OSX */
