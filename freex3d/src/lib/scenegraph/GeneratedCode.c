@@ -1752,6 +1752,7 @@ const char *COMPONENTS[] = {
 	"Texturing",
 	"Texturing3D",
 	"Time",
+	"VolumeRendering",
 };
 const int COMPONENTS_COUNT = ARR_SIZE(COMPONENTS);
 

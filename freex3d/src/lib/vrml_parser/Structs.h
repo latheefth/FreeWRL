@@ -2085,6 +2085,7 @@ extern const int COMPONENTS_COUNT;
 #define COM_Texturing	31
 #define COM_Texturing3D	32
 #define COM_Time	33
+#define COM_VolumeRendering	34
 
 const char *stringComponentType(int st);
 

@@ -74,6 +74,7 @@ static const int capabilities[] = {
 	COM_Networking,	3, 		/* May 12, 2009 */
 	COM_ParticleSystems,	0, 	/* May 12, 2009 */
 	COM_Sound,	1, 		/* May 12, 2009 */
+	COM_VolumeRendering,  1, /* Oct 1, 2016 */
 	INT_ID_UNDEFINED, 	INT_ID_UNDEFINED,
 };
 
