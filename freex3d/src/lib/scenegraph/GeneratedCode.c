@@ -3110,7 +3110,9 @@ struct X3D_Virt virt_Viewport = { (void *)prep_Viewport,NULL,(void *)child_Viewp
 void other_VisibilitySensor(struct X3D_VisibilitySensor *);
 struct X3D_Virt virt_VisibilitySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)other_VisibilitySensor,NULL,NULL};
 
-struct X3D_Virt virt_VolumeData = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void child_VolumeData(struct X3D_VolumeData *);
+void compile_VolumeData(struct X3D_VolumeData *);
+struct X3D_Virt virt_VolumeData = { NULL,NULL,(void *)child_VolumeData,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_VolumeData};
 
 struct X3D_Virt virt_VolumePickSensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
