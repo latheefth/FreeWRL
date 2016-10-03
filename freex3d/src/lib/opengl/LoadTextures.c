@@ -1141,6 +1141,15 @@ spacings: 1 1 1
 endian: little
 encoding: raw
 
+a few sample images have degenerate first dimension
+NRRD0001
+type: unsigned char
+dimension: 4
+sizes: 1 256 256 124
+spacings:  NaN 0.01 0.01 0.01
+encoding: raw
+
+
 */
 	int iret;
 	FILE *fp;
@@ -1149,8 +1158,8 @@ encoding: raw
 	fp = fopen(fname,"r+b"); //need +b for binary mode, to read over nulls
 	if (fp != NULL) {
 		unsigned long long i,j,k;
-		int ifieldtype, idatatype, kdatatype, idim, ilen, isize[3], iendian, iencoding, ifound,slen,klen, bsize;
-		float spacing[3];
+		int ifieldtype, idatatype, kdatatype, idim, ilen, isize[4], iendian, iencoding, ifound,slen,klen, bsize;
+		//float spacing[4];
 		char line [2048];
 		char cendian[256], cencoding[256];
 		char *remainder;
@@ -1166,8 +1175,8 @@ encoding: raw
 		iendian = 0;// NRRDENDIAN_LITTLE;
 		idim = 0; //3;
 		idatatype = 0; // CDATATYPE_int;
-		isize[0] = isize[1] = isize[2] = 0;
-		spacing[0] = spacing[1] = spacing[2] = 0.0f;
+		isize[0] = isize[1] = isize[2] = isize[3] = 0;
+		//spacing[0] = spacing[1] = spacing[2] = spacing[3] = 0.0f;
 		iencoding = 0; //NRRDENCODING_RAW;
 		bsize = 1; //binary size of voxel, in bytes, for mallocing
 		kdatatype = 0; //index into nrrddatatypes array
@@ -1231,7 +1240,7 @@ encoding: raw
 					break;
 				case NRRDFIELD_dimension:
 					sscanf(remainder,"%d",&idim);
-					idim = min(3,idim); //we can't use more yet ie a time-varying 3D image or separate R,G,B or X,Y,Z per voxel - just scalar per voxel
+					idim = min(4,idim); //we can't use more yet ie a time-varying 3D image or separate R,G,B or X,Y,Z per voxel - just scalar per voxel
 					break;
 				case NRRDFIELD_sizes:
 					switch(idim){
@@ -1241,23 +1250,27 @@ encoding: raw
 							sscanf(remainder,"%d%d",&isize[0],&isize[1]);break;
 						case 3:
 							sscanf(remainder,"%d%d%d",&isize[0],&isize[1],&isize[2]);break;
+						case 4:
+							sscanf(remainder,"%d%d%d%d",&isize[0],&isize[1],&isize[2],&isize[3]);break;
 						default:
 							break;
 					}
 					break;
-				case NRRDFIELD_spacing:
-					//H: we don't need spacing
-					switch(idim){
-						case 1:
-							sscanf(remainder,"%f",&spacing[0]);break;
-						case 2:
-							sscanf(remainder,"%f%f",&spacing[0],&spacing[1]);break;
-						case 3:
-							sscanf(remainder,"%f%f%f",&spacing[0],&spacing[1],&spacing[2]);break;
-						default:
-							break;
-					}
-					break;
+				//case NRRDFIELD_spacing:
+				//	//H: we don't need spacing
+				//	switch(idim){
+				//		case 1:
+				//			sscanf(remainder,"%f",&spacing[0]);break;
+				//		case 2:
+				//			sscanf(remainder,"%f%f",&spacing[0],&spacing[1]);break;
+				//		case 3:
+				//			sscanf(remainder,"%f%f%f",&spacing[0],&spacing[1],&spacing[2]);break;
+				//		case 4:
+				//			sscanf(remainder,"%f%f%f%f",&spacing[0],&spacing[1],&spacing[2],&spacing[3]);break;
+				//		default:
+				//			break;
+				//	}
+				//	break;
 				case NRRDFIELD_encoding:
 					sscanf(remainder,"%s",cencoding);
 					if(!strcmp(cencoding,"raw"))
@@ -1282,15 +1295,27 @@ encoding: raw
 			}
 		}
 		if(1){
-			printf("iendian %d idatatype %d iencoding %d idim %d isizes %d %d %d bsize %d\n",
-					iendian,idatatype,iencoding,idim,isize[0],isize[1],isize[2], bsize);
-			printf("spacing %f %f %f\n",spacing[0],spacing[1],spacing[2]);
+			printf("iendian %d idatatype %d iencoding %d idim %d isizes %d %d %d %d bsize %d\n",
+					iendian,idatatype,iencoding,idim,isize[0],isize[1],isize[2],isize[3], bsize);
+			//printf("spacing %f %f %f %f\n",spacing[0],spacing[1],spacing[2],spacing[3]);
 			printf("machine endian isLittle=%d\n",isMachineLittleEndian());
 			printf("hows that?\n");
 
 		}
+		//clean up dimensions
+		if(isize[0] == 1){
+			//remove degenerate dimension, found in some images
+			for(i=0;i<idim-1;i++){
+				isize[i] = isize[i+1];
+				//spacing[i] = spacing[i+1];
+			}
+			idim--;
+		}
 		if(idim <3) isize[2] = 1;
 		if(idim <2) isize[1] = 1;
+		if(idim >3) {
+			idim = 3; //as of oct 3, 2016 we just do scalar / iso-value 3D images, not color, not time-series, not xyz
+		}
 		
 		//malloc data buffer
 		unsigned long long nvoxel = isize[0] * isize[1] * isize[2];

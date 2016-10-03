@@ -555,6 +555,7 @@ our %ChildC = map {($_=>1)} qw/
 	LayoutLayer	
 	CollidableOffset
 	CollidableShape
+	VolumeData
 /;
 
 
@@ -667,7 +668,7 @@ our %CompileC = map {($_=>1)} qw/
 	
 	CollidableOffset
 	CollidableShape
-	
+	VolumeData
 /;
 
 

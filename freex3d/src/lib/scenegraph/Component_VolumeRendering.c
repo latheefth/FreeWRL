@@ -44,15 +44,18 @@ X3D Volume Rendering Component
 /*
 Volumee Rendering aka voxels
 http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html
+- VolumeData is like shape node with its own equivalents to appearance, geometry
+- Style nodes - like appearance, except sometimes composable
+
 
 Before starting to implement this there are a few other nodes and components that might be needed:
-- clipPlane - besides transparent voxels, you may want to slice a volumetric image with a clipplane to look inside
+- clipPlane - besides transparent voxels, you may want to slice a volumetric image with a clipplane to look inside IMPLEMENTED SEPT 2016
 - we have TextureProperties to get the RST
 - Texturing3D component > for 3D image file format reading: 
 	http://paulbourke.net/dataformats/volumetric/
 	- Simplest 3d texture file, if you are writing your own
 	http://www.web3d.org/x3d/content/examples/Basic/VolumeRendering/
-	- these examples use nrrd format, not much harder
+	- these examples use nrrd format, not much harder IMPLEMENTED Oct 2, 2016
 Links:
 	http://http.developer.nvidia.com/GPUGems/gpugems_ch39.html
 	- GpuGems online, ideas about volume rendering
@@ -61,8 +64,6 @@ Links:
 	http://castle-engine.sourceforge.net/compositing_shaders.php
 	- in the "Compositing Shaders in X3D" .pdf, page 9 mentions volume nodes
 	- the VolumeRendering Component has 10 style nodes, and Kambu is suggesting his Plug/hook method
-	http://graphicsrunner.blogspot.ca/2009/01/volume-rendering-101.html
-	- shows 'volume raycasting' method, shader (directx) and results
 	http://cs.iupui.edu/~tuceryan/research/Microscopy/vis98.pdf
 	- paper: "Image-Based Transfer Function Design for Data Exploration in Volume Visualization"
 		pain: hard to stay organized with general functions in volume data
@@ -79,10 +80,31 @@ Links:
 	- Uses teem
 	http://teem.sourceforge.net/mite/opts.html
 	- teem > Mite - has some transfer tables
+	http://graphicsrunner.blogspot.ca/2009/01/volume-rendering-101.html
+	- shows 'volume raycasting' method, shader (directx) and results
 	http://prideout.net/blog/?tag=volume-rendering
 	- shows volume raycasting shader example
+	https://www.opengl.org/discussion_boards/showthread.php/174814-Save-vertices-to-texture-problem
+	- xyz texture preparation, related to volume raycasting shader technique
 	http://http.developer.nvidia.com/GPUGems3/gpugems3_ch30.html
 	- see 30.3.1 Volume Rendering for raymarching nuances
 
 
 */
+
+
+
+
+void compile_VolumeData(struct X3D_VolumeData *node){
+	printf("compile_volumedata not implemented\n");
+	MARK_NODE_COMPILED
+}
+
+void child_VolumeData(struct X3D_VolumeData *node){
+	static int once = 0;
+	COMPILE_IF_REQUIRED
+
+	if(!once)
+		printf("child volumedata not implemented yet\n");
+	once = 1;
+}
