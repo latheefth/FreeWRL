@@ -125,12 +125,13 @@ void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 		printf("child segmentedvolumedata not implemented yet\n");
 	once = 1;
 }
-
+//6 faces x 2 triangles per face x 3 vertices per triangle x 3 scalars (xyz) per vertex = 6 x 2 x 3 x 3 = 108
+GLfloat box [108] = {1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, };
 void compile_VolumeData(struct X3D_VolumeData *node){
 	printf("compile_volumedata not implemented\n");
 	MARK_NODE_COMPILED
 }
-#define SHADERFLAGS_BASIC_VOLUME 0x01
+void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
 void child_VolumeData(struct X3D_VolumeData *node){
 	static int once = 0;
 	COMPILE_IF_REQUIRED
@@ -139,11 +140,66 @@ void child_VolumeData(struct X3D_VolumeData *node){
 	if(!once)
 		printf("child volumedata not implemented yet\n");
 	once = 1;
-	if(1){
-		shaderflagsstruct shaderflags;
-		memset(&shaderflags,0,sizeof(shaderflagsstruct));
-		shaderflags.volume = SHADERFLAGS_BASIC_VOLUME;
-		enableGlobalShader(getMyShaders(shaderflags));
+	if(node->renderStyle == NULL){
+		shaderflagsstruct shaderflags, shader_requirements;
+		memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+		//shaderflags = getShaderFlags();
+		shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
+
+		//render 
+		//Step 1: 
+		//Step 2: get rays to cast: start point and direction vector for each ray to cast
+		if(1){
+			shaderflagsstruct trickflags;
+			s_shader_capabilities_t *caps;
+			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+			memset(&trickflags,0,sizeof(shaderflagsstruct));
+			trickflags.volume = SHADERFLAGS_VOLUME_BASIC;
+			//method A: get per-ray direction vector by subtracting 2 rendered xyz images (near and far) of bounding box
+
+			//A.0 set xyz shaderflag
+			trickflags.volume |= SHADERFLAGS_VOLUME_XYZ;
+			caps = getMyShaders(trickflags);
+			enableGlobalShader(caps);
+			//A.0 set box with vol.dimensions with triangles
+			//sendAttribToGPU(FW_VERTEX_POINTER_TYPE, 3, GL_FLOAT, GL_FALSE,0, box,0,__FILE__,__LINE__);
+			GLint myProg =  caps->myShaderProgram;
+			GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+			GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
+			GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
+			sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+			glEnableVertexAttribArray(Vertices);
+			glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, box);
+
+			//GLuint  = GET_UNIFORM(myProg,"fw_BackMaterial.emission");
+			//A.2 render front faces to front texture target (normal rendering)
+			//renderbox
+			if(0)
+				glDrawArrays(GL_TRIANGLES,0,36); //12);
+
+			//A.3 render back faces to back texture target (cull counter-clockwise triangles as seen from viewpoint)
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+			//glFrontFace(GL_CW); //Android ndk, uwp/angle has this
+			//render box
+			if(1)
+				glDrawArrays(GL_TRIANGLES,0,36);
+
+			//glFrontFace(GL_CCW);
+			glCullFace(GL_BACK);
+			glDisable(GL_CULL_FACE);
+			//A.4 subtract front from back - can do in shader
+		
+		}else{
+			//method B: use cpu math to compute start and direction textures or front and back textures
+		}
+
+		//Step 3: accumulate along rays and render opacity fragment in one step
+		//shader_requirements.base = shaderflags.base;
+		//shader_requirements.effects = shaderflags.effects;
+		enableGlobalShader(getMyShaders(shader_requirements));
+
+
 	}
 
 }

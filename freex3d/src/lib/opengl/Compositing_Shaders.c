@@ -1726,79 +1726,30 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 
 /* Generic GLSL vertex shader, used on OpenGL ES. */
 static const GLchar *volumeVertexGLES2 = " \n\
-uniform mat4 castle_ModelViewMatrix; \n\
-uniform mat4 castle_ProjectionMatrix; \n\
-uniform mat3 castle_NormalMatrix; \n\
-attribute vec4 castle_Vertex; \n\
-attribute vec3 castle_Normal; \n\
+uniform mat4 fw_ModelViewMatrix; \n\
+uniform mat4 fw_ProjectionMatrix; \n\
+attribute vec4 fw_Vertex; \n\
  \n\
 /* PLUG-DECLARATIONS */ \n\
  \n\
 varying vec4 castle_vertex_eye; \n\
-varying vec3 castle_normal_eye; \n\
 varying vec4 castle_Color; \n\
  \n\
-uniform float castle_MaterialDiffuseAlpha; \n\
-uniform float castle_MaterialShininess; \n\
-/* Color summed with all the lights. \n\
-   Like gl_Front/BackLightModelProduct.sceneColor: \n\
-   material emissive color + material ambient color * global (light model) ambient. \n\
-*/ \n\
-uniform vec3 castle_SceneColor; \n\
-uniform vec4 castle_UnlitColor; \n\
- \n\
-#ifdef COLOR_PER_VERTEX \n\
-attribute vec4 castle_ColorPerVertex; \n\
-#endif \n\
+uniform vec4 fw_UnlitColor; \n\
  \n\
 void main(void) \n\
 { \n\
-  vec4 vertex_object = castle_Vertex; \n\
-  vec3 normal_object = castle_Normal; \n\
-  /* PLUG: vertex_object_space_change (vertex_object, normal_object) */ \n\
-  /* PLUG: vertex_object_space (vertex_object, normal_object) */ \n\
+  vec4 vertex_object = fw_Vertex; \n\
    \n\
-  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
-  /* use local variables, instead of reading + writing to varying variables, \n\
-     when VARYING_NOT_READABLE */ \n\
-  vec4 temp_castle_vertex_eye; \n\
-  vec3 temp_castle_normal_eye; \n\
-  vec4 temp_castle_Color; \n\
-  #define castle_vertex_eye temp_castle_vertex_eye \n\
-  #define castle_normal_eye temp_castle_normal_eye \n\
-  #define castle_Color      temp_castle_Color \n\
-  #endif \n\
+  castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
    \n\
-  castle_vertex_eye = castle_ModelViewMatrix * vertex_object; \n\
-  castle_normal_eye = normalize(castle_NormalMatrix * normal_object); \n\
+   castle_Color = vec4(1.0,.5,.5,1.0); \n\
+  \n\
+  gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
+  //#ifdef XYZ \n\
+  castle_Color.rgb = gl_Position.xyz; \n\
+  //#endif \n\
    \n\
-  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */ \n\
-   \n\
-#ifdef LIT \n\
-  castle_Color = vec4(castle_SceneColor, 1.0); \n\
-  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */ \n\
-  castle_Color.a = castle_MaterialDiffuseAlpha; \n\
-   \n\
-  /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */ \n\
-  castle_Color.rgb = min(castle_Color.rgb, 1.0); \n\
-#else \n\
-  castle_Color = castle_UnlitColor \n\
-#ifdef COLOR_PER_VERTEX \n\
-    * castle_ColorPerVertex \n\
-#endif \n\
-  ; \n\
-#endif \n\
- \n\
-  gl_Position = castle_ProjectionMatrix * castle_vertex_eye; \n\
-   \n\
-  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
-  #undef castle_vertex_eye \n\
-  #undef castle_normal_eye \n\
-  #undef castle_Color \n\
-  castle_vertex_eye = temp_castle_vertex_eye; \n\
-  castle_normal_eye = temp_castle_normal_eye; \n\
-  castle_Color      = temp_castle_Color; \n\
-  #endif \n\
 } \n\
 ";
 
@@ -1807,39 +1758,20 @@ void main(void) \n\
 
 /* Generic GLSL fragment shader, used on OpenGL ES. */
 static const GLchar *volumeFragmentGLES2 = " \n\
+/* DEFINES */ \n\
+#ifdef MOBILE \n\
+//precision highp float; \n\
 precision mediump float; \n\
+#endif //MOBILE \n\
  \n\
-/* PLUG-DECLARATIONS */ \n\
- \n\
- \n\
-  \n\
 varying vec4 castle_vertex_eye; \n\
-varying vec3 castle_normal_eye; \n\
 varying vec4 castle_Color; \n\
- \n\
-/* Wrapper for calling PLUG texture_coord_shift */ \n\
-vec2 texture_coord_shifted(in vec2 tex_coord) \n\
-{ \n\
-  /* PLUG: texture_coord_shift (tex_coord) */ \n\
-  return tex_coord; \n\
-} \n\
  \n\
 void main(void) \n\
 { \n\
   vec4 fragment_color = castle_Color; \n\
    \n\
-/* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
-#define normal_eye_fragment vec3(0.0) \n\
- \n\
-  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
-  /* PLUG: steep_parallax_shadow_apply (fragment_color) */ \n\
-  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */ \n\
-   \n\
-#undef normal_eye_fragment \n\
- \n\
   gl_FragColor = fragment_color; \n\
-   \n\
-  /* PLUG: fragment_end (gl_FragColor) */ \n\
 } \n\
 ";
 
@@ -1889,7 +1821,10 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 
 	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG 
 
-
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_XYZ)){
+		AddDefine(SHADERPART_VERTEX,"XYZ",CompleteCode);
+	}
+			
 
 	*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
 	*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;

@@ -6187,7 +6187,7 @@ static void killNode_hide_obsolete (int index) {
 }
 BOOL matrix3x3_inverse_float(float *inn, float *outt);
 
-static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix)
+void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix)
 
 {
 
@@ -6224,6 +6224,7 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
 	profile_end("sendmtx");
 	/* TextureMatrix */
+	if(TextureMatrix)
 	for(j=0;j<MAX_MULTITEXTURE;j++) {
 		int itexturestackposition = j+1;
 		if (TextureMatrix[j] != -1 && itexturestackposition <= p->textureviewTOS) {
