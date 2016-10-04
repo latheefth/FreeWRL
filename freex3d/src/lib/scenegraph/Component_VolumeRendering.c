@@ -128,7 +128,19 @@ void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 //6 faces x 2 triangles per face x 3 vertices per triangle x 3 scalars (xyz) per vertex = 6 x 2 x 3 x 3 = 108
 GLfloat box [108] = {1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, };
 void compile_VolumeData(struct X3D_VolumeData *node){
+	int i,j;
+	float *boxtris;
+
 	printf("compile_volumedata not implemented\n");
+	if(node->_boxtris == NULL){
+		node->_boxtris = MALLOC(void *,108 * sizeof(float));
+	}
+	boxtris = (float*)node->_boxtris;
+	for(i=0;i<36;i++){
+		for(j=0;j<3;j++)
+			boxtris[i*3 + j] = node->dimensions.c[j] * box[i*3 + j];
+
+	}
 	MARK_NODE_COMPILED
 }
 void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
@@ -152,6 +164,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 		if(1){
 			shaderflagsstruct trickflags;
 			s_shader_capabilities_t *caps;
+			float *boxtris;
 			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
 			memset(&trickflags,0,sizeof(shaderflagsstruct));
 			trickflags.volume = SHADERFLAGS_VOLUME_BASIC;
@@ -169,13 +182,14 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
 			sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
 			glEnableVertexAttribArray(Vertices);
-			glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, box);
+			boxtris = (float*)node->_boxtris;
+			glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
 
 			//GLuint  = GET_UNIFORM(myProg,"fw_BackMaterial.emission");
 			//A.2 render front faces to front texture target (normal rendering)
 			//renderbox
 			if(0)
-				glDrawArrays(GL_TRIANGLES,0,36); //12);
+				glDrawArrays(GL_TRIANGLES,0,36);
 
 			//A.3 render back faces to back texture target (cull counter-clockwise triangles as seen from viewpoint)
 			glEnable(GL_CULL_FACE);
