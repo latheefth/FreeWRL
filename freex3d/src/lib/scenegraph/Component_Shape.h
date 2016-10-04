@@ -63,6 +63,7 @@ typedef struct {
 int base;
 int effects;
 int usershaders; 
+int volume;
 } shaderflagsstruct;
 
 shaderflagsstruct getShaderFlags();

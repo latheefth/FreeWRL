@@ -1722,3 +1722,177 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 	*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
 	return retval;
 }
+
+
+/* Generic GLSL vertex shader, used on OpenGL ES. */
+static const GLchar *volumeVertexGLES2 = " \n\
+uniform mat4 castle_ModelViewMatrix; \n\
+uniform mat4 castle_ProjectionMatrix; \n\
+uniform mat3 castle_NormalMatrix; \n\
+attribute vec4 castle_Vertex; \n\
+attribute vec3 castle_Normal; \n\
+ \n\
+/* PLUG-DECLARATIONS */ \n\
+ \n\
+varying vec4 castle_vertex_eye; \n\
+varying vec3 castle_normal_eye; \n\
+varying vec4 castle_Color; \n\
+ \n\
+uniform float castle_MaterialDiffuseAlpha; \n\
+uniform float castle_MaterialShininess; \n\
+/* Color summed with all the lights. \n\
+   Like gl_Front/BackLightModelProduct.sceneColor: \n\
+   material emissive color + material ambient color * global (light model) ambient. \n\
+*/ \n\
+uniform vec3 castle_SceneColor; \n\
+uniform vec4 castle_UnlitColor; \n\
+ \n\
+#ifdef COLOR_PER_VERTEX \n\
+attribute vec4 castle_ColorPerVertex; \n\
+#endif \n\
+ \n\
+void main(void) \n\
+{ \n\
+  vec4 vertex_object = castle_Vertex; \n\
+  vec3 normal_object = castle_Normal; \n\
+  /* PLUG: vertex_object_space_change (vertex_object, normal_object) */ \n\
+  /* PLUG: vertex_object_space (vertex_object, normal_object) */ \n\
+   \n\
+  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
+  /* use local variables, instead of reading + writing to varying variables, \n\
+     when VARYING_NOT_READABLE */ \n\
+  vec4 temp_castle_vertex_eye; \n\
+  vec3 temp_castle_normal_eye; \n\
+  vec4 temp_castle_Color; \n\
+  #define castle_vertex_eye temp_castle_vertex_eye \n\
+  #define castle_normal_eye temp_castle_normal_eye \n\
+  #define castle_Color      temp_castle_Color \n\
+  #endif \n\
+   \n\
+  castle_vertex_eye = castle_ModelViewMatrix * vertex_object; \n\
+  castle_normal_eye = normalize(castle_NormalMatrix * normal_object); \n\
+   \n\
+  /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */ \n\
+   \n\
+#ifdef LIT \n\
+  castle_Color = vec4(castle_SceneColor, 1.0); \n\
+  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */ \n\
+  castle_Color.a = castle_MaterialDiffuseAlpha; \n\
+   \n\
+  /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */ \n\
+  castle_Color.rgb = min(castle_Color.rgb, 1.0); \n\
+#else \n\
+  castle_Color = castle_UnlitColor \n\
+#ifdef COLOR_PER_VERTEX \n\
+    * castle_ColorPerVertex \n\
+#endif \n\
+  ; \n\
+#endif \n\
+ \n\
+  gl_Position = castle_ProjectionMatrix * castle_vertex_eye; \n\
+   \n\
+  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING \n\
+  #undef castle_vertex_eye \n\
+  #undef castle_normal_eye \n\
+  #undef castle_Color \n\
+  castle_vertex_eye = temp_castle_vertex_eye; \n\
+  castle_normal_eye = temp_castle_normal_eye; \n\
+  castle_Color      = temp_castle_Color; \n\
+  #endif \n\
+} \n\
+";
+
+
+
+
+/* Generic GLSL fragment shader, used on OpenGL ES. */
+static const GLchar *volumeFragmentGLES2 = " \n\
+precision mediump float; \n\
+ \n\
+/* PLUG-DECLARATIONS */ \n\
+ \n\
+ \n\
+  \n\
+varying vec4 castle_vertex_eye; \n\
+varying vec3 castle_normal_eye; \n\
+varying vec4 castle_Color; \n\
+ \n\
+/* Wrapper for calling PLUG texture_coord_shift */ \n\
+vec2 texture_coord_shifted(in vec2 tex_coord) \n\
+{ \n\
+  /* PLUG: texture_coord_shift (tex_coord) */ \n\
+  return tex_coord; \n\
+} \n\
+ \n\
+void main(void) \n\
+{ \n\
+  vec4 fragment_color = castle_Color; \n\
+   \n\
+/* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
+#define normal_eye_fragment vec3(0.0) \n\
+ \n\
+  /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+  /* PLUG: steep_parallax_shadow_apply (fragment_color) */ \n\
+  /* PLUG: fog_apply (fragment_color, normal_eye_fragment) */ \n\
+   \n\
+#undef normal_eye_fragment \n\
+ \n\
+  gl_FragColor = fragment_color; \n\
+   \n\
+  /* PLUG: fragment_end (gl_FragColor) */ \n\
+} \n\
+";
+
+
+const char *getVolumeVertex(void){
+	return volumeVertexGLES2; //genericVertexDesktop
+}
+const char *getVolumeFragment(){
+	return volumeFragmentGLES2; //genericFragmentDesktop;
+}
+int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **fragmentSource, shaderflagsstruct whichOne) 
+{
+	//for building the Builtin (similar to fixed-function pipeline, except from shader parts)
+	//in OpenGL_Utils.c L.2553 set usingCastlePlugs = 1 to get in here.
+	//whichone - a bitmask of shader requirements, one bit for each requirement, so shader permutation can be built
+
+	int retval, unique_int;
+	char *CompleteCode[3];
+	char *vs, *fs;
+	retval = FALSE;
+	if(whichOne.usershaders ) //& USER_DEFINED_SHADER_MASK) 
+		return retval; //not supported yet as of Aug 9, 2016
+	retval = TRUE;
+
+	//generic
+	vs = strdup(getVolumeVertex());
+	fs = strdup(getVolumeFragment());
+		
+	CompleteCode[SHADERPART_VERTEX] = vs;
+	CompleteCode[SHADERPART_GEOMETRY] = NULL;
+	CompleteCode[SHADERPART_FRAGMENT] = fs;
+
+	// what we really have here: UberShader with CastlePlugs
+	// UberShader: one giant shader peppered with #ifdefs, and you add #defines at the top for permutations
+	// CastlePlugs: allows users to add effects on to uberShader with PLUGs
+	// - and internally, we can do a few permutations with PLUGs too
+
+	if(isMobile){
+		AddVersion(SHADERPART_VERTEX, 100, CompleteCode); //lower precision floats
+		AddVersion(SHADERPART_FRAGMENT, 100, CompleteCode); //lower precision floats
+		AddDefine(SHADERPART_FRAGMENT,"MOBILE",CompleteCode); //lower precision floats
+	}else{
+		//desktop, emulating GLES2
+		AddVersion(SHADERPART_VERTEX, 110, CompleteCode); //lower precision floats
+		AddVersion(SHADERPART_FRAGMENT, 110, CompleteCode); //lower precision floats
+	}
+
+	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG 
+
+
+
+	*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
+	*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
+	return retval;
+
+}

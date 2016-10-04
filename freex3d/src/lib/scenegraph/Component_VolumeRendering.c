@@ -92,20 +92,9 @@ Links:
 
 */
 
-void compile_VolumeData(struct X3D_VolumeData *node){
-	printf("compile_volumedata not implemented\n");
-	MARK_NODE_COMPILED
-}
 
-void child_VolumeData(struct X3D_VolumeData *node){
-	static int once = 0;
-	COMPILE_IF_REQUIRED
-	if(node->voxels)
-		render_node(node->voxels);
-	if(!once)
-		printf("child volumedata not implemented yet\n");
-	once = 1;
-}
+
+
 
 void compile_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
 	printf("compile_isosurfacevolumedata not implemented\n");
@@ -127,6 +116,7 @@ void compile_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 	MARK_NODE_COMPILED
 }
 
+
 void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 	static int once = 0;
 	COMPILE_IF_REQUIRED
@@ -134,4 +124,26 @@ void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 	if(!once)
 		printf("child segmentedvolumedata not implemented yet\n");
 	once = 1;
+}
+
+void compile_VolumeData(struct X3D_VolumeData *node){
+	printf("compile_volumedata not implemented\n");
+	MARK_NODE_COMPILED
+}
+#define SHADERFLAGS_BASIC_VOLUME 0x01
+void child_VolumeData(struct X3D_VolumeData *node){
+	static int once = 0;
+	COMPILE_IF_REQUIRED
+	if(node->voxels)
+		render_node(node->voxels);
+	if(!once)
+		printf("child volumedata not implemented yet\n");
+	once = 1;
+	if(1){
+		shaderflagsstruct shaderflags;
+		memset(&shaderflags,0,sizeof(shaderflagsstruct));
+		shaderflags.volume = SHADERFLAGS_BASIC_VOLUME;
+		enableGlobalShader(getMyShaders(shaderflags));
+	}
+
 }
