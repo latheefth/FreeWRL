@@ -2609,7 +2609,9 @@ struct X3D_Virt virt_IntegerSequencer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NUL
 
 struct X3D_Virt virt_IntegerTrigger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_IsoSurfaceVolumeData = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void child_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *);
+void compile_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *);
+struct X3D_Virt virt_IsoSurfaceVolumeData = { NULL,NULL,(void *)child_IsoSurfaceVolumeData,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_IsoSurfaceVolumeData};
 
 struct X3D_Virt virt_KeySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2966,7 +2968,9 @@ struct X3D_Virt virt_ScreenGroup = { (void *)prep_ScreenGroup,NULL,(void *)child
 
 struct X3D_Virt virt_Script = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_SegmentedVolumeData = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *);
+void compile_SegmentedVolumeData(struct X3D_SegmentedVolumeData *);
+struct X3D_Virt virt_SegmentedVolumeData = { NULL,NULL,(void *)child_SegmentedVolumeData,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_SegmentedVolumeData};
 
 struct X3D_Virt virt_ShadedVolumeStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 

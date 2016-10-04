@@ -2568,14 +2568,11 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 #undef VERBOSE
 
 //see Composite_Shading.c for CastlePlugs details.
-int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
-	const GLchar **fragmentSource, shaderflagsstruct whichOne); // unsigned int whichOne);
+int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLchar **fragmentSource, shaderflagsstruct whichOne); 
 
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], 
 	shaderflagsstruct whichOne) {
-		//unsigned int whichOne) {
 	int iret, userDefined, usingCastlePlugs = 1;
-	//userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
 	userDefined = whichOne.usershaders ? TRUE : FALSE;
 
 	if(usingCastlePlugs && !userDefined) { // && !DESIRE(whichOne,SHADINGSTYLE_PHONG)) {

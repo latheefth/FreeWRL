@@ -92,9 +92,6 @@ Links:
 
 */
 
-
-
-
 void compile_VolumeData(struct X3D_VolumeData *node){
 	printf("compile_volumedata not implemented\n");
 	MARK_NODE_COMPILED
@@ -103,8 +100,38 @@ void compile_VolumeData(struct X3D_VolumeData *node){
 void child_VolumeData(struct X3D_VolumeData *node){
 	static int once = 0;
 	COMPILE_IF_REQUIRED
-
+	if(node->voxels)
+		render_node(node->voxels);
 	if(!once)
 		printf("child volumedata not implemented yet\n");
+	once = 1;
+}
+
+void compile_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
+	printf("compile_isosurfacevolumedata not implemented\n");
+	MARK_NODE_COMPILED
+}
+
+void child_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
+	static int once = 0;
+	COMPILE_IF_REQUIRED
+
+	if(!once)
+		printf("child isosurfacevvolumedata not implemented yet\n");
+	once = 1;
+}
+
+
+void compile_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
+	printf("compile_segmentedvolumedata not implemented\n");
+	MARK_NODE_COMPILED
+}
+
+void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
+	static int once = 0;
+	COMPILE_IF_REQUIRED
+
+	if(!once)
+		printf("child segmentedvolumedata not implemented yet\n");
 	once = 1;
 }

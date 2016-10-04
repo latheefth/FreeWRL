@@ -1159,7 +1159,6 @@ encoding: raw
 	if (fp != NULL) {
 		unsigned long long i,j,k;
 		int ifieldtype, idatatype, kdatatype, idim, ilen, isize[4], iendian, iencoding, ifound,slen,klen, bsize;
-		//float spacing[4];
 		char line [2048];
 		char cendian[256], cencoding[256];
 		char *remainder;
@@ -1176,7 +1175,6 @@ encoding: raw
 		idim = 0; //3;
 		idatatype = 0; // CDATATYPE_int;
 		isize[0] = isize[1] = isize[2] = isize[3] = 0;
-		//spacing[0] = spacing[1] = spacing[2] = spacing[3] = 0.0f;
 		iencoding = 0; //NRRDENCODING_RAW;
 		bsize = 1; //binary size of voxel, in bytes, for mallocing
 		kdatatype = 0; //index into nrrddatatypes array
@@ -1256,21 +1254,6 @@ encoding: raw
 							break;
 					}
 					break;
-				//case NRRDFIELD_spacing:
-				//	//H: we don't need spacing
-				//	switch(idim){
-				//		case 1:
-				//			sscanf(remainder,"%f",&spacing[0]);break;
-				//		case 2:
-				//			sscanf(remainder,"%f%f",&spacing[0],&spacing[1]);break;
-				//		case 3:
-				//			sscanf(remainder,"%f%f%f",&spacing[0],&spacing[1],&spacing[2]);break;
-				//		case 4:
-				//			sscanf(remainder,"%f%f%f%f",&spacing[0],&spacing[1],&spacing[2],&spacing[3]);break;
-				//		default:
-				//			break;
-				//	}
-				//	break;
 				case NRRDFIELD_encoding:
 					sscanf(remainder,"%s",cencoding);
 					if(!strcmp(cencoding,"raw"))
@@ -1297,7 +1280,6 @@ encoding: raw
 		if(1){
 			printf("iendian %d idatatype %d iencoding %d idim %d isizes %d %d %d %d bsize %d\n",
 					iendian,idatatype,iencoding,idim,isize[0],isize[1],isize[2],isize[3], bsize);
-			//printf("spacing %f %f %f %f\n",spacing[0],spacing[1],spacing[2],spacing[3]);
 			printf("machine endian isLittle=%d\n",isMachineLittleEndian());
 			printf("hows that?\n");
 
@@ -1328,9 +1310,7 @@ encoding: raw
 			int dataLittleEndian;
 			size_t nelem_read, element_size = 0L;
 			element_size = bsize;
-			//for(i=0;i<nvoxel;i++){
-				nelem_read = fread(data,element_size, nvoxel,fp);
-			//}
+			nelem_read = fread(data,element_size, nvoxel,fp);
 			printf("num elems read = %llu elemsize %ld bytes requeted = %llu %llu\n",(unsigned long long)nelem_read,(long)bsize,bsize*nvoxel,totalbytes);
 			//endian conversion
 			dataLittleEndian = iendian == NRRDENDIAN_LITTLE ? TRUE : FALSE;
@@ -1451,8 +1431,8 @@ encoding: raw
 					dhi = max(dhi,(double)*(float*)(voxel));
 				break;
 				case CDATATYPE_double: 
-					dlo = min(dlo,(double)*(float*)(voxel));
-					dhi = max(dhi,(double)*(float*)(voxel));
+					dlo = min(dlo,(double)*(double*)(voxel));
+					dhi = max(dhi,(double)*(double*)(voxel));
 				break;
 				default:
 					break;

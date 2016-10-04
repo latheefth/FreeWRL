@@ -1532,9 +1532,7 @@ static int isMobile = FALSE;
 #endif
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
-int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
-	const GLchar **fragmentSource, shaderflagsstruct whichOne, //unsigned int whichOne, 
-	int usePhongShading) 
+int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLchar **fragmentSource, shaderflagsstruct whichOne) 
 {
 	//for building the Builtin (similar to fixed-function pipeline, except from shader parts)
 	//in OpenGL_Utils.c L.2553 set usingCastlePlugs = 1 to get in here.

@@ -318,15 +318,15 @@ our %defaultContainerType = (
 
 	OpacityMapVolumeStyle	=>"renderStyle",
 	VolumeData		=>"children",
+	SegmentedVolumeData	=>"children",
+	IsoSurfaceVolumeData	=>"children",
 	BoundaryEnhancementVolumeStyle =>"renderStyle",
 	ComposedVolumeStyle	=>"renderStyle",
 	EdgeEnhancementVolumeStyle =>"renderStyle",
-	IsoSurfaceVolumeData	=>"children",
 	ProjectionVolumeStyle	=>"renderStyle",
 	BlendedVolumeStyle	=>"renderStyle",
 	CartoonVolumeStyle	=>"renderStyle",
 	CompositeVolumeStyle	=>"renderStyle",
-	SegmentedVolumeData	=>"children",
 	ShadedVolumeStyle	=>"renderStyle",
 	SilhouetteEnhancementVolumeStyle =>"renderStyle",
 	ToneMappedVolumeStyle	=>"renderStyle",
@@ -556,6 +556,8 @@ our %ChildC = map {($_=>1)} qw/
 	CollidableOffset
 	CollidableShape
 	VolumeData
+	SegmentedVolumeData
+	IsoSurfaceVolumeData
 /;
 
 
@@ -669,6 +671,8 @@ our %CompileC = map {($_=>1)} qw/
 	CollidableOffset
 	CollidableShape
 	VolumeData
+	SegmentedVolumeData
+	IsoSurfaceVolumeData
 /;
 
 
