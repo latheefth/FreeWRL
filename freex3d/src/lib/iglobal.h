@@ -313,6 +313,9 @@ iOLDCODE	}Component_Networking;
 	struct tComponent_VRML1{
 		void *prv;
 	}Component_VRML1;
+	struct tComponent_VolumeRendering{
+		void *prv;
+	}Component_VolumeRendering;
 	struct tRenderFuncs{
 		#ifdef OLDCODE
 		OLDCODE char *OSX_last_world_url_for_reload;

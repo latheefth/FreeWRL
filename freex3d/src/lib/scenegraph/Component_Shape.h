@@ -109,9 +109,9 @@ s_shader_capabilities_t *getMyShaders(shaderflagsstruct);
 //can go up to 2^32 - for future components like volume, particle, hanim 
 
 //goes into flags.volume
-#define SHADERFLAGS_VOLUME_BASIC 0x001
-#define SHADERFLAGS_VOLUME_XYZ   0x002
-
+#define SHADERFLAGS_VOLUME_BASIC    0x001
+#define SHADERFLAGS_VOLUME_XYZ      0x002
+#define SHADERFLAGS_VOLUME_OPACITY  0x004
 
 
 /*******************************************************/

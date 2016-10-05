@@ -92,6 +92,45 @@ Links:
 
 */
 
+typedef struct pComponent_VolumeRendering{
+	GLuint front_texture;
+	GLuint back_texture;
+	GLint ifbobuffer;
+	GLint idepthbuffer;
+	int width, height;
+	GLfloat *quad;
+}* ppComponent_VolumeRendering;
+void *Component_VolumeRendering_constructor(){
+	void *v = MALLOCV(sizeof(struct pComponent_VolumeRendering));
+	memset(v,0,sizeof(struct pComponent_VolumeRendering));
+	return v;
+}
+void Component_VolumeRendering_init(struct tComponent_VolumeRendering *t){
+	//public
+	//private
+	t->prv = Component_VolumeRendering_constructor();
+	{
+		ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)t->prv;
+		p->back_texture = 0;
+		p->front_texture = 0;
+		p->ifbobuffer = 0;
+		p->idepthbuffer = 0;
+		p->width = 0;
+		p->height = 0;
+		p->quad = NULL;
+	}
+}
+void Component_VolumeRendering_clear(struct tComponent_VolumeRendering *t){
+	//public
+	//private
+	{
+		ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)t->prv;
+		//p->front_texture;
+		//p->back_texture;
+		FREE_IF_NZ(p->quad);
+	}
+}
+//ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)gglobal()->Component_VolumeRendering.prv;
 
 
 
@@ -143,9 +182,19 @@ void compile_VolumeData(struct X3D_VolumeData *node){
 	}
 	MARK_NODE_COMPILED
 }
+void pushnset_framebuffer(int ibuffer);
+void popnset_framebuffer();
+
+#ifdef GL_DEPTH_COMPONENT32
+#define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT32
+#else
+#define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
+#endif
+ivec4 get_current_viewport();
 void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
 void child_VolumeData(struct X3D_VolumeData *node){
 	static int once = 0;
+	ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)gglobal()->Component_VolumeRendering.prv;
 	COMPILE_IF_REQUIRED
 	if(node->voxels)
 		render_node(node->voxels);
@@ -153,10 +202,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 		printf("child volumedata not implemented yet\n");
 	once = 1;
 	if(node->renderStyle == NULL){
-		shaderflagsstruct shaderflags, shader_requirements;
-		memset(&shader_requirements,0,sizeof(shaderflagsstruct));
-		//shaderflags = getShaderFlags();
-		shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
 
 		//render 
 		//Step 1: 
@@ -165,7 +210,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			shaderflagsstruct trickflags;
 			s_shader_capabilities_t *caps;
 			float *boxtris;
-			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
 			memset(&trickflags,0,sizeof(shaderflagsstruct));
 			trickflags.volume = SHADERFLAGS_VOLUME_BASIC;
 			//method A: get per-ray direction vector by subtracting 2 rendered xyz images (near and far) of bounding box
@@ -185,33 +229,92 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			boxtris = (float*)node->_boxtris;
 			glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
 
-			//GLuint  = GET_UNIFORM(myProg,"fw_BackMaterial.emission");
-			//A.2 render front faces to front texture target (normal rendering)
+			//A.1 setup a framebuffer with texture targets
+			if(p->ifbobuffer == 0){
+				glGenFramebuffers(1, &p->ifbobuffer);
+				pushnset_framebuffer(p->ifbobuffer); 
+				glGenRenderbuffers(1, &p->idepthbuffer);
+				glBindRenderbuffer(GL_RENDERBUFFER, p->idepthbuffer);
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, p->idepthbuffer);
+				glGenTextures(1,&p->front_texture);
+				glGenTextures(1,&p->back_texture);
+				popnset_framebuffer();
+			}
+			pushnset_framebuffer(p->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
+			glBindRenderbuffer(GL_RENDERBUFFER, p->idepthbuffer);
+				
+			ivec4 ivp = get_current_viewport();
+			if(ivp.W != p->width || ivp.H != p->height){
+				//regenerate fbo buffers
+				int j;
+				// https://www.opengl.org/wiki/Framebuffer_Object
+				glRenderbufferStorage(GL_RENDERBUFFER, FW_GL_DEPTH_COMPONENT, p->width,p->height);
+				glBindTexture(GL_TEXTURE_2D, p->front_texture);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p->width,p->height, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+				glBindTexture(GL_TEXTURE_2D, p->back_texture);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, p->width,p->height, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+
+				if(p->quad == NULL)
+					p->quad = MALLOC(float *,18*sizeof(float));
+				memcpy(p->quad,box,18*sizeof(float));
+				//q. do I need to scale a quad to fit the screen?
+
+
+			}
+
 			//renderbox
-			if(0)
-				glDrawArrays(GL_TRIANGLES,0,36);
+			//A.2 render front faces to front texture target (normal rendering)
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p->front_texture, 0);
+			glDrawArrays(GL_TRIANGLES,0,36);
 
 			//A.3 render back faces to back texture target (cull counter-clockwise triangles as seen from viewpoint)
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p->back_texture, 0);
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_FRONT);
-			//glFrontFace(GL_CW); //Android ndk, uwp/angle has this
 			//render box
-			if(1)
-				glDrawArrays(GL_TRIANGLES,0,36);
-
-			//glFrontFace(GL_CCW);
+			glDrawArrays(GL_TRIANGLES,0,36);
 			glCullFace(GL_BACK);
 			glDisable(GL_CULL_FACE);
 			//A.4 subtract front from back - can do in shader
+			popnset_framebuffer(p->ifbobuffer); //sets back to normal GL_BACK
+			//now we should have fresh XYZ front_texture and back_texture
 		
 		}else{
 			//method B: use cpu math to compute start and direction textures or front and back textures
 		}
 
 		//Step 3: accumulate along rays and render opacity fragment in one step
-		//shader_requirements.base = shaderflags.base;
-		//shader_requirements.effects = shaderflags.effects;
-		enableGlobalShader(getMyShaders(shader_requirements));
+		if(1){
+			shaderflagsstruct shaderflags, shader_requirements;
+			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+			//shaderflags = getShaderFlags();
+			shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
+			shader_requirements.volume |= SHADERFLAGS_VOLUME_OPACITY;
+			enableGlobalShader(getMyShaders(shader_requirements));
+			//3.1 set quad geometry scaled to fill viewport
+			//    set 2 textures
+			//3.2 set inverse modelview and dimensions in shader, along with the usuals
+			//3.3 tell shader to do the raycasting
+			/*
+			in fragment:
+			for each fragment of the screen viewport-filling Quad
+				sample front texture
+				sample back texture
+				if(both 0) discard fragment //we're not on the cube
+				construct vertex front and direction vector
+				loop along ray from front to back, 
+					constructing a new vertex p at each ray point
+					transform p back into local coords of Volume using modelviewmatrix inverse
+					scale by 1/dimension to get back into perfect cube
+					use either texture3D OES 
+						- or something like my slices, as used for tex3d, to get 3D texture scalar value
+					accumulate opacity
+					if(opaque) break;
+				gl_frag = opacity
+			*/
+
+
+		}
 
 
 	}
