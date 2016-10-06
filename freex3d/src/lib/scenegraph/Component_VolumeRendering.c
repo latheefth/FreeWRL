@@ -40,6 +40,7 @@ X3D Volume Rendering Component
 #include "../opengl/Textures.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/LinearAlgebra.h"
 
 /*
 Volumee Rendering aka voxels
@@ -194,7 +195,8 @@ ivec4 get_current_viewport();
 void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
 void child_VolumeData(struct X3D_VolumeData *node){
 	static int once = 0;
-	ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)gglobal()->Component_VolumeRendering.prv;
+	ttglobal tg = gglobal();
+	ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)tg->Component_VolumeRendering.prv;
 	COMPILE_IF_REQUIRED
 	if(node->voxels)
 		render_node(node->voxels);
@@ -204,9 +206,11 @@ void child_VolumeData(struct X3D_VolumeData *node){
 	if(node->renderStyle == NULL){
 
 		//render 
-		//Step 1: 
+		//Step 1: set the 3D texture
+		//if(node->voxels)
+		//	render_node(node->voxels);
 		//Step 2: get rays to cast: start point and direction vector for each ray to cast
-		if(1){
+		if(0){
 			shaderflagsstruct trickflags;
 			s_shader_capabilities_t *caps;
 			float *boxtris;
@@ -279,43 +283,145 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			popnset_framebuffer(p->ifbobuffer); //sets back to normal GL_BACK
 			//now we should have fresh XYZ front_texture and back_texture
 		
+			//Step 3: accumulate along rays and render opacity fragment in one step
+			if(1){
+				shaderflagsstruct shaderflags, shader_requirements;
+				memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+				//shaderflags = getShaderFlags();
+				shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
+				shader_requirements.volume |= SHADERFLAGS_VOLUME_OPACITY;
+				enableGlobalShader(getMyShaders(shader_requirements));
+				//3.1 set quad geometry scaled to fill viewport
+				//    set 2 textures
+				//3.2 set inverse modelview and dimensions in shader, along with the usuals
+				//3.3 tell shader to do the raycasting
+				/*
+				in fragment:
+				for each fragment of the screen viewport-filling Quad
+					sample front texture
+					sample back texture
+					if(both 0) discard fragment //we're not on the cube
+					construct vertex front and direction vector
+					loop along ray from front to back, 
+						constructing a new vertex p at each ray point
+						transform p back into local coords of Volume using modelviewmatrix inverse
+						scale by 1/dimension to get back into perfect cube
+						use either texture3D OES 
+							- or something like my slices, as used for tex3d, to get 3D texture scalar value
+						accumulate opacity
+						if(opaque) break;
+					gl_frag = opacity
+				*/
+
+
+			}
+
+
 		}else{
-			//method B: use cpu math to compute start and direction textures or front and back textures
+			//method B: use cpu math to compute a few uniforms so frag shader can do box intersections
+			//http://prideout.net/blog/?p=64
+			//- one step raycasting using gl_fragCoord
+			//
+
+			//Step 3: accumulate along rays and render opacity fragment in one step
+			if(1){
+				shaderflagsstruct shaderflags, shader_requirements;
+				s_shader_capabilities_t *caps;
+
+				memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+				//shaderflags = getShaderFlags();
+				shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
+				shader_requirements.volume |= SHADERFLAGS_VOLUME_OPACITY;
+				shader_requirements.volume |= TEX3D_SHADER;
+				caps = getMyShaders(shader_requirements);
+				enableGlobalShader(caps);
+				GLint myProg =  caps->myShaderProgram;
+				//Step 1: set the 3D texture
+				if(node->voxels){
+
+					render_node(node->voxels);
+					if(0){
+						textureTableIndexStruct_s *tti = getTableTableFromTextureNode(X3D_NODE(node->voxels));
+						GLint texloc = GET_UNIFORM(myProg,"fw_Texture_unit0");
+						glUniform1i ( texloc, tti->OpenGLTexture );
+					}
+				}
+
+				//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
+				//    set attributes vertices of triangles of bounding box
+				// set box with vol.dimensions with triangles
+				GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+				GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
+				GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
+				sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+				glEnableVertexAttribArray(Vertices);
+				float *boxtris = (float*)node->_boxtris;
+				glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
+
+				//get the current viewport
+				GLint iviewport[4];
+				float viewport[4];
+				glGetIntegerv(GL_VIEWPORT, iviewport);
+
+				//get the current fieldOfView
+				float FieldOfView = tg->Mainloop.fieldOfView;
+				//printf("current viewport= %d %d %d %d\n",iviewport[0],iviewport[1],iviewport[2],iviewport[3]);
+				//printf("current FOV = %f\n",FieldOfView);
+				FieldOfView *= PI/180.0;
+				float focalLength = 1.0f / tan(FieldOfView / 2.0f);
+				GLint focal = GET_UNIFORM(myProg,"fw_focalLength"); //fw_ModelViewMatrix
+				GLUNIFORM1F(focal,focalLength);
+				GLint vp = GET_UNIFORM(myProg,"fw_viewport");
+				viewport[0] = iviewport[2] - iviewport[0];
+				viewport[1] = iviewport[3] - iviewport[1];
+				viewport[2] = iviewport[0];
+				viewport[3] = iviewport[1];
+				GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
+				GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
+				GLUNIFORM3F(dim,node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
+
+				//ray origin: the camera position 0,0,0 transformed into geometry local (box) coords
+				GLint orig = GET_UNIFORM(myProg,"fw_RayOrigin");
+				float eyeLocal[3];
+				double origind[3], eyeLocald[3];
+				origind[0] = origind[1] = origind[2] = 0.0;
+				double modelviewMatrix[16], mvmInverse[16];
+				//GL_GET_MODELVIEWMATRIX
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+				matinverseAFFINE(mvmInverse,modelviewMatrix);
+				transformAFFINEd(eyeLocald,origind,mvmInverse);
+				for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
+				GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
+				//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
+
+
+				//3.2 draw with shader
+				glDrawArrays(GL_TRIANGLES,0,36);
+
+				/*
+				in vertex:
+					render bounding box, color not important
+				in fragment:
+				for each fragment of the rendered bounding box
+					compute ray direction
+					transform ray direction and viewpoint origin from view space to local / model space
+						- perhaps further into cuboid space of volume texture, via 1/dimensions[3]
+					intersect ray with bounding box to get 2 intersection points front and back
+					loop along ray from front to back, 
+						constructing a new vertex p at each ray point
+						transform p back into local coords of Volume using modelviewmatrix inverse
+						scale by 1/dimension to get back into perfect cube
+						use either texture3D OES 
+							- or something like my slices, as used for tex3d, to get 3D texture scalar value
+						accumulate opacity
+						if(opaque) break;
+					gl_frag = opacity
+				*/
+
+
+			}
+
 		}
-
-		//Step 3: accumulate along rays and render opacity fragment in one step
-		if(1){
-			shaderflagsstruct shaderflags, shader_requirements;
-			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
-			//shaderflags = getShaderFlags();
-			shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
-			shader_requirements.volume |= SHADERFLAGS_VOLUME_OPACITY;
-			enableGlobalShader(getMyShaders(shader_requirements));
-			//3.1 set quad geometry scaled to fill viewport
-			//    set 2 textures
-			//3.2 set inverse modelview and dimensions in shader, along with the usuals
-			//3.3 tell shader to do the raycasting
-			/*
-			in fragment:
-			for each fragment of the screen viewport-filling Quad
-				sample front texture
-				sample back texture
-				if(both 0) discard fragment //we're not on the cube
-				construct vertex front and direction vector
-				loop along ray from front to back, 
-					constructing a new vertex p at each ray point
-					transform p back into local coords of Volume using modelviewmatrix inverse
-					scale by 1/dimension to get back into perfect cube
-					use either texture3D OES 
-						- or something like my slices, as used for tex3d, to get 3D texture scalar value
-					accumulate opacity
-					if(opaque) break;
-				gl_frag = opacity
-			*/
-
-
-		}
-
 
 	}
 

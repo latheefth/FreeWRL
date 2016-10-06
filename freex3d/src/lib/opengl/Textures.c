@@ -1593,7 +1593,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				if (gglobal()->internalc.global_print_opengl_errors) {
 					DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 				}
-			
+				//printf("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 
 				/* it is a power of 2, lets make sure it is square */
 				/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
@@ -1625,7 +1625,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				if (gglobal()->internalc.global_print_opengl_errors) {
 					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
 				}
-		
+				//printf("after proxy image stuff, size %d %d\n",rx,ry);
 
 				myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 

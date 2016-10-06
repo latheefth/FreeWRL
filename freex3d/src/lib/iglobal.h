@@ -161,6 +161,7 @@ typedef struct iiglobal //InstanceGlobal
 		int screenOrientation2;
 		int pickray_x;
 		int pickray_y;
+		float fieldOfView; //set in setup_projection, used in volumeRendering
 	} Mainloop;
 	struct tProdCon{
 		struct Vector *viewpointNodes;// = NULL;

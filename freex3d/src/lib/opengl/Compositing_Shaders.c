@@ -1728,6 +1728,8 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 static const GLchar *volumeVertexGLES2 = " \n\
 uniform mat4 fw_ModelViewMatrix; \n\
 uniform mat4 fw_ProjectionMatrix; \n\
+uniform float fw_FocalLength; \n\
+uniform vec4 fw_viewport; \n\
 attribute vec4 fw_Vertex; \n\
  \n\
 /* PLUG-DECLARATIONS */ \n\
@@ -1754,8 +1756,6 @@ void main(void) \n\
 ";
 
 
-
-
 /* Generic GLSL fragment shader, used on OpenGL ES. */
 static const GLchar *volumeFragmentGLES2 = " \n\
 /* DEFINES */ \n\
@@ -1766,12 +1766,111 @@ precision mediump float; \n\
  \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
+uniform mat4 fw_ModelViewMatrix; \n\
+uniform mat4 fw_ProjectionMatrix; \n\
+uniform float fw_FocalLength; \n\
+uniform vec4 fw_viewport; \n\
+uniform vec3 fw_dimensions; \n\
+uniform vec3 fw_RayOrigin; \n\
+uniform sampler2D fw_Texture_unit0; \n\
+#ifdef TEX3D \n\
+uniform int tex3dDepth; \n\
+uniform int repeatSTR[3]; \n\
+uniform int magFilter; \n\
+#endif //TEX3D \n\
  \n\
+struct Ray { \n\
+  vec3 Origin; \n\
+  vec3 Dir; \n\
+}; \n\
+struct AABB { \n\
+  vec3 Min; \n\
+  vec3 Max; \n\
+}; \n\
+bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1) \n\
+{ \n\
+    vec3 invR = 1.0 / r.Dir; \n\
+    vec3 tbot = invR * (aabb.Min-r.Origin); \n\
+    vec3 ttop = invR * (aabb.Max-r.Origin); \n\
+    vec3 tmin = min(ttop, tbot); \n\
+    vec3 tmax = max(ttop, tbot); \n\
+    vec2 t = max(tmin.xx, tmin.yz); \n\
+    t0 = max(t.x, t.y); \n\
+    t = min(tmax.xx, tmax.yz); \n\
+    t1 = min(t.x, t.y); \n\
+    return t0 <= t1; \n\
+} \n\
+/* PLUG-DECLARATIONS */ \n\
+ \n\
+vec3 fw_TexCoord[1]; \n\
 void main(void) \n\
 { \n\
-  vec4 fragment_color = castle_Color; \n\
-   \n\
-  gl_FragColor = fragment_color; \n\
+	float maxDist = 1.414214; //sqrt(2.0); \n\
+	float densityFactor = 1.0; //5.0; \n\
+	float Absorption = 1.0; \n\
+	int numSamples = 128; \n\
+	float fnumSamples = float(numSamples); \n\
+	float stepSize = maxDist/fnumSamples; \n\
+	 \n\
+    vec4 fragment_color; \n\
+	vec4 fragment_color_main = castle_Color; \n\
+    vec3 rayDirection; \n\
+    rayDirection.xy = 2.0 * gl_FragCoord.xy / fw_viewport.xy - 1.0; \n\
+    rayDirection.z = -fw_FocalLength; \n\
+    rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
+	\n\
+    Ray eye = Ray( fw_RayOrigin, normalize(rayDirection) ); \n\
+    AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
+	\n\
+    float tnear, tfar; \n\
+    IntersectBox(eye, aabb, tnear, tfar); \n\
+    if (tnear < 0.0) tnear = 0.0; \n\
+	\n\
+    vec3 rayStart = eye.Origin + eye.Dir * tnear; \n\
+    vec3 rayStop = eye.Origin + eye.Dir * tfar; \n\
+    // Transform from object space to texture coordinate space: \n\
+    rayStart = 0.5 * (rayStart + 1.0); \n\
+    rayStop = 0.5 * (rayStop + 1.0); \n\
+	\n\
+    // Perform the ray marching: \n\
+    vec3 pos = rayStart; \n\
+    vec3 step = normalize(rayStop-rayStart) * stepSize; \n\
+    float travel = distance(rayStop, rayStart); \n\
+    float T = 1.0; \n\
+    vec3 Lo = vec3(0.0); \n\
+	vec3 normal_eye_fragment = vec3(0.0); //not used in plug\n\
+	fragment_color.a = 1.0; \n\
+	if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
+	if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
+	numSamples = 0; \n\
+	fw_TexCoord[0] = vec3(.3,.3,.3); \n\
+	fragment_color = vec4(1.0); \n\
+	/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+	fragment_color_main = fragment_color; \n\
+	fragment_color_main.a = 1.0; \n\
+	\n\
+    for (int i=0; i < numSamples; ++i) { \n\
+       // ...lighting and absorption stuff here... \n\
+		fragment_color = vec4(1.0); \n\
+		fw_TexCoord[0] = pos; \n\
+		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+        //float density = texture3D(Density, pos).x * densityFactor; \n\
+		float density = fragment_color.a * densityFactor; \n\
+		\n\
+        if (density <= 0.0) \n\
+            continue; \n\
+		\n\
+        T *= 1.0-density*stepSize*Absorption; \n\
+		fragment_color_main.a = 1.0 - T; \n\
+        if (T <= 0.01) { \n\
+            break; \n\
+		} \n\
+		travel -= stepSize; \n\
+		if(travel <= 0.0) break; \n\
+		pos += step; \n\
+		\n\
+    }  \n\
+	gl_FragColor = fragment_color_main; \n\
 } \n\
 ";
 
@@ -1824,7 +1923,11 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_XYZ)){
 		AddDefine(SHADERPART_VERTEX,"XYZ",CompleteCode);
 	}
-			
+	if(DESIRE(whichOne.volume,TEX3D_SHADER)){
+		AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+	}
+
 
 	*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
 	*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
