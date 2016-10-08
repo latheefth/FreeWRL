@@ -1165,7 +1165,7 @@ DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
 
 void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	int rx,ry,sx,sy;
-	int x,y;
+	int x,y,z,itile3d;
 	GLint iformat;
 	GLenum format;
 
@@ -1544,8 +1544,49 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
 				glHint(GL_TEXTURE_COMPRESSION_HINT, compression);
 			}
+			itile3d = FALSE; //TRUE;
+			int npot = rdr_caps->av_npot_texture;
 			x = me->x;
 			y = me->y * me->z; //takes care of texture3D using strip image
+			unsigned char *texdataTiles = NULL;
+			if(itile3d && me->z > 1){
+				uint32 *p2, *p1;
+				int nx, ny, ix, iy, nxx, nyy, xy;
+				x = me->x;
+				y = me->y;
+				z = me->z;
+				nx = sqrt(z) + 1;
+				ny = z / nx + 1;
+				nxx = nx*x;
+				nyy = ny*y;
+				xy = x*y;
+				texdataTiles =  MALLOC(unsigned char *,nxx * nyy * 4);
+				p2 = (uint32 *)texdataTiles;
+				p1 = (uint32 *)me->texdata;
+				for(int i=0;i<z;i++){
+					ix = i % nx;
+					iy = i / nx;
+					for(int j=0;j<y;j++){
+						for(int k=0;k<x;k++){
+							int ifrom, ito;
+							ifrom = i*xy + j*x + k;
+							ito = iy*nx*xy + j*nxx + ix*x + k;
+							uint32 pixel = p1[ifrom];
+							p2[ito] = pixel;
+							//p2[iy*nx*xy + j*nxx + ix*x + k] = p1[i*xy + j*x + k];
+						}
+					}
+				}
+				x = nxx;
+				y = nyy;
+				z = 1;
+				me->texdata = texdataTiles;
+				mytexdata = me->texdata;
+				npot = TRUE;
+				generateMipMaps = FALSE;
+				FREE_IF_NZ(p1);
+				
+			}
 		
 		
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
@@ -1564,7 +1605,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				unsigned char *dest = mytexdata;
 		
 				/* do we have to do power of two textures? */
-				if (rdr_caps->av_npot_texture) {
+				if (npot) { //rdr_caps->av_npot_texture) {
 					rx = x; ry = y;
 				} else {
 					/* find a power of two that fits */
@@ -1593,7 +1634,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				if (gglobal()->internalc.global_print_opengl_errors) {
 					DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 				}
-				//printf("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+				printf("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 
 				/* it is a power of 2, lets make sure it is square */
 				/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
@@ -1629,11 +1670,13 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 				myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 
-				if(mytexdata != dest) {FREE_IF_NZ(dest);}
+				if(mytexdata != dest) {
+					FREE_IF_NZ(dest);
+				}
 			}
 		
 			/* we can get rid of the original texture data here */
-			FREE_IF_NZ (me->texdata);
+// experiment for volume, leave malloced			FREE_IF_NZ (me->texdata);
 		}
 	}
 

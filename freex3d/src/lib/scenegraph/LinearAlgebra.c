@@ -451,7 +451,7 @@ float* matmultvec4f(float* r4, float *mat4, float* a4 )
 	}
     return r4;
 }
-float* vecmultmat4f(float* r4, float* a4, float *mat4 )
+float* vecmultmat4f_broken(float* r4, float* a4, float *mat4 )
 {
 	int i,j;
     float t4[4], *b[4];
@@ -461,6 +461,19 @@ float* vecmultmat4f(float* r4, float* a4, float *mat4 )
 		b[i] = &mat4[i*4];
 		for(j=0;j<4;j++)
 			r4[i] += t4[j]*b[j][i];
+	}
+    return r4;
+}
+float* vecmultmat4f(float* r4, float* a4, float *mat4 )
+{
+	int i,j;
+    float t4[4], *b;
+	memcpy(t4,a4,4*sizeof(float));
+	for(i=0;i<4;i++){
+		r4[i] = 0.0f;
+		b = &mat4[i*4];
+		for(j=0;j<4;j++)
+			r4[i] += t4[j]*b[j];
 	}
     return r4;
 }

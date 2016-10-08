@@ -1736,6 +1736,7 @@ attribute vec4 fw_Vertex; \n\
  \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
+varying vec3 vertex_model; \n\
  \n\
 uniform vec4 fw_UnlitColor; \n\
  \n\
@@ -1750,6 +1751,7 @@ void main(void) \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
   //#ifdef XYZ \n\
   castle_Color.rgb = gl_Position.xyz; \n\
+  vertex_model = fw_Vertex.xyz; \n\
   //#endif \n\
    \n\
 } \n\
@@ -1764,6 +1766,7 @@ static const GLchar *volumeFragmentGLES2 = " \n\
 precision mediump float; \n\
 #endif //MOBILE \n\
  \n\
+varying vec3 vertex_model; \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
 uniform mat4 fw_ModelViewMatrix; \n\
@@ -1806,7 +1809,7 @@ vec3 fw_TexCoord[1]; \n\
 void main(void) \n\
 { \n\
 	float maxDist = 1.414214; //sqrt(2.0); \n\
-	float densityFactor = 1.0; //5.0; \n\
+	float densityFactor = 5.0; \n\
 	float Absorption = 1.0; \n\
 	int numSamples = 128; \n\
 	float fnumSamples = float(numSamples); \n\
@@ -1815,7 +1818,7 @@ void main(void) \n\
     vec4 fragment_color; \n\
 	vec4 fragment_color_main = castle_Color; \n\
     vec3 rayDirection; \n\
-    rayDirection.xy = 2.0 * gl_FragCoord.xy / fw_viewport.xy - 1.0; \n\
+    rayDirection.xy = 2.0 * gl_FragCoord.xy / fw_viewport.zw - vec2(1.0); \n\
     rayDirection.z = -fw_FocalLength; \n\
     rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
 	\n\
@@ -1838,13 +1841,14 @@ void main(void) \n\
     float travel = distance(rayStop, rayStart); \n\
     float T = 1.0; \n\
     vec3 Lo = vec3(0.0); \n\
-	vec3 normal_eye_fragment = vec3(0.0); //not used in plug\n\
+	vec3 normal_eye_fragment = vec3(0.0); //not used in plug \n\
 	fragment_color.a = 1.0; \n\
 	if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
 	if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
-	numSamples = 0; \n\
-	fw_TexCoord[0] = vec3(.3,.3,.3); \n\
+	//numSamples = 0; \n\
+	fw_TexCoord[0] = vertex_model; //vec3(.2,.2,.5); \n\
 	fragment_color = vec4(1.0); \n\
+	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
 	/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
 	fragment_color_main = fragment_color; \n\
 	fragment_color_main.a = 1.0; \n\
@@ -1862,6 +1866,7 @@ void main(void) \n\
 		\n\
         T *= 1.0-density*stepSize*Absorption; \n\
 		fragment_color_main.a = 1.0 - T; \n\
+		//fragment_color_main.rgb = fragment_color.rgb; \n\
         if (T <= 0.01) { \n\
             break; \n\
 		} \n\
@@ -1874,6 +1879,43 @@ void main(void) \n\
 } \n\
 ";
 
+
+static const GLchar *plug_fragment_texture3D_apply_volume =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+  #ifdef TEX3D \n\
+  vec3 texcoord = fw_TexCoord[0]; \n\
+  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
+  float depth = max(1.0,float(tex3dDepth)); \n\
+  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
+  else texcoord.x = mod(texcoord.x,1.0); \n\
+  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
+  else texcoord.y = mod(texcoord.y,1.0); \n\
+  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
+  else texcoord.z = mod(texcoord.z,1.0); \n\
+  vec4 texel; \n\
+  int flay = int(floor(texcoord.z*depth)); \n\
+  int clay = int(ceil(texcoord.z*depth)); \n\
+  clay = clay == tex3dDepth ? 0 : clay; \n\
+  vec4 ftexel, ctexel; \n\
+  vec3 ftexcoord, ctexcoord; \n\
+  ftexcoord = texcoord; \n\
+  ctexcoord = texcoord; \n\
+  ftexcoord.y += float(flay); \n\
+  ftexcoord.y /= depth; \n\
+  ctexcoord.y += float(clay); \n\
+  ctexcoord.y /= depth; \n\
+  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
+  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
+  float fraction = mod(ftexcoord.z*depth,1.0); \n\
+  if(magFilter == 1) \n\
+	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
+  else \n\
+	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
+  finalFrag *= texel; \n\
+  #endif //TEX3D \n\
+  \n\
+}\n";
 
 const char *getVolumeVertex(void){
 	return volumeVertexGLES2; //genericVertexDesktop
