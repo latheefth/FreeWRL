@@ -848,13 +848,18 @@ void cpu_drawtriangles(float *vertices, int nvertices){
 		main_vertex();
 		gl_FragCoord = vec2from3(vec3from4homog(gl_Position));
 		//after vertex 
-		//- accumulate triangle corners, when have 3 check ccw vs cw for culling
+		//- accumulate triangle corners
+		//after 3 vertices / triangle:
+		//-check ccw vs cw for backface culling
 		//- make 2D rectangle around projected triangle
 		//- iterate over rectangle doing each line, starting with line intersect triangle edge
 		//- for each pixel interpolate varying from triangle corners
 		main_fragment();
-		// - save frag results to image blob
-		//- set blob as texture image
+		//after fragment:
+		//- check depth vs blob depth
+		//- save frag results to image blob
+		//after all fragments:
+		//- set blob as texture image to view
 	}
 }
 
