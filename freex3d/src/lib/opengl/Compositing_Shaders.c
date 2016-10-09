@@ -1823,7 +1823,8 @@ void main(void) \n\
     rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
 	\n\
     Ray eye = Ray( fw_RayOrigin, normalize(rayDirection) ); \n\
-    AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
+    //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
+	AABB aabb = AABB(vec3(fw_dimensions*-.5),vec3(fw_dimensions*.5)); \n\
 	\n\
     float tnear, tfar; \n\
     IntersectBox(eye, aabb, tnear, tfar); \n\

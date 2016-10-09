@@ -186,6 +186,7 @@ void compile_VolumeData(struct X3D_VolumeData *node){
 void pushnset_framebuffer(int ibuffer);
 void popnset_framebuffer();
 
+//=========== CPU EMULATOR FOR SHADER PROGRAMS >>>>>>>>>>>>>>>>>>>>>>>>>
 int swizindex(char s){
 	int kret;
 	switch(s){
@@ -564,48 +565,6 @@ vec4 mat4mulvec4(mat4 m,vec4 a){
 	matmultvec4f(ret.data,m,a.data);
 	return ret;
 }
-
-#undef uniform
-#undef varying
-// VERTEX ==========================================
-
-//bulitins
-vec4 gl_Position;
-
-//uniforms
-mat4 fw_ModelViewMatrix;
-mat4 fw_ProjectionMatrix;
-float fw_FocalLength;
-vec4 fw_viewport;
-vec4 fw_UnlitColor;
-//attributes
-vec4 fw_Vertex;
-
-/* PLUG-DECLARATIONS */
-
-//varying
-vec4 castle_vertex_eye;
-vec4 castle_Color; 
-vec3 vertex_model; 
-
-
-void main_vertex(void)
-{
-  vec4 vertex_object = fw_Vertex;
-
-  castle_vertex_eye = mat4mulvec4(fw_ModelViewMatrix,vertex_object);
-
-   castle_Color = vec4new4(1.0,.5,.5,1.0);
-
-  gl_Position = mat4mulvec4(fw_ProjectionMatrix,castle_vertex_eye);
-  //#ifdef XYZ
-  vec4swizcpy(&castle_Color,"rgb",gl_Position,"xyz");
-  vertex_model = vec3from4(fw_Vertex);
-  //#endif
-
-}
-// 
-#define sampler3D int
 int ifloor(float v){
 	int ret = (int)v;
 	return ret;
@@ -615,6 +574,8 @@ int iceil(float v){
 	ret = (int)(v + .99999f);
 	return ret;
 }
+
+#define sampler3D int
 textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
 vec4 texture3D(sampler3D tunit, vec3 tcoord){
 	vec4 ret;
@@ -674,10 +635,12 @@ vec4 texture3D(sampler3D tunit, vec3 tcoord){
 			}
 			//weight the 8 samples
 			unsigned char *rgba = (unsigned char *)&samples[0][0][0];
-			ret.r = rgba[0];
+			ret.r = rgba[0]; //for now I'll just take one
 			ret.g = rgba[1];
 			ret.b = rgba[2];
 			ret.a = rgba[3];
+			//should be a weighted grid interpolation, like 'finite elements'
+			// ie (1-(x-floor))p[0] + (x-floor)p[1] ...
 			//for(i=0;i<4;i++) frgba = 0.0f;
 			//for(i=0;i<3;i++){
 			//	unsigned char *rgba;
@@ -692,29 +655,84 @@ vec4 texture3D(sampler3D tunit, vec3 tcoord){
 	}
 	return ret;
 }
-// FRAGMENT ==========================================
 
-//varying
-vec3 vertex_model;
-vec4 castle_vertex_eye;
-vec4 castle_Color;
+#define uniform
+#define varying
+#define attribute
 
-//uniform
-mat4 fw_ModelViewMatrix;
-mat4 fw_ProjectionMatrix;
-float fw_FocalLength;
-vec4 fw_viewport;
-vec3 fw_dimensions;
-vec3 fw_RayOrigin;
-sampler3D fw_Texture_unit0;
 
-int tex3dDepth;
-int repeatSTR[3];
-int magFilter;
+//bulitin vertex
+vec4 gl_Position;
 
-//builtin
+//builtin fragment
 vec2 gl_FragCoord;
 vec4 gl_FragColor;
+
+//<<<<< END CPU EMULATOR FOR SHADER PROGRAMS =============
+
+// =======SPECIFIC SHADER EXAMPLE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// VERTEX ==========================================
+
+//bulitins
+//vec4 gl_Position;
+
+//uniforms
+uniform mat4 fw_ModelViewMatrix;
+uniform mat4 fw_ProjectionMatrix;
+uniform float fw_FocalLength;
+uniform vec4 fw_viewport;
+uniform vec4 fw_UnlitColor;
+//attributes
+attribute vec4 fw_Vertex;
+
+/* PLUG-DECLARATIONS */
+
+//varying
+varying vec4 castle_vertex_eye;
+varying vec4 castle_Color; 
+varying vec3 vertex_model; 
+
+
+void main_vertex(void)
+{
+  vec4 vertex_object = fw_Vertex;
+
+  castle_vertex_eye = mat4mulvec4(fw_ModelViewMatrix,vertex_object);
+
+   castle_Color = vec4new4(1.0,.5,.5,1.0);
+
+  gl_Position = mat4mulvec4(fw_ProjectionMatrix,castle_vertex_eye);
+  //#ifdef XYZ
+  vec4swizcpy(&castle_Color,"rgb",gl_Position,"xyz");
+  vertex_model = vec3from4(fw_Vertex);
+  //#endif
+
+}
+// 
+
+// FRAGMENT ==========================================
+
+//builtin
+//vec2 gl_FragCoord;
+//vec4 gl_FragColor;
+
+//varying
+varying vec3 vertex_model;
+varying vec4 castle_vertex_eye;
+varying vec4 castle_Color;
+
+//uniform
+uniform mat4 fw_ModelViewMatrix;
+uniform mat4 fw_ProjectionMatrix;
+uniform float fw_FocalLength;
+uniform vec4 fw_viewport;
+uniform vec3 fw_dimensions;
+uniform vec3 fw_RayOrigin;
+sampler3D fw_Texture_unit0;
+
+uniform int tex3dDepth;
+uniform int repeatSTR[3];
+uniform int magFilter;
 
 
 typedef struct Ray {
@@ -819,7 +837,7 @@ void main_fragment(void)
 	gl_FragColor = fragment_color_main;
 }
 
-
+// <<<<< END SPECIFIC SHADER EXAMPLE ==================================
 
 #ifdef GL_DEPTH_COMPONENT32
 #define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT32
@@ -1034,19 +1052,18 @@ void child_VolumeData(struct X3D_VolumeData *node){
 				double modelviewMatrix[16], mvmInverse[16];
 				//GL_GET_MODELVIEWMATRIX
 				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-				if(1){
+				//if(1){
 				matinverseAFFINE(mvmInverse,modelviewMatrix);
 				transformAFFINEd(eyeLocald,origind,mvmInverse);
-				}else if(1){
-				transformAFFINEd(eyeLocald,origind,modelviewMatrix);
-				}else {
-					veccopyd(eyeLocald,origind);
-				}
+				//}else if(0){
+				//transformAFFINEd(eyeLocald,origind,modelviewMatrix);
+				//}else {
+				//	veccopyd(eyeLocald,origind);
+				//}
 				for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
 				GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
 				//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-				if(!once) printf("orig %d dim %d vp %d focal %d\n",
-				orig, dim ,  vp, focal );
+				if(!once) printf("orig %d dim %d vp %d focal %d\n",orig,dim,vp,focal );
 
 				//3.2 draw with shader
 				glDrawArrays(GL_TRIANGLES,0,36);
@@ -1157,17 +1174,17 @@ void child_VolumeData(struct X3D_VolumeData *node){
 				double modelviewMatrix[16], mvmInverse[16];
 				//GL_GET_MODELVIEWMATRIX
 				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-				if(1){
+				//if(1){
 				double testzero [3];
 				matinverseAFFINE(mvmInverse,modelviewMatrix);
 				transformAFFINEd(eyeLocald,origind,mvmInverse);
 				transformAFFINEd(testzero,eyeLocald,modelviewMatrix);
 				//printf("testzero= %lf %lf %lf\n",testzero[0],testzero[1],testzero[2]);
-				}else if(0){
-				transformAFFINEd(eyeLocald,origind,modelviewMatrix);
-				}else {
-					veccopyd(eyeLocald,origind);
-				}
+				//}else if(0){
+				//transformAFFINEd(eyeLocald,origind,modelviewMatrix);
+				//}else {
+				//	veccopyd(eyeLocald,origind);
+				//}
 				for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
 				GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
 				fw_RayOrigin = vec3new3(eyeLocal[0],eyeLocal[1],eyeLocal[2]);
@@ -1181,7 +1198,14 @@ void child_VolumeData(struct X3D_VolumeData *node){
 					fw_Vertex = vec4new4(point[0],point[1],point[2],0.0f);
 					main_vertex();
 					gl_FragCoord = vec2from3(vec3from4homog(gl_Position));
+					//after vertex 
+					//- accumulate triangle corners, when have 3 check ccw vs cw for culling
+					//- make 2D rectangle around projected triangle
+					//- iterate over rectangle doing each line, starting with line intersect triangle edge
+					//- for each pixel interpolate varying from triangle corners
 					main_fragment();
+					// - save frag results to image blob
+					//- set blob as texture image
 				}
 
 				if(node->voxels){
