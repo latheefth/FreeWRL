@@ -669,6 +669,8 @@ vec4 gl_Position;
 vec2 gl_FragCoord;
 vec4 gl_FragColor;
 
+
+
 //<<<<< END CPU EMULATOR FOR SHADER PROGRAMS =============
 
 // =======SPECIFIC SHADER EXAMPLE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -838,6 +840,25 @@ void main_fragment(void)
 	gl_FragColor = fragment_color_main;
 }
 
+// PIPELINE - connects vertex to fragment
+void cpu_drawtriangles(float *vertices, int nvertices){
+	for(int i=0;i<nvertices;i++){
+		float *point = &vertices[i*3];
+		fw_Vertex = vec4new4(point[0],point[1],point[2],0.0f);
+		main_vertex();
+		gl_FragCoord = vec2from3(vec3from4homog(gl_Position));
+		//after vertex 
+		//- accumulate triangle corners, when have 3 check ccw vs cw for culling
+		//- make 2D rectangle around projected triangle
+		//- iterate over rectangle doing each line, starting with line intersect triangle edge
+		//- for each pixel interpolate varying from triangle corners
+		main_fragment();
+		// - save frag results to image blob
+		//- set blob as texture image
+	}
+}
+
+
 // <<<<< END SPECIFIC SHADER EXAMPLE ==================================
 // <<<<<< END MIT =================
 
@@ -960,7 +981,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			once = 1;
 
 		} else {
-			//START MIT >>>>>>>
 			//CPU VERSION
 			//Step 1: set the 3D texture
 			if(node->voxels){
@@ -1029,12 +1049,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			matinverseAFFINE(mvmInverse,modelviewMatrix);
 			transformAFFINEd(eyeLocald,origind,mvmInverse);
 			transformAFFINEd(testzero,eyeLocald,modelviewMatrix);
-			//printf("testzero= %lf %lf %lf\n",testzero[0],testzero[1],testzero[2]);
-			//}else if(0){
-			//transformAFFINEd(eyeLocald,origind,modelviewMatrix);
-			//}else {
-			//	veccopyd(eyeLocald,origind);
-			//}
 			for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
 			//GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
 			fw_RayOrigin = vec3new3(eyeLocal[0],eyeLocal[1],eyeLocal[2]);
@@ -1043,25 +1057,11 @@ void child_VolumeData(struct X3D_VolumeData *node){
 
 			//3.2 draw with shader
 			//glDrawArrays(GL_TRIANGLES,0,36);
-			for(int i=0;i<36;i++){
-				float *point = &boxtris[i*3];
-				fw_Vertex = vec4new4(point[0],point[1],point[2],0.0f);
-				main_vertex();
-				gl_FragCoord = vec2from3(vec3from4homog(gl_Position));
-				//after vertex 
-				//- accumulate triangle corners, when have 3 check ccw vs cw for culling
-				//- make 2D rectangle around projected triangle
-				//- iterate over rectangle doing each line, starting with line intersect triangle edge
-				//- for each pixel interpolate varying from triangle corners
-				main_fragment();
-				// - save frag results to image blob
-				//- set blob as texture image
-			}
+			cpu_drawtriangles(boxtris,36); //(float *, nvertices)
 
 			if(node->voxels){
 				textureDraw_end();
 			}
-			//END MIT <<<<<<<
 
 		}
 
