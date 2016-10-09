@@ -187,7 +187,17 @@ void pushnset_framebuffer(int ibuffer);
 void popnset_framebuffer();
 
 // START MIT >>>>>>>>>>>>
-//=========== CPU EMULATOR FOR SHADER PROGRAMS >>>>>>>>>>>>>>>>>>>>>>>>>
+//=========== CPU EMULATOR FOR GLSL SHADER PROGRAMS IN C >>>>>>>>>>>>>>>>>>>>>>>>>
+/*	goal: be able to set breakpoints, printf and generally debug complex algorithms destined for shaders
+	implementation: because in flat C, no OO shader objects, so syntax for working with vectors, matrices
+	is functional ie vec3 p = q.yyz becomes vec3 p = vec3swiz(q,"yyz");
+	And that means you need to re-write each line of a GPU shader (or vice versa going the other way).
+	And that means if you have both GPU and CPU versions, you need to maintain 2 things to keep them in sync.
+	Which is tedious and error prone.
+	So not recommended in general, but more for when you're desperate - you just can't get a shader to work
+	and don't understand what's going on, this might help.
+
+*/
 int swizindex(char s){
 	int kret;
 	switch(s){
@@ -642,6 +652,13 @@ vec4 texture3D(sampler3D tunit, vec3 tcoord){
 			ret.a = rgba[3];
 			//should be a weighted grid interpolation, like 'finite elements'
 			// ie (1-(x-floor))p[0] + (x-floor)p[1] ...
+			//Option A:
+			//1. interpolate 2D xy on z floor
+			//2. interpolate 2D xy on z ceiling
+			//3. interpolate between z floor and ceiling
+			//Option B:
+			//1. for each corner on 2D xy on z floor and z ciel, interpolated to z
+			//2. interpolate 2D on z
 			//for(i=0;i<4;i++) frgba = 0.0f;
 			//for(i=0;i<3;i++){
 			//	unsigned char *rgba;
@@ -902,6 +919,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			//GPU VERSION
 			shaderflagsstruct shaderflags, shader_requirements;
 			s_shader_capabilities_t *caps;
+			int old_shape_way = 0;
 
 			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
 			//shaderflags = getShaderFlags();
@@ -919,9 +937,26 @@ void child_VolumeData(struct X3D_VolumeData *node){
 
 				render_node(tmpN); //render_node(node->voxels);
 
-				struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
-				textureDraw_start(&mtf);
+				if(old_shape_way){
+					struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
+					textureDraw_start(&mtf);
+				}else{
+					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
 
+					//me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
+					GLint tdepth = GET_UNIFORM(myProg,"tex3dDepth");
+					GLUNIFORM1I(tdepth,tti->z);
+					//me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+					GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+					glUniform1i(tex3dUseVertex,0); 
+					GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+					glUniform1iv(repeatSTR,3,tti->repeatSTR);
+					GLint magFilter = GET_UNIFORM(myProg,"magFilter");
+					glUniform1i(magFilter,tti->magFilter);
+
+					glActiveTexture(GL_TEXTURE0); 
+					glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+				}
 			}
 
 			//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
@@ -966,7 +1001,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			double origind[3], eyeLocald[3];
 			origind[0] = origind[1] = origind[2] = 0.0;
 			double modelviewMatrix[16], mvmInverse[16];
-			//GL_GET_MODELVIEWMATRIX
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 
 			matinverseAFFINE(mvmInverse,modelviewMatrix);
@@ -981,7 +1015,12 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			glDrawArrays(GL_TRIANGLES,0,36);
 
 			if(node->voxels){
-				textureDraw_end();
+				if(old_shape_way){
+					textureDraw_end();
+				}else{
+					tg->RenderFuncs.textureStackTop = 0;
+					tg->RenderFuncs.texturenode = NULL;
+				}
 			}
 			once = 1;
 
@@ -993,9 +1032,25 @@ void child_VolumeData(struct X3D_VolumeData *node){
 				POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->voxels,tmpN);
 				tg->RenderFuncs.texturenode = (void*)tmpN;
 
-				render_node(tmpN); //render_node(node->voxels);
-				struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
-				textureDraw_start(&mtf);
+				render_node(tmpN); //render_node(node->voxels); //still need render_texture to get it loaded
+				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+				//GLint tdepth = GET_UNIFORM(myProg,"tex3dDepth");
+				//GLUNIFORM1I(tdepth,tti->z);
+				tex3dDepth = tti->z;
+
+				//tex3dUseVertex - used in some vertex shaders to generate 3D texture coords automatically if set
+				//GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+				//glUniform1i(tex3dUseVertex,0); 
+				//tex3dUseVertex = 0;
+
+				//repeatSTR used with texture2D emulation of texture3D
+				//GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+				//glUniform1iv(repeatSTR,3,tti->repeatSTR);
+				memcpy(repeatSTR,tti->repeatSTR,3*sizeof(int)); 
+
+				//GLint magFilter = GET_UNIFORM(myProg,"magFilter");
+				//glUniform1i(magFilter,tti->magFilter);
+				magFilter = tti->magFilter;
 
 			}
 
@@ -1020,7 +1075,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			//get the current viewport
 			GLint iviewport[4];
 			float viewport[4];
-			//glGetIntegerv(GL_VIEWPORT, iviewport);
+			glGetIntegerv(GL_VIEWPORT, iviewport);
 
 			//get the current fieldOfView
 			float FieldOfView = tg->Mainloop.fieldOfView;
@@ -1049,20 +1104,16 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			double modelviewMatrix[16], mvmInverse[16];
 			//GL_GET_MODELVIEWMATRIX
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-			//if(1){
-			double testzero [3];
 			matinverseAFFINE(mvmInverse,modelviewMatrix);
 			transformAFFINEd(eyeLocald,origind,mvmInverse);
-			transformAFFINEd(testzero,eyeLocald,modelviewMatrix);
 			for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
 			//GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
 			fw_RayOrigin = vec3new3(eyeLocal[0],eyeLocal[1],eyeLocal[2]);
 			//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
 
-
 			//3.2 draw with shader
 			//glDrawArrays(GL_TRIANGLES,0,36);
-			cpu_drawtriangles(boxtris,36); //(float *, nvertices)
+			cpu_drawtriangles(boxtris,36); //(float *vertices, nvertices)
 
 			if(node->voxels){
 				textureDraw_end();

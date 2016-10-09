@@ -303,10 +303,15 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
 					if(tnode->_nodeType != NODE_ComposedTexture3D){
 						//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
-						if(tti)
-							glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
-						else
-							glUniform1i(me->tex3dDepth,1);
+						GLint tex3dDepth;
+						if(me){
+							tex3dDepth = me->tex3dDepth;
+							if(tti){
+								glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
+							}else{
+								glUniform1i(me->tex3dDepth,1);
+							}
+						}
 					}
 					//all texture3d
 					if(tg->RenderFuncs.shapenode && isIdentity && genTexPtr->TC_size < 3){
@@ -349,17 +354,19 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 							FW_GL_TRANSLATE_F(-bmin[0],-bmin[1],-bmin[2]);
 						}
 					}
-					if(tg->RenderFuncs.shapenode && genTexPtr->TC_size < 3){
-						//3D but no 3D coords supplied - gen from vertex in vertex shader
-						glUniform1i(me->tex3dUseVertex,1); //vertex shader flag to over-ride texCoords with vertex
-					}else{
-						glUniform1i(me->tex3dUseVertex,0); 
-					}
-					if(tti){
-						if(me->repeatSTR > -1)
-							glUniform1iv(me->repeatSTR,3,tti->repeatSTR);
-						if(me->magFilter > -1)
-							glUniform1i(me->magFilter,tti->magFilter);
+					if(me){
+						if(tg->RenderFuncs.shapenode && genTexPtr->TC_size < 3){
+							//3D but no 3D coords supplied - gen from vertex in vertex shader
+							glUniform1i(me->tex3dUseVertex,1); //vertex shader flag to over-ride texCoords with vertex
+						}else{
+							glUniform1i(me->tex3dUseVertex,0); 
+						}
+						if(tti){
+							if(me->repeatSTR > -1)
+								glUniform1iv(me->repeatSTR,3,tti->repeatSTR);
+							if(me->magFilter > -1)
+								glUniform1i(me->magFilter,tti->magFilter);
+						}
 					}
 				}
 

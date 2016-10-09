@@ -1847,8 +1847,8 @@ void main(void) \n\
 	if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
 	if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
 	//numSamples = 0; \n\
-	fw_TexCoord[0] = vertex_model; //vec3(.2,.2,.5); \n\
-	fragment_color = vec4(1.0); \n\
+	fw_TexCoord[0] = pos; //vertex_model; //vec3(.2,.2,.5); \n\
+	fragment_color = vec4(1.0,1.0,1.0,1.0); \n\
 	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
 	/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
 	fragment_color_main = fragment_color; \n\
