@@ -296,6 +296,18 @@ vec2 vec2max(vec2 a, vec2 b){
 	ret.y = max(a.y, b.y);
 	return ret;
 }
+vec2 vec2floor(vec2 a){
+	vec2 ret = a;
+	ret.x = floor(ret.x);
+	ret.y = floor(ret.y);
+	return ret;
+}
+vec2 vec2ceil(vec2 a){
+	vec2 ret = a;
+	ret.x = ceil(ret.x);
+	ret.y = ceil(ret.y);
+	return ret;
+}
 vec2 vec2swiz(vec2 a, char *ss){
 	vec2 ret;
 	ret = a;
@@ -359,6 +371,14 @@ vec3 vec3dif(vec3 a, vec3 b){
 	ret.z = a.z - b.z;
 	return ret;
 }
+vec3 vec3cross(vec3 a, vec3 b){
+	//cross product
+	vec3 ret;
+	ret.x = a.y * b.z - a.z * b.y;
+	ret.y = a.z * b.x - a.x * b.z;
+	ret.z = a.x * b.y - a.y * b.x;
+	return ret;
+}
 vec3 vec3add(vec3 a, vec3 b){
 	vec3 ret;
 	ret.x = a.x + b.x;
@@ -400,6 +420,27 @@ vec3 vec3max(vec3 a, vec3 b){
 	ret.x = max(a.x, b.x);
 	ret.y = max(a.y, b.y);
 	ret.z = max(a.z, b.z);
+	return ret;
+}
+vec3 vec3floor(vec3 a){
+	vec3 ret = a;
+	ret.x = floor(ret.x);
+	ret.y = floor(ret.y);
+	ret.z = floor(ret.z);
+	return ret;
+}
+vec3 vec3ceil(vec3 a){
+	vec3 ret = a;
+	ret.x = ceil(ret.x);
+	ret.y = ceil(ret.y);
+	ret.z = ceil(ret.z);
+	return ret;
+}
+vec3 vec3clamp(vec3 a,float vmin, float vmax){
+	vec3 ret = a;
+	ret.x = max(vmin,min(vmax,a.x));
+	ret.y = max(vmin,min(vmax,a.y));
+	ret.z = max(vmin,min(vmax,a.z));
 	return ret;
 }
 vec3 vec3swiz(vec3 a, char *ss){
@@ -484,6 +525,15 @@ vec4 vec4add(vec4 a, vec4 b){
 	ret.w = a.w + b.w;
 	return ret;
 }
+vec4 vec4scale(vec4 a, float s){
+	vec4 ret;
+	ret = a;
+	ret.x *= s;
+	ret.y *= s;
+	ret.z *= s;
+	ret.w *= s;
+	return ret;
+}
 vec4 vec4inv(vec4 a){
 	vec4 ret;
 	ret.x = 1.0 / a.x;
@@ -506,6 +556,22 @@ vec4 vec4max(vec4 a, vec4 b){
 	ret.y = max(a.y, b.y);
 	ret.z = max(a.z, b.z);
 	ret.w = max(a.w, b.w);
+	return ret;
+}
+vec4 vec4floor(vec4 a){
+	vec4 ret = a;
+	ret.x = floor(ret.x);
+	ret.y = floor(ret.y);
+	ret.z = floor(ret.z);
+	ret.w = floor(ret.w);
+	return ret;
+}
+vec4 vec4ceil(vec4 a){
+	vec4 ret = a;
+	ret.x = ceil(ret.x);
+	ret.y = ceil(ret.y);
+	ret.z = ceil(ret.z);
+	ret.w = ceil(ret.w);
 	return ret;
 }
 vec4 vec4swiz(vec4 a, char *ss){
@@ -550,6 +616,12 @@ vec3 vec3from4homog(vec4 a){
 	ret = vec3scale(ret,1.0/a.w);
 	return ret;
 }
+vec4 vec4from4homog(vec4 a){
+	vec4 ret;
+	ret = vec4scale(a,1.0/a.w);
+	ret.w = 1.0;
+	return ret;
+}
 vec2 vec2from4swiz(vec4 a, char *ssa){
 	vec2 ret;
 	int i,ka;
@@ -577,17 +649,18 @@ vec4 mat4mulvec4(mat4 m,vec4 a){
 	return ret;
 }
 int ifloor(float v){
-	int ret = (int)v;
+	int ret = (int)floor(v);
 	return ret;
 }
 int iceil(float v){
 	int ret;
-	ret = (int)(v + .99999f);
+	ret = (int)ceil(v);
 	return ret;
 }
 
 #define sampler3D int
 textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
+static int sampler_count = 0;
 vec4 texture3D(sampler3D tunit, vec3 tcoord){
 	vec4 ret;
 	struct X3D_Node *tnode;
@@ -598,9 +671,13 @@ vec4 texture3D(sampler3D tunit, vec3 tcoord){
 	if(isTex3D(tnode)){
 		textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
 		vec3 imcoord;
-		imcoord.x = tcoord.x * tti->x;
-		imcoord.y = tcoord.y * tti->y;
-		imcoord.z = tcoord.z * tti->z;
+		vec3 tclamped;
+		tclamped = vec3clamp(tcoord,0.0,1.0);
+
+		imcoord.x = tclamped.x * (tti->x -1);
+		imcoord.y = tclamped.y * (tti->y -1);
+		imcoord.z = tclamped.z * (tti->z -1);
+		//printf("imcoord x %f y %f z %f\n",imcoord.x,imcoord.y,imcoord.z);
 		int xrange[2],yrange[2],zrange[2];
 		float xyzweight[3];
 		int samples[2][2][2];
@@ -617,10 +694,7 @@ vec4 texture3D(sampler3D tunit, vec3 tcoord){
 			yrange[1] = iceil(imcoord.y);
 			zrange[0] = ifloor(imcoord.z);
 			zrange[1] = iceil(imcoord.z);
-			xyzweight[0] = imcoord.x - (float)xrange[0];
-			xyzweight[1] = imcoord.y - (float)yrange[0];
-			xyzweight[2] = imcoord.z - (float)zrange[0];
-			float frgba[4];
+			vec3 xyz = vec3dif(imcoord,vec3floor(imcoord));
 
 			int i,j,k,l,ii,jj,kk;
 			for(i=0;i<2;i++){
@@ -629,7 +703,8 @@ vec4 texture3D(sampler3D tunit, vec3 tcoord){
 				else
 				for(j=0;j<2;j++){
 					jj = yrange[j];
-					if(jj < 0 || jj >= imagesize[1]) printf("ouch image y %d\n",jj);
+					if(jj < 0 || jj >= imagesize[1]) 
+						printf("ouch image y %d\n",jj);
 					else
 					for(k=0;k<2;k++){
 						unsigned int pixel;
@@ -637,38 +712,60 @@ vec4 texture3D(sampler3D tunit, vec3 tcoord){
 						kk = xrange[k];
 						if(kk < 0 || kk >= imagesize[0]) printf("ouch image x %d\n",kk);
 						else{
-							pixel = td[ii*imagesize[1]*imagesize[0] + jj*imagesize[0] + kk];
+							int ipixel = ii*imagesize[1]*imagesize[0] + jj*imagesize[0] + kk;
+							pixel = td[ipixel];
 							//rgba = (unsigned int *)&pixel;
 							samples[k][j][i] = pixel; //(int)rgba[3];
+							sampler_count++;
 						}
 					}
 				}
 			}
 			//weight the 8 samples
-			unsigned char *rgba = (unsigned char *)&samples[0][0][0];
-			ret.r = rgba[0]; //for now I'll just take one
-			ret.g = rgba[1];
-			ret.b = rgba[2];
-			ret.a = rgba[3];
-			//should be a weighted grid interpolation, like 'finite elements'
-			// ie (1-(x-floor))p[0] + (x-floor)p[1] ...
-			//Option A:
-			//1. interpolate 2D xy on z floor
-			//2. interpolate 2D xy on z ceiling
-			//3. interpolate between z floor and ceiling
-			//Option B:
-			//1. for each corner on 2D xy on z floor and z ciel, interpolated to z
-			//2. interpolate 2D on z
-			//for(i=0;i<4;i++) frgba = 0.0f;
-			//for(i=0;i<3;i++){
-			//	unsigned char *rgba;
-			//	unsigned int pixel = samples[k][j][i];
-			//	rgba = (unsigned char *)&pixel;
-			//	for(l=0;i<4;l++){
-			//		frgba[l] += (1.0f - xyzweight[i])*(float)(int)rgba[l]
-			//	}
-			//}
+			float uchar2float = 1.0 / 255.0;
+			if(1){
+				//for now I'll just take one
+				unsigned char *rgba = (unsigned char *)&samples[1][1][1];
 
+				ret.r = uchar2float*(float)(int)rgba[0]; 
+				ret.g = uchar2float*(float)(int)rgba[1];
+				ret.b = uchar2float*(float)(int)rgba[2];
+				ret.a = uchar2float*(float)(int)rgba[3];
+			}else{
+				//should be a weighted grid interpolation
+				//https://en.wikipedia.org/wiki/Bilinear_interpolation
+				//-bilinear
+				//http://paulbourke.net/miscellaneous/interpolation/
+				//-trilinear
+				//Vxyz = 	V000 (1 - x) (1 - y) (1 - z) +
+				//V100 x (1 - y) (1 - z) +
+				//V010 (1 - x) y (1 - z) +
+				//V001 (1 - x) (1 - y) z +
+				//V101 x (1 - y) z +
+				//V011 (1 - x) y z +
+				//V110 x y (1 - z) +
+				//V111 x y z 
+				vec4 frgba = vec4new1(0.0);
+				float xw,yw,zw;
+				for(i=0;i<2;i++){
+					zw = xyz.z;
+					if(!i) zw = (1.0f - zw);
+					for(j=0;j<2;j++){
+						yw = xyz.y;
+						if(!j) yw = (1.0f - yw);
+						for(k=0;k<2;k++){
+							xw = xyz.x;
+							if(!k) xw = (1.0f - xw);
+							unsigned char *rgba = (unsigned char *)&samples[k][j][i];
+							for(l=0;l<4;l++){
+								frgba.data[l] += xw*yw*zw*uchar2float*(float)(int)rgba[l];
+							}
+						}
+					}
+				}
+				ret = frgba;
+				//if(ret.a == 0.0) printf(".");
+			}
 		} //td != NULL
 	}
 	return ret;
@@ -699,18 +796,16 @@ vec4 gl_FragColor;
 //uniforms
 uniform mat4 fw_ModelViewMatrix;
 uniform mat4 fw_ProjectionMatrix;
-uniform float fw_FocalLength;
-uniform vec4 fw_viewport;
-uniform vec4 fw_UnlitColor;
+//uniform vec4 fw_UnlitColor;
 //attributes
 attribute vec4 fw_Vertex;
 
 /* PLUG-DECLARATIONS */
 
 //varying
+varying vec3 vertex_model; 
 varying vec4 castle_vertex_eye;
 varying vec4 castle_Color; 
-varying vec3 vertex_model; 
 
 
 void main_vertex(void)
@@ -737,13 +832,13 @@ void main_vertex(void)
 //vec4 gl_FragColor;
 
 //varying
-varying vec3 vertex_model;
-varying vec4 castle_vertex_eye;
-varying vec4 castle_Color;
+//varying vec3 vertex_model;
+//varying vec4 castle_vertex_eye;
+//varying vec4 castle_Color;
 
 //uniform
-uniform mat4 fw_ModelViewMatrix;
-uniform mat4 fw_ProjectionMatrix;
+//uniform mat4 fw_ModelViewMatrix;
+//uniform mat4 fw_ProjectionMatrix;
 uniform float fw_FocalLength;
 uniform vec4 fw_viewport;
 uniform vec3 fw_dimensions;
@@ -821,8 +916,8 @@ void main_fragment(void)
 	vec3 normal_eye_fragment = vec3new1(0.0); //not used in plug
 	fragment_color.a = 1.0;
 	if(travel <= 0.0) fragment_color = vec4new4(.5,.5,.5,1.0);
-	if(numSamples <= 0) fragment_color = vec4new4(.1,.5,.1,1.0);
-	//numSamples = 0;
+	//(numSamples <= 0) fragment_color = vec4new4(.1,.5,.1,1.0);
+	numSamples = 0;
 	fw_TexCoord[0] = vertex_model; //vec3(.2,.2,.5);
 	fragment_color = vec4new1(1.0);
 	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st);
@@ -858,26 +953,208 @@ void main_fragment(void)
 }
 
 // PIPELINE - connects vertex to fragment
+float area_of_triangle(vec3 Q, vec3 R, vec3 S){
+	// https://en.wikibooks.org/wiki/GLSL_Programming/Rasterization
+	vec3 QR = vec3dif(R,Q);
+	vec3 QS = vec3dif(S,Q);
+	vec3 cross = vec3cross(QR,QS);
+	float d = vec3length(cross);
+	return d * .5;
+}
+vec4 vec4triterp(vec3 alphas, vec4 *trivals){
+	//given 3 alphas, and 3 vec4s, interpolate
+	int i;
+	vec4 ret = vec4new1(0.0);
+	for(i=0;i<3;i++)
+		ret = vec4add(ret,vec4scale(trivals[i],alphas.data[i]));
+	return ret;
+}
+vec3 vec3triterp(vec3 alphas, vec3 *trivals){
+	//given 3 alphas, and 3 vec3s, interpolate
+	int i;
+	vec3 ret = vec3new1(0.0);
+	for(i=0;i<3;i++)
+		ret = vec3add(ret,vec3scale(trivals[i],alphas.data[i]));
+	return ret;
+}
+void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
+#define isign(a) ( ( (a) < 0 )  ?  -1   : ( (a) > 0 ) ? 1 : 0 )
+static unsigned char *imblob = NULL;
 void cpu_drawtriangles(float *vertices, int nvertices){
-	for(int i=0;i<nvertices;i++){
-		float *point = &vertices[i*3];
-		fw_Vertex = vec4new4(point[0],point[1],point[2],0.0f);
-		main_vertex();
-		gl_FragCoord = vec2from3(vec3from4homog(gl_Position));
-		//after vertex 
-		//- accumulate triangle corners
-		//after 3 vertices / triangle:
-		//-check ccw vs cw for backface culling
-		//- make 2D rectangle around projected triangle
-		//- iterate over rectangle doing each line, starting with line intersect triangle edge
-		//- for each pixel interpolate varying from triangle corners
-		main_fragment();
-		//after fragment:
-		//- check depth vs blob depth
-		//- save frag results to image blob
-		//after all fragments:
-		//- set blob as texture image to view
+	// this is a mini opengl rendering pipeline that runs shader code converted to run on the cpu aka cpu-shaders
+	// https://www.opengl.org/wiki/Rendering_Pipeline_Overview
+	// x no depth
+	// x just a few triangles per frame, enough to exercise cpu-shaders
+
+	int itri, jvert, imsize[2];
+	vec2 vpmin = vec2from4swiz(fw_viewport,"xy");
+	vec2 vpsize = vec2from4swiz(fw_viewport,"zw");
+	vec2 vpmax = vec2add(vpmin,vpsize);
+	imsize[0] = iceil(vpsize.x);
+	imsize[1] = iceil(vpsize.y);
+
+	//malloc a 'framebuffer' as a binary large object (blob)
+	if(!imblob) imblob = malloc(4 * imsize[0] * imsize[1]);
+
+	static int framecount = 0;
+	framecount++;
+	if(framecount == 1500){
+		//glClear 'framebuffer' to background color black
+		memset(imblob,0,4* imsize[0] * imsize[1]);
+
+		sampler_count = 0;
+		for(int itri=0;itri<nvertices/3;itri++){
+			//builtins as array of 3
+			vec4 gl_Vertexes[3];
+			vec3 gl_FragCoords[3];
+			vec4 gl_Positions[3];
+			vec4 ndcs[3];
+			//declare your varying here in arrays of 3
+			vec4 castle_Colors[3];
+			vec4 castle_vertex_eyes[3];
+			vec3 vertex_models[3];
+
+			for(int jvert=0;jvert<3;jvert++){
+				float *point = &vertices[itri*3 + jvert];
+				fw_Vertex = vec4new4(point[0],point[1],point[2],1.0f);
+				gl_Vertexes[jvert] = fw_Vertex;
+				main_vertex(); //run vertex cpu-shader
+				//after vertex 
+				//https://www.opengl.org/wiki/Vertex_Post-Processing
+				//- accumulate triangle corners
+				// https://www.opengl.org/sdk/docs/man/html/gl_FragCoord.xhtml
+				vec4 ndc = vec4from4homog(gl_Position); //does perspective divide
+				ndcs[jvert] = ndc;
+				vec3 window;
+				window.x = (vpsize.x *.5 * ndc.x) + ndc.x + (vpsize.x *.5);
+				window.y = (vpsize.y *.5 * ndc.y) + ndc.y + (vpsize.y *.5);
+				window.z = ((10000.0-.1)*.5 * ndc.z) + ((10000.0+.1) *.5);
+				gl_FragCoords[jvert] = window;
+				gl_Positions[jvert] = gl_Position;
+				// copy per-vertex varyings by triangle corner - snapshot so we can over-write per-frag below
+				castle_Colors[jvert] = castle_Color;
+				castle_vertex_eyes[jvert] = castle_vertex_eye;
+				vertex_models[jvert] = vertex_model;
+			}
+			//after 3 vertices / triangle:
+
+			//-check ccw frontface vs cw backface for backface culling
+			vec3 diff1 = vec3dif(gl_FragCoords[1],gl_FragCoords[0]);
+			vec3 diff2 = vec3dif(gl_FragCoords[2],gl_FragCoords[0]);
+			diff1.z = 0.0;
+			diff2.z = 0.0;
+			vec3 normal = vec3cross(diff1,diff2);
+			if(normal.z > 0.0 ){
+				//- make 2D rectangle around projected triangle
+				vec2 rectmin = vec2min(vec2from3(gl_FragCoords[0]),vec2from3(gl_FragCoords[1]));
+				rectmin = vec2min(rectmin,vec2from3(gl_FragCoords[2]));
+				vec2 rectmax = vec2max(vec2from3(gl_FragCoords[0]),vec2from3(gl_FragCoords[1]));
+				rectmax = vec2max(rectmax,vec2from3(gl_FragCoords[2]));
+				//clip to viewport
+				rectmin = vec2max(vpmin,rectmin);
+				rectmax = vec2min(vpmax,rectmax);
+				rectmin = vec2floor(rectmin);
+				rectmax = vec2floor(rectmax);
+
+				float area_total = area_of_triangle(gl_FragCoords[0],gl_FragCoords[1],gl_FragCoords[2]);
+				for(int i=0;i<3;i++){
+					printf("%d v[%f %f %f %f]p[%f %f %f %f]\n f[%f %f %f]ndc[%f %f %f %f]\n",
+					i,gl_Vertexes[i].x,gl_Vertexes[i].y,gl_Vertexes[i].z,gl_Vertexes[i].w,
+					gl_Positions[i].x,gl_Positions[i].y,gl_Positions[i].z,gl_Positions[i].w,
+					gl_FragCoords[i].x,gl_FragCoords[i].y,gl_FragCoords[i].z,
+					ndcs[i].x,ndcs[i].y,ndcs[i].z,ndcs[i].w
+					);
+				}
+
+				//- iterate over rectangle doing each line, starting with line intersect triangle edge
+				//- for each pixel interpolate varying from triangle corners
+				printf("recmin = %f %f rectmax = %f %f\n",rectmin.x,rectmin.y,rectmax.x,rectmax.y);
+				for(int irow = ifloor(rectmin.y); irow < ifloor(rectmax.y); irow++){
+					//intersect row with triangle edges
+					vec2 ix;
+					int nx = 0;
+					//find edges that cross horizontal row (max 2 edges)
+					for(int iedge=0;iedge<3;iedge++){
+						int iedge2 = (iedge + 1) % 3;
+						if(isign(gl_FragCoords[iedge].y - (float)irow) != isign(gl_FragCoords[iedge2].y - (float)irow)){
+							//two consecutive points are on opposite sides of this horizontal line
+							//intersect row with edge
+							vec3 bigdelta, delta;
+							bigdelta = vec3dif(gl_FragCoords[iedge2], gl_FragCoords[iedge]);
+							delta.y = gl_FragCoords[iedge2].y - (float)irow;
+							delta.x = bigdelta.x * delta.y/bigdelta.y;
+							delta.x += gl_FragCoords[iedge].x;
+							nx++;
+							if(nx == 1) ix.s = delta.x;
+							if(nx == 2) ix.t = delta.x;
+						}
+					}
+					//get min and max intersection
+					//clip to viewport
+					if(nx >= 2){
+						int istartx, iendx;
+						vec2 cx;
+						cx.s = min(ix.s,ix.t);
+						cx.t = max(ix.s,ix.t);
+						cx.s = max(cx.s,rectmin.x);
+						cx.t = min(cx.t,rectmax.x);
+						cx = vec2floor(cx);
+						istartx = ifloor(cx.s);
+						iendx = ifloor(cx.t);
+						
+						for(int icol = istartx; icol < iendx; icol++){
+							gl_FragCoord = vec2new2((float)icol,(float)irow);
+							vec3 gl_FragCoord3 = vec3new3(gl_FragCoord.x,gl_FragCoord.y,0.0);
+							//https://en.wikibooks.org/wiki/GLSL_Programming/Rasterization
+							//compute alphas for interpolation
+							vec3 alphas;
+							alphas.r = area_of_triangle(gl_FragCoord3,gl_FragCoords[1],gl_FragCoords[2]);
+							alphas.s = area_of_triangle(gl_FragCoord3,gl_FragCoords[2],gl_FragCoords[0]);
+							alphas.t = area_of_triangle(gl_FragCoord3,gl_FragCoords[0],gl_FragCoords[1]);
+							alphas = vec3scale(alphas,1.0/area_total);
+							//interpolate varying and set here
+							castle_Color = vec4triterp(alphas, castle_Colors);
+							vertex_model = vec3triterp(alphas, vertex_models);
+							castle_vertex_eye = vec4triterp(alphas,castle_vertex_eyes);
+
+							main_fragment(); //run fragment cpu-shader
+							//after fragment:
+							//https://www.opengl.org/wiki/Per-Sample_Processing
+							//- check depth vs blob depth
+							//- save frag results to image blob
+							//printf("frag x %f y %f color %f %f %f %f\n",gl_FragCoord.x,gl_FragCoord.y,
+							//	gl_FragColor.r,gl_FragColor.g,gl_FragColor.b,gl_FragColor.a);
+							//-  subtract viewport min from fragCoord to get blob coord
+							int ix,iy;
+							unsigned char *pixel;
+							ix = ifloor(gl_FragCoord.x);
+							iy = ifloor(gl_FragCoord.y);
+							if(ix >=0 && ix < imsize[0] && iy >=0 && iy < imsize[1]){
+								pixel = &imblob[iy*imsize[0]*4 + ix*4];
+								for(int ij=0;ij<4;ij++){
+									pixel[ij] = ifloor(gl_FragColor.data[ij] * 255.0);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		//after all triangles and fragments:
+		//- set blob as texture image to view aka glSwapBuffers, or dump
+		if(1){
+			textureTableIndexStruct_s ttis, *tti;
+			printf("sampler_count from Sampler3D = %d",sampler_count);
+			tti = &ttis;
+			tti->channels = 4;
+			tti->texdata = imblob;
+			tti->x = imsize[0];
+			tti->y = imsize[1];
+			tti->z = 1;
+			saveImage_web3dit(tti, "test_cpu_render_frame3.web3dit");
+		}
 	}
+
 }
 
 
@@ -1116,7 +1393,8 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			cpu_drawtriangles(boxtris,36); //(float *vertices, nvertices)
 
 			if(node->voxels){
-				textureDraw_end();
+				tg->RenderFuncs.textureStackTop = 0;
+				tg->RenderFuncs.texturenode = NULL;
 			}
 
 		}

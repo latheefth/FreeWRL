@@ -223,7 +223,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 	svptr = node->type.p;
 
 	/* assume "NONE" is set */
-	for (i=0; i<16; i++) viewer->oktypes[i] = FALSE;
+	for (i=0; i<18; i++) viewer->oktypes[i] = FALSE;
 
 
 	/* now, find the ones that are ok */
@@ -267,6 +267,11 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
 			if (i == 0) fwl_set_viewer_type0(viewer, VIEWER_TURNTABLE);
 		}
+		if (strcmp(typeptr, "DIST") == 0) {
+			viewer->oktypes[VIEWER_DIST] = TRUE;
+			if (i == 0) fwl_set_viewer_type0(viewer, VIEWER_DIST);
+		}
+
 		if (strcmp(typeptr, "ANY") == 0) {
 			viewer->oktypes[VIEWER_EXAMINE] = TRUE;
 			viewer->oktypes[VIEWER_WALK] = TRUE;
@@ -276,6 +281,7 @@ void set_naviinfo(struct X3D_NavigationInfo *node) {
 			viewer->oktypes[VIEWER_LOOKAT] = TRUE;
 			viewer->oktypes[VIEWER_SPHERICAL] = TRUE;
 			viewer->oktypes[VIEWER_TURNTABLE] = TRUE;
+			viewer->oktypes[VIEWER_DIST] = TRUE;
 			if (i==0) fwl_set_viewer_type0(viewer, VIEWER_WALK); /*  just choose one */
 		}
 	}
