@@ -1817,13 +1817,14 @@ void main(void) \n\
     vec4 fragment_color; \n\
 	vec4 fragment_color_main = castle_Color; \n\
     vec3 rayDirection; \n\
-	//need the equivalent of gluUnproject \n\
 	//convert window to frustum \n\
-    rayDirection.xy = 2.0 * gl_FragCoord.xy / fw_viewport.zw - vec2(1.0); \n\
+    rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
 	if(true){ \n\
+		//the equivalent of gluUnproject \n\
 		vec4 ray4 = vec4(rayDirection,1.0); \n\
 		// out = modelviewProjectionInverse x in \n\
 		ray4 = fw_ModelViewProjInverse * ray4; \n\
+		//ray4 = ray4 * fw_ModelViewProjInverse; //transpose \n\
 		// out = out/out.w; \n\
 		ray4 /= ray4.w; \n\
 		rayDirection.xyz = -ray4.xyz; \n\
