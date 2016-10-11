@@ -1259,6 +1259,25 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			if(!once)
 				printf("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
 			sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+			double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
+			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+			//if(0){
+			//	//see gluUnproject in Opengl_Utils.c
+			//	__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
+			//	if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+			//}else{
+				matinverseAFFINE(mvmInverse,modelviewMatrix);
+				matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
+				matinverseFULL(mvpinverse,mvp);
+			//}
+			float spmat[16];
+			matdouble2float4(spmat,mvpinverse);
+
+			GLint mvpi = GET_UNIFORM(myProg,"fw_ModelViewProjInverse");
+			GLUNIFORMMATRIX4FV(mvpi,1,GL_FALSE,spmat);
+
+
 			glEnableVertexAttribArray(Vertices);
 			float *boxtris = (float*)node->_boxtris;
 			glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
@@ -1290,7 +1309,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			float eyeLocal[3];
 			double origind[3], eyeLocald[3];
 			origind[0] = origind[1] = origind[2] = 0.0;
-			double modelviewMatrix[16], mvmInverse[16];
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 
 			matinverseAFFINE(mvmInverse,modelviewMatrix);

@@ -1756,8 +1756,6 @@ void main(void) \n\
    \n\
 } \n\
 ";
-
-
 /* Generic GLSL fragment shader, used on OpenGL ES. */
 static const GLchar *volumeFragmentGLES2 = " \n\
 /* DEFINES */ \n\
@@ -1771,6 +1769,7 @@ varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
 uniform mat4 fw_ModelViewMatrix; \n\
 uniform mat4 fw_ProjectionMatrix; \n\
+uniform mat4 fw_ModelViewProjInverse; \n\
 uniform float fw_FocalLength; \n\
 uniform vec4 fw_viewport; \n\
 uniform vec3 fw_dimensions; \n\
@@ -1818,9 +1817,20 @@ void main(void) \n\
     vec4 fragment_color; \n\
 	vec4 fragment_color_main = castle_Color; \n\
     vec3 rayDirection; \n\
+	//need the equivalent of gluUnproject \n\
+	//convert window to frustum \n\
     rayDirection.xy = 2.0 * gl_FragCoord.xy / fw_viewport.zw - vec2(1.0); \n\
-    rayDirection.z = -fw_FocalLength; \n\
-    rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
+	if(true){ \n\
+		vec4 ray4 = vec4(rayDirection,1.0); \n\
+		// out = modelviewProjectionInverse x in \n\
+		ray4 = fw_ModelViewProjInverse * ray4; \n\
+		// out = out/out.w; \n\
+		ray4 /= ray4.w; \n\
+		rayDirection.xyz = -ray4.xyz; \n\
+	}else{ \n\
+		rayDirection.z = -fw_FocalLength; \n\
+		rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
+	} \n\
 	\n\
     Ray eye = Ray( fw_RayOrigin, normalize(rayDirection) ); \n\
     //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
