@@ -1808,8 +1808,8 @@ vec3 fw_TexCoord[1]; \n\
 void main(void) \n\
 { \n\
 	float maxDist = 1.414214; //sqrt(2.0); \n\
-	float densityFactor = 5.0; \n\
-	float Absorption = 1.0; \n\
+	float densityFactor = 8.0; \n\
+	float Absorption = 2.0; \n\
 	int numSamples = 128; \n\
 	float fnumSamples = float(numSamples); \n\
 	float stepSize = maxDist/fnumSamples; \n\
@@ -1822,6 +1822,7 @@ void main(void) \n\
 	vec3 rayOrigin = fw_RayOrigin; \n\
 	if(true){ \n\
 		//the equivalent of gluUnproject \n\
+		//by unprojecting 2 points here, this should also work with ortho viewpoint \n\
 		vec4 ray4 = vec4(rayDirection,1.0); \n\
 		vec4 org4 = ray4; \n\
 		//ray4.z = -ray4.z; \n\
@@ -1844,7 +1845,8 @@ void main(void) \n\
 		// out = out/out.w; \n\
 		ray4 /= ray4.w; \n\
 		org4 /= org4.w; \n\
-		rayDirection.xyz = ray4.xyz - org4.xyz; \n\
+		//rayDirection.xyz = ray4.xyz - org4.xyz; \n\
+		rayDirection.xyz = org4.xyz - ray4.xyz; \n\
 		rayOrigin = org4.xyz; \n\
 	}else{ \n\
 		rayDirection.z = -fw_FocalLength; \n\
@@ -1883,7 +1885,7 @@ void main(void) \n\
     // Transform from object space to texture coordinate space: \n\
 	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
 	fw_TexCoord[0] = pos2; //vertex_model; //vec3(.2,.2,.5); \n\
-	fragment_color = vec4(.8,.8,.8,1.0); \n\
+	fragment_color = vec4(.0,.0,.0,1.0); \n\
 	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
 	/* P_LUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
 	fragment_color_main = fragment_color; \n\

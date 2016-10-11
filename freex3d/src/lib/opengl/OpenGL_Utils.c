@@ -5050,6 +5050,19 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(ImageTexture) CHECK_IMAGETEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(PixelTexture) CHECK_PIXELTEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(MovieTexture) CHECK_MOVIETEXTURE_TRANSPARENCY END_NODE
+				
+				BEGIN_NODE(VolumeData)
+					tg->RenderFuncs.have_transparency = TRUE;
+					update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+				END_NODE
+				BEGIN_NODE(SegmentedVolumeData)
+					tg->RenderFuncs.have_transparency = TRUE;
+					update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+				END_NODE
+				BEGIN_NODE(IsoSurfaceVolumeData)
+					tg->RenderFuncs.have_transparency = TRUE;
+					update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+				END_NODE
 
 
 				/* Backgrounds, Fog */

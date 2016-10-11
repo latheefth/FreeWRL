@@ -1189,251 +1189,254 @@ void child_VolumeData(struct X3D_VolumeData *node){
 	ttglobal tg = gglobal();
 	ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)tg->Component_VolumeRendering.prv;
 	COMPILE_IF_REQUIRED
-	if(node->voxels)
-		render_node(node->voxels);
-	if(!once)
-		printf("child volumedata not implemented yet\n");
-	once = 1;
-	if(node->renderStyle == NULL){
 
-		//render 
-		//Step 1: set the 3D texture
-		//if(node->voxels)
-		//	render_node(node->voxels);
-		//Step 2: get rays to cast: start point and direction vector for each ray to cast
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+		if(node->voxels)
+			render_node(node->voxels);
+		if(!once)
+			printf("child volumedata not implemented yet\n");
+		once = 1;
+		if(node->renderStyle == NULL){
 
-		//method B: use cpu math to compute a few uniforms so frag shader can do box intersections
-		//http://prideout.net/blog/?p=64
-		//- one step raycasting using gl_fragCoord
-		//
-
-		//Step 3: accumulate along rays and render opacity fragment in one step
-		if(1){
-			//GPU VERSION
-			shaderflagsstruct shaderflags, shader_requirements;
-			s_shader_capabilities_t *caps;
-			int old_shape_way = 0;
-
-			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
-			//shaderflags = getShaderFlags();
-			shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
-			shader_requirements.volume |= SHADERFLAGS_VOLUME_OPACITY;
-			shader_requirements.volume |= TEX3D_SHADER;
-			caps = getMyShaders(shader_requirements);
-			enableGlobalShader(caps);
-			GLint myProg =  caps->myShaderProgram;
+			//render 
 			//Step 1: set the 3D texture
-			if(node->voxels){
-				struct X3D_Node *tmpN;
-				POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->voxels,tmpN);
-				tg->RenderFuncs.texturenode = (void*)tmpN;
+			//if(node->voxels)
+			//	render_node(node->voxels);
+			//Step 2: get rays to cast: start point and direction vector for each ray to cast
 
-				render_node(tmpN); //render_node(node->voxels);
+			//method B: use cpu math to compute a few uniforms so frag shader can do box intersections
+			//http://prideout.net/blog/?p=64
+			//- one step raycasting using gl_fragCoord
+			//
 
-				if(old_shape_way){
-					struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
-					textureDraw_start(&mtf);
-				}else{
-					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
-
-					//me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
-					GLint tdepth = GET_UNIFORM(myProg,"tex3dDepth");
-					GLUNIFORM1I(tdepth,tti->z);
-					//me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
-					GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
-					glUniform1i(tex3dUseVertex,0); 
-					GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
-					glUniform1iv(repeatSTR,3,tti->repeatSTR);
-					GLint magFilter = GET_UNIFORM(myProg,"magFilter");
-					glUniform1i(magFilter,tti->magFilter);
-
-					glActiveTexture(GL_TEXTURE0); 
-					glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
-				}
-			}
-
-			//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
-			//    set attributes vertices of triangles of bounding box
-			// set box with vol.dimensions with triangles
-			GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
-			GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
-			GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
-			static int once = 0;
-			if(!once)
-				printf("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
-			sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
-			double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
-			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+			//Step 3: accumulate along rays and render opacity fragment in one step
 			if(1){
-				//see gluUnproject in Opengl_Utils.c
-				__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
-				if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
-			}else{
-				matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
-				//matmultiplyFULL(mvp,projMatrix,modelviewMatrix);
-				//if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
-				matinverseFULL(mvpinverse,mvp);
-			}
-			float spmat[16];
-			matdouble2float4(spmat,mvpinverse);
+				//GPU VERSION
+				shaderflagsstruct shaderflags, shader_requirements;
+				s_shader_capabilities_t *caps;
+				int old_shape_way = 0;
 
-			GLint mvpi = GET_UNIFORM(myProg,"fw_ModelViewProjInverse");
-			GLUNIFORMMATRIX4FV(mvpi,1,GL_FALSE,spmat);
+				memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+				//shaderflags = getShaderFlags();
+				shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
+				shader_requirements.volume |= SHADERFLAGS_VOLUME_OPACITY;
+				shader_requirements.volume |= TEX3D_SHADER;
+				caps = getMyShaders(shader_requirements);
+				enableGlobalShader(caps);
+				GLint myProg =  caps->myShaderProgram;
+				//Step 1: set the 3D texture
+				if(node->voxels){
+					struct X3D_Node *tmpN;
+					POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->voxels,tmpN);
+					tg->RenderFuncs.texturenode = (void*)tmpN;
 
+					render_node(tmpN); //render_node(node->voxels);
 
-			glEnableVertexAttribArray(Vertices);
-			float *boxtris = (float*)node->_boxtris;
-			glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
+					if(old_shape_way){
+						struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
+						textureDraw_start(&mtf);
+					}else{
+						textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
 
-			//get the current viewport
-			GLint iviewport[4];
-			float viewport[4];
-			glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
+						//me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
+						GLint tdepth = GET_UNIFORM(myProg,"tex3dDepth");
+						GLUNIFORM1I(tdepth,tti->z);
+						//me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+						GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+						glUniform1i(tex3dUseVertex,0); 
+						GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+						glUniform1iv(repeatSTR,3,tti->repeatSTR);
+						GLint magFilter = GET_UNIFORM(myProg,"magFilter");
+						glUniform1i(magFilter,tti->magFilter);
 
-			//get the current fieldOfView
-			float FieldOfView = tg->Mainloop.fieldOfView;
-			//printf("current viewport= %d %d %d %d\n",iviewport[0],iviewport[1],iviewport[2],iviewport[3]);
-			//printf("current FOV = %f\n",FieldOfView);
-			FieldOfView *= PI/180.0;
-			float focalLength = 1.0f / tan(FieldOfView / 2.0f);
-			GLint focal = GET_UNIFORM(myProg,"fw_FocalLength"); //fw_ModelViewMatrix
-			GLUNIFORM1F(focal,focalLength);
-			GLint vp = GET_UNIFORM(myProg,"fw_viewport");
-			viewport[0] = iviewport[0]; //xmin
-			viewport[1] = iviewport[1]; //ymin
-			viewport[2] = iviewport[2]; //width
-			viewport[3] = iviewport[3]; //height
-			GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
-			GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
-			GLUNIFORM3F(dim,node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
+						glActiveTexture(GL_TEXTURE0); 
+						glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+					}
+				}
 
-			//ray origin: the camera position 0,0,0 transformed into geometry local (box) coords
-			GLint orig = GET_UNIFORM(myProg,"fw_RayOrigin");
-			float eyeLocal[3];
-			double origind[3], eyeLocald[3];
-			origind[0] = origind[1] = origind[2] = 0.0;
-			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-
-			matinverseAFFINE(mvmInverse,modelviewMatrix);
-			transformAFFINEd(eyeLocald,origind,mvmInverse);
-
-			for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
-			GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-			//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-			if(!once) printf("orig %d dim %d vp %d focal %d\n",orig,dim,vp,focal );
-
-			//3.2 draw with shader
-			glDrawArrays(GL_TRIANGLES,0,36);
-
-			if(node->voxels){
-				if(old_shape_way){
-					textureDraw_end();
+				//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
+				//    set attributes vertices of triangles of bounding box
+				// set box with vol.dimensions with triangles
+				GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+				GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
+				GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
+				static int once = 0;
+				if(!once)
+					printf("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
+				sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+				double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+				FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+				if(1){
+					//see gluUnproject in Opengl_Utils.c
+					__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
+					if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
 				}else{
+					matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
+					//matmultiplyFULL(mvp,projMatrix,modelviewMatrix);
+					//if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+					matinverseFULL(mvpinverse,mvp);
+				}
+				float spmat[16];
+				matdouble2float4(spmat,mvpinverse);
+
+				GLint mvpi = GET_UNIFORM(myProg,"fw_ModelViewProjInverse");
+				GLUNIFORMMATRIX4FV(mvpi,1,GL_FALSE,spmat);
+
+
+				glEnableVertexAttribArray(Vertices);
+				float *boxtris = (float*)node->_boxtris;
+				glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
+
+				//get the current viewport
+				GLint iviewport[4];
+				float viewport[4];
+				glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
+
+				//get the current fieldOfView
+				float FieldOfView = tg->Mainloop.fieldOfView;
+				//printf("current viewport= %d %d %d %d\n",iviewport[0],iviewport[1],iviewport[2],iviewport[3]);
+				//printf("current FOV = %f\n",FieldOfView);
+				FieldOfView *= PI/180.0;
+				float focalLength = 1.0f / tan(FieldOfView / 2.0f);
+				GLint focal = GET_UNIFORM(myProg,"fw_FocalLength"); //fw_ModelViewMatrix
+				GLUNIFORM1F(focal,focalLength);
+				GLint vp = GET_UNIFORM(myProg,"fw_viewport");
+				viewport[0] = iviewport[0]; //xmin
+				viewport[1] = iviewport[1]; //ymin
+				viewport[2] = iviewport[2]; //width
+				viewport[3] = iviewport[3]; //height
+				GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
+				GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
+				GLUNIFORM3F(dim,node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
+
+				//ray origin: the camera position 0,0,0 transformed into geometry local (box) coords
+				GLint orig = GET_UNIFORM(myProg,"fw_RayOrigin");
+				float eyeLocal[3];
+				double origind[3], eyeLocald[3];
+				origind[0] = origind[1] = origind[2] = 0.0;
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+
+				matinverseAFFINE(mvmInverse,modelviewMatrix);
+				transformAFFINEd(eyeLocald,origind,mvmInverse);
+
+				for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
+				GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
+				//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
+				if(!once) printf("orig %d dim %d vp %d focal %d\n",orig,dim,vp,focal );
+
+				//3.2 draw with shader
+				glDrawArrays(GL_TRIANGLES,0,36);
+
+				if(node->voxels){
+					if(old_shape_way){
+						textureDraw_end();
+					}else{
+						tg->RenderFuncs.textureStackTop = 0;
+						tg->RenderFuncs.texturenode = NULL;
+					}
+				}
+				once = 1;
+
+			} else {
+				//CPU VERSION
+				//Step 1: set the 3D texture
+				if(node->voxels){
+					struct X3D_Node *tmpN;
+					POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->voxels,tmpN);
+					tg->RenderFuncs.texturenode = (void*)tmpN;
+
+					render_node(tmpN); //render_node(node->voxels); //still need render_texture to get it loaded
+					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+					//GLint tdepth = GET_UNIFORM(myProg,"tex3dDepth");
+					//GLUNIFORM1I(tdepth,tti->z);
+					tex3dDepth = tti->z;
+
+					//tex3dUseVertex - used in some vertex shaders to generate 3D texture coords automatically if set
+					//GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+					//glUniform1i(tex3dUseVertex,0); 
+					//tex3dUseVertex = 0;
+
+					//repeatSTR used with texture2D emulation of texture3D
+					//GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+					//glUniform1iv(repeatSTR,3,tti->repeatSTR);
+					memcpy(repeatSTR,tti->repeatSTR,3*sizeof(int)); 
+
+					//GLint magFilter = GET_UNIFORM(myProg,"magFilter");
+					//glUniform1i(magFilter,tti->magFilter);
+					magFilter = tti->magFilter;
+
+				}
+
+				//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
+				//    set attributes vertices of triangles of bounding box
+				// set box with vol.dimensions with triangles
+				//GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+				//GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
+				//GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
+				//sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+				double modd[16],projd[16];
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modd);
+				FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projd);
+
+				matdouble2float4(fw_ModelViewMatrix,modd);
+				matdouble2float4(fw_ProjectionMatrix,projd);
+
+				//glEnableVertexAttribArray(Vertices);
+				float *boxtris = (float*)node->_boxtris;
+				//glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
+
+				//get the current viewport
+				GLint iviewport[4];
+				float viewport[4];
+				glGetIntegerv(GL_VIEWPORT, iviewport);
+
+				//get the current fieldOfView
+				float FieldOfView = tg->Mainloop.fieldOfView;
+				//printf("current viewport= %d %d %d %d\n",iviewport[0],iviewport[1],iviewport[2],iviewport[3]);
+				//printf("current FOV = %f\n",FieldOfView);
+				FieldOfView *= PI/180.0;
+				float focalLength = 1.0f / tan(FieldOfView / 2.0f);
+				//GLint focal = GET_UNIFORM(myProg,"fw_FocalLength"); //fw_ModelViewMatrix
+				//GLUNIFORM1F(focal,focalLength);
+				fw_FocalLength = focalLength;
+				//GLint vp = GET_UNIFORM(myProg,"fw_viewport");
+				viewport[0] = iviewport[0]; //xmin
+				viewport[1] = iviewport[1]; //ymin
+				viewport[2] = iviewport[2]; //width
+				viewport[3] = iviewport[3]; //height
+				//GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
+				fw_viewport = vec4new4(viewport[0],viewport[1],viewport[2],viewport[3]);
+				//GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
+				//GLUNIFORM3F(dim,node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
+				fw_dimensions = vec3new3(node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
+				//ray origin: the camera position 0,0,0 transformed into geometry local (box) coords
+				//GLint orig = GET_UNIFORM(myProg,"fw_RayOrigin");
+				float eyeLocal[3];
+				double origind[3], eyeLocald[3];
+				origind[0] = origind[1] = origind[2] = 0.0;
+				double modelviewMatrix[16], mvmInverse[16];
+				//GL_GET_MODELVIEWMATRIX
+				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+				matinverseAFFINE(mvmInverse,modelviewMatrix);
+				transformAFFINEd(eyeLocald,origind,mvmInverse);
+				for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
+				//GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
+				fw_RayOrigin = vec3new3(eyeLocal[0],eyeLocal[1],eyeLocal[2]);
+				//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
+
+				//3.2 draw with shader
+				//glDrawArrays(GL_TRIANGLES,0,36);
+				cpu_drawtriangles(boxtris,36); //(float *vertices, nvertices)
+
+				if(node->voxels){
 					tg->RenderFuncs.textureStackTop = 0;
 					tg->RenderFuncs.texturenode = NULL;
 				}
-			}
-			once = 1;
 
-		} else {
-			//CPU VERSION
-			//Step 1: set the 3D texture
-			if(node->voxels){
-				struct X3D_Node *tmpN;
-				POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->voxels,tmpN);
-				tg->RenderFuncs.texturenode = (void*)tmpN;
-
-				render_node(tmpN); //render_node(node->voxels); //still need render_texture to get it loaded
-				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
-				//GLint tdepth = GET_UNIFORM(myProg,"tex3dDepth");
-				//GLUNIFORM1I(tdepth,tti->z);
-				tex3dDepth = tti->z;
-
-				//tex3dUseVertex - used in some vertex shaders to generate 3D texture coords automatically if set
-				//GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
-				//glUniform1i(tex3dUseVertex,0); 
-				//tex3dUseVertex = 0;
-
-				//repeatSTR used with texture2D emulation of texture3D
-				//GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
-				//glUniform1iv(repeatSTR,3,tti->repeatSTR);
-				memcpy(repeatSTR,tti->repeatSTR,3*sizeof(int)); 
-
-				//GLint magFilter = GET_UNIFORM(myProg,"magFilter");
-				//glUniform1i(magFilter,tti->magFilter);
-				magFilter = tti->magFilter;
-
-			}
-
-			//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
-			//    set attributes vertices of triangles of bounding box
-			// set box with vol.dimensions with triangles
-			//GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
-			//GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
-			//GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
-			//sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
-			double modd[16],projd[16];
-			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modd);
-			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projd);
-
-			matdouble2float4(fw_ModelViewMatrix,modd);
-			matdouble2float4(fw_ProjectionMatrix,projd);
-
-			//glEnableVertexAttribArray(Vertices);
-			float *boxtris = (float*)node->_boxtris;
-			//glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
-
-			//get the current viewport
-			GLint iviewport[4];
-			float viewport[4];
-			glGetIntegerv(GL_VIEWPORT, iviewport);
-
-			//get the current fieldOfView
-			float FieldOfView = tg->Mainloop.fieldOfView;
-			//printf("current viewport= %d %d %d %d\n",iviewport[0],iviewport[1],iviewport[2],iviewport[3]);
-			//printf("current FOV = %f\n",FieldOfView);
-			FieldOfView *= PI/180.0;
-			float focalLength = 1.0f / tan(FieldOfView / 2.0f);
-			//GLint focal = GET_UNIFORM(myProg,"fw_FocalLength"); //fw_ModelViewMatrix
-			//GLUNIFORM1F(focal,focalLength);
-			fw_FocalLength = focalLength;
-			//GLint vp = GET_UNIFORM(myProg,"fw_viewport");
-			viewport[0] = iviewport[0]; //xmin
-			viewport[1] = iviewport[1]; //ymin
-			viewport[2] = iviewport[2]; //width
-			viewport[3] = iviewport[3]; //height
-			//GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
-			fw_viewport = vec4new4(viewport[0],viewport[1],viewport[2],viewport[3]);
-			//GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
-			//GLUNIFORM3F(dim,node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
-			fw_dimensions = vec3new3(node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
-			//ray origin: the camera position 0,0,0 transformed into geometry local (box) coords
-			//GLint orig = GET_UNIFORM(myProg,"fw_RayOrigin");
-			float eyeLocal[3];
-			double origind[3], eyeLocald[3];
-			origind[0] = origind[1] = origind[2] = 0.0;
-			double modelviewMatrix[16], mvmInverse[16];
-			//GL_GET_MODELVIEWMATRIX
-			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-			matinverseAFFINE(mvmInverse,modelviewMatrix);
-			transformAFFINEd(eyeLocald,origind,mvmInverse);
-			for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
-			//GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-			fw_RayOrigin = vec3new3(eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-			//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-
-			//3.2 draw with shader
-			//glDrawArrays(GL_TRIANGLES,0,36);
-			cpu_drawtriangles(boxtris,36); //(float *vertices, nvertices)
-
-			if(node->voxels){
-				tg->RenderFuncs.textureStackTop = 0;
-				tg->RenderFuncs.texturenode = NULL;
 			}
 
 		}
-
-	}
+	} //VF_Blend
 
 }
