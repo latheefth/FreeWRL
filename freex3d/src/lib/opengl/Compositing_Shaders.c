@@ -1824,7 +1824,10 @@ void main(void) \n\
 	\n\
     Ray eye = Ray( fw_RayOrigin, normalize(rayDirection) ); \n\
     //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
-	AABB aabb = AABB(vec3(fw_dimensions*-.5),vec3(fw_dimensions*.5)); \n\
+	//AABB aabb = AABB(vec3(fw_dimensions*-.5),vec3(fw_dimensions*.5)); \n\
+	vec3 half_dimensions = fw_dimensions * .5; \n\
+	vec3 minus_half_dimensions = half_dimensions * -1.0; \n\
+	AABB aabb = AABB(minus_half_dimensions,half_dimensions); \n\
 	\n\
     float tnear, tfar; \n\
     IntersectBox(eye, aabb, tnear, tfar); \n\
@@ -1833,8 +1836,8 @@ void main(void) \n\
     vec3 rayStart = eye.Origin + eye.Dir * tnear; \n\
     vec3 rayStop = eye.Origin + eye.Dir * tfar; \n\
     // Transform from object space to texture coordinate space: \n\
-    rayStart = 0.5 * (rayStart + 1.0); \n\
-    rayStop = 0.5 * (rayStop + 1.0); \n\
+    //rayStart = 0.5 * (rayStart + 1.0); \n\
+    //rayStop = 0.5 * (rayStop + 1.0); \n\
 	\n\
     // Perform the ray marching: \n\
     vec3 pos = rayStart; \n\
@@ -1847,17 +1850,23 @@ void main(void) \n\
 	if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
 	if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
 	//numSamples = 0; \n\
-	fw_TexCoord[0] = pos; //vertex_model; //vec3(.2,.2,.5); \n\
-	fragment_color = vec4(1.0,1.0,1.0,1.0); \n\
+	vec3 pos2 = pos; \n\
+    // Transform from object space to texture coordinate space: \n\
+	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
+	fw_TexCoord[0] = pos2; //vertex_model; //vec3(.2,.2,.5); \n\
+	fragment_color = vec4(.8,.8,.8,1.0); \n\
 	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
-	/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+	/* P_LUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
 	fragment_color_main = fragment_color; \n\
-	fragment_color_main.a = 1.0; \n\
+	//fragment_color_main.a = 1.0; \n\
 	\n\
     for (int i=0; i < numSamples; ++i) { \n\
        // ...lighting and absorption stuff here... \n\
 		fragment_color = vec4(1.0); \n\
-		fw_TexCoord[0] = pos; \n\
+		pos2 = pos; \n\
+	    // Transform from object space to texture coordinate space: \n\
+		pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
+		fw_TexCoord[0] = pos2; \n\
 		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
         //float density = texture3D(Density, pos).x * densityFactor; \n\
 		float density = fragment_color.a * densityFactor; \n\

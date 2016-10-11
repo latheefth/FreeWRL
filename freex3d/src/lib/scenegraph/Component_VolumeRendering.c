@@ -178,7 +178,7 @@ void compile_VolumeData(struct X3D_VolumeData *node){
 	boxtris = (float*)node->_boxtris;
 	for(i=0;i<36;i++){
 		for(j=0;j<3;j++)
-			boxtris[i*3 + j] = node->dimensions.c[j] * box[i*3 + j];
+			boxtris[i*3 + j] = .5f * node->dimensions.c[j] * box[i*3 + j];  //raw triangles are -1 to 1, dimensions are absolute
 
 	}
 	MARK_NODE_COMPILED
@@ -187,15 +187,28 @@ void pushnset_framebuffer(int ibuffer);
 void popnset_framebuffer();
 
 // START MIT >>>>>>>>>>>>
-//=========== CPU EMULATOR FOR GLSL SHADER PROGRAMS IN C >>>>>>>>>>>>>>>>>>>>>>>>>
+//=========== CPU EMULATOR / SOFTWARE RENDERER FOR GLSL SHADER PROGRAMS IN C >>>>>>>>>>>>>>>>>>>>>>>>>
 /*	goal: be able to set breakpoints, printf and generally debug complex algorithms destined for shaders
 	implementation: because in flat C, no OO shader objects, so syntax for working with vectors, matrices
-	is functional ie vec3 p = q.yyz becomes vec3 p = vec3swiz(q,"yyz");
+	is functional ie 
+	vec3 p = q.yyz;
+	becomes 
+	vec3 p = vec3swiz(q,"yyz");
 	And that means you need to re-write each line of a GPU shader (or vice versa going the other way).
 	And that means if you have both GPU and CPU versions, you need to maintain 2 things to keep them in sync.
 	Which is tedious and error prone.
-	So not recommended in general, but more for when you're desperate - you just can't get a shader to work
-	and don't understand what's going on, this might help.
+	Which means you can do a lot of permutation tinkering to get your GPU shaders working for the same 
+	time and effort as converting to CPU.
+	So not recommended in general, but more for when you're getting no where tinkering or new 
+	algorithms destined for shaders are complex	and need to be tested in detail - this might help.
+
+	Links:
+	https://en.wikibooks.org/wiki/GLSL_Programming/Vector_and_Matrix_Operations
+	- GLSL vector and matrix syntax
+	http://glm.g-truc.net/0.9.8/index.html
+	- C++ GLM: GL Mathematics - has syntax very close to GLSL, wish I had done it with this in .cpp
+	https://www.opengl.org/wiki/Rendering_Pipeline_Overview
+	- rendering steps in pipeline -especially after vertex shader and before frag shader 
 
 */
 int swizindex(char s){
@@ -723,7 +736,7 @@ vec4 texture3D(sampler3D tunit, vec3 tcoord){
 			}
 			//weight the 8 samples
 			float uchar2float = 1.0 / 255.0;
-			if(1){
+			if(0){
 				//for now I'll just take one
 				unsigned char *rgba = (unsigned char *)&samples[1][1][1];
 
@@ -879,9 +892,9 @@ vec3 fw_TexCoord[1];
 void main_fragment(void)
 {
 	float maxDist = 1.414214; //sqrt(2.0);
-	float densityFactor = .01; //1.0; //5.0;
+	float densityFactor = 5.0;
 	float Absorption = 1.0;
-	int numSamples = 7; //128;
+	int numSamples = 128;
 	float fnumSamples = (float)numSamples;
 	float stepSize = maxDist/fnumSamples;
 	
@@ -917,14 +930,14 @@ void main_fragment(void)
 	fragment_color.a = 1.0;
 	if(travel <= 0.0) fragment_color = vec4new4(.5,.5,.5,1.0);
 	//(numSamples <= 0) fragment_color = vec4new4(.1,.5,.1,1.0);
-	numSamples = 0;
-	fw_TexCoord[0] = vertex_model; //vec3(.2,.2,.5);
+	//numSamples = 0;
+	fw_TexCoord[0] = pos; //vertex_model; //vec3(.2,.2,.5);
 	fragment_color = vec4new1(1.0);
 	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st);
 	/* PL_UG: texture_apply (fragment_color, normal_eye_fragment) */
 	fragment_color = texture3D(fw_Texture_unit0,fw_TexCoord[0]);
 	fragment_color_main = fragment_color;
-	fragment_color_main.a = 1.0;
+	//fragment_color_main.a = 1.0;
 
     for (int i=0; i < numSamples; ++i) {
        // ...lighting and absorption stuff here...
