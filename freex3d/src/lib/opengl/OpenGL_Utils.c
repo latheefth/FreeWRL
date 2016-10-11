@@ -6504,7 +6504,7 @@ void fw_gluProject
 	*winz=in[2];
 }
 
-static void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],
+void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],
 					GLDOUBLE r[16])
 {
 	int i, j;

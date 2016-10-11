@@ -1819,21 +1819,39 @@ void main(void) \n\
     vec3 rayDirection; \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
+	vec3 rayOrigin = fw_RayOrigin; \n\
 	if(true){ \n\
 		//the equivalent of gluUnproject \n\
 		vec4 ray4 = vec4(rayDirection,1.0); \n\
+		vec4 org4 = ray4; \n\
+		//ray4.z = -ray4.z; \n\
+		ray4.z = 1.0; \n\
+		org4.z = 0.0; \n\
 		// out = modelviewProjectionInverse x in \n\
+		//like zoomed in with -ray4 and glu inverse \n\
+		//upside down and zoomedx2 with -ray4 and FULL inverse \n\
 		ray4 = fw_ModelViewProjInverse * ray4; \n\
+		org4 = fw_ModelViewProjInverse * org4; \n\
+		//see a bit like zoomed in with +ray4 and glu inverse\n\
+		//starts perfect and rotates wrong with +ray4 FULL inverse\n\
 		//ray4 = ray4 * fw_ModelViewProjInverse; //transpose \n\
+		//org4 = org4 * fw_ModelViewProjInverse; //transpose \n\
+		//get a bit with -ve ray4: \n\
+		//ray4 = ray4 * fw_ModelViewMatrix * fw_ProjectionMatrix; \n\
+		//org4 = org4 * fw_ModelViewMatrix * fw_ProjectionMatrix; \n\
+		//useless: \n\
+		// ray4 = fw_ModelViewMatrix * fw_ProjectionMatrix * ray4; \n\
 		// out = out/out.w; \n\
 		ray4 /= ray4.w; \n\
-		rayDirection.xyz = -ray4.xyz; \n\
+		org4 /= org4.w; \n\
+		rayDirection.xyz = ray4.xyz - org4.xyz; \n\
+		rayOrigin = org4.xyz; \n\
 	}else{ \n\
 		rayDirection.z = -fw_FocalLength; \n\
 		rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
 	} \n\
 	\n\
-    Ray eye = Ray( fw_RayOrigin, normalize(rayDirection) ); \n\
+    Ray eye = Ray( rayOrigin, normalize(rayDirection) ); \n\
     //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
 	//AABB aabb = AABB(vec3(fw_dimensions*-.5),vec3(fw_dimensions*.5)); \n\
 	vec3 half_dimensions = fw_dimensions * .5; \n\

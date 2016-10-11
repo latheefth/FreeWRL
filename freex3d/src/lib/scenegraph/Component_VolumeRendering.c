@@ -1179,6 +1179,9 @@ void cpu_drawtriangles(float *vertices, int nvertices){
 #else
 #define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
 #endif
+
+void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],	GLDOUBLE r[16]);
+int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16]);
 ivec4 get_current_viewport();
 void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
 void child_VolumeData(struct X3D_VolumeData *node){
@@ -1262,15 +1265,16 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-			//if(0){
-			//	//see gluUnproject in Opengl_Utils.c
-			//	__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
-			//	if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
-			//}else{
-				matinverseAFFINE(mvmInverse,modelviewMatrix);
+			if(1){
+				//see gluUnproject in Opengl_Utils.c
+				__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
+				if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+			}else{
 				matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
+				//matmultiplyFULL(mvp,projMatrix,modelviewMatrix);
+				//if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
 				matinverseFULL(mvpinverse,mvp);
-			//}
+			}
 			float spmat[16];
 			matdouble2float4(spmat,mvpinverse);
 
