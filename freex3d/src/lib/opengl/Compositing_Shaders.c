@@ -1807,7 +1807,7 @@ bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1) \n\
 vec3 fw_TexCoord[1]; \n\
 void main(void) \n\
 { \n\
-	float maxDist = 1.414214; //sqrt(2.0); \n\
+	float maxDist = length(fw_dimensions); //1.414214; //sqrt(2.0); \n\
 	float densityFactor = 5.0; \n\
 	float Absorption = 1.0; \n\
 	int numSamples = 128; \n\
@@ -1905,7 +1905,6 @@ void main(void) \n\
 		fw_TexCoord[0] = pos2; \n\
 		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
         //float density = texture3D(Density, pos).x * densityFactor; \n\
-		//if(fragment_color.a == 0.0) fragment_color.a = 1.0; \n\
 		float density = fragment_color.a * densityFactor; \n\
 		\n\
         //if (density <= 0.0) \n\
