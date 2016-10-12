@@ -1822,33 +1822,17 @@ void main(void) \n\
 	vec3 rayOrigin = fw_RayOrigin; \n\
 	if(true){ \n\
 		//the equivalent of gluUnproject \n\
-		//by unprojecting 2 points here, this should also work with ortho viewpoint \n\
+		//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
 		vec4 ray4 = vec4(rayDirection,1.0); \n\
 		vec4 org4 = ray4; \n\
-		//ray4.z = -ray4.z; \n\
-		ray4.z = -1.0; \n\
+		ray4.z = 1.0; \n\
 		org4.z = 0.0; \n\
 		// out = modelviewProjectionInverse x in \n\
-		//like zoomed in with -ray4 and glu inverse \n\
-		//upside down and zoomedx2 with -ray4 and FULL inverse \n\
 		ray4 = fw_ModelViewProjInverse * ray4; \n\
 		org4 = fw_ModelViewProjInverse * org4; \n\
-		//see a bit like zoomed in with +ray4 and glu inverse\n\
-		//starts perfect and rotates wrong with +ray4 FULL inverse\n\
-		//ray4 = ray4 * fw_ModelViewProjInverse; //transpose \n\
-		//org4 = org4 * fw_ModelViewProjInverse; //transpose \n\
-		//get a bit with -ve ray4: \n\
-		//ray4 = ray4 * fw_ModelViewMatrix * fw_ProjectionMatrix; \n\
-		//org4 = org4 * fw_ModelViewMatrix * fw_ProjectionMatrix; \n\
-		//useless: \n\
-		// ray4 = fw_ModelViewMatrix * fw_ProjectionMatrix * ray4; \n\
-		// out = out/out.w; \n\
 		ray4 /= ray4.w; \n\
 		org4 /= org4.w; \n\
 		rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
-		rayDirection.xyz = org4.xyz - ray4.xyz; \n\
-		//back up rayOrigin in case its too close \n\
-		//rayOrigin = org4.xyz + rayDirection; \n\
 	}else{ \n\
 		rayDirection.z = -fw_FocalLength; \n\
 		rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
@@ -1879,8 +1863,9 @@ void main(void) \n\
     vec3 Lo = vec3(0.0); \n\
 	vec3 normal_eye_fragment = vec3(0.0); //not used in plug \n\
 	fragment_color.a = 1.0; \n\
-	if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
-	if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
+	//if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
+	//if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
+	//numSamples = int(floor((tfar - tnear)/stepSize)); \n\
 	//numSamples = 0; \n\
 	vec3 pos2 = pos; \n\
     // Transform from object space to texture coordinate space: \n\
@@ -1890,7 +1875,7 @@ void main(void) \n\
 	fw_TexCoord[0] = pos2; //vertex_model; //vec3(.2,.2,.5); \n\
 	fragment_color = vec4(1.0,0.0,1.0,0.0); \n\
 	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
-	/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+	/* P_LUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
 	fragment_color_main = fragment_color; \n\
 	//fragment_color_main.a = 1.0; \n\
 	\n\
