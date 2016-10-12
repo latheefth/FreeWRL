@@ -1275,7 +1275,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 					matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
 					//matmultiplyFULL(mvp,projMatrix,modelviewMatrix);
 					//if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
-					matinverseFULL(mvpinverse,mvp);
+					matinverseFULL(mvpinverse,mvp); //seems different than glu's. H0: just wrong H1: transopose H2: full inverse vs factorized
 				}
 				float spmat[16];
 				matdouble2float4(spmat,mvpinverse);

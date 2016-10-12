@@ -1314,8 +1314,9 @@ encoding: raw
 			printf("num elems read = %llu elemsize %ld bytes requeted = %llu %llu\n",(unsigned long long)nelem_read,(long)bsize,bsize*nvoxel,totalbytes);
 			//endian conversion
 			dataLittleEndian = iendian == NRRDENDIAN_LITTLE ? TRUE : FALSE;
-			if(isMachineLittleEndian() != dataLittleEndian){
+			if(isMachineLittleEndian() != dataLittleEndian && bsize > 1){
 				//data endian doesnt match machine endian - swap unconditionally
+				printf("swapping endian\n");
 				for(i=0;i<nvoxel;i++){
 					char * voxel = &data[i*bsize];
 					for(j=0;j<bsize/2;j++){
@@ -1515,7 +1516,7 @@ encoding: raw
 
 				switch(idatatype){
 					case CDATATYPE_char: 
-						A = (char)(voxel[0]) + 127; //convert from signed char to unsigned
+						A = (unsigned char)((int)(voxel[0])) + 127; //convert from signed char to unsigned
 					break;
 					case CDATATYPE_uchar: 
 						A = voxel[0];

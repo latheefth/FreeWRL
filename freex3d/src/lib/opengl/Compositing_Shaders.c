@@ -1808,8 +1808,8 @@ vec3 fw_TexCoord[1]; \n\
 void main(void) \n\
 { \n\
 	float maxDist = 1.414214; //sqrt(2.0); \n\
-	float densityFactor = 8.0; \n\
-	float Absorption = 2.0; \n\
+	float densityFactor = 5.0; \n\
+	float Absorption = 1.0; \n\
 	int numSamples = 128; \n\
 	float fnumSamples = float(numSamples); \n\
 	float stepSize = maxDist/fnumSamples; \n\
@@ -1826,7 +1826,7 @@ void main(void) \n\
 		vec4 ray4 = vec4(rayDirection,1.0); \n\
 		vec4 org4 = ray4; \n\
 		//ray4.z = -ray4.z; \n\
-		ray4.z = 1.0; \n\
+		ray4.z = -1.0; \n\
 		org4.z = 0.0; \n\
 		// out = modelviewProjectionInverse x in \n\
 		//like zoomed in with -ray4 and glu inverse \n\
@@ -1845,9 +1845,10 @@ void main(void) \n\
 		// out = out/out.w; \n\
 		ray4 /= ray4.w; \n\
 		org4 /= org4.w; \n\
-		//rayDirection.xyz = ray4.xyz - org4.xyz; \n\
+		rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
 		rayDirection.xyz = org4.xyz - ray4.xyz; \n\
-		rayOrigin = org4.xyz; \n\
+		//back up rayOrigin in case its too close \n\
+		//rayOrigin = org4.xyz + rayDirection; \n\
 	}else{ \n\
 		rayDirection.z = -fw_FocalLength; \n\
 		rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
@@ -1884,10 +1885,12 @@ void main(void) \n\
 	vec3 pos2 = pos; \n\
     // Transform from object space to texture coordinate space: \n\
 	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
+	pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
+	pos2 = clamp(pos2,0.001,.999); \n\
 	fw_TexCoord[0] = pos2; //vertex_model; //vec3(.2,.2,.5); \n\
-	fragment_color = vec4(.0,.0,.0,1.0); \n\
+	fragment_color = vec4(1.0,0.0,1.0,0.0); \n\
 	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
-	/* P_LUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+	/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
 	fragment_color_main = fragment_color; \n\
 	//fragment_color_main.a = 1.0; \n\
 	\n\
@@ -1897,14 +1900,17 @@ void main(void) \n\
 		pos2 = pos; \n\
 	    // Transform from object space to texture coordinate space: \n\
 		pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
+		pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
+		pos2 = clamp(pos2,0.001,.999); \n\
 		fw_TexCoord[0] = pos2; \n\
 		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
         //float density = texture3D(Density, pos).x * densityFactor; \n\
+		//if(fragment_color.a == 0.0) fragment_color.a = 1.0; \n\
 		float density = fragment_color.a * densityFactor; \n\
 		\n\
-        if (density <= 0.0) \n\
-            continue; \n\
-		\n\
+        //if (density <= 0.0) \n\
+        //    continue; \n\
+		//\n\
         T *= 1.0-density*stepSize*Absorption; \n\
 		fragment_color_main.a = 1.0 - T; \n\
 		//fragment_color_main.rgb = fragment_color.rgb; \n\
