@@ -1532,9 +1532,7 @@ static int isMobile = FALSE;
 #endif
 
 #define DESIRE(whichOne,zzz) ((whichOne & zzz)==zzz)
-int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
-	const GLchar **fragmentSource, shaderflagsstruct whichOne, //unsigned int whichOne, 
-	int usePhongShading) 
+int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLchar **fragmentSource, shaderflagsstruct whichOne) 
 {
 	//for building the Builtin (similar to fixed-function pipeline, except from shader parts)
 	//in OpenGL_Utils.c L.2553 set usingCastlePlugs = 1 to get in here.
@@ -1723,4 +1721,289 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource,
 	*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
 	*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
 	return retval;
+}
+
+
+/* Generic GLSL vertex shader, used on OpenGL ES. */
+static const GLchar *volumeVertexGLES2 = " \n\
+uniform mat4 fw_ModelViewMatrix; \n\
+uniform mat4 fw_ProjectionMatrix; \n\
+uniform float fw_FocalLength; \n\
+uniform vec4 fw_viewport; \n\
+attribute vec4 fw_Vertex; \n\
+ \n\
+/* PLUG-DECLARATIONS */ \n\
+ \n\
+varying vec4 castle_vertex_eye; \n\
+varying vec4 castle_Color; \n\
+varying vec3 vertex_model; \n\
+ \n\
+uniform vec4 fw_UnlitColor; \n\
+ \n\
+void main(void) \n\
+{ \n\
+  vec4 vertex_object = fw_Vertex; \n\
+   \n\
+  castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
+   \n\
+   castle_Color = vec4(1.0,.5,.5,1.0); \n\
+  \n\
+  gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
+  //#ifdef XYZ \n\
+  castle_Color.rgb = gl_Position.xyz; \n\
+  vertex_model = fw_Vertex.xyz; \n\
+  //#endif \n\
+   \n\
+} \n\
+";
+/* Generic GLSL fragment shader, used on OpenGL ES. */
+static const GLchar *volumeFragmentGLES2 = " \n\
+/* DEFINES */ \n\
+#ifdef MOBILE \n\
+//precision highp float; \n\
+precision mediump float; \n\
+#endif //MOBILE \n\
+ \n\
+varying vec3 vertex_model; \n\
+varying vec4 castle_vertex_eye; \n\
+varying vec4 castle_Color; \n\
+uniform mat4 fw_ModelViewMatrix; \n\
+uniform mat4 fw_ProjectionMatrix; \n\
+uniform mat4 fw_ModelViewProjInverse; \n\
+uniform float fw_FocalLength; \n\
+uniform vec4 fw_viewport; \n\
+uniform vec3 fw_dimensions; \n\
+uniform vec3 fw_RayOrigin; \n\
+uniform sampler2D fw_Texture_unit0; \n\
+#ifdef TEX3D \n\
+uniform int tex3dDepth; \n\
+uniform int repeatSTR[3]; \n\
+uniform int magFilter; \n\
+#endif //TEX3D \n\
+ \n\
+struct Ray { \n\
+  vec3 Origin; \n\
+  vec3 Dir; \n\
+}; \n\
+struct AABB { \n\
+  vec3 Min; \n\
+  vec3 Max; \n\
+}; \n\
+bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1) \n\
+{ \n\
+    vec3 invR = 1.0 / r.Dir; \n\
+    vec3 tbot = invR * (aabb.Min-r.Origin); \n\
+    vec3 ttop = invR * (aabb.Max-r.Origin); \n\
+    vec3 tmin = min(ttop, tbot); \n\
+    vec3 tmax = max(ttop, tbot); \n\
+    vec2 t = max(tmin.xx, tmin.yz); \n\
+    t0 = max(t.x, t.y); \n\
+    t = min(tmax.xx, tmax.yz); \n\
+    t1 = min(t.x, t.y); \n\
+    return t0 <= t1; \n\
+} \n\
+/* PLUG-DECLARATIONS */ \n\
+ \n\
+vec3 fw_TexCoord[1]; \n\
+void main(void) \n\
+{ \n\
+	float maxDist = length(fw_dimensions); //1.414214; //sqrt(2.0); \n\
+	float densityFactor = 5.0; \n\
+	float Absorption = 1.0; \n\
+	int numSamples = 128; \n\
+	float fnumSamples = float(numSamples); \n\
+	float stepSize = maxDist/fnumSamples; \n\
+	 \n\
+    vec4 fragment_color; \n\
+	vec4 fragment_color_main = castle_Color; \n\
+    vec3 rayDirection; \n\
+	//convert window to frustum \n\
+    rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
+	vec3 rayOrigin = fw_RayOrigin; \n\
+	if(true){ \n\
+		//the equivalent of gluUnproject \n\
+		//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
+		vec4 ray4 = vec4(rayDirection,1.0); \n\
+		vec4 org4 = ray4; \n\
+		ray4.z = 1.0; \n\
+		org4.z = 0.0; \n\
+		// out = modelviewProjectionInverse x in \n\
+		ray4 = fw_ModelViewProjInverse * ray4; \n\
+		org4 = fw_ModelViewProjInverse * org4; \n\
+		ray4 /= ray4.w; \n\
+		org4 /= org4.w; \n\
+		rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
+	}else{ \n\
+		rayDirection.z = -fw_FocalLength; \n\
+		rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
+	} \n\
+	\n\
+    Ray eye = Ray( rayOrigin, normalize(rayDirection) ); \n\
+    //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
+	//AABB aabb = AABB(vec3(fw_dimensions*-.5),vec3(fw_dimensions*.5)); \n\
+	vec3 half_dimensions = fw_dimensions * .5; \n\
+	vec3 minus_half_dimensions = half_dimensions * -1.0; \n\
+	AABB aabb = AABB(minus_half_dimensions,half_dimensions); \n\
+	\n\
+    float tnear, tfar; \n\
+    IntersectBox(eye, aabb, tnear, tfar); \n\
+    if (tnear < 0.0) tnear = 0.0; \n\
+	\n\
+    vec3 rayStart = eye.Origin + eye.Dir * tnear; \n\
+    vec3 rayStop = eye.Origin + eye.Dir * tfar; \n\
+    // Transform from object space to texture coordinate space: \n\
+    //rayStart = 0.5 * (rayStart + 1.0); \n\
+    //rayStop = 0.5 * (rayStop + 1.0); \n\
+	\n\
+    // Perform the ray marching: \n\
+    vec3 pos = rayStart; \n\
+    vec3 step = normalize(rayStop-rayStart) * stepSize; \n\
+    float travel = distance(rayStop, rayStart); \n\
+    float T = 1.0; \n\
+    vec3 Lo = vec3(0.0); \n\
+	vec3 normal_eye_fragment = vec3(0.0); //not used in plug \n\
+	fragment_color.a = 1.0; \n\
+	//if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
+	//if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
+	//numSamples = int(floor((tfar - tnear)/stepSize)); \n\
+	//numSamples = 0; \n\
+	vec3 pos2 = pos; \n\
+    // Transform from object space to texture coordinate space: \n\
+	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
+	pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
+	pos2 = clamp(pos2,0.001,.999); \n\
+	fw_TexCoord[0] = pos2; //vertex_model; //vec3(.2,.2,.5); \n\
+	fragment_color = vec4(1.0,0.0,1.0,0.0); \n\
+	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
+	/* P_LUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+	fragment_color_main = fragment_color; \n\
+	//fragment_color_main.a = 1.0; \n\
+	\n\
+    for (int i=0; i < numSamples; ++i) { \n\
+       // ...lighting and absorption stuff here... \n\
+		fragment_color = vec4(1.0); \n\
+		pos2 = pos; \n\
+	    // Transform from object space to texture coordinate space: \n\
+		pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
+		pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
+		pos2 = clamp(pos2,0.001,.999); \n\
+		fw_TexCoord[0] = pos2; \n\
+		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+        //float density = texture3D(Density, pos).x * densityFactor; \n\
+		float density = fragment_color.a * densityFactor; \n\
+		\n\
+        //if (density <= 0.0) \n\
+        //    continue; \n\
+		//\n\
+        T *= 1.0-density*stepSize*Absorption; \n\
+		fragment_color_main.a = 1.0 - T; \n\
+		//fragment_color_main.rgb = fragment_color.rgb; \n\
+        if (T <= 0.01) { \n\
+            break; \n\
+		} \n\
+		travel -= stepSize; \n\
+		if(travel <= 0.0) break; \n\
+		pos += step; \n\
+		\n\
+    }  \n\
+	gl_FragColor = fragment_color_main; \n\
+} \n\
+";
+
+
+static const GLchar *plug_fragment_texture3D_apply_volume =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+  #ifdef TEX3D \n\
+  vec3 texcoord = fw_TexCoord[0]; \n\
+  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
+  float depth = max(1.0,float(tex3dDepth)); \n\
+  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
+  else texcoord.x = mod(texcoord.x,1.0); \n\
+  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
+  else texcoord.y = mod(texcoord.y,1.0); \n\
+  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
+  else texcoord.z = mod(texcoord.z,1.0); \n\
+  vec4 texel; \n\
+  int flay = int(floor(texcoord.z*depth)); \n\
+  int clay = int(ceil(texcoord.z*depth)); \n\
+  clay = clay == tex3dDepth ? 0 : clay; \n\
+  vec4 ftexel, ctexel; \n\
+  vec3 ftexcoord, ctexcoord; \n\
+  ftexcoord = texcoord; \n\
+  ctexcoord = texcoord; \n\
+  ftexcoord.y += float(flay); \n\
+  ftexcoord.y /= depth; \n\
+  ctexcoord.y += float(clay); \n\
+  ctexcoord.y /= depth; \n\
+  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
+  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
+  float fraction = mod(ftexcoord.z*depth,1.0); \n\
+  if(magFilter == 1) \n\
+	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
+  else \n\
+	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
+  finalFrag *= texel; \n\
+  #endif //TEX3D \n\
+  \n\
+}\n";
+
+const char *getVolumeVertex(void){
+	return volumeVertexGLES2; //genericVertexDesktop
+}
+const char *getVolumeFragment(){
+	return volumeFragmentGLES2; //genericFragmentDesktop;
+}
+int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **fragmentSource, shaderflagsstruct whichOne) 
+{
+	//for building the Builtin (similar to fixed-function pipeline, except from shader parts)
+	//in OpenGL_Utils.c L.2553 set usingCastlePlugs = 1 to get in here.
+	//whichone - a bitmask of shader requirements, one bit for each requirement, so shader permutation can be built
+
+	int retval, unique_int;
+	char *CompleteCode[3];
+	char *vs, *fs;
+	retval = FALSE;
+	if(whichOne.usershaders ) //& USER_DEFINED_SHADER_MASK) 
+		return retval; //not supported yet as of Aug 9, 2016
+	retval = TRUE;
+
+	//generic
+	vs = strdup(getVolumeVertex());
+	fs = strdup(getVolumeFragment());
+		
+	CompleteCode[SHADERPART_VERTEX] = vs;
+	CompleteCode[SHADERPART_GEOMETRY] = NULL;
+	CompleteCode[SHADERPART_FRAGMENT] = fs;
+
+	// what we really have here: UberShader with CastlePlugs
+	// UberShader: one giant shader peppered with #ifdefs, and you add #defines at the top for permutations
+	// CastlePlugs: allows users to add effects on to uberShader with PLUGs
+	// - and internally, we can do a few permutations with PLUGs too
+
+	if(isMobile){
+		AddVersion(SHADERPART_VERTEX, 100, CompleteCode); //lower precision floats
+		AddVersion(SHADERPART_FRAGMENT, 100, CompleteCode); //lower precision floats
+		AddDefine(SHADERPART_FRAGMENT,"MOBILE",CompleteCode); //lower precision floats
+	}else{
+		//desktop, emulating GLES2
+		AddVersion(SHADERPART_VERTEX, 110, CompleteCode); //lower precision floats
+		AddVersion(SHADERPART_FRAGMENT, 110, CompleteCode); //lower precision floats
+	}
+
+	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG 
+
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_XYZ)){
+		AddDefine(SHADERPART_VERTEX,"XYZ",CompleteCode);
+	}
+	if(DESIRE(whichOne.volume,TEX3D_SHADER)){
+		AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+	}
+
+
+	*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
+	*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
+	return retval;
+
 }

@@ -751,6 +751,8 @@ void resetGeometry();
 	#define FW_FOG_POINTER_TYPE 33888 //?? how geenerate these numbers
 	#define FW_COLOR_POINTER_TYPE 12453
 	#define FW_TEXCOORD_POINTER_TYPE 67655
+	//void sendAttribToGPU(int myType, int dataSize, int dataType, int normalized, int stride, float *pointer, int texID, char *file, int line);
+	//                           datasize, dataType, stride, pointer
 	#define FW_GL_VERTEX_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_VERTEX_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,0,__FILE__,__LINE__); }
 	#define FW_GL_COLOR_POINTER(aaa, bbb, ccc, ddd) {sendAttribToGPU(FW_COLOR_POINTER_TYPE, aaa, bbb, GL_FALSE, ccc, ddd,0,__FILE__,__LINE__); }
 	#define FW_GL_NORMAL_POINTER(aaa, bbb, ccc) {sendAttribToGPU(FW_NORMAL_POINTER_TYPE, 0, aaa, GL_FALSE, bbb, ccc,0,__FILE__,__LINE__); }

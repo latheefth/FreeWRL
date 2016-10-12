@@ -5402,6 +5402,7 @@ void setup_projection()
         //printf ("Before FW_GLU_PERSPECTIVE, np %f fp %f\n",viewer->nearPlane, viewer->farPlane);
 		if(0) FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
 		if(1) fw_gluPerspective_2(viewer->xcenter,fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
+		tg->Mainloop.fieldOfView = fieldofview2;
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");

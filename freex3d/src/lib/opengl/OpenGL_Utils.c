@@ -1394,9 +1394,15 @@ s_shader_capabilities_t *getMyShaders(shaderflagsstruct rq_cap0) { //unsigned in
 
 	for (i=0; i<vectorSize(myShaderTable); i++) {
 		struct shaderTableEntry *me = vector_get(struct shaderTableEntry *,myShaderTable, i);
-		if (me->whichOne.base == rq_cap0.base && me->whichOne.effects == rq_cap0.effects && me->whichOne.usershaders == rq_cap0.usershaders) {
-			//printf("getMyShaders chosen shader caps base %d effects %d user %d\n",me->whichOne.base,me->whichOne.effects,me->whichOne.usershaders);
-			return me->myCapabilities;
+		if(rq_cap0.volume){
+			if(me->whichOne.volume == rq_cap0.volume && me->whichOne.effects == rq_cap0.effects){
+				return me->myCapabilities;
+			}
+		}else{
+			if (me->whichOne.base == rq_cap0.base && me->whichOne.effects == rq_cap0.effects && me->whichOne.usershaders == rq_cap0.usershaders) {
+				//printf("getMyShaders chosen shader caps base %d effects %d user %d\n",me->whichOne.base,me->whichOne.effects,me->whichOne.usershaders);
+				return me->myCapabilities;
+			}
 		}
 	}
 
@@ -2568,19 +2574,19 @@ static int getSpecificShaderSourceOriginal (const GLchar *vertexSource[vertexEnd
 #undef VERBOSE
 
 //see Composite_Shading.c for CastlePlugs details.
-int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, 
-	const GLchar **fragmentSource, shaderflagsstruct whichOne); // unsigned int whichOne);
-
+int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLchar **fragmentSource, shaderflagsstruct whichOne); 
+int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **fragmentSource, shaderflagsstruct whichOne);
 static int getSpecificShaderSource (const GLchar *vertexSource[vertexEndMarker], const GLchar *fragmentSource[fragmentEndMarker], 
 	shaderflagsstruct whichOne) {
-		//unsigned int whichOne) {
 	int iret, userDefined, usingCastlePlugs = 1;
-	//userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
 	userDefined = whichOne.usershaders ? TRUE : FALSE;
 
 	if(usingCastlePlugs && !userDefined) { // && !DESIRE(whichOne,SHADINGSTYLE_PHONG)) {
 		//new Aug 2016 castle plugs
-		iret = getSpecificShaderSourceCastlePlugs(vertexSource, fragmentSource, whichOne);
+		if(whichOne.volume)
+			iret = getSpecificShaderSourceVolume(vertexSource, fragmentSource, whichOne);
+		else
+			iret = getSpecificShaderSourceCastlePlugs(vertexSource, fragmentSource, whichOne);
 	}else{
 		iret = getSpecificShaderSourceOriginal(vertexSource, fragmentSource, whichOne);
 	}
@@ -5044,6 +5050,19 @@ void startOfLoopNodeUpdates(void) {
 				BEGIN_NODE(ImageTexture) CHECK_IMAGETEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(PixelTexture) CHECK_PIXELTEXTURE_TRANSPARENCY END_NODE
 				BEGIN_NODE(MovieTexture) CHECK_MOVIETEXTURE_TRANSPARENCY END_NODE
+				
+				BEGIN_NODE(VolumeData)
+					tg->RenderFuncs.have_transparency = TRUE;
+					update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+				END_NODE
+				BEGIN_NODE(SegmentedVolumeData)
+					tg->RenderFuncs.have_transparency = TRUE;
+					update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+				END_NODE
+				BEGIN_NODE(IsoSurfaceVolumeData)
+					tg->RenderFuncs.have_transparency = TRUE;
+					update_renderFlag(X3D_NODE(pnode),VF_Blend | VF_shouldSortChildren);\
+				END_NODE
 
 
 				/* Backgrounds, Fog */
@@ -6181,7 +6200,7 @@ static void killNode_hide_obsolete (int index) {
 }
 BOOL matrix3x3_inverse_float(float *inn, float *outt);
 
-static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix)
+void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix)
 
 {
 
@@ -6218,6 +6237,7 @@ static void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint Projecti
 	GLUNIFORMMATRIX4FV(ProjectionMatrix,1,GL_FALSE,spval);
 	profile_end("sendmtx");
 	/* TextureMatrix */
+	if(TextureMatrix)
 	for(j=0;j<MAX_MULTITEXTURE;j++) {
 		int itexturestackposition = j+1;
 		if (TextureMatrix[j] != -1 && itexturestackposition <= p->textureviewTOS) {
@@ -6497,7 +6517,7 @@ void fw_gluProject
 	*winz=in[2];
 }
 
-static void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],
+void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],
 					GLDOUBLE r[16])
 {
 	int i, j;

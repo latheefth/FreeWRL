@@ -195,6 +195,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_bboxCenter",
 	"_bboxSize",
 	"_body",
+	"_boxtris",
 	"_buffer",
 	"_bufferendtime",
 	"_class",
@@ -2609,7 +2610,9 @@ struct X3D_Virt virt_IntegerSequencer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NUL
 
 struct X3D_Virt virt_IntegerTrigger = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_IsoSurfaceVolumeData = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void child_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *);
+void compile_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *);
+struct X3D_Virt virt_IsoSurfaceVolumeData = { NULL,NULL,(void *)child_IsoSurfaceVolumeData,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_IsoSurfaceVolumeData};
 
 struct X3D_Virt virt_KeySensor = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -2966,7 +2969,9 @@ struct X3D_Virt virt_ScreenGroup = { (void *)prep_ScreenGroup,NULL,(void *)child
 
 struct X3D_Virt virt_Script = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_SegmentedVolumeData = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *);
+void compile_SegmentedVolumeData(struct X3D_SegmentedVolumeData *);
+struct X3D_Virt virt_SegmentedVolumeData = { NULL,NULL,(void *)child_SegmentedVolumeData,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_SegmentedVolumeData};
 
 struct X3D_Virt virt_ShadedVolumeStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -4883,6 +4888,7 @@ const int OFFSETS_IntegerTrigger[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_IsoSurfaceVolumeData[] = {
+	(int) FIELDNAMES__boxtris, (int) offsetof (struct X3D_IsoSurfaceVolumeData, _boxtris),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_IsoSurfaceVolumeData, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_IsoSurfaceVolumeData, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_contourStepSize, (int) offsetof (struct X3D_IsoSurfaceVolumeData, contourStepSize),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6278,6 +6284,7 @@ const int OFFSETS_Script[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SegmentedVolumeData[] = {
+	(int) FIELDNAMES__boxtris, (int) offsetof (struct X3D_SegmentedVolumeData, _boxtris),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_SegmentedVolumeData, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_SegmentedVolumeData, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_dimensions, (int) offsetof (struct X3D_SegmentedVolumeData, dimensions),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6993,6 +7000,7 @@ const int OFFSETS_VisibilitySensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VolumeData[] = {
+	(int) FIELDNAMES__boxtris, (int) offsetof (struct X3D_VolumeData, _boxtris),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_VolumeData, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_VolumeData, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_dimensions, (int) offsetof (struct X3D_VolumeData, dimensions),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9739,6 +9747,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_IsoSurfaceVolumeData : {
 			struct X3D_IsoSurfaceVolumeData * tmp2;
 			tmp2 = (struct X3D_IsoSurfaceVolumeData *) tmp;
+			tmp2->_boxtris = NULL;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->contourStepSize = 0.0f;
@@ -11558,6 +11567,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SegmentedVolumeData : {
 			struct X3D_SegmentedVolumeData * tmp2;
 			tmp2 = (struct X3D_SegmentedVolumeData *) tmp;
+			tmp2->_boxtris = NULL;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->dimensions.c[0] = 1.0f;tmp2->dimensions.c[1] = 1.0f;tmp2->dimensions.c[2] = 1.0f;
@@ -12494,6 +12504,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_VolumeData : {
 			struct X3D_VolumeData * tmp2;
 			tmp2 = (struct X3D_VolumeData *) tmp;
+			tmp2->_boxtris = NULL;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->dimensions.c[0] = 1.0f;tmp2->dimensions.c[1] = 1.0f;tmp2->dimensions.c[2] = 1.0f;

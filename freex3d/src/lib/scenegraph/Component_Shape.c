@@ -792,6 +792,7 @@ void child_Shape (struct X3D_Shape *node) {
 		s_shader_capabilities_t *scap;
 		//unsigned int shader_requirements;
 		shaderflagsstruct shader_requirements;
+		memset(&shader_requirements,0,sizeof(shaderflagsstruct));
 
 		//prep_Appearance
 		RENDER_MATERIAL_SUBNODES(node->appearance); //child_Appearance

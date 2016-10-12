@@ -227,7 +227,7 @@ typedef struct viewer {
 	
 	int iprog[2]; /*anaglyph R=0,GBACM per side */
 	unsigned int buffer;
-	int oktypes[16];		/* boolean for types being acceptable. */
+	int oktypes[18];		/* boolean for types being acceptable. */
 	X3D_Viewer_Walk walk;
 	X3D_Viewer_Examine examine;
 	X3D_Viewer_Fly fly;
