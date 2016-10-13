@@ -1728,17 +1728,12 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 static const GLchar *volumeVertexGLES2 = " \n\
 uniform mat4 fw_ModelViewMatrix; \n\
 uniform mat4 fw_ProjectionMatrix; \n\
-uniform float fw_FocalLength; \n\
-uniform vec4 fw_viewport; \n\
 attribute vec4 fw_Vertex; \n\
  \n\
 /* PLUG-DECLARATIONS */ \n\
  \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
-varying vec3 vertex_model; \n\
- \n\
-uniform vec4 fw_UnlitColor; \n\
  \n\
 void main(void) \n\
 { \n\
@@ -1749,10 +1744,6 @@ void main(void) \n\
    castle_Color = vec4(1.0,.5,.5,1.0); \n\
   \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
-  //#ifdef XYZ \n\
-  castle_Color.rgb = gl_Position.xyz; \n\
-  vertex_model = fw_Vertex.xyz; \n\
-  //#endif \n\
    \n\
 } \n\
 ";
@@ -1764,11 +1755,8 @@ static const GLchar *volumeFragmentGLES2 = " \n\
 precision mediump float; \n\
 #endif //MOBILE \n\
  \n\
-varying vec3 vertex_model; \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
-uniform mat4 fw_ModelViewMatrix; \n\
-uniform mat4 fw_ProjectionMatrix; \n\
 uniform mat4 fw_ModelViewProjInverse; \n\
 uniform float fw_FocalLength; \n\
 uniform vec4 fw_viewport; \n\
@@ -1820,23 +1808,18 @@ void main(void) \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
 	vec3 rayOrigin = fw_RayOrigin; \n\
-	if(true){ \n\
-		//the equivalent of gluUnproject \n\
-		//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
-		vec4 ray4 = vec4(rayDirection,1.0); \n\
-		vec4 org4 = ray4; \n\
-		ray4.z = 1.0; \n\
-		org4.z = 0.0; \n\
-		// out = modelviewProjectionInverse x in \n\
-		ray4 = fw_ModelViewProjInverse * ray4; \n\
-		org4 = fw_ModelViewProjInverse * org4; \n\
-		ray4 /= ray4.w; \n\
-		org4 /= org4.w; \n\
-		rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
-	}else{ \n\
-		rayDirection.z = -fw_FocalLength; \n\
-		rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
-	} \n\
+	//the equivalent of gluUnproject \n\
+	//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
+	vec4 ray4 = vec4(rayDirection,1.0); \n\
+	vec4 org4 = ray4; \n\
+	ray4.z = 1.0; \n\
+	org4.z = 0.0; \n\
+	// out = modelviewProjectionInverse x in \n\
+	ray4 = fw_ModelViewProjInverse * ray4; \n\
+	org4 = fw_ModelViewProjInverse * org4; \n\
+	ray4 /= ray4.w; \n\
+	org4 /= org4.w; \n\
+	rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
 	\n\
     Ray eye = Ray( rayOrigin, normalize(rayDirection) ); \n\
     //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
