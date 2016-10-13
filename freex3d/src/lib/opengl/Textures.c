@@ -1220,6 +1220,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA or GL_RGBA here */
 		me->x = 1;
 		me->y = 1;
+		me->z = 1;
 		me->hasAlpha = FALSE;
 		me->texdata = MALLOC(unsigned char *, 4);
 		memcpy (me->texdata, buff, 4);
@@ -1626,7 +1627,12 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				//ConsoleMessage ("loadTextureNode, runtime texture size %d",gglobal()->display.rdr_caps.runtime_max_texture_size);
 
 				if(rx != x || ry != y || rx > rdr_caps->runtime_max_texture_size || ry > rdr_caps->runtime_max_texture_size) {
-					/* do we have texture limits??? */
+					/* do we have texture limits??? 
+					dug9: windows intel i5: desktop opengl and uwp/angleproject 16384 
+					16384 x 16394 = 268M. cube-root 268M = 645.xx lets round down to pow2: 512
+					android LG nexus 4096
+					4096 x 4096 = 16.7M; cube-root 16.7M = 256. 
+					*/
 					if (rx > rdr_caps->runtime_max_texture_size) rx = rdr_caps->runtime_max_texture_size;
 					if (ry > rdr_caps->runtime_max_texture_size) ry = rdr_caps->runtime_max_texture_size;
 				}
@@ -1634,7 +1640,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				if (gglobal()->internalc.global_print_opengl_errors) {
 					DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 				}
-				printf("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+				ConsoleMessage("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 
 				/* it is a power of 2, lets make sure it is square */
 				/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
@@ -1676,7 +1682,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			}
 		
 			/* we can get rid of the original texture data here */
-// experiment for volume, leave malloced			FREE_IF_NZ (me->texdata);
+			FREE_IF_NZ (me->texdata);
 		}
 	}
 
@@ -1720,6 +1726,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct Multi_String *mfurl = NULL;
 	ttglobal tg = gglobal();
 	p = (ppTextures)tg->Textures.prv;
+	//#define DEBUG_TEX ConsoleMessage
 
 //	GET_THIS_TEXTURE;
 //#define GET_THIS_TEXTURE 
@@ -1825,6 +1832,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			printf ("unknown texture status %d\n",myTableIndex->status);
 		}
 	}
+	//#define DEBUG_TEX
 }
 
 

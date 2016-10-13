@@ -2349,7 +2349,8 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 		case IMAGETYPE_WEB3DIT:
 			ret = loadImage_web3dit(this_tex,fname); break;
 		case IMAGETYPE_NRRD:
-			ret = loadImage_nrrd(this_tex,fname); break;
+			ret = loadImage_nrrd(this_tex,fname); 
+			break;
 		case IMAGETYPE_VOL:
 			ret = loadImage3DVol(this_tex, fname); break;
 		case IMAGETYPE_UNKNOWN:
@@ -2387,7 +2388,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	//close_openned_file(myFile);
 	FREE_IF_NZ(myFile);
 	*/
-	return this_tex->frames;
+	return (ret != 0); // this_tex->frames;
 
 #endif //ANDROIDNDK
 

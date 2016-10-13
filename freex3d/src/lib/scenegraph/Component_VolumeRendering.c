@@ -171,7 +171,7 @@ void compile_VolumeData(struct X3D_VolumeData *node){
 	int i,j;
 	float *boxtris;
 
-	printf("compile_volumedata not implemented\n");
+	ConsoleMessage("compile_volumedata\n");
 	if(node->_boxtris == NULL){
 		node->_boxtris = MALLOC(void *,108 * sizeof(float));
 	}
@@ -207,7 +207,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 		if(node->voxels)
 			render_node(node->voxels);
 		if(!once)
-			printf("child volumedata not implemented yet\n");
+			ConsoleMessage("child_volumedata\n");
 		once = 1;
 		if(node->renderStyle == NULL){
 
@@ -242,7 +242,8 @@ void child_VolumeData(struct X3D_VolumeData *node){
 				POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->voxels,tmpN);
 				tg->RenderFuncs.texturenode = (void*)tmpN;
 
-				render_node(tmpN); //render_node(node->voxels);
+				//render_node(voxels) should keep pulling the texture through all stages of loading and opengl
+				render_node(tmpN); //render_node(node->voxels); 
 
 				if(old_shape_way){
 					struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
@@ -274,7 +275,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
 			static int once = 0;
 			if(!once)
-				printf("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
+				ConsoleMessage("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
 			sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
 			double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
@@ -335,7 +336,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
 			GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
 			//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-			if(!once) printf("orig %d dim %d vp %d focal %d\n",orig,dim,vp,focal );
+			if(!once) ConsoleMessage("orig %d dim %d vp %d focal %d\n",orig,dim,vp,focal );
 
 			//3.2 draw with shader
 			glDrawArrays(GL_TRIANGLES,0,36);
