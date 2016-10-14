@@ -254,6 +254,9 @@ void child_VolumeData(struct X3D_VolumeData *node){
 					//me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
 					GLint tdepth = GET_UNIFORM(myProg,"tex3dDepth");
 					GLUNIFORM1I(tdepth,tti->z);
+					GLint ttiles = GET_UNIFORM(myProg,"tex3dTiles");
+					GLUNIFORM1IV(ttiles,3,tti->tiles);
+
 					//me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
 					GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
 					glUniform1i(tex3dUseVertex,0); 

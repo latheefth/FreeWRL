@@ -702,7 +702,7 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 		if(YDirection == 'U') iydown = 0;
 			
 		totalbytes = 4 * nx * ny * nz; //output 4 channel RGBA image size
-		if(totalbytes <= 128 * 128 * 128 * 4){
+		if(totalbytes <= 256 * 256 * 256 * 4){
 			unsigned char *rgbablob;
 			rgbablob = malloc(totalbytes);
 			memset(rgbablob,0,totalbytes);

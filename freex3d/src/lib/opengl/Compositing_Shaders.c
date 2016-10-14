@@ -807,6 +807,7 @@ uniform sampler2D fw_Texture_unit0; \n\
 varying vec3 fw_TexCoord[4]; \n\
 #ifdef TEX3D \n\
 uniform int tex3dDepth; \n\
+uniform int tex3dTiles[3]; \n\
 uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
 #endif //TEX3D \n\
@@ -1765,6 +1766,7 @@ uniform vec3 fw_RayOrigin; \n\
 uniform sampler2D fw_Texture_unit0; \n\
 #ifdef TEX3D \n\
 uniform int tex3dDepth; \n\
+uniform int tex3dTiles[3]; \n\
 uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
 #endif //TEX3D \n\
@@ -1898,9 +1900,11 @@ static const GLchar *plug_fragment_texture3D_apply_volume =	"\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
 \n\
   #ifdef TEX3D \n\
+  //TILED method (vs Y strip method) \n\
   vec3 texcoord = fw_TexCoord[0]; \n\
   texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
-  float depth = max(1.0,float(tex3dDepth)); \n\
+  //float depth = max(1.0,float(tex3dDepth)); \n\
+  float depth = max(1.0,float(tex3dTiles[2])); \n\
   if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
   else texcoord.x = mod(texcoord.x,1.0); \n\
   if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
@@ -1910,15 +1914,35 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   vec4 texel; \n\
   int flay = int(floor(texcoord.z*depth)); \n\
   int clay = int(ceil(texcoord.z*depth)); \n\
-  clay = clay == tex3dDepth ? 0 : clay; \n\
+  clay = clay == tex3dDepth ? clay - 1 : clay; \n\
   vec4 ftexel, ctexel; \n\
   vec3 ftexcoord, ctexcoord; \n\
-  ftexcoord = texcoord; \n\
-  ctexcoord = texcoord; \n\
-  ftexcoord.y += float(flay); \n\
-  ftexcoord.y /= depth; \n\
-  ctexcoord.y += float(clay); \n\
-  ctexcoord.y /= depth; \n\
+  \n\
+  int izc = clay; //0-127, lets say 60 \n\
+  int izf = flay; \n\
+  int nx = tex3dTiles[0]; //0-11 \n\
+  int ny = tex3dTiles[1]; \n\
+  float fnx = 1.0/float(nx); //.1\n\
+  float fny = 1.0/float(ny); \n\
+  int ix = izc / ny; //60/11=5\n\
+  int ixny = ix * ny; //5*11=55\n\
+  int iy = izc - ixny; //60-55=5 modulus remainder \n\
+  float cix = float(ix); //5 \n\
+  float ciy = float(iy); \n\
+  float xxc = (cix + texcoord.s)*fnx; //(5 + .5)*.1 = .55\n\
+  float yyc = (ciy + texcoord.t)*fny; \n\
+  ix = izf / ny; \n\
+  ixny = ix * ny; \n\
+  iy = izf - ixny; //modulus remainder \n\
+  float fix = float(ix); \n\
+  float fiy = float(iy); \n\
+  float xxf = (fix + texcoord.s)*fnx; \n\
+  float yyf = (fiy + texcoord.t)*fny; \n\
+  \n\
+  ftexcoord.s = xxf; \n\
+  ftexcoord.t = yyf; \n\
+  ctexcoord.s = xxc; \n\
+  ctexcoord.t = yyc; \n\
   ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
   ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
   float fraction = mod(ftexcoord.z*depth,1.0); \n\
@@ -1981,7 +2005,8 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	}
 	if(DESIRE(whichOne.volume,TEX3D_SHADER)){
 		AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+		Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply_volume,CompleteCode,&unique_int); //uses TILED
+		//Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int); //uses STRIP
 	}
 
 
