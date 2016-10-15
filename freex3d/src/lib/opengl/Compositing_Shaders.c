@@ -1935,6 +1935,48 @@ void main(void) \n\
 ";
 
 
+static const GLchar *plug_fragment_OPACITY =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+static const GLchar *plug_fragment_BLENDED =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+static const GLchar *plug_fragment_BOUNDARY =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+
+static const GLchar *plug_fragment_CARTOON =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+static const GLchar *plug_fragment_COMPOSED =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+static const GLchar *plug_fragment_EDGE =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+static const GLchar *plug_fragment_PROJECTION =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+static const GLchar *plug_fragment_SHADED =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+static const GLchar *plug_fragment_SILHOUETTE =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+static const GLchar *plug_fragment_TONE =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+} \n\
+";
+
 const char *getVolumeVertex(void){
 	return volumeVertexGLES2; //genericVertexDesktop
 }
@@ -1980,13 +2022,60 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 
 	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG 
 
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_XYZ)){
-		AddDefine(SHADERPART_VERTEX,"XYZ",CompleteCode);
-	}
 	if(DESIRE(whichOne.volume,TEX3D_SHADER)){
 		AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
 		Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply_volume,CompleteCode,&unique_int); //uses TILED
-		//Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int); //uses STRIP
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_DATA_BASIC)){
+		AddDefine(SHADERPART_FRAGMENT,"BASIC",CompleteCode); 
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_DATA_ISO)){
+		AddDefine(SHADERPART_FRAGMENT,"ISO",CompleteCode); 
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_DATA_SEGMENT)){
+		AddDefine(SHADERPART_FRAGMENT,"SEGMENT",CompleteCode); 
+	}
+
+
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_OPACITY)){
+		AddDefine(SHADERPART_FRAGMENT,"OPACITY",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_OPACITY,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_BLENDED)){
+		AddDefine(SHADERPART_FRAGMENT,"BLENDED",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_BLENDED,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_BOUNDARY)){
+		AddDefine(SHADERPART_FRAGMENT,"BOUNDARY",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_BOUNDARY,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_CARTOON)){
+		AddDefine(SHADERPART_FRAGMENT,"CARTOON",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_CARTOON,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_COMPOSED)){
+		AddDefine(SHADERPART_FRAGMENT,"COMPOSED",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_COMPOSED,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_EDGE)){
+		AddDefine(SHADERPART_FRAGMENT,"EDGE",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_EDGE,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_PROJECTION)){
+		AddDefine(SHADERPART_FRAGMENT,"PROJECTION",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_PROJECTION,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_SHADED)){
+		AddDefine(SHADERPART_FRAGMENT,"SHADED",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_SHADED,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_SILHOUETTE)){
+		AddDefine(SHADERPART_FRAGMENT,"SILHOUETTE",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_SILHOUETTE,CompleteCode,&unique_int);
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_TONE)){
+		AddDefine(SHADERPART_FRAGMENT,"TONE",CompleteCode); 
+		Plug(SHADERPART_FRAGMENT,plug_fragment_TONE,CompleteCode,&unique_int);
 	}
 
 

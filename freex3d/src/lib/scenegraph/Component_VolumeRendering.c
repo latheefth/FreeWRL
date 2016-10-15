@@ -196,6 +196,8 @@ void popnset_framebuffer();
 void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],	GLDOUBLE r[16]);
 int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16]);
 ivec4 get_current_viewport();
+textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
+
 void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
 void child_VolumeData(struct X3D_VolumeData *node){
 	static int once = 0;
@@ -209,6 +211,96 @@ void child_VolumeData(struct X3D_VolumeData *node){
 		if(!once)
 			ConsoleMessage("child_volumedata\n");
 		once = 1;
+		if(node->renderStyle ){
+			unsigned int volflags = 0;
+			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
+			if(style0->enabled){
+				switch(node->renderStyle->_nodeType){
+					case NODE_OpacityMapVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
+						struct X3D_OpacityMapVolumeStyle *style = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
+						if(style->transferFunction){
+							//load texture
+						}
+						volflags |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
+						}
+						break;
+					case NODE_BlendedVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
+						struct X3D_BlendedVolumeStyle *style = (struct X3D_BlendedVolumeStyle*)node->renderStyle;
+						volflags |= SHADERFLAGS_VOLUME_STYLE_BLENDED;
+						}
+						break;
+					case NODE_BoundaryEnhancementVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BoundaryEnhancementVolumeStyle
+						struct X3D_BoundaryEnhancementVolumeStyle *style = (struct X3D_BoundaryEnhancementVolumeStyle*)node->renderStyle;
+						volflags |= SHADERFLAGS_VOLUME_STYLE_BOUNDARY;
+						}
+						break;
+					case NODE_CartoonVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#CartoonVolumeStyle
+						struct X3D_CartoonVolumeStyle *style = (struct X3D_CartoonVolumeStyle*)node->renderStyle;
+						volflags |= SHADERFLAGS_VOLUME_STYLE_CARTOON;
+						}
+						break;
+					case NODE_ComposedVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ComposedVolumeStyle
+						struct X3D_ComposedVolumeStyle *style = (struct X3D_ComposedVolumeStyle*)node->renderStyle;
+						volflags |= SHADERFLAGS_VOLUME_STYLE_COMPOSED;
+						}
+						break;
+					case NODE_EdgeEnhancementVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#EdgeEnhancementVolumeStyle
+						struct X3D_EdgeEnhancementVolumeStyle *style = (struct X3D_EdgeEnhancementVolumeStyle*)node->renderStyle;
+						volflags |= SHADERFLAGS_VOLUME_STYLE_EDGE;
+						}
+						break;
+					case NODE_ProjectionVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ProjectionVolumeStyle
+						struct X3D_ProjectionVolumeStyle *style = (struct X3D_ProjectionVolumeStyle*)node->renderStyle;
+						volflags |= SHADERFLAGS_VOLUME_STYLE_PROJECTION;
+						}
+						break;
+					case NODE_ShadedVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ShadedVolumeStyle
+						struct X3D_ShadedVolumeStyle *style = (struct X3D_ShadedVolumeStyle*)node->renderStyle;
+						volflags |= SHADERFLAGS_VOLUME_STYLE_SHADED;
+						}
+						break;
+					case NODE_SilhouetteEnhancementVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#SilhouetteEnhancementVolumeStyle
+						struct X3D_SilhouetteEnhancementVolumeStyle *style = (struct X3D_SilhouetteEnhancementVolumeStyle*)node->renderStyle;
+						volflags |= SHADERFLAGS_VOLUME_STYLE_SILHOUETTE;
+						}
+						break;
+					case NODE_ToneMappedVolumeStyle:
+						{
+						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ToneMappedVolumeStyle
+						//SFColorRGBA [in,out] coolColor      0 0 1 0 [0,1]
+						//SFColorRGBA [in,out] warmColor      1 1 0 0 [0,1]
+						//SFNode      [in,out] surfaceNormals NULL    [X3DTexture3DNode]
+						struct X3D_ToneMappedVolumeStyle *style = (struct X3D_ToneMappedVolumeStyle*)node->renderStyle;
+						//send warm, cool to shader
+						//if !surfaceNormals compute
+						//send surfaceNormals to shader
+						volflags |= SHADERFLAGS_VOLUME_STYLE_TONE;
+						}
+						break;
+					default:
+						break;
+				}
+			}
+		}
+
 		if(node->renderStyle == NULL){
 
 			//render 
@@ -230,8 +322,8 @@ void child_VolumeData(struct X3D_VolumeData *node){
 
 			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
 			//shaderflags = getShaderFlags();
-			shader_requirements.volume = SHADERFLAGS_VOLUME_BASIC; //send the following through the volume ubershader
-			shader_requirements.volume |= SHADERFLAGS_VOLUME_OPACITY;
+			shader_requirements.volume = SHADERFLAGS_VOLUME_DATA_BASIC; //send the following through the volume ubershader
+			shader_requirements.volume |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
 			shader_requirements.volume |= TEX3D_SHADER;
 			caps = getMyShaders(shader_requirements);
 			enableGlobalShader(caps);
