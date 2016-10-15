@@ -1694,10 +1694,32 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 					}else if(emulating3D_TILED){
 						//tiled uses more of the max_texture_size x max_texture_size
+						//	texture3D emulator via TILED texture2D
+						//  reason for emulating: 2016 GLES2 via ANGLEPROJECT(gles emulator over DirectX on windows)
+						//     doesn't have Texture3D or Texture3DOES or Texture3DEXT.
+						//  reason for TILES: an oblong Y-STRIP approach exceded max texture size in Y (but had lots left in X)
+						//     desktop computer max_size (of 2D image in one dimension) 16384
+						//     android phone max_size 4096
+						//     and so would be resampled (blurry) in y and good in x
+						//     using tiles means room for more full z slices ie 256x256x256 == 4096x4096 == 16M, 
+						//			512x512x512 == 134M == 16384x16384/2, and therefore less blurry images
+						//  tiles start in upper left with z=0, increase in y,
+						//  then when hit ny tiles in a y strip, move right one tile, and restart at top
+						//  uniform tex3dTiles[3] = {nx,ny,z}
+						//  example ny = 4, nx = 3, z = 11
+						//  1  5  9
+						//  2  6  10
+						//  3  7  11
+						//  4  8
+						//  
 						// 
 						int rc,sc,c,cube_root, max_size;
 						max_size = rdr_caps->runtime_max_texture_size;
-						//max_size = 2048;
+						//if(32bit) I find process doesn't have enough ram left for opengl to malloc 512x512x512x4byte.
+						//could try single channel, single byte textures, but for now we'll keep it under 17M pixels
+						if(x * y * z > 256 * 256 * 256) 
+							max_size = min(max_size,4096);
+						//max_size = 2048; //can re-set here for experiments
 						cube_root = (int)pow( max_size * max_size  + 3, 1.0/3.0);
 						c = cube_root;
 						//need lower-power-of-two so we squeeze into space available, and leave a little
@@ -1751,6 +1773,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						me->tiles[0] = nx; //let the shader tiled emulator for texture3D know via uniform about the tile layout
 						me->tiles[1] = ny;
 						me->tiles[2] = z;
+						ConsoleMessage("Tiles ny %d nx %d zplanes %d\n",nx,ny,z);
 						nxx = nx*rx;
 						nyy = ny*ry;
 

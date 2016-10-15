@@ -1169,6 +1169,7 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 		y-first layer order: fill column, first at top left, before advancing ix right
 		(option: x-first layer order: fill row, first at top left, before advancing down iy)
 */
+// STRIP METHOD FOR TEXTURE3D 
 static const GLchar *plug_fragment_texture3D_apply =	"\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
 \n\
@@ -1205,6 +1206,84 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   #endif //TEX3D \n\
   \n\
 }\n";
+
+// TILED METHOD FOR TEXTURE3D 
+//	texture3D emulator via TILED texture2D
+//  reason for emulating: 2016 GLES2 via ANGLEPROJECT(gles emulator over DirectX on windows)
+//     doesn't have Texture3D or Texture3DOES or Texture3DEXT.
+//  reason for TILES: an oblong Y-STRIP approach exceded max texture size in Y (but had lots left in X)
+//     desktop computer max_size (of 2D image in one dimension) 16384
+//     android phone max_size 4096
+//     and so would be resampled (blurry) in y and good in x
+//     using tiles means room for more full z slices ie 256x256x256 == 4096x4096 == 16M, 
+//			512x512x512 == 134M == 16384x16384/2, and therefore less blurry images
+//  tiles start in upper left with z=0, increase in y,
+//  then when hit ny tiles in a y strip, move right one tile, and restart at top
+//  uniform tex3dTiles[3] = {nx,ny,z}
+//  example ny = 4, nx = 3, z = 11
+//  1  5  9
+//  2  6  10
+//  3  7  11
+//  4  8
+//  
+static const GLchar *plug_fragment_texture3D_apply_volume =	"\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+  #ifdef TEX3D \n\
+  //TILED method (vs Y strip method) \n\
+  vec3 texcoord = fw_TexCoord[0]; \n\
+  //texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
+  //float depth = max(1.0,float(tex3dDepth)); \n\
+  float depth = max(1.0,float(tex3dTiles[2])); \n\
+  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
+  else texcoord.x = mod(texcoord.x,1.0); \n\
+  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
+  else texcoord.y = mod(texcoord.y,1.0); \n\
+  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
+  else texcoord.z = mod(texcoord.z,1.0); \n\
+  vec4 texel; \n\
+  int izf = int(floor(texcoord.z*depth)); //floor z \n\
+  int izc = int(ceil(texcoord.z*depth));  //ceiling z \n\
+  izc = izc == tex3dDepth ? izc - 1 : izc; //clamp int z \n\
+  vec4 ftexel, ctexel; \n\
+  \n\
+  int nx = tex3dTiles[0]; //0-11 \n\
+  int ny = tex3dTiles[1]; \n\
+  float fnx = 1.0/float(nx); //.1\n\
+  float fny = 1.0/float(ny); \n\
+  int ix = izc / ny; //60/11=5\n\
+  int ixny = ix * ny; //5*11=55\n\
+  int iy = izc - ixny; //60-55=5 modulus remainder \n\
+  float cix = float(ix); //5 \n\
+  float ciy = float(iy); \n\
+  float xxc = (cix + texcoord.s)*fnx; //(5 + .5)*.1 = .55\n\
+  float yyc = (ciy + texcoord.t)*fny; \n\
+  ix = izf / ny; \n\
+  ixny = ix * ny; \n\
+  iy = izf - ixny; //modulus remainder \n\
+  float fix = float(ix); \n\
+  float fiy = float(iy); \n\
+  float xxf = (fix + texcoord.s)*fnx; \n\
+  float yyf = (fiy + texcoord.t)*fny; \n\
+  \n\
+  vec2 ftexcoord, ctexcoord; //texcoord is 3D, ftexcoord and ctexcoord are 2D coords\n\
+  ftexcoord.s = xxf; \n\
+  ftexcoord.t = yyf; \n\
+  ctexcoord.s = xxc; \n\
+  ctexcoord.t = yyc; \n\
+  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
+  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
+  float fraction = mod(texcoord.z*depth,1.0); \n\
+  if(magFilter == 1) \n\
+	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
+  else \n\
+	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
+  finalFrag *= texel; \n\
+  #endif //TEX3D \n\
+  \n\
+}\n";
+
+
 
 static const GLchar *plug_fragment_texture3Dlayer_apply =	"\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
@@ -1666,7 +1745,7 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 			}else{
 				//TEX3D_VOLUME_SHADER
 				//AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
-				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply_volume,CompleteCode,&unique_int);
 			}
 		}else{
 			if(DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE)){
@@ -1855,7 +1934,7 @@ void main(void) \n\
 	vec3 pos2 = pos; \n\
     // Transform from object space to texture coordinate space: \n\
 	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
-	pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
+	//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 	pos2 = clamp(pos2,0.001,.999); \n\
 	fw_TexCoord[0] = pos2; //vertex_model; //vec3(.2,.2,.5); \n\
 	fragment_color = vec4(1.0,0.0,1.0,0.0); \n\
@@ -1870,7 +1949,7 @@ void main(void) \n\
 		pos2 = pos; \n\
 	    // Transform from object space to texture coordinate space: \n\
 		pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
-		pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
+		//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 		pos2 = clamp(pos2,0.001,.999); \n\
 		fw_TexCoord[0] = pos2; \n\
 		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
@@ -1895,65 +1974,6 @@ void main(void) \n\
 } \n\
 ";
 
-
-static const GLchar *plug_fragment_texture3D_apply_volume =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
-\n\
-  #ifdef TEX3D \n\
-  //TILED method (vs Y strip method) \n\
-  vec3 texcoord = fw_TexCoord[0]; \n\
-  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
-  //float depth = max(1.0,float(tex3dDepth)); \n\
-  float depth = max(1.0,float(tex3dTiles[2])); \n\
-  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
-  else texcoord.x = mod(texcoord.x,1.0); \n\
-  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
-  else texcoord.y = mod(texcoord.y,1.0); \n\
-  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
-  else texcoord.z = mod(texcoord.z,1.0); \n\
-  vec4 texel; \n\
-  int flay = int(floor(texcoord.z*depth)); \n\
-  int clay = int(ceil(texcoord.z*depth)); \n\
-  clay = clay == tex3dDepth ? clay - 1 : clay; \n\
-  vec4 ftexel, ctexel; \n\
-  vec3 ftexcoord, ctexcoord; \n\
-  \n\
-  int izc = clay; //0-127, lets say 60 \n\
-  int izf = flay; \n\
-  int nx = tex3dTiles[0]; //0-11 \n\
-  int ny = tex3dTiles[1]; \n\
-  float fnx = 1.0/float(nx); //.1\n\
-  float fny = 1.0/float(ny); \n\
-  int ix = izc / ny; //60/11=5\n\
-  int ixny = ix * ny; //5*11=55\n\
-  int iy = izc - ixny; //60-55=5 modulus remainder \n\
-  float cix = float(ix); //5 \n\
-  float ciy = float(iy); \n\
-  float xxc = (cix + texcoord.s)*fnx; //(5 + .5)*.1 = .55\n\
-  float yyc = (ciy + texcoord.t)*fny; \n\
-  ix = izf / ny; \n\
-  ixny = ix * ny; \n\
-  iy = izf - ixny; //modulus remainder \n\
-  float fix = float(ix); \n\
-  float fiy = float(iy); \n\
-  float xxf = (fix + texcoord.s)*fnx; \n\
-  float yyf = (fiy + texcoord.t)*fny; \n\
-  \n\
-  ftexcoord.s = xxf; \n\
-  ftexcoord.t = yyf; \n\
-  ctexcoord.s = xxc; \n\
-  ctexcoord.t = yyc; \n\
-  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
-  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
-  float fraction = mod(ftexcoord.z*depth,1.0); \n\
-  if(magFilter == 1) \n\
-	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
-  else \n\
-	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
-  finalFrag *= texel; \n\
-  #endif //TEX3D \n\
-  \n\
-}\n";
 
 const char *getVolumeVertex(void){
 	return volumeVertexGLES2; //genericVertexDesktop
