@@ -2821,6 +2821,11 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		restype = resm_image;
 		break;
 
+	case NODE_ComposedTexture3D:
+		return TRUE;
+		break;
+
+
 	case NODE_MovieTexture:
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);
 		parentPath = (resource_item_t *)(((struct X3D_MovieTexture *)entry->scenegraphNode)->_parentResource);

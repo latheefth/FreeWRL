@@ -193,7 +193,7 @@ textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *texture
 void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
 	/* printf ("render_ComposedTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
 	if(node && node->_nodeType == NODE_ComposedTexture3D){
-		int i, ntextures;
+		int i, ntextures, allLoaded;
 		struct Multi_Node *tex = &node->texture;
 		//Sep 14, 2016 we assume all ComposedTexture3D are 'LAYERED' TEX3D_LAYER_SHADER / TEX3DLAY
 		if(0){
@@ -241,15 +241,24 @@ void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
 				//TEX3DLAY
 			}
 		}
+		allLoaded = TRUE;
        	gglobal()->RenderFuncs.textureStackTop = 0;
 		for(i=0;i<min(tex->n,MAX_MULTITEXTURE);i++){
 			//doing layers, we can only handle up to MAX_MULTITEXTURE textures in the shader
 			//gglobal()->RenderFuncs.textureStackTop = ntextures; /* not multitexture - should have saved to boundTextureStack[0] */
 			loadTextureNode(X3D_NODE(tex->p[i]),NULL);
+			allLoaded = allLoaded && getTableTableFromTextureNode(X3D_NODE(tex->p[i]))->status >= TEX_LOADED;
         	gglobal()->RenderFuncs.textureStackTop++;
 			//loadMultiTexture(node);
 		}
-		move_texture_to_opengl(getTableTableFromTextureNode(X3D_NODE(node))); //load composed texture properties
+		//move_texture_to_opengl(getTableTableFromTextureNode(X3D_NODE(node))); //load composed texture properties
+
+		if(allLoaded){
+			textureTableIndexStruct_s *tti;
+			tti = getTableTableFromTextureNode(X3D_NODE(node));
+			tti->status = max(TEX_NEEDSBINDING, tti->status);
+			loadTextureNode(X3D_NODE(node),NULL);
+		}
 	}
 }
 
