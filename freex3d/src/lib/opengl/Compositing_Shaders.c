@@ -1169,43 +1169,6 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 		y-first layer order: fill column, first at top left, before advancing ix right
 		(option: x-first layer order: fill row, first at top left, before advancing down iy)
 */
-// STRIP METHOD FOR TEXTURE3D 
-static const GLchar *plug_fragment_texture3D_apply =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
-\n\
-  #ifdef TEX3D \n\
-  vec3 texcoord = fw_TexCoord[0]; \n\
-  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
-  float depth = max(1.0,float(tex3dDepth)); \n\
-  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
-  else texcoord.x = mod(texcoord.x,1.0); \n\
-  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
-  else texcoord.y = mod(texcoord.y,1.0); \n\
-  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
-  else texcoord.z = mod(texcoord.z,1.0); \n\
-  vec4 texel; \n\
-  int flay = int(floor(texcoord.z*depth)); \n\
-  int clay = int(ceil(texcoord.z*depth)); \n\
-  clay = clay == tex3dDepth ? 0 : clay; \n\
-  vec4 ftexel, ctexel; \n\
-  vec3 ftexcoord, ctexcoord; \n\
-  ftexcoord = texcoord; \n\
-  ctexcoord = texcoord; \n\
-  ftexcoord.y += float(flay); \n\
-  ftexcoord.y /= depth; \n\
-  ctexcoord.y += float(clay); \n\
-  ctexcoord.y /= depth; \n\
-  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
-  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
-  float fraction = mod(ftexcoord.z*depth,1.0); \n\
-  if(magFilter == 1) \n\
-	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
-  else \n\
-	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
-  finalFrag *= texel; \n\
-  #endif //TEX3D \n\
-  \n\
-}\n";
 
 // TILED METHOD FOR TEXTURE3D 
 //	texture3D emulator via TILED texture2D

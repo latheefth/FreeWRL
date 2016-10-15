@@ -1636,63 +1636,10 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				//ConsoleMessage ("loadTextureNode, runtime texture size %d",gglobal()->display.rdr_caps.runtime_max_texture_size);
 				if(z > 1){
 					//its a texture3D / volume image
-					int emulating3D_TILED, emulating3D_YSTRIP;
-					emulating3D_YSTRIP = FALSE; //TRUE;
-					emulating3D_TILED = !emulating3D_YSTRIP;
+					int emulating3D_TILED;
+					emulating3D_TILED = TRUE;
 					generateMipMaps = FALSE;
-					if(emulating3D_YSTRIP){
-						//Y strip is easy, but hits the max_texture_size in y, and gets scaled in y, and blurry as a result
-						ry *= rz;
-						rz = 1;
-						if(rx != x || ry != y*z || rx > rdr_caps->runtime_max_texture_size || ry > rdr_caps->runtime_max_texture_size) {
-							/* do we have texture limits??? 
-							dug9: windows intel i5: desktop opengl and uwp/angleproject 16384 
-							16384 x 16394 = 268M. cube-root 268M = 645.xx lets round down to pow2: 512
-							android LG nexus 4096
-							4096 x 4096 = 16.7M; cube-root 16.7M = 256. 
-							*/
-							if (rx > rdr_caps->runtime_max_texture_size) rx = rdr_caps->runtime_max_texture_size;
-							if (ry > rdr_caps->runtime_max_texture_size) ry = rdr_caps->runtime_max_texture_size;
-						}
-		
-						if (gglobal()->internalc.global_print_opengl_errors) {
-							DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
-						}
-						ConsoleMessage("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
-
-						/* it is a power of 2, lets make sure it is square */
-						/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
-						   lets just keep things consistent 
-						   But if not mipmapping, then (experience with win32 GLES2 emulator and QNX device)
-						   then it's not necessary to square the image, although current code will get here with
-						   generateMipMap always true.
-						   */
-						if (rx != ry) {
-							if(generateMipMaps){
-								if (rx>ry)ry=rx;
-								else rx=ry;
-							}
-						}
-
-						/* if scaling is ok... */
-						if ((x==rx) && (y*z==ry)) {
-							dest = mytexdata;
-						} else {
-							/* try this texture on for size, keep scaling down until we can do it */
-							/* all textures are 4 bytes/pixel */
-							dest = MALLOC(unsigned char *, 4 * rx * ry);
-
-							myScaleImage(x,y*z,rx,ry,mytexdata,dest);
-						}
-				
-		
-						if (gglobal()->internalc.global_print_opengl_errors) {
-							DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
-						}
-						//printf("after proxy image stuff, size %d %d\n",rx,ry);
-
-						myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-					}else if(emulating3D_TILED){
+					if(emulating3D_TILED){
 						//tiled uses more of the max_texture_size x max_texture_size
 						//	texture3D emulator via TILED texture2D
 						//  reason for emulating: 2016 GLES2 via ANGLEPROJECT(gles emulator over DirectX on windows)
@@ -1715,7 +1662,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						// 
 						int rc,sc,c,cube_root, max_size;
 						max_size = rdr_caps->runtime_max_texture_size;
-						//if(32bit) I find process doesn't have enough ram left for opengl to malloc 512x512x512x4byte.
+						//if(32bit) I find process doesn't have enough RAM left for opengl to malloc 512x512x512x4byte.
 						//could try single channel, single byte textures, but for now we'll keep it under 17M pixels
 						if(x * y * z > 256 * 256 * 256) 
 							max_size = min(max_size,4096);
@@ -1727,7 +1674,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						sc = c;
 						while(sc) {sc /= 2; rc *= 2;}
 						if(rc > c) {rc /= 2;}
-						ConsoleMessage("pow2 cube root %d\n",rc);
+						//ConsoleMessage("pow2 cube root %d\n",rc);
 						cube_root = rc;
 						if(rx != x || ry != y || rz != z || rx > cube_root || ry > cube_root || rz > cube_root) {
 							/* do we have texture limits??? 
@@ -1744,7 +1691,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						if (gglobal()->internalc.global_print_opengl_errors) {
 							DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 						}
-						ConsoleMessage("texture size after maxTextureSize taken into account: %d %d %d, from %d %d %d\n",rx,ry,rz,x,y,z);
+						//ConsoleMessage("texture size after maxTextureSize taken into account: %d %d %d, from %d %d %d\n",rx,ry,rz,x,y,z);
 
 						//rescale sub-images if/as needed
 						dest = mytexdata;
@@ -1773,7 +1720,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						me->tiles[0] = nx; //let the shader tiled emulator for texture3D know via uniform about the tile layout
 						me->tiles[1] = ny;
 						me->tiles[2] = z;
-						ConsoleMessage("Tiles ny %d nx %d zplanes %d\n",nx,ny,z);
+						//ConsoleMessage("Tiles ny %d nx %d zplanes %d\n",nx,ny,z);
 						nxx = nx*rx;
 						nyy = ny*ry;
 
@@ -1818,7 +1765,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						FREE_IF_NZ(texdataTiles);
 						if(dest != me->texdata) FREE_IF_NZ(dest);
 					}else{
-						//use Texture3D
+						//use Texture3D which android and winRT/uwp don't have
 					}
 				}else{
 					//ordinary 2D image textures
@@ -1836,7 +1783,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 					if (gglobal()->internalc.global_print_opengl_errors) {
 						DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 					}
-					ConsoleMessage("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+					//ConsoleMessage("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 
 					/* it is a power of 2, lets make sure it is square */
 					/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
