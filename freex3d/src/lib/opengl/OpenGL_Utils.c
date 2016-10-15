@@ -2951,7 +2951,6 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 	//printf ("GETUNIFORM for textureCount is %d\n",me->textureCount);
 
 	//texture3D
-	me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
 	me->tex3dTiles = GET_UNIFORM(myProg,"tex3dTiles");
 	me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
 	me->magFilter = GET_UNIFORM(myProg,"magFilter");

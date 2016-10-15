@@ -305,10 +305,7 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 						//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
 						if(me){
 							if(tti){
-								glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
 								glUniform1iv(me->tex3dTiles,3,tti->tiles);
-							}else{
-								glUniform1i(me->tex3dDepth,1);
 							}
 						}
 					}

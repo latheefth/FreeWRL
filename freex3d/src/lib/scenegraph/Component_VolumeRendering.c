@@ -251,9 +251,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 				}else{
 					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
 
-					//me->tex3dDepth = GET_UNIFORM(myProg,"tex3dDepth");
-					GLint tdepth = GET_UNIFORM(myProg,"tex3dDepth");
-					GLUNIFORM1I(tdepth,tti->z);
 					GLint ttiles = GET_UNIFORM(myProg,"tex3dTiles");
 					GLUNIFORM1IV(ttiles,3,tti->tiles);
 

@@ -806,7 +806,6 @@ uniform sampler2D fw_Texture_unit0; \n\
 #endif //CUB \n\
 varying vec3 fw_TexCoord[4]; \n\
 #ifdef TEX3D \n\
-uniform int tex3dDepth; \n\
 uniform int tex3dTiles[3]; \n\
 uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
@@ -1196,7 +1195,6 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   //TILED method (vs Y strip method) \n\
   vec3 texcoord = fw_TexCoord[0]; \n\
   //texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
-  //float depth = max(1.0,float(tex3dDepth)); \n\
   float depth = max(1.0,float(tex3dTiles[2])); \n\
   if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
   else texcoord.x = mod(texcoord.x,1.0); \n\
@@ -1207,7 +1205,7 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   vec4 texel; \n\
   int izf = int(floor(texcoord.z*depth)); //floor z \n\
   int izc = int(ceil(texcoord.z*depth));  //ceiling z \n\
-  izc = izc == tex3dDepth ? izc - 1 : izc; //clamp int z \n\
+  izc = izc == tex3dTiles[2] ? izc - 1 : izc; //clamp int z \n\
   vec4 ftexel, ctexel; \n\
   \n\
   int nx = tex3dTiles[0]; //0-11 \n\
@@ -1807,7 +1805,6 @@ uniform vec3 fw_dimensions; \n\
 uniform vec3 fw_RayOrigin; \n\
 uniform sampler2D fw_Texture_unit0; \n\
 #ifdef TEX3D \n\
-uniform int tex3dDepth; \n\
 uniform int tex3dTiles[3]; \n\
 uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
