@@ -1443,7 +1443,7 @@ encoding: raw
 		if(1) printf("nrrd image voxel range hi %lf lo %lf 255range scale factor %lf\n",dhi,dlo,d255range);
 		//now convert to display usable data type which currently is RGBA
 		tti->texdata = MALLOC(unsigned char *,nvoxel * 4); //4 for RGBA
-		tti->channels = 2; //1=lum 2=lum-alpha 3=rgb 4=rgba //doing 2-channel allows modulation of material color
+		tti->channels = 1; //1=lum 2=lum-alpha 3=rgb 4=rgba //doing 2-channel allows modulation of material color
 		tti->hasAlpha = TRUE;
 		tti->x = isize[0];
 		tti->y = isize[1];

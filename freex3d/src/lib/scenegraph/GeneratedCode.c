@@ -222,6 +222,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_lasttick",
 	"_layerId",
 	"_loc",
+	"_needs_gradient",
 	"_npoints",
 	"_offsetUnits",
 	"_oldhitNormal",
@@ -4715,6 +4716,7 @@ const int OFFSETS_ImageTexture[] = {
 
 const int OFFSETS_ImageTexture3D[] = {
 	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_ImageTexture3D, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__needs_gradient, (int) offsetof (struct X3D_ImageTexture3D, _needs_gradient),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_ImageTexture3D, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ImageTexture3D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_repeatR, (int) offsetof (struct X3D_ImageTexture3D, repeatR),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5813,6 +5815,7 @@ const int OFFSETS_PixelTexture[] = {
 
 const int OFFSETS_PixelTexture3D[] = {
 	(int) FIELDNAMES___textureTableIndex, (int) offsetof (struct X3D_PixelTexture3D, __textureTableIndex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__needs_gradient, (int) offsetof (struct X3D_PixelTexture3D, _needs_gradient),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__parentResource, (int) offsetof (struct X3D_PixelTexture3D, _parentResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_image, (int) offsetof (struct X3D_PixelTexture3D, image),  (int) FIELDTYPE_MFInt32, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PixelTexture3D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9544,6 +9547,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_ImageTexture3D * tmp2;
 			tmp2 = (struct X3D_ImageTexture3D *) tmp;
 			tmp2->__textureTableIndex = 0;
+			tmp2->_needs_gradient = FALSE;
 			tmp2->_parentResource = getInputResource();
 			tmp2->metadata = NULL;
 			tmp2->repeatR = FALSE;
@@ -11001,6 +11005,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_PixelTexture3D * tmp2;
 			tmp2 = (struct X3D_PixelTexture3D *) tmp;
 			tmp2->__textureTableIndex = 0;
+			tmp2->_needs_gradient = FALSE;
 			tmp2->_parentResource = getInputResource();
 			tmp2->image.n=0; tmp2->image.p=0;
 			tmp2->metadata = NULL;

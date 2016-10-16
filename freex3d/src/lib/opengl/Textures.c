@@ -249,7 +249,52 @@ static void myScaleImage3D(int srcX,int srcY,int srcZ, int destX,int destY,int d
 		}
 	}
 }
+void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
+	//assumes we have a scalar image with info only in alpha, but (unused) RGB channels
+	//we compute 3D alpha/scalar gradient using one of sobel, roberts ...
+	//gradient has magnitude and direction (vs normal, which is of unit length)
+	//here we do an axis-aligned roberts ie gradient_x = x1 - x0
+	int iz,iy,ix, jz,jy,jx,jzz,jyy,jxx, k;
+	char *rgba0, *rgba1;
+	int gradient[3]; 
+	unsigned char *urgba, a;
+	uint32 *pixels = (uint32 *)dest;
 
+	for(iz=0;iz<z;iz++){
+		for(iy=0;iy<y;iy++){
+			for(ix=0;ix<x;ix++){
+				//initialize gradient
+				for(k=0;k<3;k++) gradient[k] = 0;
+				//sum onto gradient
+				jxx = jyy = jzz = 0;
+				//what if we are on the edge? for roberts, just duplicate next-to-edge by backing up one
+				if(iz == z-1) jzz = -1;
+				if(iy == y-1) jyy = -1;
+				if(ix == x-1) jxx = -1;
+				jx = jxx; jy = jyy; jz = jzz;
+				rgba0 = &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				jx = jxx + 1;
+				rgba1 = &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				gradient[0] = (int)rgba1[3] - (int)rgba0[3];
+				jx = jxx;
+				jy = jyy+1;
+				rgba1 = &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				gradient[1] = (int)rgba1[3] - (int)rgba0[3];
+				jy = jyy;
+				jz = jzz+1;
+				rgba1 = &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				gradient[2] = (int)rgba1[3] - (int)rgba0[3];
+				//scale gradient to -127 to +127 in each dimension
+				//roberts: a1 - a0 could be in range (255 - 0) to (0 -255) or -255 to 255, 
+				// we need -127 to 127 signed char on each dim
+				for(k=0;k<3;k++) gradient[k] /= 2;  
+				//set gradient in RGB channels
+				for(k=0;k<3;k++) rgba0[k] = (char)gradient[k];
+			}
+		}
+	}
+
+}
 static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeight, int *dstWidth, int *dstHeight )
 {
    int x,
@@ -1708,6 +1753,13 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 							y = my;
 							z = mz;
 							FREE_IF_NZ(me->texdata);
+						}
+
+						//COMPUTE GRADIENT - we'll do unconditionally if channels == 1 for 3D image
+						//and hope that the one info channel is alpha because we overwrite rgb
+						if(me->channels == 1){
+							//alpha only scalar image, RGB are free to hold gradient
+							compute_3D_alpha_gradient_store_rgb(dest,x,y,z);
 						}
 
 						unsigned char *texdataTiles = NULL;

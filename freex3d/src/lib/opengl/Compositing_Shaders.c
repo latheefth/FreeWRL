@@ -1802,7 +1802,7 @@ uniform mat4 fw_ModelViewProjInverse; \n\
 uniform float fw_FocalLength; \n\
 uniform vec4 fw_viewport; \n\
 uniform vec3 fw_dimensions; \n\
-uniform vec3 fw_RayOrigin; \n\
+//uniform vec3 fw_RayOrigin; \n\
 uniform sampler2D fw_Texture_unit0; \n\
 #ifdef TEX3D \n\
 uniform int tex3dTiles[3]; \n\
@@ -1848,7 +1848,7 @@ void main(void) \n\
     vec3 rayDirection; \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
-	vec3 rayOrigin = fw_RayOrigin; \n\
+	vec3 rayOrigin; // = fw_RayOrigin; \n\
 	//the equivalent of gluUnproject \n\
 	//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
 	vec4 ray4 = vec4(rayDirection,1.0); \n\
@@ -1861,6 +1861,7 @@ void main(void) \n\
 	ray4 /= ray4.w; \n\
 	org4 /= org4.w; \n\
 	rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
+	rayOrigin = org4.xyz; \n\
 	\n\
     Ray eye = Ray( rayOrigin, normalize(rayDirection) ); \n\
     //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\

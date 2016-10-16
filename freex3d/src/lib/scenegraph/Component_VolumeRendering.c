@@ -198,151 +198,273 @@ int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16]);
 ivec4 get_current_viewport();
 textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
 
+unsigned int prep_volumestyle(struct X3D_Node *vstyle){
+	unsigned int volflags = 0;
+	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
+	if(style0->enabled){
+		switch(vstyle->_nodeType){
+			case NODE_OpacityMapVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
+				break;
+			case NODE_BlendedVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_BLENDED;
+				break;
+			case NODE_BoundaryEnhancementVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_BOUNDARY;
+				break;
+			case NODE_CartoonVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_CARTOON;
+				break;
+			case NODE_ComposedVolumeStyle:
+				{
+					struct X3D_ComposedVolumeStyle *style = (struct X3D_ComposedVolumeStyle*)vstyle;
+					volflags |= SHADERFLAGS_VOLUME_STYLE_COMPOSED;
+					for(int i=0;i<style->renderStyle.n;i++){
+						volflags |= prep_volumestyle(style->renderStyle.p[i]);
+					}
+				}
+				break;
+			case NODE_EdgeEnhancementVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_EDGE;
+				break;
+			case NODE_ProjectionVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_PROJECTION;
+				break;
+			case NODE_ShadedVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_SHADED;
+				break;
+			case NODE_SilhouetteEnhancementVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_SILHOUETTE;
+				break;
+			case NODE_ToneMappedVolumeStyle:
+				volflags |= SHADERFLAGS_VOLUME_STYLE_TONE;
+				break;
+			default:
+				break;
+		}
+	}
+	return volflags;
+}
+void render_volumestyle(struct X3D_Node *vstyle){
+	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
+	if(style0->enabled){
+		switch(vstyle->_nodeType){
+			case NODE_OpacityMapVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
+					struct X3D_OpacityMapVolumeStyle *style = (struct X3D_OpacityMapVolumeStyle*)vstyle;
+					if(style->transferFunction){
+						//load texture
+					}
+				}
+				break;
+			case NODE_BlendedVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
+					struct X3D_BlendedVolumeStyle *style = (struct X3D_BlendedVolumeStyle*)vstyle;
+				}
+				break;
+			case NODE_BoundaryEnhancementVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BoundaryEnhancementVolumeStyle
+					struct X3D_BoundaryEnhancementVolumeStyle *style = (struct X3D_BoundaryEnhancementVolumeStyle*)vstyle;
+				}
+				break;
+			case NODE_CartoonVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#CartoonVolumeStyle
+					struct X3D_CartoonVolumeStyle *style = (struct X3D_CartoonVolumeStyle*)vstyle;
+				}
+				break;
+			case NODE_ComposedVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ComposedVolumeStyle
+					struct X3D_ComposedVolumeStyle *style = (struct X3D_ComposedVolumeStyle*)vstyle;
+					for(int i=0;i<style->renderStyle.n;i++){
+						//volflags |= prep_volumestyle(style->renderStyle.p[i]);
+					}
+				}
+				break;
+			case NODE_EdgeEnhancementVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#EdgeEnhancementVolumeStyle
+					struct X3D_EdgeEnhancementVolumeStyle *style = (struct X3D_EdgeEnhancementVolumeStyle*)vstyle;
+				}
+				break;
+			case NODE_ProjectionVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ProjectionVolumeStyle
+					struct X3D_ProjectionVolumeStyle *style = (struct X3D_ProjectionVolumeStyle*)vstyle;
+				}
+				break;
+			case NODE_ShadedVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ShadedVolumeStyle
+					struct X3D_ShadedVolumeStyle *style = (struct X3D_ShadedVolumeStyle*)vstyle;
+				}
+				break;
+			case NODE_SilhouetteEnhancementVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#SilhouetteEnhancementVolumeStyle
+					struct X3D_SilhouetteEnhancementVolumeStyle *style = (struct X3D_SilhouetteEnhancementVolumeStyle*)vstyle;
+				}
+				break;
+			case NODE_ToneMappedVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ToneMappedVolumeStyle
+					//SFColorRGBA [in,out] coolColor      0 0 1 0 [0,1]
+					//SFColorRGBA [in,out] warmColor      1 1 0 0 [0,1]
+					//SFNode      [in,out] surfaceNormals NULL    [X3DTexture3DNode]
+					struct X3D_ToneMappedVolumeStyle *style = (struct X3D_ToneMappedVolumeStyle*)vstyle;
+					//send warm, cool to shader
+					//if !surfaceNormals compute
+					//send surfaceNormals to shader
+				}
+				break;
+			default:
+				break;
+		}
+	}
+}
+int volstyle_needs_normal(struct X3D_Node *vstyle){
+	//IDEA: compute image gradient and store in RGB, if a style requests it
+	// then surfaceNormal = normalize(gradient)
+	//SFNode [in,out] surfaceNormals NULL [X3DTexture3DNode
+	// Cartoon
+	// Edge
+	// Shaded
+	// SilhouetteEnhancement
+	// ToneMappedVolumeStyle
+	//
+	//SFNode [in,out] gradients NULL [X3DTexture3DNode]
+	// IsoSurfaceVolumeData
+	//
+	//SFNode [in,out] segmentIdentifiers NULL [X3DTexture3DNode]
+	// SegmentedVolumeData
+	int need_normal;
+	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
+	need_normal = FALSE;
+	if(style0->enabled){
+		switch(vstyle->_nodeType){
+			case NODE_ComposedVolumeStyle:
+				{
+					struct X3D_ComposedVolumeStyle *style = (struct X3D_ComposedVolumeStyle*)vstyle;
+					for(int i=0;i<style->renderStyle.n;i++){
+						need_normal = need_normal || volstyle_needs_normal(style->renderStyle.p[i]);
+					}
+				}
+				break;
+			case NODE_CartoonVolumeStyle:
+			case NODE_EdgeEnhancementVolumeStyle:
+			case NODE_ShadedVolumeStyle:
+			case NODE_SilhouetteEnhancementVolumeStyle:
+			case NODE_ToneMappedVolumeStyle:
+				{
+					//in perl structs, for these nodes its all the 3rd field after enabled, metadata, surfacenormals
+					struct X3D_ToneMappedVolumeStyle *style = (struct X3D_ToneMappedVolumeStyle*)vstyle;
+					need_normal = need_normal || (style->surfaceNormals == NULL);
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	return need_normal;
+}
 void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
 void child_VolumeData(struct X3D_VolumeData *node){
 	static int once = 0;
+	unsigned int volflags;
 	ttglobal tg = gglobal();
 	ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)tg->Component_VolumeRendering.prv;
 	COMPILE_IF_REQUIRED
 
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-		if(node->voxels)
-			render_node(node->voxels);
 		if(!once)
 			ConsoleMessage("child_volumedata\n");
 		once = 1;
+		volflags = 0;
 		if(node->renderStyle ){
 			unsigned int volflags = 0;
 			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
 			if(style0->enabled){
-				switch(node->renderStyle->_nodeType){
-					case NODE_OpacityMapVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
-						struct X3D_OpacityMapVolumeStyle *style = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
-						if(style->transferFunction){
-							//load texture
-						}
-						volflags |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
-						}
-						break;
-					case NODE_BlendedVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
-						struct X3D_BlendedVolumeStyle *style = (struct X3D_BlendedVolumeStyle*)node->renderStyle;
-						volflags |= SHADERFLAGS_VOLUME_STYLE_BLENDED;
-						}
-						break;
-					case NODE_BoundaryEnhancementVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BoundaryEnhancementVolumeStyle
-						struct X3D_BoundaryEnhancementVolumeStyle *style = (struct X3D_BoundaryEnhancementVolumeStyle*)node->renderStyle;
-						volflags |= SHADERFLAGS_VOLUME_STYLE_BOUNDARY;
-						}
-						break;
-					case NODE_CartoonVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#CartoonVolumeStyle
-						struct X3D_CartoonVolumeStyle *style = (struct X3D_CartoonVolumeStyle*)node->renderStyle;
-						volflags |= SHADERFLAGS_VOLUME_STYLE_CARTOON;
-						}
-						break;
-					case NODE_ComposedVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ComposedVolumeStyle
-						struct X3D_ComposedVolumeStyle *style = (struct X3D_ComposedVolumeStyle*)node->renderStyle;
-						volflags |= SHADERFLAGS_VOLUME_STYLE_COMPOSED;
-						}
-						break;
-					case NODE_EdgeEnhancementVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#EdgeEnhancementVolumeStyle
-						struct X3D_EdgeEnhancementVolumeStyle *style = (struct X3D_EdgeEnhancementVolumeStyle*)node->renderStyle;
-						volflags |= SHADERFLAGS_VOLUME_STYLE_EDGE;
-						}
-						break;
-					case NODE_ProjectionVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ProjectionVolumeStyle
-						struct X3D_ProjectionVolumeStyle *style = (struct X3D_ProjectionVolumeStyle*)node->renderStyle;
-						volflags |= SHADERFLAGS_VOLUME_STYLE_PROJECTION;
-						}
-						break;
-					case NODE_ShadedVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ShadedVolumeStyle
-						struct X3D_ShadedVolumeStyle *style = (struct X3D_ShadedVolumeStyle*)node->renderStyle;
-						volflags |= SHADERFLAGS_VOLUME_STYLE_SHADED;
-						}
-						break;
-					case NODE_SilhouetteEnhancementVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#SilhouetteEnhancementVolumeStyle
-						struct X3D_SilhouetteEnhancementVolumeStyle *style = (struct X3D_SilhouetteEnhancementVolumeStyle*)node->renderStyle;
-						volflags |= SHADERFLAGS_VOLUME_STYLE_SILHOUETTE;
-						}
-						break;
-					case NODE_ToneMappedVolumeStyle:
-						{
-						// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ToneMappedVolumeStyle
-						//SFColorRGBA [in,out] coolColor      0 0 1 0 [0,1]
-						//SFColorRGBA [in,out] warmColor      1 1 0 0 [0,1]
-						//SFNode      [in,out] surfaceNormals NULL    [X3DTexture3DNode]
-						struct X3D_ToneMappedVolumeStyle *style = (struct X3D_ToneMappedVolumeStyle*)node->renderStyle;
-						//send warm, cool to shader
-						//if !surfaceNormals compute
-						//send surfaceNormals to shader
-						volflags |= SHADERFLAGS_VOLUME_STYLE_TONE;
-						}
-						break;
-					default:
-						break;
-				}
+				volflags = prep_volumestyle(node->renderStyle); //get shader flags
 			}
+			//if(!volflags)
+			//	volflags |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
 		}
 
-		if(node->renderStyle == NULL){
 
-			//render 
-			//Step 1: set the 3D texture
-			//if(node->voxels)
-			//	render_node(node->voxels);
-			//Step 2: get rays to cast: start point and direction vector for each ray to cast
+		//render 
+		//Step 1: set the 3D texture
+		//if(node->voxels)
+		//	render_node(node->voxels);
+		//Step 2: get rays to cast: start point and direction vector for each ray to cast
 
-			//method B: use cpu math to compute a few uniforms so frag shader can do box intersections
-			//http://prideout.net/blog/?p=64
-			//- one step raycasting using gl_fragCoord
-			//
+		//method: use cpu math to compute a few uniforms so frag shader can do box intersections
+		//http://prideout.net/blog/?p=64
+		//- one step raycasting using gl_fragCoord
+		//- we modified this general method to use gluUnproject math instead of focallength
 
-			//Step 3: accumulate along rays and render opacity fragment in one step
-			//GPU VERSION
-			shaderflagsstruct shaderflags, shader_requirements;
-			s_shader_capabilities_t *caps;
-			int old_shape_way = 0;
+		//Step 3: accumulate along rays and render opacity fragment in one step
+		//GPU VERSION
+		shaderflagsstruct shaderflags, shader_requirements;
+		s_shader_capabilities_t *caps;
+		int old_shape_way = 0;
 
-			memset(&shader_requirements,0,sizeof(shaderflagsstruct));
-			//shaderflags = getShaderFlags();
-			shader_requirements.volume = SHADERFLAGS_VOLUME_DATA_BASIC; //send the following through the volume ubershader
-			shader_requirements.volume |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
-			shader_requirements.volume |= TEX3D_SHADER;
-			caps = getMyShaders(shader_requirements);
-			enableGlobalShader(caps);
-			GLint myProg =  caps->myShaderProgram;
-			//Step 1: set the 3D texture
-			if(node->voxels){
-				struct X3D_Node *tmpN;
-				POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->voxels,tmpN);
-				tg->RenderFuncs.texturenode = (void*)tmpN;
+		memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+		//shaderflags = getShaderFlags();
+		shader_requirements.volume = SHADERFLAGS_VOLUME_DATA_BASIC; //send the following through the volume ubershader
+		shader_requirements.volume |= volflags; //SHADERFLAGS_VOLUME_STYLE_OPACITY;
+		shader_requirements.volume |= TEX3D_SHADER;
+		caps = getMyShaders(shader_requirements);
+		enableGlobalShader(caps);
+		GLint myProg =  caps->myShaderProgram;
+		//Step 1: set the 3D texture
+		
+		//IDEA: compute image gradient and store in RGB, if a style requests it
+		// then surfaceNormal = normalize(gradient)
+		//SFNode [in,out] surfaceNormals NULL [X3DTexture3DNode
+		// Cartoon
+		// Edge
+		// Shaded
+		// SilhouetteEnhancement
+		// ToneMappedVolumeStyle
+		//
+		//SFNode [in,out] gradients NULL [X3DTexture3DNode]
+		// IsoSurfaceVolumeData
+		//
+		//SFNode [in,out] segmentIdentifiers NULL [X3DTexture3DNode]
+		// SegmentedVolumeData
 
-				//render_node(voxels) should keep pulling the texture through all stages of loading and opengl
-				render_node(tmpN); //render_node(node->voxels); 
+		if(node->voxels){
+			struct X3D_Node *tmpN;
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->voxels,tmpN);
+			tg->RenderFuncs.texturenode = (void*)tmpN;
 
-				if(old_shape_way){
-					struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
-					textureDraw_start(&mtf);
-				}else{
-					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+			//gradient > Oct 2016 we compute in textures.c if channels==1 and z>1 and put in rgb
+			// - saves mallocing another RGBA 
+			// - for scalar images RGB is unused or just 111 anyway
+			// - takes 1 second on desktop CPU for 17 Mpixel image
+			//if(node->renderStyle){
+			//	if(volstyle_needs_normal(node->renderStyle)){
+			//		switch(tmpN->_nodeType){
+			//			case NODE_PixelTexture3D:
+			//				((struct X3D_PixelTexture3D*)tmpN)->_needs_gradient = TRUE; break;
+			//			case NODE_ImageTexture3D:
+			//				((struct X3D_ImageTexture3D*)tmpN)->_needs_gradient = TRUE; break;
+			//		}
+			//	}
+			//}
+			//render_node(voxels) should keep pulling the texture through all stages of loading and opengl
+			render_node(tmpN); //render_node(node->voxels); 
 
+			if(old_shape_way){
+				struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
+				textureDraw_start(&mtf);
+			}else{
+				textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+				if(tti && tti->status >= TEX_LOADED){
 					GLint ttiles = GET_UNIFORM(myProg,"tex3dTiles");
 					GLUNIFORM1IV(ttiles,3,tti->tiles);
 
@@ -358,46 +480,62 @@ void child_VolumeData(struct X3D_VolumeData *node){
 					glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
 				}
 			}
-
-			//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
-			//    set attributes vertices of triangles of bounding box
-			// set box with vol.dimensions with triangles
-			GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
-			GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
-			GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
-			static int once = 0;
-			if(!once)
-				ConsoleMessage("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
-			sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
-			double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
-			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-			FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
-			if(1){
-				//see gluUnproject in Opengl_Utils.c
-				__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
-				if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
-			}else{
-				matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
-				//matmultiplyFULL(mvp,projMatrix,modelviewMatrix);
-				//if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
-				matinverseFULL(mvpinverse,mvp); //seems different than glu's. H0: just wrong H1: transopose H2: full inverse vs factorized
+		}
+		if(node->renderStyle){
+			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
+			if(style0->enabled){
+				render_volumestyle(node->renderStyle); //send uniforms
 			}
-			float spmat[16];
-			matdouble2float4(spmat,mvpinverse);
+		}
+		//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
+		//    set attributes vertices of triangles of bounding box
+		// set box with vol.dimensions with triangles
+		GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+		GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
+		GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
+		static int once = 0;
+		if(!once)
+			ConsoleMessage("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
+		sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+		double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+		FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+		if(1){
+			//see gluUnproject in Opengl_Utils.c
+			__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
+			if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+		}else{
+			matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
+			//matmultiplyFULL(mvp,projMatrix,modelviewMatrix);
+			//if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+			matinverseFULL(mvpinverse,mvp); //seems different than glu's. H0: just wrong H1: transopose H2: full inverse vs factorized
+		}
+		float spmat[16];
+		matdouble2float4(spmat,mvpinverse);
 
-			GLint mvpi = GET_UNIFORM(myProg,"fw_ModelViewProjInverse");
-			GLUNIFORMMATRIX4FV(mvpi,1,GL_FALSE,spmat);
+		GLint mvpi = GET_UNIFORM(myProg,"fw_ModelViewProjInverse");
+		GLUNIFORMMATRIX4FV(mvpi,1,GL_FALSE,spmat);
 
 
-			glEnableVertexAttribArray(Vertices);
-			float *boxtris = (float*)node->_boxtris;
-			glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
+		//get the current viewport
+		GLint iviewport[4];
+		float viewport[4];
+		glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
 
-			//get the current viewport
-			GLint iviewport[4];
-			float viewport[4];
-			glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
+		GLint vp = GET_UNIFORM(myProg,"fw_viewport");
+		viewport[0] = iviewport[0]; //xmin
+		viewport[1] = iviewport[1]; //ymin
+		viewport[2] = iviewport[2]; //width
+		viewport[3] = iviewport[3]; //height
+		GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
+		GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
+		GLUNIFORM3F(dim,node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
 
+		if(!once) ConsoleMessage("dim %d vp %d \n",dim,vp );
+
+		if(0){
+			//switched to gluUnproject method in shader - unproject 2 points to get ray
+			//.. so don't need focallength
 			//get the current fieldOfView
 			float FieldOfView = tg->Mainloop.fieldOfView;
 			//printf("current viewport= %d %d %d %d\n",iviewport[0],iviewport[1],iviewport[2],iviewport[3]);
@@ -406,16 +544,13 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			float focalLength = 1.0f / tan(FieldOfView / 2.0f);
 			GLint focal = GET_UNIFORM(myProg,"fw_FocalLength"); //fw_ModelViewMatrix
 			GLUNIFORM1F(focal,focalLength);
-			GLint vp = GET_UNIFORM(myProg,"fw_viewport");
-			viewport[0] = iviewport[0]; //xmin
-			viewport[1] = iviewport[1]; //ymin
-			viewport[2] = iviewport[2]; //width
-			viewport[3] = iviewport[3]; //height
-			GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
-			GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
-			GLUNIFORM3F(dim,node->dimensions.c[0],node->dimensions.c[1],node->dimensions.c[2]);
+		}
 
+
+		if(0){
 			//ray origin: the camera position 0,0,0 transformed into geometry local (box) coords
+			//in theory can save frag flops Mat4 x vec4 by transforming origin here
+			//(also in theory, could transform 2 points in vert shader, set as varying?, saving 2 mat4xvec4 ops in frag?)
 			GLint orig = GET_UNIFORM(myProg,"fw_RayOrigin");
 			float eyeLocal[3];
 			double origind[3], eyeLocald[3];
@@ -428,21 +563,24 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
 			GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
 			//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-			if(!once) ConsoleMessage("orig %d dim %d vp %d focal %d\n",orig,dim,vp,focal );
+		}
 
-			//3.2 draw with shader
-			glDrawArrays(GL_TRIANGLES,0,36);
+		//3.2 draw with shader
+		glEnableVertexAttribArray(Vertices);
+		float *boxtris = (float*)node->_boxtris;
+		glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
 
-			if(node->voxels){
-				if(old_shape_way){
-					textureDraw_end();
-				}else{
-					tg->RenderFuncs.textureStackTop = 0;
-					tg->RenderFuncs.texturenode = NULL;
-				}
+		glDrawArrays(GL_TRIANGLES,0,36);
+
+		if(node->voxels){
+			if(old_shape_way){
+				textureDraw_end();
+			}else{
+				tg->RenderFuncs.textureStackTop = 0;
+				tg->RenderFuncs.texturenode = NULL;
 			}
-			once = 1;
-		} 
+		}
+		once = 1;
 
 
 	} //VF_Blend
