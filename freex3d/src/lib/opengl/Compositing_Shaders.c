@@ -1886,7 +1886,7 @@ void main(void) \n\
     float travel = distance(rayStop, rayStart); \n\
     float T = 1.0; \n\
     vec3 Lo = vec3(0.0); \n\
-	vec3 normal_eye_fragment = vec3(0.0); //not used in plug \n\
+	vec3 normal_eye_fragment = rayDirection.xyz; //vec3(0.0); //not used in plug \n\
 	fragment_color.a = 1.0; \n\
 	//if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
 	//if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
@@ -1906,7 +1906,7 @@ void main(void) \n\
 	\n\
     for (int i=0; i < numSamples; ++i) { \n\
        // ...lighting and absorption stuff here... \n\
-		fragment_color = vec4(1.0); \n\
+		fragment_color = vec4(1.0,1.0,1.0,1.0); \n\
 		pos2 = pos; \n\
 	    // Transform from object space to texture coordinate space: \n\
 		pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
@@ -1922,7 +1922,7 @@ void main(void) \n\
 		//\n\
         T *= 1.0-density*stepSize*Absorption; \n\
 		fragment_color_main.a = 1.0 - T; \n\
-		//fragment_color_main.rgb = fragment_color.rgb; \n\
+		//fragment_color_main.rgb = fragment_color_main.rgb + fragment_color.rgb*density; \n\
         if (T <= 0.01) { \n\
             break; \n\
 		} \n\
@@ -1958,7 +1958,14 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 } \n\
 ";
 static const GLchar *plug_fragment_EDGE =	"\
+uniform float fw_gradientThreshold; \n\
+uniform vec4 fw_edgeColor; \n\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+	vec3 n = normalize(finalFrag.xyz); \n\
+	float ndotv = abs(dot(normal_eye_fragment,n)); \n\
+	vec4 texel = vec4(0.0,1.0,1.0,finalFrag.a); \n\
+	if( ndotv < cos(fw_gradientThreshold)) \n\
+		texel = texel * ndotv + fw_edgeColor * (1.0 - ndotv); \n\
 } \n\
 ";
 static const GLchar *plug_fragment_PROJECTION =	"\

@@ -245,7 +245,7 @@ unsigned int prep_volumestyle(struct X3D_Node *vstyle){
 	}
 	return volflags;
 }
-void render_volumestyle(struct X3D_Node *vstyle){
+void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
 	if(style0->enabled){
 		switch(vstyle->_nodeType){
@@ -288,7 +288,20 @@ void render_volumestyle(struct X3D_Node *vstyle){
 			case NODE_EdgeEnhancementVolumeStyle:
 				{
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#EdgeEnhancementVolumeStyle
+					//SFColorRGBA [in,out] edgeColor         0 0 0 1 [0,1]
+					//SFBool      [in,out] enabled           TRUE
+					//SFFloat     [in,out] gradientThreshold 0.4     [0,PI]
+					//SFNode      [in,out] metadata          NULL    [X3DMetadataObject]
+					//SFNode      [in,out] surfaceNormals    NULL    [X3DTexture3DNode]
 					struct X3D_EdgeEnhancementVolumeStyle *style = (struct X3D_EdgeEnhancementVolumeStyle*)vstyle;
+					GLint iedgeColor, igradientThreshold;
+					float *rgba;
+					rgba = style->edgeColor.c;
+					iedgeColor = GET_UNIFORM(myProg,"fw_edgeColor");
+					glUniform4fv(iedgeColor,4,rgba);
+					igradientThreshold = GET_UNIFORM(myProg,"fw_gradientThreshold");
+					glUniform1f(igradientThreshold,style->gradientThreshold);
+					//printf("edge uniforms color %d gradthresh %d\n",iedgeColor,igradientThreshold);
 				}
 				break;
 			case NODE_ProjectionVolumeStyle:
@@ -385,11 +398,11 @@ void child_VolumeData(struct X3D_VolumeData *node){
 		once = 1;
 		volflags = 0;
 		if(node->renderStyle ){
-			unsigned int volflags = 0;
 			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
 			if(style0->enabled){
 				volflags = prep_volumestyle(node->renderStyle); //get shader flags
 			}
+			//printf("volflags= %ld\n",volflags);
 			//if(!volflags)
 			//	volflags |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
 		}
@@ -484,7 +497,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 		if(node->renderStyle){
 			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
 			if(style0->enabled){
-				render_volumestyle(node->renderStyle); //send uniforms
+				render_volumestyle(node->renderStyle,myProg); //send uniforms
 			}
 		}
 		//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
