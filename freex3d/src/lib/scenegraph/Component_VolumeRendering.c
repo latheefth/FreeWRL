@@ -410,14 +410,16 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			if(style0->enabled){
 				volflags = prep_volumestyle(node->renderStyle, volflags); //get shader flags
 			}
-			if(!once){
-				printf("volflags= ");
-				for(int i=0;i<8;i++)
-					printf("%d ",((volflags >> (8-i-1)*4) & 0xF)); //show 4 int
-				printf("\n");
-			}
+		}else{
+			volflags = SHADERFLAGS_VOLUME_STYLE_DEFAULT;
 		}
 
+		if(!once){
+			printf("volflags= ");
+			for(int i=0;i<8;i++)
+				printf("%d ",((volflags >> (8-i-1)*4) & 0xF)); //show 4 int
+			printf("\n");
+		}
 
 		//render 
 		//Step 1: set the 3D texture

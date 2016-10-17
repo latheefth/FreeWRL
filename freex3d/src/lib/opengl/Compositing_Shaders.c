@@ -1188,12 +1188,11 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 //  3  7  11
 //  4  8
 //  
-static const GLchar *plug_fragment_texture3D_apply_volume =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
-\n\
+static const GLchar *plug_fragment_texture3D_apply_volume =	"\n\
+void texture3D(inout vec4 sample, in vec3 texcoord3){ \n\
   #ifdef TEX3D \n\
   //TILED method (vs Y strip method) \n\
-  vec3 texcoord = fw_TexCoord[0]; \n\
+  vec3 texcoord = texcoord3; \n\
   //texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
   float depth = max(1.0,float(tex3dTiles[2])); \n\
   if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
@@ -1239,8 +1238,17 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
   else \n\
 	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
-  finalFrag *= texel; \n\
+  sample = texel; \n\
   #endif //TEX3D \n\
+} \n\
+void PLUG_texture3D( inout vec4 sample, in vec3 texcoord3 ){ \n\
+	texture3D(sample,texcoord3); \n\
+} \n\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+	vec4 sample; \n\
+	texture3D(sample,fw_TexCoord[0]); \n\
+	finalFrag *= sample; \n\
   \n\
 }\n";
 
@@ -1844,7 +1852,7 @@ void main(void) \n\
 	float stepSize = maxDist/fnumSamples; \n\
 	 \n\
     vec4 fragment_color; \n\
-	vec4 fragment_color_main = castle_Color; \n\
+	vec4 raysum; \n\
     vec3 rayDirection; \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
@@ -1886,7 +1894,7 @@ void main(void) \n\
     float travel = distance(rayStop, rayStart); \n\
     float T = 1.0; \n\
     vec3 Lo = vec3(0.0); \n\
-	vec3 normal_eye_fragment = rayDirection.xyz; //vec3(0.0); //not used in plug \n\
+	vec3 normal_eye = rayDirection.xyz; \n\
 	fragment_color.a = 1.0; \n\
 	//if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
 	//if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
@@ -1897,12 +1905,9 @@ void main(void) \n\
 	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
 	//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 	pos2 = clamp(pos2,0.001,.999); \n\
-	fw_TexCoord[0] = pos2; //vertex_model; //vec3(.2,.2,.5); \n\
 	fragment_color = vec4(1.0,0.0,1.0,0.0); \n\
-	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
-	/* P_LUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
-	fragment_color_main = fragment_color; \n\
-	//fragment_color_main.a = 1.0; \n\
+	raysum = vec4(0.0); \n\
+	float depth = 0.0; \n\
 	\n\
     for (int i=0; i < numSamples; ++i) { \n\
        // ...lighting and absorption stuff here... \n\
@@ -1912,76 +1917,83 @@ void main(void) \n\
 		pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
 		//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 		pos2 = clamp(pos2,0.001,.999); \n\
-		fw_TexCoord[0] = pos2; \n\
-		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+		vec3 texcoord3 = pos2; \n\
+		/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
+		//fw_TexCoord[0] = pos2; \n\
         //float density = texture3D(Density, pos).x * densityFactor; \n\
 		float density = fragment_color.a * densityFactor; \n\
+		vec3 gradient = fragment_color.rgb; \n\
 		\n\
-        //if (density <= 0.0) \n\
-        //    continue; \n\
-		//\n\
+		//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) \n\
+		/* PLUG: raysum_apply (raysum, density, gradient, depth, normal_eye) */ \n\
         T *= 1.0-density*stepSize*Absorption; \n\
-		fragment_color_main.a = 1.0 - T; \n\
-		//fragment_color_main.rgb = fragment_color_main.rgb + fragment_color.rgb*density; \n\
+		raysum.a = 1.0 - T; \n\
+		//raysum.rgb = raysum.rgb + fragment_color.rgb*density; \n\
         if (T <= 0.01) { \n\
             break; \n\
 		} \n\
 		travel -= stepSize; \n\
+		depth += stepSize; \n\
 		if(travel <= 0.0) break; \n\
 		pos += step; \n\
 		\n\
     }  \n\
-	gl_FragColor = fragment_color_main; \n\
+	gl_FragColor = raysum; \n\
 } \n\
 ";
 
+//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 
-static const GLchar *plug_fragment_OPACITY =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_DEFAULT =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+	raysum.rgb += vec3(1.0,0.0,1.0)*density; \n\
 } \n\
 ";
-static const GLchar *plug_fragment_BLENDED =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_OPACITY =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
-static const GLchar *plug_fragment_BOUNDARY =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_BLENDED =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+} \n\
+";
+static const GLchar *plug_raysum_BOUNDARY =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
 
-static const GLchar *plug_fragment_CARTOON =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_CARTOON =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
-static const GLchar *plug_fragment_COMPOSED =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_COMPOSED =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
-static const GLchar *plug_fragment_EDGE =	"\
+static const GLchar *plug_raysum_EDGE =	"\
 uniform float fw_gradientThreshold; \n\
 uniform vec4 fw_edgeColor; \n\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
-	vec3 n = normalize(finalFrag.xyz); \n\
-	float ndotv = abs(dot(normal_eye_fragment,n)); \n\
-	vec4 texel = vec4(0.0,1.0,1.0,finalFrag.a); \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+	vec3 n = normalize(gradient); \n\
+	float ndotv = abs(dot(normal_eye,n)); \n\
 	if( ndotv < cos(fw_gradientThreshold)) \n\
-		texel = texel * ndotv + fw_edgeColor * (1.0 - ndotv); \n\
+		raysum = raysum * ndotv + fw_edgeColor * (1.0 - ndotv); \n\
 } \n\
 ";
-static const GLchar *plug_fragment_PROJECTION =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_PROJECTION =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
-static const GLchar *plug_fragment_SHADED =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_SHADED =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
-static const GLchar *plug_fragment_SILHOUETTE =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_SILHOUETTE =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
-static const GLchar *plug_fragment_TONE =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+static const GLchar *plug_raysum_TONE =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
 
@@ -2058,48 +2070,53 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 			kflags++;
 		}
 	}
+	//now volflag[] is in the order declared with no 0s/nulls 
 	for(int k=0;k<kflags;k++){
 
 		switch(volflag[k]){
+		case SHADERFLAGS_VOLUME_STYLE_DEFAULT:
+			AddDefine(SHADERPART_FRAGMENT,"DEFAULT",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_DEFAULT,CompleteCode,&unique_int);
+			break;
 		case SHADERFLAGS_VOLUME_STYLE_OPACITY:
 			AddDefine(SHADERPART_FRAGMENT,"OPACITY",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_OPACITY,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_OPACITY,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_BLENDED:
 			AddDefine(SHADERPART_FRAGMENT,"BLENDED",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_BLENDED,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_BLENDED,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_BOUNDARY:
 			AddDefine(SHADERPART_FRAGMENT,"BOUNDARY",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_BOUNDARY,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_BOUNDARY,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_CARTOON:
 			AddDefine(SHADERPART_FRAGMENT,"CARTOON",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_CARTOON,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_CARTOON,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_COMPOSED:
 			AddDefine(SHADERPART_FRAGMENT,"COMPOSED",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_COMPOSED,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_COMPOSED,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_EDGE:
 			AddDefine(SHADERPART_FRAGMENT,"EDGE",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_EDGE,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_EDGE,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_PROJECTION:
 			AddDefine(SHADERPART_FRAGMENT,"PROJECTION",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_PROJECTION,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_PROJECTION,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_SHADED:
 			AddDefine(SHADERPART_FRAGMENT,"SHADED",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_SHADED,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_SHADED,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_SILHOUETTE:
 			AddDefine(SHADERPART_FRAGMENT,"SILHOUETTE",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_SILHOUETTE,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_SILHOUETTE,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_TONE:
 			AddDefine(SHADERPART_FRAGMENT,"TONE",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_fragment_TONE,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_raysum_TONE,CompleteCode,&unique_int);
 			break;
 		default:
 			//if 0, just skip
