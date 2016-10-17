@@ -2047,10 +2047,20 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	}
 
 	//unsigned int 32 bits - 4 for basic, leaves 28/4 = max 7 styles
-	volflags = whichOne.volume >> 4;
-	while(volflags){
-		unsigned int volflag = volflags & 0xF;
-		switch(volflag){
+	//work from left to right (the order declared), skip any 0/null/empties
+	volflags = whichOne.volume;
+	unsigned char volflag[7];
+	int kflags = 0;
+	for(int i=0;i<7;i++){
+		int iflag = (volflags >> (7-i)*4) & 0xF;
+		if(iflag){
+			volflag[kflags] = iflag;
+			kflags++;
+		}
+	}
+	for(int k=0;k<kflags;k++){
+
+		switch(volflag[k]){
 		case SHADERFLAGS_VOLUME_STYLE_OPACITY:
 			AddDefine(SHADERPART_FRAGMENT,"OPACITY",CompleteCode); 
 			Plug(SHADERPART_FRAGMENT,plug_fragment_OPACITY,CompleteCode,&unique_int);
@@ -2091,8 +2101,10 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 			AddDefine(SHADERPART_FRAGMENT,"TONE",CompleteCode); 
 			Plug(SHADERPART_FRAGMENT,plug_fragment_TONE,CompleteCode,&unique_int);
 			break;
+		default:
+			//if 0, just skip
+			break;
 		}
-		volflags = volflags >> 4;
 	}
 
 
