@@ -198,45 +198,54 @@ int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16]);
 ivec4 get_current_viewport();
 textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
 
-unsigned int prep_volumestyle(struct X3D_Node *vstyle){
-	unsigned int volflags = 0;
+unsigned int prep_volumestyle(struct X3D_Node *vstyle, unsigned int volflags){
 	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
 	if(style0->enabled){
 		switch(vstyle->_nodeType){
 			case NODE_OpacityMapVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
 				break;
 			case NODE_BlendedVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_BLENDED;
 				break;
 			case NODE_BoundaryEnhancementVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_BOUNDARY;
 				break;
 			case NODE_CartoonVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_CARTOON;
 				break;
 			case NODE_ComposedVolumeStyle:
 				{
 					struct X3D_ComposedVolumeStyle *style = (struct X3D_ComposedVolumeStyle*)vstyle;
-					volflags |= SHADERFLAGS_VOLUME_STYLE_COMPOSED;
+					//volflags = volflags << 4;
+					//volflags |= SHADERFLAGS_VOLUME_STYLE_COMPOSED;
 					for(int i=0;i<style->renderStyle.n;i++){
-						volflags |= prep_volumestyle(style->renderStyle.p[i]);
+						volflags = prep_volumestyle(style->renderStyle.p[i], volflags);
 					}
 				}
 				break;
 			case NODE_EdgeEnhancementVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_EDGE;
 				break;
 			case NODE_ProjectionVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_PROJECTION;
 				break;
 			case NODE_ShadedVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_SHADED;
 				break;
 			case NODE_SilhouetteEnhancementVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_SILHOUETTE;
 				break;
 			case NODE_ToneMappedVolumeStyle:
+				volflags = volflags << 4;
 				volflags |= SHADERFLAGS_VOLUME_STYLE_TONE;
 				break;
 			default:
@@ -395,16 +404,18 @@ void child_VolumeData(struct X3D_VolumeData *node){
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 		if(!once)
 			ConsoleMessage("child_volumedata\n");
-		once = 1;
 		volflags = 0;
 		if(node->renderStyle ){
 			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
 			if(style0->enabled){
-				volflags = prep_volumestyle(node->renderStyle); //get shader flags
+				volflags = prep_volumestyle(node->renderStyle, volflags); //get shader flags
 			}
-			//printf("volflags= %ld\n",volflags);
-			//if(!volflags)
-			//	volflags |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
+			if(!once){
+				printf("volflags= ");
+				for(int i=0;i<8;i++)
+					printf("%d ",((volflags >> (8-i-1)*4) & 0xF)); //show 4 int
+				printf("\n");
+			}
 		}
 
 
@@ -428,8 +439,8 @@ void child_VolumeData(struct X3D_VolumeData *node){
 		memset(&shader_requirements,0,sizeof(shaderflagsstruct));
 		//shaderflags = getShaderFlags();
 		shader_requirements.volume = SHADERFLAGS_VOLUME_DATA_BASIC; //send the following through the volume ubershader
-		shader_requirements.volume |= volflags; //SHADERFLAGS_VOLUME_STYLE_OPACITY;
-		shader_requirements.volume |= TEX3D_SHADER;
+		shader_requirements.volume |= (volflags << 4); //SHADERFLAGS_VOLUME_STYLE_OPACITY;
+		// by default we'll mash it in: shader_requirements.volume |= TEX3D_SHADER;
 		caps = getMyShaders(shader_requirements);
 		enableGlobalShader(caps);
 		GLint myProg =  caps->myShaderProgram;
@@ -506,7 +517,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 		GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
 		GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
 		GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
-		static int once = 0;
 		if(!once)
 			ConsoleMessage("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
 		sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);

@@ -1998,6 +1998,7 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	//whichone - a bitmask of shader requirements, one bit for each requirement, so shader permutation can be built
 
 	int retval, unique_int;
+	unsigned int volflags;
 	char *CompleteCode[3];
 	char *vs, *fs;
 	retval = FALSE;
@@ -2030,10 +2031,11 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 
 	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG 
 
-	if(DESIRE(whichOne.volume,TEX3D_SHADER)){
-		AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply_volume,CompleteCode,&unique_int); //uses TILED
-	}
+	//if(DESIRE(whichOne.volume,TEX3D_SHADER)){
+	AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
+	Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply_volume,CompleteCode,&unique_int); //uses TILED
+	//}
+
 	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_DATA_BASIC)){
 		AddDefine(SHADERPART_FRAGMENT,"BASIC",CompleteCode); 
 	}
@@ -2044,46 +2046,53 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		AddDefine(SHADERPART_FRAGMENT,"SEGMENT",CompleteCode); 
 	}
 
-
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_OPACITY)){
-		AddDefine(SHADERPART_FRAGMENT,"OPACITY",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_OPACITY,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_BLENDED)){
-		AddDefine(SHADERPART_FRAGMENT,"BLENDED",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_BLENDED,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_BOUNDARY)){
-		AddDefine(SHADERPART_FRAGMENT,"BOUNDARY",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_BOUNDARY,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_CARTOON)){
-		AddDefine(SHADERPART_FRAGMENT,"CARTOON",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_CARTOON,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_COMPOSED)){
-		AddDefine(SHADERPART_FRAGMENT,"COMPOSED",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_COMPOSED,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_EDGE)){
-		AddDefine(SHADERPART_FRAGMENT,"EDGE",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_EDGE,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_PROJECTION)){
-		AddDefine(SHADERPART_FRAGMENT,"PROJECTION",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_PROJECTION,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_SHADED)){
-		AddDefine(SHADERPART_FRAGMENT,"SHADED",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_SHADED,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_SILHOUETTE)){
-		AddDefine(SHADERPART_FRAGMENT,"SILHOUETTE",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_SILHOUETTE,CompleteCode,&unique_int);
-	}
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_STYLE_TONE)){
-		AddDefine(SHADERPART_FRAGMENT,"TONE",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_TONE,CompleteCode,&unique_int);
+	//unsigned int 32 bits - 4 for basic, leaves 28/4 = max 7 styles
+	volflags = whichOne.volume >> 4;
+	while(volflags){
+		unsigned int volflag = volflags & 0xF;
+		switch(volflag){
+		case SHADERFLAGS_VOLUME_STYLE_OPACITY:
+			AddDefine(SHADERPART_FRAGMENT,"OPACITY",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_OPACITY,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_BLENDED:
+			AddDefine(SHADERPART_FRAGMENT,"BLENDED",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_BLENDED,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_BOUNDARY:
+			AddDefine(SHADERPART_FRAGMENT,"BOUNDARY",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_BOUNDARY,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_CARTOON:
+			AddDefine(SHADERPART_FRAGMENT,"CARTOON",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_CARTOON,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_COMPOSED:
+			AddDefine(SHADERPART_FRAGMENT,"COMPOSED",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_COMPOSED,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_EDGE:
+			AddDefine(SHADERPART_FRAGMENT,"EDGE",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_EDGE,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_PROJECTION:
+			AddDefine(SHADERPART_FRAGMENT,"PROJECTION",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_PROJECTION,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_SHADED:
+			AddDefine(SHADERPART_FRAGMENT,"SHADED",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_SHADED,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_SILHOUETTE:
+			AddDefine(SHADERPART_FRAGMENT,"SILHOUETTE",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_SILHOUETTE,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_TONE:
+			AddDefine(SHADERPART_FRAGMENT,"TONE",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_fragment_TONE,CompleteCode,&unique_int);
+			break;
+		}
+		volflags = volflags >> 4;
 	}
 
 

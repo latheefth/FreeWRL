@@ -1444,6 +1444,7 @@ encoding: raw
 		//now convert to display usable data type which currently is RGBA
 		tti->texdata = MALLOC(unsigned char *,nvoxel * 4); //4 for RGBA
 		tti->channels = 1; //1=lum 2=lum-alpha 3=rgb 4=rgba //doing 2-channel allows modulation of material color
+			//Oct 16, 2016: in textures.c we now compute gradient automatically and put in RGB, if channels == 1 and z > 1
 		tti->hasAlpha = TRUE;
 		tti->x = isize[0];
 		tti->y = isize[1];
