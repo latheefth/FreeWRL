@@ -255,6 +255,7 @@ unsigned int prep_volumestyle(struct X3D_Node *vstyle, unsigned int volflags){
 	}
 	return volflags;
 }
+void render_volume_data(struct X3D_Node *renderStyle, struct X3D_Node *voxels, struct X3D_VolumeData *node);
 void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
 	if(style0->enabled){
@@ -306,34 +307,32 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					//c)   pop fbo
 					//d)  set 2 pixelsets as textures
 					//     and render via a viewport-quad little shader that blends 2 textures and sends to GL_BACK. 
+					#define BLENDED 1
 					#ifdef BLENDED
-					if(tti->ifbobuffer == 0){
-						int j, isize;
-						isize = node->size; //node->size is initializeOnly, we will ignore any change during run
-						tti->x = isize; //by storing and retrieving initial size from here
+					int *fbohandles = style->_fbohandles.p;
+					if(fbohandles[0] == 0){
 						// https://www.opengl.org/wiki/Framebuffer_Object
-						glGenFramebuffers(1, &tti->ifbobuffer);
-						pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
+						glGenFramebuffers(1, &fbohandles[0]);
+						pushnset_framebuffer(fbohandles[0]); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
 
-						textureTableIndexStruct_s* ttip;
-						struct X3D_PixelTexture * nodep;
-						nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
-						ttip = getTableIndex(nodep->__textureTableIndex);
-						glGenTextures(1,&ttip->OpenGLTexture);
-						glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
+						glGenTextures(1,&fbohandles[1]);
+						glBindTexture(GL_TEXTURE_2D, fbohandles[1]);
 
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+j, GL_TEXTURE_2D, ttip->OpenGLTexture, 0);
+						GLint iviewport[4];
+						glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
 
-						glGenTextures(1,&tti->OpenGLTexture);
-						glBindTexture(GL_TEXTURE_2D, tti->OpenGLTexture);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
 
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tti->OpenGLTexture, 0);
+						glGenTextures(1,&fbohandles[2]);
+						glBindTexture(GL_TEXTURE_2D, fbohandles[2]);
 
-						//popnset_framebuffer();
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+						//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, fbohandles[2], 0);
+
+						//popnset_framebuffer(); //pop after drawing
 					}else{
-						pushnset_framebuffer(tti->ifbobuffer);
+						pushnset_framebuffer(fbohandles[0]);
 					}
 					#endif //BLENDED
 				}
@@ -412,11 +411,14 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					iintensity = GET_UNIFORM(myProg,"fw_intensityThreshold");
 					glUniform1f(iintensity,style->intensityThreshold);
 					itype = GET_UNIFORM(myProg,"fw_projType");
-					ctype = style->type->strptr;
-					if(!strcmp(ctype,"MAX")) ktype = 1;
-					else if(!strcmp(ctype,"MIN")) ktype = 2;
-					else if(!strcmp(ctype,"AVERAGE")) ktype = 3;
-					glUniform1f(itype,ktype);
+					if(style->_type == 0){
+						ctype = style->type->strptr;
+						if(!strcmp(ctype,"MAX")) ktype = 1;
+						else if(!strcmp(ctype,"MIN")) ktype = 2;
+						else if(!strcmp(ctype,"AVERAGE")) ktype = 3;
+						style->_type = ktype;
+					}
+					glUniform1f(itype,style->_type);
 				}
 				break;
 			case NODE_ShadedVolumeStyle:
@@ -461,6 +463,31 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 		}
 	}
 }
+static struct {
+const char *ctype;
+int itype;
+} blendfuncs [] = {
+{"CONSTANT",1},
+{"ALPHA0",2},
+{"ALPHA1",3},
+{"TABLE",4},
+{"ONE_MINUS_ALPHA0",5},
+{"ONE_MINUS_ALPHA1",6},
+{NULL,0},
+};
+int lookup_blendfunc(const char *funcname){
+	int iret, i;
+	i = 0;
+	iret = 0;
+	do{
+		if(!strcmp(blendfuncs[i].ctype,funcname)){
+			iret = blendfuncs[i].itype;
+			break;
+		}
+		i++;
+	}while(blendfuncs[i].ctype);
+	return iret;
+}
 void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent){
 	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
 	if(style0->enabled){
@@ -489,15 +516,90 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 					//     and render via a viewport-quad little shader that blends 2 textures and sends to GL_BACK. 
 				#ifdef BLENDED
 					GLuint pixelType = GL_RGBA;
-					//readpixels from parent volumedata render
-					FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
-					//render blended as volumedata to fbo
-					render_volume_data(style->renderStyle,style->voxels,dataParent);
-					//read blended from fbo
-					FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
-					//popnset_framebuffer();
-					//render 2 textures as blended multitexture, or in special shader for blending, 
-					//over window-filling quad
+					int *fbohandles = style->_fbohandles.p;
+					if(fbohandles[0] > 0){
+						//readpixels from parent volumedata render
+						//FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[2], 0);
+						//render blended as volumedata to fbo
+						render_volume_data(style->renderStyle,style->voxels,dataParent);
+						//read blended from fbo
+						//FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+						popnset_framebuffer();
+						//render 2 textures as blended multitexture, or in special shader for blending, 
+						//2 textures are fbohandles[0] (parent voldata), fbohandles[1] (blend voldata)
+						//over window-filling quad
+						//Options: 
+						//1) draw our cube again, to get the depth (and skip unneeded pixels)
+						//   but use gl_fragCoords as texture interpolator
+						//2) draw quad in ortho mode (but where depth buffer?)
+						GLuint myProg;
+						int method_draw_cube, method_draw_quad;
+						method_draw_cube = method_draw_quad = 0;
+						method_draw_cube = 1;
+						if(method_draw_cube){
+							shaderflagsstruct shaderflags, shader_requirements;
+							s_shader_capabilities_t *caps;
+							memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+							shader_requirements.volume = SHADERFLAGS_VOLUME_STYLE_BLENDED << 4; //send the following through the volume ubershader
+							// by default we'll mash it in: shader_requirements.volume |= TEX3D_SHADER;
+							caps = getMyShaders(shader_requirements);
+							enableGlobalShader(caps);
+							GLint myProg =  caps->myShaderProgram;
+
+							//send the usual matrices - same vertex shader as volumedata
+							//but simpler frag shader that uses gl_fragCoords, and does blend
+
+							//set shader flags
+							//build or get shader program
+							//set attributes 
+							//SFFloat  [in,out] weightConstant1         0.5        [0,1]
+							//SFFloat  [in,out] weightConstant2         0.5        [0,1]
+							//SFString [in,out] weightFunction1         "CONSTANT" ["CONSTANT", "ALPHA0", "ALPHA1", "TABLE",
+							//													"ONE_MINUS_ALPHA0", "ONE_MINUS_ALPHA1" ] 
+							//SFString [in,out] weightFunction2         "CONSTANT" ["CONSTANT", "ALPHA0", "ALPHA1", "TABLE",
+							//													"ONE_MINUS_ALPHA0", "ONE_MINUS_ALPHA1" ] 
+							//SFNode   [in,out] weightTransferFunction1 NULL       [X3DTexture2DNode]
+							//SFNode   [in,out] weightTransferFunction2 NULL       [X3DTexture2DNode]
+
+							GLint iwtc1, iwtc2, iwtf1, iwtf2;
+							iwtc1 = GET_UNIFORM(myProg,"fw_iwtc1");
+							iwtc2 = GET_UNIFORM(myProg,"fw_iwtc2");
+							iwtf1 = GET_UNIFORM(myProg,"fw_iwtf1");
+							iwtf2 = GET_UNIFORM(myProg,"fw_iwtf2");
+							glUniform1f(iwtc1,style->weightConstants1);
+							glUniform1f(iwtc2,style->weightConstants2);
+							if(style->_weightFunctions1 == 0)
+								style->_weightFunctions1 = lookup_blendfunc(style->weightFunctions1->strptr);
+							if(style->_weightFunctions2 == 0)
+								style->_weightFunctions2 = lookup_blendfunc(style->weightFunctions2->strptr);
+							glUniform1i(iwtf1,style->_weightFunctions1);
+							glUniform1i(iwtf2,style->_weightFunctions2);
+
+							//set the 2 textures from the fbo rendering
+							glActiveTexture ( GL_TEXTURE0 );
+							glBindTexture(GL_TEXTURE_2D,style->_fbohandles.p[1]);
+							glActiveTexture ( GL_TEXTURE0+1 );
+							glBindTexture(GL_TEXTURE_2D,style->_fbohandles.p[2]);
+
+							//set the 2 transfer function textures
+
+
+							//draw the box
+							GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+							glEnableVertexAttribArray(Vertices);
+							glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, dataParent->_boxtris);
+							glDrawArrays(GL_TRIANGLES,0,36); //36 vertices for box
+							
+						}else if(method_draw_quad){
+							////we need a shader that doesn't bother with matrices - just draws quad like ortho
+							//GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+							//glEnableVertexAttribArray(Vertices);
+							//glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, box);
+							//glDrawArrays(GL_TRIANGLES,0,6); //6 vertices for quad
+						}
+
+					}
 				#endif //BLENDED
 				}
 			case NODE_ComposedVolumeStyle:

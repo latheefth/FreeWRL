@@ -3766,6 +3766,7 @@ our %Nodes = (
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		intensityThreshold => ["SFFloat", 0,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		type => ["SFString", "MAX", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_type => ["SFInt32",0,"initializeOnly",0],		
 	],"X3DComposableVolumeRenderStyleNode"),
 	
 	# SegmentedVolumeData	All fields fully supported.
@@ -3815,6 +3816,9 @@ our %Nodes = (
 		weightFunctions2 => ["SFString", "CONSTANT", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		weightTransferFunctions1 => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		weightTransferFunctions2 => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_fbohandles => ["MFInt32",[0,0,0],"initializeOnly",0],
+		_weightFunctions1 => ["SFInt32",0,"initializeOnly",0],
+		_weightFunctions2 => ["SFInt32",0,"initializeOnly",0],
 	],"X3DComposableVolumeRenderStyleNode"),
 	
 	# CartoonVolumeStyle	All fields fully supported.

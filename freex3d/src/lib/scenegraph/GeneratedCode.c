@@ -208,6 +208,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_dlchange",
 	"_donethispass",
 	"_enabled",
+	"_fbohandles",
 	"_floatInpFIFO",
 	"_floatOutFIFO",
 	"_geom",
@@ -266,10 +267,13 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_takefirstinput",
 	"_talkToNodes",
 	"_tau",
+	"_type",
 	"_values",
 	"_verifiedBackColor",
 	"_verifiedColor",
 	"_verifiedFrontColor",
+	"_weightFunctions1",
+	"_weightFunctions2",
 	"_world",
 	"actionKeyPress",
 	"actionKeyRelease",
@@ -3546,6 +3550,9 @@ const int OFFSETS_Billboard[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_BlendedVolumeStyle[] = {
+	(int) FIELDNAMES__fbohandles, (int) offsetof (struct X3D_BlendedVolumeStyle, _fbohandles),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__weightFunctions1, (int) offsetof (struct X3D_BlendedVolumeStyle, _weightFunctions1),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__weightFunctions2, (int) offsetof (struct X3D_BlendedVolumeStyle, _weightFunctions2),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_BlendedVolumeStyle, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_BlendedVolumeStyle, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_renderStyle, (int) offsetof (struct X3D_BlendedVolumeStyle, renderStyle),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6045,6 +6052,7 @@ const int OFFSETS_ProgramShader[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ProjectionVolumeStyle[] = {
+	(int) FIELDNAMES__type, (int) offsetof (struct X3D_ProjectionVolumeStyle, _type),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_ProjectionVolumeStyle, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intensityThreshold, (int) offsetof (struct X3D_ProjectionVolumeStyle, intensityThreshold),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ProjectionVolumeStyle, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8047,6 +8055,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_BlendedVolumeStyle : {
 			struct X3D_BlendedVolumeStyle * tmp2;
 			tmp2 = (struct X3D_BlendedVolumeStyle *) tmp;
+			tmp2->_fbohandles.p = MALLOC (int *, sizeof(int)*3);
+			tmp2->_fbohandles.p[0] = 0;
+			tmp2->_fbohandles.p[1] = 0;
+			tmp2->_fbohandles.p[2] = 0;
+			tmp2->_fbohandles.n=3;;
+			tmp2->_weightFunctions1 = 0;
+			tmp2->_weightFunctions2 = 0;
 			tmp2->enabled = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->renderStyle = NULL;
@@ -11288,6 +11303,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ProjectionVolumeStyle : {
 			struct X3D_ProjectionVolumeStyle * tmp2;
 			tmp2 = (struct X3D_ProjectionVolumeStyle *) tmp;
+			tmp2->_type = 0;
 			tmp2->enabled = TRUE;
 			tmp2->intensityThreshold = 0.0f;
 			tmp2->metadata = NULL;

@@ -1941,6 +1941,76 @@ void main(void) \n\
 } \n\
 ";
 
+
+static const GLchar *volumeBlendedFragmentGLES2 = " \n\
+/* DEFINES */ \n\
+#ifdef MOBILE \n\
+//precision highp float; \n\
+precision mediump float; \n\
+#endif //MOBILE \n\
+ \n\
+uniform sampler2D fw_Texture_unit0; \n\
+uniform sampler2D fw_Texture_unit1; \n\
+uniform sampler2D fw_Texture_unit2; \n\
+uniform sampler2D fw_Texture_unit3; \n\
+uniform float fw_iwtc1; \n\
+uniform float fw_iwtc2; \n\
+uniform int fw_iwtf1; \n\
+uniform int fw_iwtf2; \n\
+vec3 weightcolor( in vec3 color, in int func, in float wt, in float ov,  in float oblend, in sampler2D table){ \n\
+	vec3 ret; \n\
+	if(func == 1){ \n\
+		ret = color * wt; \n\
+	}else if(func == 2){ \n\
+		ret = color * ov; \n\
+	}else if(func == 3){ \n\
+		ret = color * oblend; \n\
+	}else if(func == 4){ \n\
+		ret = color * (1.0 - oblend); \n\
+	}else if(func == 5){ \n\
+		vec2 texcoord = color.rg;\n\
+		ret = color * texture2D(table,texcoord).r; \n\
+	} \n\
+	return ret; \n\
+} \n\
+float weightalpha( in float alpha, in int func, in float wt, in float ov, in float oblend, in sampler2D table){ \n\
+	float ret; \n\
+	if(func == 1){ \n\
+		ret = alpha * wt; \n\
+	}else if(func == 2){ \n\
+		ret = alpha * ov; \n\
+	}else if(func == 3){ \n\
+		ret = alpha * oblend; \n\
+	}else if(func == 4){ \n\
+		ret = alpha * (1.0 - oblend); \n\
+	}else if(func == 5){ \n\
+		vec2 texcoord = vec2(alpha,0);\n\
+		ret = alpha * texture2D(table,texcoord).r; \n\
+	} \n\
+	return ret; \n\
+} \n\
+void main(void) \n\
+{ \n\
+	vec4 frag0 = texture2D(fw_Texture_unit0,gl_FragCoord.xy); \n\
+	vec4 frag1 = texture2D(fw_Texture_unit1,gl_FragCoord.xy); \n\
+	vec3 cv = frag0.rgb; \n\
+	float ov = frag0.a; \n\
+	vec3 cblend = frag1.rgb; \n\
+	float oblend = frag1.a; \n\
+	vec3 cvw, cbw; \n\
+	float ovw, obw; \n\
+	cvw = weightcolor(cv,fw_iwtf1,fw_iwtc1,ov,oblend,fw_Texture_unit2); \n\
+	ovw = weightalpha(ov,fw_iwtf1,fw_iwtc1,ov,oblend,fw_Texture_unit2); \n\
+	cbw = weightcolor(cblend,fw_iwtf2,fw_iwtc2,ov,oblend,fw_Texture_unit3); \n\
+	obw = weightalpha(oblend,fw_iwtf2,fw_iwtc2,ov,oblend,fw_Texture_unit3); \n\
+	vec3 cg = clamp( cvw + cbw, 0.0, 1.0); \n\
+	float og = clamp(ovw + obw, 0.0, 1.0); \n\
+	\n\
+	//gl_FragColor = vec4(cg,og); \n\
+	gl_FragColor = frag1; \n\
+} \n\
+";
+
 //void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 
 static const GLchar *plug_raysum_DEFAULT =	"\
@@ -2095,7 +2165,12 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		
 	CompleteCode[SHADERPART_VERTEX] = vs;
 	CompleteCode[SHADERPART_GEOMETRY] = NULL;
-	CompleteCode[SHADERPART_FRAGMENT] = fs;
+	if(whichOne.volume == SHADERFLAGS_VOLUME_STYLE_BLENDED << 4){
+		CompleteCode[SHADERPART_FRAGMENT] = STRDUP(volumeBlendedFragmentGLES2);
+
+	}else{
+		CompleteCode[SHADERPART_FRAGMENT] = fs;
+	}
 
 	// what we really have here: UberShader with CastlePlugs
 	// UberShader: one giant shader peppered with #ifdefs, and you add #defines at the top for permutations
@@ -2110,6 +2185,12 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		//desktop, emulating GLES2
 		AddVersion(SHADERPART_VERTEX, 110, CompleteCode); //lower precision floats
 		AddVersion(SHADERPART_FRAGMENT, 110, CompleteCode); //lower precision floats
+	}
+
+	if(whichOne.volume == SHADERFLAGS_VOLUME_STYLE_BLENDED << 4){
+		*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
+		*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
+		return retval;
 	}
 
 	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG 
