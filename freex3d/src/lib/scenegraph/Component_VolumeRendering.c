@@ -207,8 +207,9 @@ unsigned int prep_volumestyle(struct X3D_Node *vstyle, unsigned int volflags){
 				volflags |= SHADERFLAGS_VOLUME_STYLE_OPACITY;
 				break;
 			case NODE_BlendedVolumeStyle:
-				volflags = volflags << 4;
-				volflags |= SHADERFLAGS_VOLUME_STYLE_BLENDED;
+				//volflags = volflags << 4;
+				//volflags |= SHADERFLAGS_VOLUME_STYLE_BLENDED;
+				//do nothing, so parent renders as default, or gets a style via composed
 				break;
 			case NODE_BoundaryEnhancementVolumeStyle:
 				volflags = volflags << 4;
@@ -261,16 +262,80 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 			case NODE_OpacityMapVolumeStyle:
 				{
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
+					// Q. how do the transfer function on GPU? its defined like its on the CPU ie 
+					//   with integers. On GPU the .a will be 0.0 to 1.0. I guess that can be used as 1D texture coordinate.
+					int havetexture;
 					struct X3D_OpacityMapVolumeStyle *style = (struct X3D_OpacityMapVolumeStyle*)vstyle;
+					havetexture = 0;
 					if(style->transferFunction){
 						//load texture
+						struct X3D_Node *tmpN;
+						ttglobal tg = gglobal();
+
+						POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, style->transferFunction,tmpN);
+						tg->RenderFuncs.texturenode = (void*)tmpN;
+
+						//problem: I don't want it sending image dimensions to my volume shader,
+						// which could confuse the voxel sampler
+						//render_node(tmpN); //render_node(node->texture); 
+						loadTextureNode(tmpN,NULL);
+						textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+						if(tti && tti->status >= TEX_LOADED){
+							glActiveTexture(GL_TEXTURE0+3); 
+							glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+							havetexture = 1;
+						}
 					}
+					GLint iopactex;
+					iopactex = GET_UNIFORM(myProg,"fw_opacTexture");
+					glUniform1i(iopactex,havetexture);
+
 				}
 				break;
 			case NODE_BlendedVolumeStyle:
 				{
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
 					struct X3D_BlendedVolumeStyle *style = (struct X3D_BlendedVolumeStyle*)vstyle;
+					//FBO blending
+					//a)  render the parent to fbo
+					//	- in prep push fbo
+					//	- render main to fbo
+					//	- read pixels
+					//b)  render blended (voxels,stye) as VolumeData to fbo
+					//	- read pixels
+					//c)   pop fbo
+					//d)  set 2 pixelsets as textures
+					//     and render via a viewport-quad little shader that blends 2 textures and sends to GL_BACK. 
+					/*
+					if(tti->ifbobuffer == 0){
+						int j, isize;
+						isize = node->size; //node->size is initializeOnly, we will ignore any change during run
+						tti->x = isize; //by storing and retrieving initial size from here
+						// https://www.opengl.org/wiki/Framebuffer_Object
+						glGenFramebuffers(1, &tti->ifbobuffer);
+						pushnset_framebuffer(tti->ifbobuffer); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
+
+						textureTableIndexStruct_s* ttip;
+						struct X3D_PixelTexture * nodep;
+						nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
+						ttip = getTableIndex(nodep->__textureTableIndex);
+						glGenTextures(1,&ttip->OpenGLTexture);
+						glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
+
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+j, GL_TEXTURE_2D, ttip->OpenGLTexture, 0);
+
+						glGenTextures(1,&tti->OpenGLTexture);
+						glBindTexture(GL_TEXTURE_2D, tti->OpenGLTexture);
+
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tti->OpenGLTexture, 0);
+
+						//popnset_framebuffer();
+					}else{
+						pushnset_framebuffer(tti->ifbobuffer);
+					}
+					*/
 				}
 				break;
 			case NODE_BoundaryEnhancementVolumeStyle:
@@ -312,7 +377,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ComposedVolumeStyle
 					struct X3D_ComposedVolumeStyle *style = (struct X3D_ComposedVolumeStyle*)vstyle;
 					for(int i=0;i<style->renderStyle.n;i++){
-						//volflags |= prep_volumestyle(style->renderStyle.p[i]);
+						render_volumestyle(style->renderStyle.p[i], myProg);
 					}
 				}
 				break;
@@ -396,6 +461,48 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 		}
 	}
 }
+void fin_volumestyle(struct X3D_Node *vstyle){
+	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
+	if(style0->enabled){
+		switch(vstyle->_nodeType){
+			case NODE_OpacityMapVolumeStyle:
+				{
+					ttglobal tg = gglobal();
+					//do I need to do this?
+					tg->RenderFuncs.textureStackTop = 0;
+					tg->RenderFuncs.texturenode = NULL;
+				}
+			break;
+			case NODE_BlendedVolumeStyle:
+				{
+				/*
+					GLuint pixelType = GL_RGBA;
+					//readpixels from parent volumedata render
+					FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+					//render blended as volumedata to fbo
+					render_volumedata(vstyle);
+					//read blended from fbo
+					FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+					//popnset_framebuffer();
+					//render 2 textures as blended multitexture, or in special shader for blending, 
+					//over window-filling quad
+				*/
+				}
+			case NODE_ComposedVolumeStyle:
+				{
+					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ComposedVolumeStyle
+					struct X3D_ComposedVolumeStyle *style = (struct X3D_ComposedVolumeStyle*)vstyle;
+					for(int i=0;i<style->renderStyle.n;i++){
+						fin_volumestyle(style->renderStyle.p[i]);
+					}
+				}
+				break;
+
+		default:
+			break;
+		}
+	}
+}
 int volstyle_needs_normal(struct X3D_Node *vstyle){
 	//IDEA: compute image gradient and store in RGB, if a style requests it
 	// then surfaceNormal = normalize(gradient)
@@ -442,7 +549,7 @@ int volstyle_needs_normal(struct X3D_Node *vstyle){
 	return need_normal;
 }
 void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
-void child_VolumeData(struct X3D_VolumeData *node){
+void child_VolumeData_original(struct X3D_VolumeData *node){
 	static int once = 0;
 	unsigned int volflags;
 	ttglobal tg = gglobal();
@@ -559,6 +666,7 @@ void child_VolumeData(struct X3D_VolumeData *node){
 			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)node->renderStyle;
 			if(style0->enabled){
 				render_volumestyle(node->renderStyle,myProg); //send uniforms
+				// if style uses a texture, it should be the next texture ie GL_TEXTURE0+1,2..
 			}
 		}
 		//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
@@ -606,38 +714,6 @@ void child_VolumeData(struct X3D_VolumeData *node){
 
 		if(!once) ConsoleMessage("dim %d vp %d \n",dim,vp );
 
-		if(0){
-			//switched to gluUnproject method in shader - unproject 2 points to get ray
-			//.. so don't need focallength
-			//get the current fieldOfView
-			float FieldOfView = tg->Mainloop.fieldOfView;
-			//printf("current viewport= %d %d %d %d\n",iviewport[0],iviewport[1],iviewport[2],iviewport[3]);
-			//printf("current FOV = %f\n",FieldOfView);
-			FieldOfView *= PI/180.0;
-			float focalLength = 1.0f / tan(FieldOfView / 2.0f);
-			GLint focal = GET_UNIFORM(myProg,"fw_FocalLength"); //fw_ModelViewMatrix
-			GLUNIFORM1F(focal,focalLength);
-		}
-
-
-		if(0){
-			//ray origin: the camera position 0,0,0 transformed into geometry local (box) coords
-			//in theory can save frag flops Mat4 x vec4 by transforming origin here
-			//(also in theory, could transform 2 points in vert shader, set as varying?, saving 2 mat4xvec4 ops in frag?)
-			GLint orig = GET_UNIFORM(myProg,"fw_RayOrigin");
-			float eyeLocal[3];
-			double origind[3], eyeLocald[3];
-			origind[0] = origind[1] = origind[2] = 0.0;
-			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-
-			matinverseAFFINE(mvmInverse,modelviewMatrix);
-			transformAFFINEd(eyeLocald,origind,mvmInverse);
-
-			for(int i=0;i<3;i++) eyeLocal[i] = eyeLocald[i];
-			GLUNIFORM3F(orig,eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-			//printf("rayOrigin= %f %f %f\n",eyeLocal[0],eyeLocal[1],eyeLocal[2]);
-		}
-
 		//3.2 draw with shader
 		glEnableVertexAttribArray(Vertices);
 		float *boxtris = (float*)node->_boxtris;
@@ -653,9 +729,209 @@ void child_VolumeData(struct X3D_VolumeData *node){
 				tg->RenderFuncs.texturenode = NULL;
 			}
 		}
+		if(node->renderStyle){
+			fin_volumestyle(node->renderStyle);
+		}
 		once = 1;
 
 
+	} //VF_Blend
+
+}
+
+
+void render_volume_data(struct X3D_Node *renderStyle, struct X3D_Node *voxels, float *dimensions, float *boxtris) {
+	static int once = 0;
+	unsigned int volflags;
+	ttglobal tg = gglobal();
+
+	if(!once)
+		ConsoleMessage("child_volumedata\n");
+	volflags = 0;
+	if(renderStyle ){
+		struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle;
+		if(style0->enabled){
+			volflags = prep_volumestyle(renderStyle, volflags); //get shader flags
+		}
+	}else{
+		volflags = SHADERFLAGS_VOLUME_STYLE_DEFAULT;
+	}
+
+	if(!once){
+		printf("volflags= ");
+		for(int i=0;i<8;i++)
+			printf("%d ",((volflags >> (8-i-1)*4) & 0xF)); //show 4 int
+		printf("\n");
+	}
+
+	//render 
+	//Step 1: set the 3D texture
+	//if(node->voxels)
+	//	render_node(node->voxels);
+	//Step 2: get rays to cast: start point and direction vector for each ray to cast
+
+	//method: use cpu math to compute a few uniforms so frag shader can do box intersections
+	//http://prideout.net/blog/?p=64
+	//- one step raycasting using gl_fragCoord
+	//- we modified this general method to use gluUnproject math instead of focallength
+
+	//Step 3: accumulate along rays and render opacity fragment in one step
+	//GPU VERSION
+	shaderflagsstruct shaderflags, shader_requirements;
+	s_shader_capabilities_t *caps;
+	int old_shape_way = 0;
+
+	memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+	//shaderflags = getShaderFlags();
+	shader_requirements.volume = SHADERFLAGS_VOLUME_DATA_BASIC; //send the following through the volume ubershader
+	shader_requirements.volume |= (volflags << 4); //SHADERFLAGS_VOLUME_STYLE_OPACITY;
+	// by default we'll mash it in: shader_requirements.volume |= TEX3D_SHADER;
+	caps = getMyShaders(shader_requirements);
+	enableGlobalShader(caps);
+	GLint myProg =  caps->myShaderProgram;
+	//Step 1: set the 3D texture
+		
+	//IDEA: compute image gradient and store in RGB, if a style requests it
+	// then surfaceNormal = normalize(gradient)
+	//SFNode [in,out] surfaceNormals NULL [X3DTexture3DNode
+	// Cartoon
+	// Edge
+	// Shaded
+	// SilhouetteEnhancement
+	// ToneMappedVolumeStyle
+	//
+	//SFNode [in,out] gradients NULL [X3DTexture3DNode]
+	// IsoSurfaceVolumeData
+	//
+	//SFNode [in,out] segmentIdentifiers NULL [X3DTexture3DNode]
+	// SegmentedVolumeData
+
+	if(voxels){
+		struct X3D_Node *tmpN;
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, voxels,tmpN);
+		tg->RenderFuncs.texturenode = (void*)tmpN;
+
+		//gradient > Oct 2016 we compute in textures.c if channels==1 and z>1 and put in rgb
+		// - saves mallocing another RGBA 
+		// - for scalar images RGB is unused or just 111 anyway
+		// - takes 1 second on desktop CPU for 17 Mpixel image
+		//if(node->renderStyle){
+		//	if(volstyle_needs_normal(node->renderStyle)){
+		//		switch(tmpN->_nodeType){
+		//			case NODE_PixelTexture3D:
+		//				((struct X3D_PixelTexture3D*)tmpN)->_needs_gradient = TRUE; break;
+		//			case NODE_ImageTexture3D:
+		//				((struct X3D_ImageTexture3D*)tmpN)->_needs_gradient = TRUE; break;
+		//		}
+		//	}
+		//}
+		//render_node(voxels) should keep pulling the texture through all stages of loading and opengl
+		render_node(tmpN); //render_node(node->voxels); 
+
+		if(old_shape_way){
+			struct textureVertexInfo mtf = {boxtex,2,GL_FLOAT,0,NULL,NULL};
+			textureDraw_start(&mtf);
+		}else{
+			textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+			if(tti && tti->status >= TEX_LOADED){
+				GLint ttiles = GET_UNIFORM(myProg,"tex3dTiles");
+				GLUNIFORM1IV(ttiles,3,tti->tiles);
+
+				//me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+				GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+				glUniform1i(tex3dUseVertex,0); 
+				GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+				glUniform1iv(repeatSTR,3,tti->repeatSTR);
+				GLint magFilter = GET_UNIFORM(myProg,"magFilter");
+				glUniform1i(magFilter,tti->magFilter);
+
+				glActiveTexture(GL_TEXTURE0); 
+				glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+			}
+		}
+	}
+	if(renderStyle){
+		struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle;
+		if(style0->enabled){
+			render_volumestyle(renderStyle,myProg); //send uniforms
+			// if style uses a texture, it should be the next texture ie GL_TEXTURE0+1,2..
+		}
+	}
+	//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
+	//    set attributes vertices of triangles of bounding box
+	// set box with vol.dimensions with triangles
+	GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+	GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
+	GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
+	if(!once)
+		ConsoleMessage("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
+	sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+	double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+	if(1){
+		//see gluUnproject in Opengl_Utils.c
+		__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
+		if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+	}else{
+		matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
+		//matmultiplyFULL(mvp,projMatrix,modelviewMatrix);
+		//if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+		matinverseFULL(mvpinverse,mvp); //seems different than glu's. H0: just wrong H1: transopose H2: full inverse vs factorized
+	}
+	float spmat[16];
+	matdouble2float4(spmat,mvpinverse);
+
+	GLint mvpi = GET_UNIFORM(myProg,"fw_ModelViewProjInverse");
+	GLUNIFORMMATRIX4FV(mvpi,1,GL_FALSE,spmat);
+
+
+	//get the current viewport
+	GLint iviewport[4];
+	float viewport[4];
+	glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
+
+	GLint vp = GET_UNIFORM(myProg,"fw_viewport");
+	viewport[0] = iviewport[0]; //xmin
+	viewport[1] = iviewport[1]; //ymin
+	viewport[2] = iviewport[2]; //width
+	viewport[3] = iviewport[3]; //height
+	GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
+	GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
+	GLUNIFORM3F(dim,dimensions[0],dimensions[1],dimensions[2]);
+
+	if(!once) ConsoleMessage("dim %d vp %d \n",dim,vp );
+
+	//3.2 draw with shader
+	glEnableVertexAttribArray(Vertices);
+	glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, boxtris);
+
+	glDrawArrays(GL_TRIANGLES,0,36);
+
+	if(voxels){
+		if(old_shape_way){
+			textureDraw_end();
+		}else{
+			tg->RenderFuncs.textureStackTop = 0;
+			tg->RenderFuncs.texturenode = NULL;
+		}
+	}
+	if(renderStyle){
+		fin_volumestyle(renderStyle);
+	}
+	once = 1;
+
+} 
+
+void child_VolumeData(struct X3D_VolumeData *node){
+	static int once = 0;
+	unsigned int volflags;
+	ttglobal tg = gglobal();
+	ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)tg->Component_VolumeRendering.prv;
+	COMPILE_IF_REQUIRED
+
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+		render_volume_data(node->renderStyle,node->voxels,node->dimensions.c,node->_boxtris);
 	} //VF_Blend
 
 }

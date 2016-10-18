@@ -1949,7 +1949,19 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 } \n\
 ";
 static const GLchar *plug_raysum_OPACITY =	"\
+uniform int fw_opacTexture; \n\
+uniform sampler2D fw_Texture_unit3; \n\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+	if(fw_opacTexture){ \n\
+		vec2 texcoord = vec2(density,0); \n\
+		//this is too simple for the lookups in the specs \n\
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#t-transferFunctionTextureCoordinateMapping \n\
+		raysum.rgb = texture2D(fw_Texture_unit3,texcoord); \n\
+		raysum.a = 1.0; \n\
+	}else{ \n\
+		raysum.rgb = vec3(density); \n\
+		raysum.a = 1.0; \n\
+	} \n\
 } \n\
 ";
 static const GLchar *plug_raysum_BLENDED =	"\

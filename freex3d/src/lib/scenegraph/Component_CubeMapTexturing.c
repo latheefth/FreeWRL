@@ -1243,7 +1243,7 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, isize, isize, 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tti->OpenGLTexture, 0);
 
-			popnset_framebuffer(tti->ifbobuffer);
+			popnset_framebuffer(); //tti->ifbobuffer);
 		}
 
 	}
