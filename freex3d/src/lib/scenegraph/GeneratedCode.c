@@ -388,7 +388,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"colorKey",
 	"colorPerVertex",
 	"colorRamp",
-	"colorStepse",
+	"colorSteps",
 	"constantForceMix",
 	"contactNormal",
 	"contactSurfaceThickness",
@@ -1197,7 +1197,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"collider",
 	"collisionType",
 	"color",
-	"colorStepse",
+	"colorSteps",
 	"constantForceMix",
 	"contactNormal",
 	"contactSurfaceThickness",
@@ -3678,7 +3678,7 @@ const int OFFSETS_CalibratedCameraSensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CartoonVolumeStyle[] = {
-	(int) FIELDNAMES_colorStepse, (int) offsetof (struct X3D_CartoonVolumeStyle, colorStepse),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_colorSteps, (int) offsetof (struct X3D_CartoonVolumeStyle, colorSteps),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_CartoonVolumeStyle, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_CartoonVolumeStyle, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_orthogonalColor, (int) offsetof (struct X3D_CartoonVolumeStyle, orthogonalColor),  (int) FIELDTYPE_SFColorRGBA, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8218,7 +8218,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CartoonVolumeStyle : {
 			struct X3D_CartoonVolumeStyle * tmp2;
 			tmp2 = (struct X3D_CartoonVolumeStyle *) tmp;
-			tmp2->colorStepse = 4;
+			tmp2->colorSteps = 4;
 			tmp2->enabled = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->orthogonalColor.c[0] = 1;tmp2->orthogonalColor.c[1] = 1;tmp2->orthogonalColor.c[2] = 1;tmp2->orthogonalColor.c[3] = 1;;
@@ -12980,7 +12980,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_CartoonVolumeStyle *tmp;
 			tmp = (struct X3D_CartoonVolumeStyle *) node;
 			UNUSED(tmp); // compiler warning mitigation
-			spacer fprintf (fp," colorStepse (SFInt32) \t%d\n",tmp->colorStepse);
+			spacer fprintf (fp," colorSteps (SFInt32) \t%d\n",tmp->colorSteps);
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 

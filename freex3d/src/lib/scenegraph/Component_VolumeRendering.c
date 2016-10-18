@@ -277,12 +277,34 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 				{
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BoundaryEnhancementVolumeStyle
 					struct X3D_BoundaryEnhancementVolumeStyle *style = (struct X3D_BoundaryEnhancementVolumeStyle*)vstyle;
+					//SFFloat     [in,out] boundaryOpacity  0.9     [0,1]
+					//SFFloat     [in,out] opacityFactor    2       [0,?)
+					//SFFloat     [in,out] retainedOpacity  0.2     [0,1]
+					GLint ibebound, iberetain, ibefactor;
+					ibebound = GET_UNIFORM(myProg,"fw_boundaryOpacity");
+					glUniform1f(ibebound,style->boundaryOpacity);
+					iberetain = GET_UNIFORM(myProg,"fw_retainedOpacity");
+					glUniform1f(iberetain,style->retainedOpacity);
+					ibefactor = GET_UNIFORM(myProg,"fw_opacityFactor");
+					glUniform1f(ibefactor,style->opacityFactor);
 				}
 				break;
 			case NODE_CartoonVolumeStyle:
 				{
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#CartoonVolumeStyle
 					struct X3D_CartoonVolumeStyle *style = (struct X3D_CartoonVolumeStyle*)vstyle;
+					//SFInt32     [in,out] colorSteps       4       [1,64]
+					//SFColorRGBA [in,out] orthogonalColor  1 1 1 1 [0,1]
+					//SFColorRGBA [in,out] parallelColor    0 0 0 1 [0,1]
+					//SFNode      [in,out] surfaceNormals   NULL    [X3DTexture3DNode]
+					GLint itoonsteps, itoonortho, itoonparallel;
+					itoonsteps = GET_UNIFORM(myProg,"fw_colorSteps");
+					glUniform1i(itoonsteps,style->colorSteps);
+					itoonortho = GET_UNIFORM(myProg,"fw_orthoColor");
+					glUniform4fv(itoonortho,1,style->orthogonalColor.c);
+					itoonparallel = GET_UNIFORM(myProg,"fw_paraColor");
+					glUniform4fv(itoonparallel,1,style->parallelColor.c);
+
 				}
 				break;
 			case NODE_ComposedVolumeStyle:
@@ -307,7 +329,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					float *rgba;
 					rgba = style->edgeColor.c;
 					iedgeColor = GET_UNIFORM(myProg,"fw_edgeColor");
-					glUniform4fv(iedgeColor,4,rgba);
+					glUniform4fv(iedgeColor,1,rgba);
 					igradientThreshold = GET_UNIFORM(myProg,"fw_gradientThreshold");
 					glUniform1f(igradientThreshold,style->gradientThreshold);
 					//printf("edge uniforms color %d gradthresh %d\n",iedgeColor,igradientThreshold);
@@ -317,6 +339,19 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 				{
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ProjectionVolumeStyle
 					struct X3D_ProjectionVolumeStyle *style = (struct X3D_ProjectionVolumeStyle*)vstyle;
+					//SFFloat  [in,out] intensityThreshold 0     [0,1]
+					//SFString [in,put] type               "MAX" ["MAX", "MIN", "AVERAGE"]
+					GLint iintensity, itype;
+					int ktype;
+					char *ctype;
+					iintensity = GET_UNIFORM(myProg,"fw_intensityThreshold");
+					glUniform1f(iintensity,style->intensityThreshold);
+					itype = GET_UNIFORM(myProg,"fw_projType");
+					ctype = style->type->strptr;
+					if(!strcmp(ctype,"MAX")) ktype = 1;
+					else if(!strcmp(ctype,"MIN")) ktype = 2;
+					else if(!strcmp(ctype,"AVERAGE")) ktype = 3;
+					glUniform1f(itype,ktype);
 				}
 				break;
 			case NODE_ShadedVolumeStyle:
@@ -329,6 +364,16 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 				{
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#SilhouetteEnhancementVolumeStyle
 					struct X3D_SilhouetteEnhancementVolumeStyle *style = (struct X3D_SilhouetteEnhancementVolumeStyle*)vstyle;
+					//SFFloat [in,out] silhouetteBoundaryOpacity 0    [0,1]
+					//SFFloat [in,out] silhouetteRetainedOpacity 1    [0,1]
+					//SFFloat [in,out] silhouetteSharpness       0.5  [0,8)
+					GLint isilbound, isilretain, isilsharp;
+					isilbound = GET_UNIFORM(myProg,"fw_BoundaryOpacity");
+					glUniform1f(isilbound,style->silhouetteBoundaryOpacity);
+					isilretain = GET_UNIFORM(myProg,"fw_RetainedOpacity");
+					glUniform1f(isilretain,style->silhouetteRetainedOpacity);
+					isilsharp = GET_UNIFORM(myProg,"fw_Sharpness");
+					glUniform1f(isilretain,style->silhouetteSharpness);
 				}
 				break;
 			case NODE_ToneMappedVolumeStyle:
@@ -339,8 +384,11 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					//SFNode      [in,out] surfaceNormals NULL    [X3DTexture3DNode]
 					struct X3D_ToneMappedVolumeStyle *style = (struct X3D_ToneMappedVolumeStyle*)vstyle;
 					//send warm, cool to shader
-					//if !surfaceNormals compute
-					//send surfaceNormals to shader
+					GLint icool, iwarm;
+					icool = GET_UNIFORM(myProg,"fw_coolColor");
+					glUniform4fv(icool,1,style->coolColor.c);
+					iwarm = GET_UNIFORM(myProg,"fw_warmColor");
+					glUniform4fv(iwarm,1,style->coolColor.c);
 				}
 				break;
 			default:

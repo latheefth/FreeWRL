@@ -1919,10 +1919,9 @@ void main(void) \n\
 		pos2 = clamp(pos2,0.001,.999); \n\
 		vec3 texcoord3 = pos2; \n\
 		/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
-		//fw_TexCoord[0] = pos2; \n\
         //float density = texture3D(Density, pos).x * densityFactor; \n\
-		float density = fragment_color.a * densityFactor; \n\
-		vec3 gradient = fragment_color.rgb; \n\
+		float density = fragment_color.a * densityFactor; ; \n\
+		vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
 		\n\
 		//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) \n\
 		/* PLUG: raysum_apply (raysum, density, gradient, depth, normal_eye) */ \n\
@@ -1946,7 +1945,7 @@ void main(void) \n\
 
 static const GLchar *plug_raysum_DEFAULT =	"\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
-	raysum.rgb += vec3(1.0,0.0,1.0)*density; \n\
+	raysum.rgb = vec3(1.0,0.0,1.0); //*density; \n\
 } \n\
 ";
 static const GLchar *plug_raysum_OPACITY =	"\
@@ -1957,13 +1956,26 @@ static const GLchar *plug_raysum_BLENDED =	"\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
-static const GLchar *plug_raysum_BOUNDARY =	"\
+static const GLchar *plug_raysum_BOUNDARY =	"\n\
+uniform float fw_boundaryOpacity; \n\
+uniform float fw_retainedOpacity; \n\
+uniform float fw_opacityFactor; \n\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+	float magnitude = length(gradient); \n\
+	float ndotv = abs(dot(normal_eye,ng)); \n\
+	raysum.a = density * (fw_retainedOpacity + fw_boundaryOpacity*pow(magnitude,fw_opacityFactor) ); \n\
 } \n\
 ";
 
-static const GLchar *plug_raysum_CARTOON =	"\
+static const GLchar *plug_raysum_CARTOON =	"\n\
+uniform int fw_colorSteps; \n\
+uniform vec4 fw_orthoColor; \n\
+uniform vec4 fw_paraColor; \n\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+	vec3 ng = normalize(gradient); \n\
+	float ndotv = abs(dot(normal_eye,ng)); \n\
+	ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
+	raysum = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
 } \n\
 ";
 static const GLchar *plug_raysum_COMPOSED =	"\
@@ -1974,26 +1986,73 @@ static const GLchar *plug_raysum_EDGE =	"\
 uniform float fw_gradientThreshold; \n\
 uniform vec4 fw_edgeColor; \n\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
-	vec3 n = normalize(gradient); \n\
-	float ndotv = abs(dot(normal_eye,n)); \n\
-	if( ndotv < cos(fw_gradientThreshold)) \n\
-		raysum = raysum * ndotv + fw_edgeColor * (1.0 - ndotv); \n\
+	vec3 ng = normalize(gradient); \n\
+	float ndotv = abs(dot(normal_eye,ng)); //vec4(ng,density);  \n\
+	vec4 drawcolor = vec4(0.0,0.0,0.0,density); \n\
+	vec4 texel; \n\
+	ndotv = ndotv > cos(fw_gradientThreshold) ? 1.0 : ndotv; \n\
+	texel = mix(drawcolor,fw_edgeColor,1.0 -ndotv); \n\
+	raysum.rgb += texel.rgb * texel.a; \n\
+	density += texel.a; \n\
 } \n\
 ";
-static const GLchar *plug_raysum_PROJECTION =	"\
+static const GLchar *plug_raysum_PROJECTION =	"\n\
+uniform float fw_intensityThreshold; \n\
+uniform int fw_projType; \n\
+float MAXPROJ = 0.0; \n\
+float MINPROJ = 1.0; \n\
+float AVEPROJ = 0.0; \n\
+float LMIP = 0.0; \n\
+int PROJCOUNT = 0; \n\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+	PROJCOUNT++; \n\
+	float value = 0.0; \n\
+	if(fw_projType == 1){ \n\
+		//MIN \n\
+		MINPROJ = min(MINPROJ,density); \n\
+		value = MINPROJ; \n\
+	}else if(fw_projType == 2){ \n\
+		//MAX \n\
+		MAXPROJ = max(MAXPROJ,density); \n\
+		if(fw_intensityThreshold > 0.0){ \n\
+			//LMIP \n\
+			if(LMIP == 0.0) \n\
+				LMIP = density; \n\
+			value = LMIP; \n\
+		} else { \n\
+			//MIP \n\
+			MAXPROJ = max(MAXPROJ,density); \n\
+			value = MAXPROJ; \n\
+		} \n\
+	}else if(fw_projType==3){ \n\
+		//AVERAGE \n\
+		AVEPROJ += density; \n\
+		value = AVEPROJ / float(PROJCOUNT); \n\
+	} \n\
+	raysum.rgb += vec3(value)*density; \n\
 } \n\
 ";
 static const GLchar *plug_raysum_SHADED =	"\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 } \n\
 ";
-static const GLchar *plug_raysum_SILHOUETTE =	"\
+static const GLchar *plug_raysum_SILHOUETTE =	"\n\
+uniform float fw_BoundaryOpacity; \n\
+uniform float fw_RetainedOpacity; \n\
+uniform float fw_Sharpness; \n\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+	vec3 ng = normalize(gradient); \n\
+	float ndotv = abs(dot(ng,normal_eye)); \n\
+	raysum.a = raysum.a * (fw_RetainedOpacity + fw_BoundaryOpacity*pow(1.0 - ndotv,fw_Sharpness)); \n\
 } \n\
 ";
 static const GLchar *plug_raysum_TONE =	"\
+uniform vec4 fw_coolColor; \n\
+uniform vec4 fw_warmColor; \n\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
+	vec3 ng = normalize(gradient); \n\
+	float cc = 1.0 + dot(normal_eye,ng); \n\
+	raysum = mix(fw_coolColor,fw_warmColor,cc); \n\
 } \n\
 ";
 

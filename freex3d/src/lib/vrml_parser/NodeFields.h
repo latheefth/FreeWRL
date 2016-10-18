@@ -286,7 +286,7 @@ END_NODE(CalibratedCameraSensor)
 
 /* CartoonVolumeStyle node */
 BEGIN_NODE(CartoonVolumeStyle)
-EXPOSED_FIELD(CartoonVolumeStyle,colorStepse,sfint32,colorStepse,FIELDTYPE_SFInt32)
+EXPOSED_FIELD(CartoonVolumeStyle,colorSteps,sfint32,colorSteps,FIELDTYPE_SFInt32)
 EXPOSED_FIELD(CartoonVolumeStyle,enabled,sfbool,enabled,FIELDTYPE_SFBool)
 EXPOSED_FIELD(CartoonVolumeStyle,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EXPOSED_FIELD(CartoonVolumeStyle,orthogonalColor,sfcolorrgba,orthogonalColor,FIELDTYPE_SFColorRGBA)

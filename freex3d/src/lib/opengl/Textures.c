@@ -272,24 +272,33 @@ void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
 				if(iy == y-1) jyy = -1;
 				if(ix == x-1) jxx = -1;
 				jx = jxx; jy = jyy; jz = jzz;
-				rgba0 = &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				rgba0 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				urgba = (unsigned char *)rgba0;
 				jx = jxx + 1;
-				rgba1 = &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
 				gradient[0] = (int)rgba1[3] - (int)rgba0[3];
 				jx = jxx;
 				jy = jyy+1;
-				rgba1 = &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
 				gradient[1] = (int)rgba1[3] - (int)rgba0[3];
 				jy = jyy;
 				jz = jzz+1;
-				rgba1 = &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
 				gradient[2] = (int)rgba1[3] - (int)rgba0[3];
 				//scale gradient to -127 to +127 in each dimension
 				//roberts: a1 - a0 could be in range (255 - 0) to (0 -255) or -255 to 255, 
 				// we need -127 to 127 signed char on each dim
 				for(k=0;k<3;k++) gradient[k] /= 2;  
+				//but when texture2D / sampler2D convert from image pixel to float, 
+				//the expect the pixels to be unsigned char.
+				//so we add 127 here, and subtract .5 in the shader, once they are float
+				for(k=0;k<3;k++) gradient[k] += 127;  
 				//set gradient in RGB channels
-				for(k=0;k<3;k++) rgba0[k] = (char)gradient[k];
+				for(k=0;k<3;k++) urgba[k] = (unsigned char)gradient[k];
+				//if(rgba0[0] || rgba0[1] || rgba0[2]){
+				//	if(rgba0[0] != rgba0[1] || rgba0[1] != rgba0[2])
+				//		printf("[%d %d %d]",(int)rgba0[0],(int)rgba0[1],(int)rgba0[2]);
+				//}
 			}
 		}
 	}

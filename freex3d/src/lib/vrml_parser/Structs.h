@@ -725,7 +725,7 @@ extern const int FIELDNAMES_COUNT;
 #define FIELDNAMES_colorKey	317
 #define FIELDNAMES_colorPerVertex	318
 #define FIELDNAMES_colorRamp	319
-#define FIELDNAMES_colorStepse	320
+#define FIELDNAMES_colorSteps	320
 #define FIELDNAMES_constantForceMix	321
 #define FIELDNAMES_contactNormal	322
 #define FIELDNAMES_contactSurfaceThickness	323
@@ -1532,7 +1532,7 @@ extern const int EXPOSED_FIELD_COUNT;
 #define EXPOSED_FIELD_collider	74
 #define EXPOSED_FIELD_collisionType	75
 #define EXPOSED_FIELD_color	76
-#define EXPOSED_FIELD_colorStepse	77
+#define EXPOSED_FIELD_colorSteps	77
 #define EXPOSED_FIELD_constantForceMix	78
 #define EXPOSED_FIELD_contactNormal	79
 #define EXPOSED_FIELD_contactSurfaceThickness	80
@@ -3138,7 +3138,7 @@ struct X3D_CartoonVolumeStyle {
 	struct X3D_Node *surfaceNormals;
 	struct SFColorRGBA orthogonalColor;
 	struct SFColorRGBA parallelColor;
-	int colorStepse;
+	int colorSteps;
 };
 extern struct X3D_Virt virt_CartoonVolumeStyle;
 /***********************/
