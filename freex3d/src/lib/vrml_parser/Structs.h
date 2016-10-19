@@ -609,8 +609,8 @@ extern const int FIELDNAMES_COUNT;
 #define FIELDNAMES__verifiedBackColor	201
 #define FIELDNAMES__verifiedColor	202
 #define FIELDNAMES__verifiedFrontColor	203
-#define FIELDNAMES__weightFunctions1	204
-#define FIELDNAMES__weightFunctions2	205
+#define FIELDNAMES__weightFunction1	204
+#define FIELDNAMES__weightFunction2	205
 #define FIELDNAMES__world	206
 #define FIELDNAMES_actionKeyPress	207
 #define FIELDNAMES_actionKeyRelease	208
@@ -1276,12 +1276,12 @@ extern const int FIELDNAMES_COUNT;
 #define FIELDNAMES_warmColor	868
 #define FIELDNAMES_watchList	869
 #define FIELDNAMES_weight	870
-#define FIELDNAMES_weightConstants1	871
-#define FIELDNAMES_weightConstants2	872
-#define FIELDNAMES_weightFunctions1	873
-#define FIELDNAMES_weightFunctions2	874
-#define FIELDNAMES_weightTransferFunctions1	875
-#define FIELDNAMES_weightTransferFunctions2	876
+#define FIELDNAMES_weightConstant1	871
+#define FIELDNAMES_weightConstant2	872
+#define FIELDNAMES_weightFunction1	873
+#define FIELDNAMES_weightFunction2	874
+#define FIELDNAMES_weightTransferFunction1	875
+#define FIELDNAMES_weightTransferFunction2	876
 #define FIELDNAMES_whichChoice	877
 #define FIELDNAMES_whichGeometry	878
 #define FIELDNAMES_writeInterval	879
@@ -1892,10 +1892,10 @@ extern const int EXPOSED_FIELD_COUNT;
 #define EXPOSED_FIELD_warmColor	430
 #define EXPOSED_FIELD_watchList	431
 #define EXPOSED_FIELD_weight	432
-#define EXPOSED_FIELD_weightConstants1	433
-#define EXPOSED_FIELD_weightConstants2	434
-#define EXPOSED_FIELD_weightTransferFunctions1	435
-#define EXPOSED_FIELD_weightTransferFunctions2	436
+#define EXPOSED_FIELD_weightConstant1	433
+#define EXPOSED_FIELD_weightConstant2	434
+#define EXPOSED_FIELD_weightTransferFunction1	435
+#define EXPOSED_FIELD_weightTransferFunction2	436
 #define EXPOSED_FIELD_whichChoice	437
 #define EXPOSED_FIELD_whichGeometry	438
 #define EXPOSED_FIELD_writeInterval	439
@@ -2000,8 +2000,8 @@ extern const int FIELD_COUNT;
 #define FIELD_uKnot	93
 #define FIELD_vClosed	94
 #define FIELD_vKnot	95
-#define FIELD_weightFunctions1	96
-#define FIELD_weightFunctions2	97
+#define FIELD_weightFunction1	96
+#define FIELD_weightFunction2	97
 #define FIELD_xDimension	98
 #define FIELD_xSpacing	99
 #define FIELD_yScale	100
@@ -2815,15 +2815,15 @@ struct X3D_BlendedVolumeStyle {
 	struct X3D_Node *surfaceNormals;
 	struct X3D_Node *renderStyle;
 	struct X3D_Node *voxels;
-	float weightConstants1;
-	float weightConstants2;
-	struct Uni_String *weightFunctions1;
-	struct Uni_String *weightFunctions2;
-	struct X3D_Node *weightTransferFunctions1;
-	struct X3D_Node *weightTransferFunctions2;
+	float weightConstant1;
+	float weightConstant2;
+	struct Uni_String *weightFunction1;
+	struct Uni_String *weightFunction2;
+	struct X3D_Node *weightTransferFunction1;
+	struct X3D_Node *weightTransferFunction2;
 	struct Multi_Int32 _fbohandles;
-	int _weightFunctions1;
-	int _weightFunctions2;
+	int _weightFunction1;
+	int _weightFunction2;
 };
 extern struct X3D_Virt virt_BlendedVolumeStyle;
 /***********************/

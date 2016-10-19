@@ -272,8 +272,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_verifiedBackColor",
 	"_verifiedColor",
 	"_verifiedFrontColor",
-	"_weightFunctions1",
-	"_weightFunctions2",
+	"_weightFunction1",
+	"_weightFunction2",
 	"_world",
 	"actionKeyPress",
 	"actionKeyRelease",
@@ -939,12 +939,12 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"warmColor",
 	"watchList",
 	"weight",
-	"weightConstants1",
-	"weightConstants2",
-	"weightFunctions1",
-	"weightFunctions2",
-	"weightTransferFunctions1",
-	"weightTransferFunctions2",
+	"weightConstant1",
+	"weightConstant2",
+	"weightFunction1",
+	"weightFunction2",
+	"weightTransferFunction1",
+	"weightTransferFunction2",
 	"whichChoice",
 	"whichGeometry",
 	"writeInterval",
@@ -1557,10 +1557,10 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"warmColor",
 	"watchList",
 	"weight",
-	"weightConstants1",
-	"weightConstants2",
-	"weightTransferFunctions1",
-	"weightTransferFunctions2",
+	"weightConstant1",
+	"weightConstant2",
+	"weightTransferFunction1",
+	"weightTransferFunction2",
 	"whichChoice",
 	"whichGeometry",
 	"writeInterval",
@@ -1666,8 +1666,8 @@ const int EXPOSED_FIELD_COUNT = ARR_SIZE(EXPOSED_FIELD);
 	"uKnot",
 	"vClosed",
 	"vKnot",
-	"weightFunctions1",
-	"weightFunctions2",
+	"weightFunction1",
+	"weightFunction2",
 	"xDimension",
 	"xSpacing",
 	"yScale",
@@ -3551,19 +3551,19 @@ const int OFFSETS_Billboard[] = {
 
 const int OFFSETS_BlendedVolumeStyle[] = {
 	(int) FIELDNAMES__fbohandles, (int) offsetof (struct X3D_BlendedVolumeStyle, _fbohandles),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__weightFunctions1, (int) offsetof (struct X3D_BlendedVolumeStyle, _weightFunctions1),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__weightFunctions2, (int) offsetof (struct X3D_BlendedVolumeStyle, _weightFunctions2),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__weightFunction1, (int) offsetof (struct X3D_BlendedVolumeStyle, _weightFunction1),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__weightFunction2, (int) offsetof (struct X3D_BlendedVolumeStyle, _weightFunction2),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_BlendedVolumeStyle, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_BlendedVolumeStyle, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_renderStyle, (int) offsetof (struct X3D_BlendedVolumeStyle, renderStyle),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_surfaceNormals, (int) offsetof (struct X3D_BlendedVolumeStyle, surfaceNormals),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_voxels, (int) offsetof (struct X3D_BlendedVolumeStyle, voxels),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_weightConstants1, (int) offsetof (struct X3D_BlendedVolumeStyle, weightConstants1),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_weightConstants2, (int) offsetof (struct X3D_BlendedVolumeStyle, weightConstants2),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_weightFunctions1, (int) offsetof (struct X3D_BlendedVolumeStyle, weightFunctions1),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_weightFunctions2, (int) offsetof (struct X3D_BlendedVolumeStyle, weightFunctions2),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_weightTransferFunctions1, (int) offsetof (struct X3D_BlendedVolumeStyle, weightTransferFunctions1),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_weightTransferFunctions2, (int) offsetof (struct X3D_BlendedVolumeStyle, weightTransferFunctions2),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_weightConstant1, (int) offsetof (struct X3D_BlendedVolumeStyle, weightConstant1),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_weightConstant2, (int) offsetof (struct X3D_BlendedVolumeStyle, weightConstant2),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_weightFunction1, (int) offsetof (struct X3D_BlendedVolumeStyle, weightFunction1),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_weightFunction2, (int) offsetof (struct X3D_BlendedVolumeStyle, weightFunction2),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_weightTransferFunction1, (int) offsetof (struct X3D_BlendedVolumeStyle, weightTransferFunction1),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_weightTransferFunction2, (int) offsetof (struct X3D_BlendedVolumeStyle, weightTransferFunction2),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_BooleanFilter[] = {
@@ -8060,19 +8060,19 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_fbohandles.p[1] = 0;
 			tmp2->_fbohandles.p[2] = 0;
 			tmp2->_fbohandles.n=3;;
-			tmp2->_weightFunctions1 = 0;
-			tmp2->_weightFunctions2 = 0;
+			tmp2->_weightFunction1 = 0;
+			tmp2->_weightFunction2 = 0;
 			tmp2->enabled = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->renderStyle = NULL;
 			tmp2->surfaceNormals = NULL;
 			tmp2->voxels = NULL;
-			tmp2->weightConstants1 = 0.5f;
-			tmp2->weightConstants2 = 0.5f;
-			tmp2->weightFunctions1 = newASCIIString("CONSTANT");
-			tmp2->weightFunctions2 = newASCIIString("CONSTANT");
-			tmp2->weightTransferFunctions1 = NULL;
-			tmp2->weightTransferFunctions2 = NULL;
+			tmp2->weightConstant1 = 0.5f;
+			tmp2->weightConstant2 = 0.5f;
+			tmp2->weightFunction1 = newASCIIString("CONSTANT");
+			tmp2->weightFunction2 = newASCIIString("CONSTANT");
+			tmp2->weightTransferFunction1 = NULL;
+			tmp2->weightTransferFunction2 = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_renderStyle;
 		break;
 		}
@@ -12813,10 +12813,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," renderStyle (SFNode):\n"); dump_scene(fp,level+1,tmp->renderStyle); 
 			spacer fprintf (fp," surfaceNormals (SFNode):\n"); dump_scene(fp,level+1,tmp->surfaceNormals); 
 			spacer fprintf (fp," voxels (SFNode):\n"); dump_scene(fp,level+1,tmp->voxels); 
-			spacer fprintf (fp," weightConstants1 (SFFloat) \t%4.3f\n",tmp->weightConstants1);
-			spacer fprintf (fp," weightConstants2 (SFFloat) \t%4.3f\n",tmp->weightConstants2);
-			spacer fprintf (fp," weightTransferFunctions1 (SFNode):\n"); dump_scene(fp,level+1,tmp->weightTransferFunctions1); 
-			spacer fprintf (fp," weightTransferFunctions2 (SFNode):\n"); dump_scene(fp,level+1,tmp->weightTransferFunctions2); 
+			spacer fprintf (fp," weightConstant1 (SFFloat) \t%4.3f\n",tmp->weightConstant1);
+			spacer fprintf (fp," weightConstant2 (SFFloat) \t%4.3f\n",tmp->weightConstant2);
+			spacer fprintf (fp," weightTransferFunction1 (SFNode):\n"); dump_scene(fp,level+1,tmp->weightTransferFunction1); 
+			spacer fprintf (fp," weightTransferFunction2 (SFNode):\n"); dump_scene(fp,level+1,tmp->weightTransferFunction2); 
 		    break;
 		}
 		case NODE_BooleanFilter : {

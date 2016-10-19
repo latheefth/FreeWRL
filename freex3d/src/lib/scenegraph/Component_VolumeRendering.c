@@ -298,15 +298,15 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
 					struct X3D_BlendedVolumeStyle *style = (struct X3D_BlendedVolumeStyle*)vstyle;
 					//FBO blending
-					//a)  render the parent to fbo
-					//	- in prep push fbo
+					//a)  render the parent volumeData to fbo:
+					//	- in prep Blended push fbo
 					//	- render main to fbo
-					//	- read pixels
-					//b)  render blended (voxels,stye) as VolumeData to fbo
-					//	- read pixels
+					//	- in fin Blended: read pixels or save renderbuffer texture 0
+					//b)  in fin Blended: render blended (voxels,stye) as VolumeData to fbo
+					//	- read pixels or same renderbuffer texture 1
 					//c)   pop fbo
 					//d)  set 2 pixelsets as textures
-					//     and render via a viewport-quad little shader that blends 2 textures and sends to GL_BACK. 
+					//     and render via a special little shader that blends 2 textures and sends to GL_BACK. 
 					#define BLENDED 1
 					#ifdef BLENDED
 					int *fbohandles = style->_fbohandles.p;
@@ -329,11 +329,13 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 
 						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
 						//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, fbohandles[2], 0);
+						//--dont assign the second texture till after the parent VolumeData has drawn itself
 
 						//popnset_framebuffer(); //pop after drawing
 					}else{
 						pushnset_framebuffer(fbohandles[0]);
 					}
+
 					#endif //BLENDED
 				}
 				break;
@@ -505,27 +507,83 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 					// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
 					struct X3D_BlendedVolumeStyle *style = (struct X3D_BlendedVolumeStyle*)vstyle;
 					//FBO blending
-					//a)  render the parent to fbo
-					//	- in prep push fbo
+					//a)  render the parent volumeData to fbo:
+					//	- in prep Blended push fbo
 					//	- render main to fbo
-					//	- read pixels
-					//b)  render blended (voxels,stye) as VolumeData to fbo
-					//	- read pixels
+					//	- in fin Blended: read pixels or save renderbuffer texture 0
+					//b)  in fin Blended: render blended (voxels,stye) as VolumeData to fbo
+					//	- read pixels or same renderbuffer texture 1
 					//c)   pop fbo
 					//d)  set 2 pixelsets as textures
-					//     and render via a viewport-quad little shader that blends 2 textures and sends to GL_BACK. 
+					//     and render via a special little shader that blends 2 textures and sends to GL_BACK. 
 				#ifdef BLENDED
 					GLuint pixelType = GL_RGBA;
 					int *fbohandles = style->_fbohandles.p;
 					if(fbohandles[0] > 0){
 						//readpixels from parent volumedata render
+						static int iframe = 0;
+						iframe++;
 						//FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+						if(1) if(iframe==1000){
+							//write out whats in the framebuffer, and use as texture in test scene, to see fbo rendered OK
+							textureTableIndexStruct_s ttipp, *ttip;
+							ttip = &ttipp;
+							GLint iviewport[4];
+							glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
+
+							ttip->texdata = MALLOC (GLvoid *, 4*iviewport[2]*iviewport[3]);
+
+							/* grab the data */
+							//FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
+							//FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
+							
+							// https://www.khronos.org/opengles/sdk/docs/man/xhtml/glReadPixels.xml
+							FW_GL_READPIXELS (iviewport[0],iviewport[1],iviewport[2],iviewport[3],pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+							ttip->x = iviewport[2];
+							ttip->y = iviewport[3];
+							ttip->z = 1;
+							ttip->hasAlpha = 1;
+							ttip->channels = 4;
+							//write out tti as web3dit image files for diagnostic viewing, can use for BackGround node
+							//void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname)
+							char namebuf[100];
+							sprintf(namebuf,"%s%d.web3dit","blended_fbo_",0);
+							saveImage_web3dit(ttip, namebuf);
+							FREE_IF_NZ(ttip->texdata);
+						}
 						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[2], 0);
 						//render blended as volumedata to fbo
 						render_volume_data(style->renderStyle,style->voxels,dataParent);
 						//read blended from fbo
 						//FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+						if(1) if(iframe==1000){
+							//write out whats in the framebuffer, and use as texture in test scene, to see fbo rendered OK
+							textureTableIndexStruct_s ttipp, *ttip;
+							ttip = &ttipp;
+							GLint iviewport[4];
+							glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
+
+							ttip->texdata = MALLOC (GLvoid *, 4*iviewport[2]*iviewport[3]);
+
+							/* grab the data */
+							//FW_GL_PIXELSTOREI (GL_UNPACK_ALIGNMENT, 1);
+							//FW_GL_PIXELSTOREI (GL_PACK_ALIGNMENT, 1);
+							// https://www.khronos.org/opengles/sdk/docs/man/xhtml/glReadPixels.xml
+							FW_GL_READPIXELS (iviewport[0],iviewport[1],iviewport[2],iviewport[3],pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
+							ttip->x = iviewport[2];
+							ttip->y = iviewport[3];
+							ttip->z = 1;
+							ttip->hasAlpha = 1;
+							ttip->channels = 4;
+							//write out tti as web3dit image files for diagnostic viewing, can use for BackGround node
+							//void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname)
+							char namebuf[100];
+							sprintf(namebuf,"%s%d.web3dit","blended_fbo_",1);
+							saveImage_web3dit(ttip, namebuf);
+							FREE_IF_NZ(ttip->texdata);
+						}
 						popnset_framebuffer();
+
 						//render 2 textures as blended multitexture, or in special shader for blending, 
 						//2 textures are fbohandles[0] (parent voldata), fbohandles[1] (blend voldata)
 						//over window-filling quad
@@ -567,14 +625,14 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 							iwtc2 = GET_UNIFORM(myProg,"fw_iwtc2");
 							iwtf1 = GET_UNIFORM(myProg,"fw_iwtf1");
 							iwtf2 = GET_UNIFORM(myProg,"fw_iwtf2");
-							glUniform1f(iwtc1,style->weightConstants1);
-							glUniform1f(iwtc2,style->weightConstants2);
-							if(style->_weightFunctions1 == 0)
-								style->_weightFunctions1 = lookup_blendfunc(style->weightFunctions1->strptr);
-							if(style->_weightFunctions2 == 0)
-								style->_weightFunctions2 = lookup_blendfunc(style->weightFunctions2->strptr);
-							glUniform1i(iwtf1,style->_weightFunctions1);
-							glUniform1i(iwtf2,style->_weightFunctions2);
+							glUniform1f(iwtc1,style->weightConstant1);
+							glUniform1f(iwtc2,style->weightConstant2);
+							if(style->_weightFunction1 == 0)
+								style->_weightFunction1 = lookup_blendfunc(style->weightFunction1->strptr);
+							if(style->_weightFunction2 == 0)
+								style->_weightFunction2 = lookup_blendfunc(style->weightFunction2->strptr);
+							glUniform1i(iwtf1,style->_weightFunction1);
+							glUniform1i(iwtf2,style->_weightFunction2);
 
 							//set the 2 textures from the fbo rendering
 							glActiveTexture ( GL_TEXTURE0 );
@@ -583,6 +641,49 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 							glBindTexture(GL_TEXTURE_2D,style->_fbohandles.p[2]);
 
 							//set the 2 transfer function textures
+							int havetextures;
+							havetextures = 0;
+							if(style->weightTransferFunction1){
+								//load texture
+								struct X3D_Node *tmpN;
+								ttglobal tg = gglobal();
+
+								POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, style->weightTransferFunction1,tmpN);
+								tg->RenderFuncs.texturenode = (void*)tmpN;
+
+								//problem: I don't want it sending image dimensions to my volume shader,
+								// which could confuse the voxel sampler
+								//render_node(tmpN); //render_node(node->texture); 
+								loadTextureNode(tmpN,NULL);
+								textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+								if(tti && tti->status >= TEX_LOADED){
+									glActiveTexture(GL_TEXTURE0+2); 
+									glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+									havetextures |= 1;
+								}
+							}
+							if(style->weightTransferFunction2){
+								//load texture
+								struct X3D_Node *tmpN;
+								ttglobal tg = gglobal();
+
+								POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, style->weightTransferFunction2,tmpN);
+								tg->RenderFuncs.texturenode = (void*)tmpN;
+
+								//problem: I don't want it sending image dimensions to my volume shader,
+								// which could confuse the voxel sampler
+								//render_node(tmpN); //render_node(node->texture); 
+								loadTextureNode(tmpN,NULL);
+								textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+								if(tti && tti->status >= TEX_LOADED){
+									glActiveTexture(GL_TEXTURE0+3); 
+									glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+									havetextures |= 2;
+								}
+							}
+							GLint iopactex;
+							iopactex = GET_UNIFORM(myProg,"fw_haveTransfers");
+							glUniform1i(iopactex,havetextures);
 
 
 							//draw the box

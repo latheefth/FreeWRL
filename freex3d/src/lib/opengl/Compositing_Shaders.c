@@ -1957,6 +1957,7 @@ uniform float fw_iwtc1; \n\
 uniform float fw_iwtc2; \n\
 uniform int fw_iwtf1; \n\
 uniform int fw_iwtf2; \n\
+uniform int fw_haveTransfers; \n\
 vec3 weightcolor( in vec3 color, in int func, in float wt, in float ov,  in float oblend, in sampler2D table){ \n\
 	vec3 ret; \n\
 	if(func == 1){ \n\
