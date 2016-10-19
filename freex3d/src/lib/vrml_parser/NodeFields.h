@@ -1359,7 +1359,7 @@ EXPOSED_FIELD(IsoSurfaceVolumeData,contourStepSize,sffloat,contourStepSize,FIELD
 EXPOSED_FIELD(IsoSurfaceVolumeData,dimensions,sfvec3f,dimensions,FIELDTYPE_SFVec3f)
 EXPOSED_FIELD(IsoSurfaceVolumeData,gradients,sfnode,gradients,FIELDTYPE_SFNode)
 EXPOSED_FIELD(IsoSurfaceVolumeData,metadata,sfnode,metadata,FIELDTYPE_SFNode)
-EXPOSED_FIELD(IsoSurfaceVolumeData,renderStyle,sfnode,renderStyle,FIELDTYPE_SFNode)
+EXPOSED_FIELD(IsoSurfaceVolumeData,renderStyle,mfnode,renderStyle,FIELDTYPE_MFNode)
 EXPOSED_FIELD(IsoSurfaceVolumeData,surfaceTolerance,sffloat,surfaceTolerance,FIELDTYPE_SFFloat)
 EXPOSED_FIELD(IsoSurfaceVolumeData,surfaceValues,mffloat,surfaceValues,FIELDTYPE_MFFloat)
 EXPOSED_FIELD(IsoSurfaceVolumeData,voxels,sfnode,voxels,FIELDTYPE_SFNode)

@@ -1189,7 +1189,8 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 //  4  8
 //  
 static const GLchar *plug_fragment_texture3D_apply_volume =	"\n\
-void texture3D(inout vec4 sample, in vec3 texcoord3){ \n\
+vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3){ \n\
+  vec4 sample = vec4(0.0); \n\
   #ifdef TEX3D \n\
   //TILED method (vs Y strip method) \n\
   vec3 texcoord = texcoord3; \n\
@@ -1231,8 +1232,8 @@ void texture3D(inout vec4 sample, in vec3 texcoord3){ \n\
   ftexcoord.t = yyf; \n\
   ctexcoord.s = xxc; \n\
   ctexcoord.t = yyc; \n\
-  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
-  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
+  ftexel = texture2D(sampler,ftexcoord.st); \n\
+  ctexel = texture2D(sampler,ctexcoord.st); \n\
   float fraction = mod(texcoord.z*depth,1.0); \n\
   if(magFilter == 1) \n\
 	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
@@ -1240,14 +1241,15 @@ void texture3D(inout vec4 sample, in vec3 texcoord3){ \n\
 	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
   sample = texel; \n\
   #endif //TEX3D \n\
+  return sample; \n\
 } \n\
 void PLUG_texture3D( inout vec4 sample, in vec3 texcoord3 ){ \n\
-	texture3D(sample,texcoord3); \n\
+	sample = texture3Demu(fw_Texture_unit0,texcoord3); \n\
 } \n\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
 \n\
 	vec4 sample; \n\
-	texture3D(sample,fw_TexCoord[0]); \n\
+	sample = texture3Demu(fw_Texture_unit0,fw_TexCoord[0]); \n\
 	finalFrag *= sample; \n\
   \n\
 }\n";
@@ -1807,16 +1809,32 @@ precision mediump float; \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
 uniform mat4 fw_ModelViewProjInverse; \n\
-uniform float fw_FocalLength; \n\
+//uniform float fw_FocalLength; \n\
 uniform vec4 fw_viewport; \n\
 uniform vec3 fw_dimensions; \n\
 //uniform vec3 fw_RayOrigin; \n\
 uniform sampler2D fw_Texture_unit0; \n\
+uniform sampler2D fw_Texture_unit1; \n\
+uniform sampler2D fw_Texture_unit2; \n\
+uniform sampler2D fw_Texture_unit3; \n\
 #ifdef TEX3D \n\
 uniform int tex3dTiles[3]; \n\
 uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
 #endif //TEX3D \n\
+#ifdef SEGMENT \n\
+uniform int fw_enableIDs[]; \n\
+uniform int fw_nIDs; \n\
+vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3); \n\
+bool inEnabledSegment(vec3 texcoords){ \n\
+	vec4 segel = texture3Demu(fw_Texture_unit1,texcoords); \n\
+	//convert from GL_FLOAT 0-1 to int 0-255 \n\
+	//Q. is there a way to do int images in GLES2? \n\
+	int ID = int(floor(segel.a * 255.0 + .1)); \n\
+	//specs: The indices of this array corresponds to the segment identifier. \n\
+	return fw_enableIDs[ID] == 0 ? false : true; \n\
+} \n\
+#endif //SEGMENT \n\
  \n\
 struct Ray { \n\
   vec3 Origin; \n\
@@ -1919,6 +1937,9 @@ void main(void) \n\
 		pos2 = clamp(pos2,0.001,.999); \n\
 		vec3 texcoord3 = pos2; \n\
 		/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
+		#ifdef SEGMENT \n\
+		if(inEnabledSegment(texcoord3)){ \n\
+		#endif //SEGMENT \n\
         //float density = texture3D(Density, pos).x * densityFactor; \n\
 		float density = fragment_color.a * densityFactor; ; \n\
 		vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
@@ -1931,6 +1952,9 @@ void main(void) \n\
         if (T <= 0.01) { \n\
             break; \n\
 		} \n\
+		#ifdef SEGMENT \n\
+		} //if inEnabledSegment \n\
+		#endif //SEGMENT \n\
 		travel -= stepSize; \n\
 		depth += stepSize; \n\
 		if(travel <= 0.0) break; \n\
@@ -2021,7 +2045,7 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 ";
 static const GLchar *plug_raysum_OPACITY =	"\
 uniform int fw_opacTexture; \n\
-uniform sampler2D fw_Texture_unit3; \n\
+//uniform sampler2D fw_Texture_unit3; \n\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 normal_eye) { \n\
 	if(fw_opacTexture){ \n\
 		vec2 texcoord = vec2(density,0); \n\

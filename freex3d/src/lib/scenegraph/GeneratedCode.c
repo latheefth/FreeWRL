@@ -4904,7 +4904,7 @@ const int OFFSETS_IsoSurfaceVolumeData[] = {
 	(int) FIELDNAMES_dimensions, (int) offsetof (struct X3D_IsoSurfaceVolumeData, dimensions),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_gradients, (int) offsetof (struct X3D_IsoSurfaceVolumeData, gradients),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_IsoSurfaceVolumeData, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_renderStyle, (int) offsetof (struct X3D_IsoSurfaceVolumeData, renderStyle),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_renderStyle, (int) offsetof (struct X3D_IsoSurfaceVolumeData, renderStyle),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_surfaceTolerance, (int) offsetof (struct X3D_IsoSurfaceVolumeData, surfaceTolerance),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_surfaceValues, (int) offsetof (struct X3D_IsoSurfaceVolumeData, surfaceValues),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_voxels, (int) offsetof (struct X3D_IsoSurfaceVolumeData, voxels),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9773,7 +9773,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->dimensions.c[0] = 1.0f;tmp2->dimensions.c[1] = 1.0f;tmp2->dimensions.c[2] = 1.0f;
 			tmp2->gradients = NULL;
 			tmp2->metadata = NULL;
-			tmp2->renderStyle = NULL;
+			tmp2->renderStyle.n=0; tmp2->renderStyle.p=0;
 			tmp2->surfaceTolerance = 0.0f;
 			tmp2->surfaceValues.n=0; tmp2->surfaceValues.p=0;
 			tmp2->voxels = NULL;
@@ -14536,7 +14536,8 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
-			spacer fprintf (fp," renderStyle (SFNode):\n"); dump_scene(fp,level+1,tmp->renderStyle); 
+			spacer fprintf (fp," renderStyle (MFNode):\n");
+			for (i=0; i<tmp->renderStyle.n; i++) { dump_scene(fp,level+1,tmp->renderStyle.p[i]); }
 			spacer fprintf (fp," surfaceTolerance (SFFloat) \t%4.3f\n",tmp->surfaceTolerance);
 			spacer fprintf (fp," surfaceValues (MFFloat):\n");
 			for (i=0; i<tmp->surfaceValues.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->surfaceValues.p[i]); }

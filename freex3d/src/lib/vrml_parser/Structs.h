@@ -5569,11 +5569,11 @@ struct X3D_IsoSurfaceVolumeData {
  	/*** node specific data: *****/
 	struct SFVec3f dimensions;
 	struct X3D_Node *metadata;
-	struct X3D_Node *renderStyle;
 	struct X3D_Node *voxels;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	void * _boxtris;
+	struct Multi_Node renderStyle;
 	float contourStepSize;
 	struct X3D_Node *gradients;
 	float surfaceTolerance;
@@ -8827,11 +8827,11 @@ struct X3D_SegmentedVolumeData {
  	/*** node specific data: *****/
 	struct SFVec3f dimensions;
 	struct X3D_Node *metadata;
-	struct X3D_Node *renderStyle;
 	struct X3D_Node *voxels;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	void * _boxtris;
+	struct X3D_Node *renderStyle;
 	struct Multi_Bool segmentEnabled;
 	struct X3D_Node *segmentIdentifiers;
 };
@@ -10323,11 +10323,11 @@ struct X3D_VolumeData {
  	/*** node specific data: *****/
 	struct SFVec3f dimensions;
 	struct X3D_Node *metadata;
-	struct X3D_Node *renderStyle;
 	struct X3D_Node *voxels;
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	void * _boxtris;
+	struct X3D_Node *renderStyle;
 };
 extern struct X3D_Virt virt_VolumeData;
 /***********************/

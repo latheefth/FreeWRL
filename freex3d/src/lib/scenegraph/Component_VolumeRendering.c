@@ -136,35 +136,6 @@ void Component_VolumeRendering_clear(struct tComponent_VolumeRendering *t){
 
 
 
-void compile_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
-	printf("compile_isosurfacevolumedata not implemented\n");
-	MARK_NODE_COMPILED
-}
-
-void child_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
-	static int once = 0;
-	COMPILE_IF_REQUIRED
-
-	if(!once)
-		printf("child isosurfacevvolumedata not implemented yet\n");
-	once = 1;
-}
-
-
-void compile_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
-	printf("compile_segmentedvolumedata not implemented\n");
-	MARK_NODE_COMPILED
-}
-
-
-void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
-	static int once = 0;
-	COMPILE_IF_REQUIRED
-
-	if(!once)
-		printf("child segmentedvolumedata not implemented yet\n");
-	once = 1;
-}
 //6 faces x 2 triangles per face x 3 vertices per triangle x 3 scalars (xyz) per vertex = 6 x 2 x 3 x 3 = 108
 GLfloat box [108] = {1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, };
 void compile_VolumeData(struct X3D_VolumeData *node){
@@ -470,11 +441,11 @@ const char *ctype;
 int itype;
 } blendfuncs [] = {
 {"CONSTANT",1},
-{"ALPHA0",2},
-{"ALPHA1",3},
+{"ALPHA1",2},
+{"ALPHA2",3},
 {"TABLE",4},
-{"ONE_MINUS_ALPHA0",5},
-{"ONE_MINUS_ALPHA1",6},
+{"ONE_MINUS_ALPHA1",5},
+{"ONE_MINUS_ALPHA2",6},
 {NULL,0},
 };
 int lookup_blendfunc(const char *funcname){
@@ -613,6 +584,7 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 							//set attributes 
 							//SFFloat  [in,out] weightConstant1         0.5        [0,1]
 							//SFFloat  [in,out] weightConstant2         0.5        [0,1]
+							//BRUTZMAN: ALPHA0,1 here should be ALPHA1,2 to match table 14.1
 							//SFString [in,out] weightFunction1         "CONSTANT" ["CONSTANT", "ALPHA0", "ALPHA1", "TABLE",
 							//													"ONE_MINUS_ALPHA0", "ONE_MINUS_ALPHA1" ] 
 							//SFString [in,out] weightFunction2         "CONSTANT" ["CONSTANT", "ALPHA0", "ALPHA1", "TABLE",
@@ -950,14 +922,325 @@ void render_volume_data(struct X3D_Node *renderStyle, struct X3D_Node *voxels, s
 } 
 
 void child_VolumeData(struct X3D_VolumeData *node){
-	static int once = 0;
-	unsigned int volflags;
-	ttglobal tg = gglobal();
-	ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)tg->Component_VolumeRendering.prv;
+	//static int once = 0;
+	//unsigned int volflags;
+	//ttglobal tg = gglobal();
+	//ppComponent_VolumeRendering p = (ppComponent_VolumeRendering)tg->Component_VolumeRendering.prv;
 	COMPILE_IF_REQUIRED
 
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 		render_volume_data(node->renderStyle,node->voxels,node); //split up style, voxels, datanode so blendedstyle can share code
 	} //VF_Blend
 
+}
+
+void compile_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#IsoSurfaceVolumeData
+	// VolumeData + 4 fields:
+	//SFFloat [in,out] contourStepSize  0        (-INF,INF)
+	//SFNode  [in,out] gradients        NULL     [X3DTexture3DNode]
+	//SFFloat [in,out] surfaceTolerance 0        [0,INF)
+	//MFFloat [in,out] surfaceValues    []       (-INF,INF)
+	printf("compile_isosurfacevolumedata not implemented\n");
+	compile_VolumeData((struct X3D_VolumeData *)node);
+}
+
+
+
+void compile_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#SegmentedVolumeData
+	// VolumeData + 2 fields:
+	//MFBool  [in,out] segmentEnabled     []
+	//SFNode  [in,out] segmentIdentifiers NULL     [X3DTexture3DNode]
+	printf("compile_segmentedvolumedata not implemented\n");
+	compile_VolumeData((struct X3D_VolumeData *)node);
+}
+int getVolumeProgram(struct X3D_Node **renderStyle, int nstyle, int VOLUME_DATA_FLAG){
+	static int once = 0;
+	unsigned int volflags;
+	ttglobal tg = gglobal();
+
+	if(!once)
+		ConsoleMessage("getVolumeProgram\n");
+	volflags = 0;
+	if(nstyle){
+		for(int i=0;i<nstyle;i++){
+			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle;
+			if(style0->enabled){
+				volflags = prep_volumestyle(renderStyle[i], volflags); //get shader flags
+			}
+		}
+	}else{
+		volflags = SHADERFLAGS_VOLUME_STYLE_DEFAULT;
+	}
+
+	if(!once){
+		printf("volflags= ");
+		for(int i=0;i<8;i++)
+			printf("%d ",((volflags >> (8-i-1)*4) & 0xF)); //show 4 int
+		printf("\n");
+	}
+
+	//render 
+	//Step 1: set the 3D texture
+	//if(node->voxels)
+	//	render_node(node->voxels);
+	//Step 2: get rays to cast: start point and direction vector for each ray to cast
+
+	//method: use cpu math to compute a few uniforms so frag shader can do box intersections
+	//http://prideout.net/blog/?p=64
+	//- one step raycasting using gl_fragCoord
+	//- we modified this general method to use gluUnproject math instead of focallength
+
+	//Step 3: accumulate along rays and render opacity fragment in one step
+	//GPU VERSION
+	shaderflagsstruct shaderflags, shader_requirements;
+	s_shader_capabilities_t *caps;
+	int old_shape_way = 0;
+
+	memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+	//shaderflags = getShaderFlags();
+	shader_requirements.volume = VOLUME_DATA_FLAG; //SHADERFLAGS_VOLUME_DATA_BASIC; //send the following through the volume ubershader
+	shader_requirements.volume |= (volflags << 4); //SHADERFLAGS_VOLUME_STYLE_OPACITY;
+	// by default we'll mash it in: shader_requirements.volume |= TEX3D_SHADER;
+	caps = getMyShaders(shader_requirements);
+	enableGlobalShader(caps);
+	GLint myProg =  caps->myShaderProgram;
+	//Step 1: set the 3D texture
+	once = 1;
+	return myProg;
+}
+
+void render_SEGMENTED_volume_data(int myProg, struct X3D_Node *segmentIDs, int itexture, int *enabledIDs, int nIDs ) {
+	if(segmentIDs){
+		struct X3D_Node *tmpN;
+		ttglobal tg = gglobal();
+
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, segmentIDs,tmpN);
+		tg->RenderFuncs.texturenode = (void*)tmpN;
+
+		render_node(tmpN); //render_node(node->voxels); 
+
+		textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+		if(tti && tti->status >= TEX_LOADED){
+			if(0){
+				//in theory these will be set by the main voxel texture and should match
+				GLint ttiles = GET_UNIFORM(myProg,"tex3dTiles");
+				GLUNIFORM1IV(ttiles,3,tti->tiles);
+
+				//me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+				GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+				glUniform1i(tex3dUseVertex,0); 
+				GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+				glUniform1iv(repeatSTR,3,tti->repeatSTR);
+				GLint magFilter = GET_UNIFORM(myProg,"magFilter");
+				glUniform1i(magFilter,tti->magFilter);
+			}
+			glActiveTexture(GL_TEXTURE0+itexture); 
+			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+		}
+	}
+	GLint ienable = GET_UNIFORM(myProg,"fw_enableIDs");
+	glUniform1iv(ienable,nIDs,enabledIDs); 
+
+	GLint inids = GET_UNIFORM(myProg,"fw_nIDs");
+	glUniform1i(inids,nIDs); 
+}
+void render_GENERIC_volume_data(int myProg, struct X3D_Node **renderStyle, int nstyle, struct X3D_Node *voxels, struct X3D_VolumeData *node ) {
+	static int once = 0;
+	unsigned int volflags;
+	ttglobal tg = gglobal();
+
+	if(voxels){
+		struct X3D_Node *tmpN;
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, voxels,tmpN);
+		tg->RenderFuncs.texturenode = (void*)tmpN;
+
+		//gradient > Oct 2016 we compute in textures.c if channels==1 and z>1 and put in rgb
+		// - saves mallocing another RGBA 
+		// - for scalar images RGB is unused or just 111 anyway
+		// - takes 1 second on desktop CPU for 17 Mpixel image
+		//if(node->renderStyle){
+		//	if(volstyle_needs_normal(node->renderStyle)){
+		//		switch(tmpN->_nodeType){
+		//			case NODE_PixelTexture3D:
+		//				((struct X3D_PixelTexture3D*)tmpN)->_needs_gradient = TRUE; break;
+		//			case NODE_ImageTexture3D:
+		//				((struct X3D_ImageTexture3D*)tmpN)->_needs_gradient = TRUE; break;
+		//		}
+		//	}
+		//}
+		//render_node(voxels) should keep pulling the texture through all stages of loading and opengl
+		render_node(tmpN); //render_node(node->voxels); 
+
+		textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
+		if(tti && tti->status >= TEX_LOADED){
+			GLint ttiles = GET_UNIFORM(myProg,"tex3dTiles");
+			GLUNIFORM1IV(ttiles,3,tti->tiles);
+
+			//me->tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+			GLint tex3dUseVertex = GET_UNIFORM(myProg,"tex3dUseVertex");
+			glUniform1i(tex3dUseVertex,0); 
+			GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
+			glUniform1iv(repeatSTR,3,tti->repeatSTR);
+			GLint magFilter = GET_UNIFORM(myProg,"magFilter");
+			glUniform1i(magFilter,tti->magFilter);
+
+			glActiveTexture(GL_TEXTURE0); 
+			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+		}
+	}
+	if(nstyle){
+		for(int i=0;i<nstyle;i++){
+			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle[i];
+			if(style0->enabled){
+				render_volumestyle(renderStyle[i],myProg); //send uniforms
+				// if style uses a texture, it should be the next texture ie GL_TEXTURE0+1,2..
+			}
+		}
+	}
+	//3.1 set uniforms: dimensions, focal length, fov (field of view), window size, modelview matrix
+	//    set attributes vertices of triangles of bounding box
+	// set box with vol.dimensions with triangles
+	GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+	GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
+	GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
+	if(!once)
+		ConsoleMessage("vertices %d mvm %d proj %d\n",Vertices,mvm,proj);
+	sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+	double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
+	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+	if(1){
+		//see gluUnproject in Opengl_Utils.c
+		__gluMultMatricesd(modelviewMatrix, projMatrix, mvp);
+		if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+	}else{
+		matmultiplyFULL(mvp,modelviewMatrix,projMatrix);
+		//matmultiplyFULL(mvp,projMatrix,modelviewMatrix);
+		//if (!__gluInvertMatrixd(mvp, mvpinverse)) return;
+		matinverseFULL(mvpinverse,mvp); //seems different than glu's. H0: just wrong H1: transopose H2: full inverse vs factorized
+	}
+	float spmat[16];
+	matdouble2float4(spmat,mvpinverse);
+
+	GLint mvpi = GET_UNIFORM(myProg,"fw_ModelViewProjInverse");
+	GLUNIFORMMATRIX4FV(mvpi,1,GL_FALSE,spmat);
+
+
+	//get the current viewport
+	GLint iviewport[4];
+	float viewport[4];
+	glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
+
+	GLint vp = GET_UNIFORM(myProg,"fw_viewport");
+	viewport[0] = iviewport[0]; //xmin
+	viewport[1] = iviewport[1]; //ymin
+	viewport[2] = iviewport[2]; //width
+	viewport[3] = iviewport[3]; //height
+	GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
+	GLint dim = GET_UNIFORM(myProg,"fw_dimensions");
+	float *dimensions = node->dimensions.c;
+	GLUNIFORM3F(dim,dimensions[0],dimensions[1],dimensions[2]);
+
+	if(!once) ConsoleMessage("dim %d vp %d \n",dim,vp );
+
+	//3.2 draw with shader
+	glEnableVertexAttribArray(Vertices);
+	glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, node->_boxtris);
+
+	glDrawArrays(GL_TRIANGLES,0,36);
+
+	if(voxels){
+		tg->RenderFuncs.textureStackTop = 0;
+		tg->RenderFuncs.texturenode = NULL;
+	}
+	if(nstyle){
+		for(int i=0;i<nstyle;i++)
+			fin_volumestyle(renderStyle[i],node);
+	}
+	once = 1;
+
+} 
+
+void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#SegmentedVolumeData
+	// VolumeData + 2 fields:
+	//MFBool  [in,out] segmentEnabled     []
+	//SFNode  [in,out] segmentIdentifiers NULL     [X3DTexture3DNode]
+	static int once = 0;
+	COMPILE_IF_REQUIRED
+
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+
+		if(!once)
+			printf("child segmentedvolumedata \n");
+
+		int myProg = getVolumeProgram(&node->renderStyle,1, SHADERFLAGS_VOLUME_DATA_SEGMENT);
+		//get and set segment-specific uniforms
+		int itexture = 1; //voxels=0,segmentIDs=1
+		render_SEGMENTED_volume_data(myProg,node->segmentIdentifiers,itexture,node->segmentEnabled.p,node->segmentEnabled.n);
+		//render generic volume 
+		render_GENERIC_volume_data(myProg,&node->renderStyle,1,node->voxels,(struct X3D_VolumeData*)node );
+		once = 1;
+	} //if VF_Blend
+
+}
+void render_ISO_volume_data(int myProg,struct X3D_IsoSurfaceVolumeData *node){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#IsoSurfaceVolumeData
+	// VolumeData + 4 fields, minus 1 field
+	//SFFloat [in,out] contourStepSize  0        (-INF,INF)
+	//SFNode  [in,out] gradients        NULL     [X3DTexture3DNode]
+	//SFFloat [in,out] surfaceTolerance 0        [0,INF)
+	//MFFloat [in,out] surfaceValues    []       (-INF,INF)
+	//MFNode  [in,out] renderStyle      []       [X3DVolumeRenderStyleNode]
+	//minus SFNode renderStyle
+	GLint istep = GET_UNIFORM(myProg,"fw_stepSize");
+	glUniform1f(istep,node->contourStepSize); 
+	GLint itol = GET_UNIFORM(myProg,"fw_tolerance");
+	glUniform1f(itol,node->surfaceTolerance); 
+
+	GLint ivals = GET_UNIFORM(myProg,"fw_surfaceVals");
+	glUniform1fv(ivals,node->surfaceValues.n,node->surfaceValues.p); 
+	GLint invals = GET_UNIFORM(myProg,"fw_nVals");
+	glUniform1i(invals,node->surfaceValues.n);
+	if(node->renderStyle.n){
+		int *styleflags = MALLOC(int*,sizeof(int)*node->renderStyle.n);
+		for(int i=0;i<node->renderStyle.n;i++){
+			styleflags[i] = prep_volumestyle(node->renderStyle.p[i],0);
+		}
+		GLint istyles = GET_UNIFORM(myProg,"fw_surfaceStyles");
+		glUniform1iv(ivals,node->renderStyle.n,styleflags);
+		int instyles = GET_UNIFORM(myProg,"fw_nStyles");
+		glUniform1i(instyles,node->renderStyle.n);
+	}
+
+	//renderstyle handling?
+	//Options:
+	// a) include all renderstyles in the shader
+	// b) go through the list and |= (multiple times should show up as once?)
+	// then make a special shader to (equivalent to switch-case) on each voxel/gradient after iso value has been computed
+}
+
+void child_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#IsoSurfaceVolumeData
+	// VolumeData + 4 fields:
+	//SFFloat [in,out] contourStepSize  0        (-INF,INF)
+	//SFNode  [in,out] gradients        NULL     [X3DTexture3DNode]
+	//SFFloat [in,out] surfaceTolerance 0        [0,INF)
+	//MFFloat [in,out] surfaceValues    []       (-INF,INF)
+	static int once = 0;
+	COMPILE_IF_REQUIRED
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+		if(!once)
+			printf("child segmentedvolumedata \n");
+
+		int myProg = getVolumeProgram(node->renderStyle.p,node->renderStyle.n, SHADERFLAGS_VOLUME_DATA_ISO);
+		//get and set ISO-specific uniforms
+		int itexture = 1; //voxels=0,segmentIDs=1
+		render_ISO_volume_data(myProg,node);
+		//render generic volume 
+		render_GENERIC_volume_data(myProg,node->renderStyle.p,node->renderStyle.n,node->voxels,(struct X3D_VolumeData*)node );
+		once = 1;
+	} //if VF_Blend
 }
