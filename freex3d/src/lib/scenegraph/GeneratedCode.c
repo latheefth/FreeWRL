@@ -240,6 +240,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_origPoint",
 	"_p",
 	"_parentResource",
+	"_phaseFunction",
 	"_pointsVBO",
 	"_previousvalue",
 	"_radius",
@@ -6307,6 +6308,7 @@ const int OFFSETS_SegmentedVolumeData[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ShadedVolumeStyle[] = {
+	(int) FIELDNAMES__phaseFunction, (int) offsetof (struct X3D_ShadedVolumeStyle, _phaseFunction),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_ShadedVolumeStyle, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_lighting, (int) offsetof (struct X3D_ShadedVolumeStyle, lighting),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_material, (int) offsetof (struct X3D_ShadedVolumeStyle, material),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11603,6 +11605,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ShadedVolumeStyle : {
 			struct X3D_ShadedVolumeStyle * tmp2;
 			tmp2 = (struct X3D_ShadedVolumeStyle *) tmp;
+			tmp2->_phaseFunction = 0;
 			tmp2->enabled = TRUE;
 			tmp2->lighting = FALSE;
 			tmp2->material = NULL;

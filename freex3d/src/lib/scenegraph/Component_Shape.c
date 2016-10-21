@@ -271,7 +271,14 @@ void render_Material (struct X3D_Material *node) {
 	p->material_oneSided = node;
 	}
 }
-
+struct X3D_Material *get_material_oneSided(){
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+	return p->material_oneSided;
+}
+struct X3D_TwoSidedMaterial *get_material_twoSided(){
+	ppComponent_Shape p = (ppComponent_Shape)gglobal()->Component_Shape.prv;
+	return p->material_twoSided;
+}
 
 /* bounds check the material node fields */
 void compile_Material (struct X3D_Material *node) {
