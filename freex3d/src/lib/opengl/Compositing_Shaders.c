@@ -806,7 +806,7 @@ uniform sampler2D fw_Texture_unit0; \n\
 #endif //CUB \n\
 varying vec3 fw_TexCoord[4]; \n\
 #ifdef TEX3D \n\
-uniform int tex3dDepth; \n\
+uniform int tex3dTiles[3]; \n\
 uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
 #endif //TEX3D \n\
@@ -1168,13 +1168,34 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 		y-first layer order: fill column, first at top left, before advancing ix right
 		(option: x-first layer order: fill row, first at top left, before advancing down iy)
 */
-static const GLchar *plug_fragment_texture3D_apply =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
-\n\
+
+// TILED METHOD FOR TEXTURE3D 
+//	texture3D emulator via TILED texture2D
+//  reason for emulating: 2016 GLES2 via ANGLEPROJECT(gles emulator over DirectX on windows)
+//     doesn't have Texture3D or Texture3DOES or Texture3DEXT.
+//  reason for TILES: an oblong Y-STRIP approach exceded max texture size in Y (but had lots left in X)
+//     desktop computer max_size (of 2D image in one dimension) 16384
+//     android phone max_size 4096
+//     and so would be resampled (blurry) in y and good in x
+//     using tiles means room for more full z slices ie 256x256x256 == 4096x4096 == 16M, 
+//			512x512x512 == 134M == 16384x16384/2, and therefore less blurry images
+//  tiles start in upper left with z=0, increase in y,
+//  then when hit ny tiles in a y strip, move right one tile, and restart at top
+//  uniform tex3dTiles[3] = {nx,ny,z}
+//  example ny = 4, nx = 3, z = 11
+//  1  5  9
+//  2  6  10
+//  3  7  11
+//  4  8
+//  
+static const GLchar *plug_fragment_texture3D_apply_volume =	"\n\
+vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3){ \n\
+  vec4 sample = vec4(0.0); \n\
   #ifdef TEX3D \n\
-  vec3 texcoord = fw_TexCoord[0]; \n\
-  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
-  float depth = max(1.0,float(tex3dDepth)); \n\
+  //TILED method (vs Y strip method) \n\
+  vec3 texcoord = texcoord3; \n\
+  //texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
+  float depth = max(1.0,float(tex3dTiles[2])); \n\
   if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
   else texcoord.x = mod(texcoord.x,1.0); \n\
   if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
@@ -1182,28 +1203,58 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
   if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
   else texcoord.z = mod(texcoord.z,1.0); \n\
   vec4 texel; \n\
-  int flay = int(floor(texcoord.z*depth)); \n\
-  int clay = int(ceil(texcoord.z*depth)); \n\
-  clay = clay == tex3dDepth ? 0 : clay; \n\
+  int izf = int(floor(texcoord.z*depth)); //floor z \n\
+  int izc = int(ceil(texcoord.z*depth));  //ceiling z \n\
+  izc = izc == tex3dTiles[2] ? izc - 1 : izc; //clamp int z \n\
   vec4 ftexel, ctexel; \n\
-  vec3 ftexcoord, ctexcoord; \n\
-  ftexcoord = texcoord; \n\
-  ctexcoord = texcoord; \n\
-  ftexcoord.y += float(flay); \n\
-  ftexcoord.y /= depth; \n\
-  ctexcoord.y += float(clay); \n\
-  ctexcoord.y /= depth; \n\
-  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
-  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
-  float fraction = mod(ftexcoord.z*depth,1.0); \n\
+  \n\
+  int nx = tex3dTiles[0]; //0-11 \n\
+  int ny = tex3dTiles[1]; \n\
+  float fnx = 1.0/float(nx); //.1\n\
+  float fny = 1.0/float(ny); \n\
+  int ix = izc / ny; //60/11=5\n\
+  int ixny = ix * ny; //5*11=55\n\
+  int iy = izc - ixny; //60-55=5 modulus remainder \n\
+  float cix = float(ix); //5 \n\
+  float ciy = float(iy); \n\
+  float xxc = (cix + texcoord.s)*fnx; //(5 + .5)*.1 = .55\n\
+  float yyc = (ciy + texcoord.t)*fny; \n\
+  ix = izf / ny; \n\
+  ixny = ix * ny; \n\
+  iy = izf - ixny; //modulus remainder \n\
+  float fix = float(ix); \n\
+  float fiy = float(iy); \n\
+  float xxf = (fix + texcoord.s)*fnx; \n\
+  float yyf = (fiy + texcoord.t)*fny; \n\
+  \n\
+  vec2 ftexcoord, ctexcoord; //texcoord is 3D, ftexcoord and ctexcoord are 2D coords\n\
+  ftexcoord.s = xxf; \n\
+  ftexcoord.t = yyf; \n\
+  ctexcoord.s = xxc; \n\
+  ctexcoord.t = yyc; \n\
+  ftexel = texture2D(sampler,ftexcoord.st); \n\
+  ctexel = texture2D(sampler,ctexcoord.st); \n\
+  float fraction = mod(texcoord.z*depth,1.0); \n\
   if(magFilter == 1) \n\
 	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
   else \n\
 	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
-  finalFrag *= texel; \n\
+  sample = texel; \n\
   #endif //TEX3D \n\
+  return sample; \n\
+} \n\
+void PLUG_texture3D( inout vec4 sample, in vec3 texcoord3 ){ \n\
+	sample = texture3Demu(fw_Texture_unit0,texcoord3); \n\
+} \n\
+void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+\n\
+	vec4 sample; \n\
+	sample = texture3Demu(fw_Texture_unit0,fw_TexCoord[0]); \n\
+	finalFrag *= sample; \n\
   \n\
 }\n";
+
+
 
 static const GLchar *plug_fragment_texture3Dlayer_apply =	"\
 void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
@@ -1665,7 +1716,7 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 			}else{
 				//TEX3D_VOLUME_SHADER
 				//AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode);
-				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+				Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply_volume,CompleteCode,&unique_int);
 			}
 		}else{
 			if(DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE)){
@@ -1723,22 +1774,18 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 	return retval;
 }
 
+// START MIT, VOLUME RENDERING >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 /* Generic GLSL vertex shader, used on OpenGL ES. */
 static const GLchar *volumeVertexGLES2 = " \n\
 uniform mat4 fw_ModelViewMatrix; \n\
 uniform mat4 fw_ProjectionMatrix; \n\
-uniform float fw_FocalLength; \n\
-uniform vec4 fw_viewport; \n\
 attribute vec4 fw_Vertex; \n\
  \n\
 /* PLUG-DECLARATIONS */ \n\
  \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
-varying vec3 vertex_model; \n\
- \n\
-uniform vec4 fw_UnlitColor; \n\
  \n\
 void main(void) \n\
 { \n\
@@ -1749,10 +1796,6 @@ void main(void) \n\
    castle_Color = vec4(1.0,.5,.5,1.0); \n\
   \n\
   gl_Position = fw_ProjectionMatrix * castle_vertex_eye; \n\
-  //#ifdef XYZ \n\
-  castle_Color.rgb = gl_Position.xyz; \n\
-  vertex_model = fw_Vertex.xyz; \n\
-  //#endif \n\
    \n\
 } \n\
 ";
@@ -1764,22 +1807,43 @@ static const GLchar *volumeFragmentGLES2 = " \n\
 precision mediump float; \n\
 #endif //MOBILE \n\
  \n\
-varying vec3 vertex_model; \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
-uniform mat4 fw_ModelViewMatrix; \n\
-uniform mat4 fw_ProjectionMatrix; \n\
 uniform mat4 fw_ModelViewProjInverse; \n\
-uniform float fw_FocalLength; \n\
+//uniform float fw_FocalLength; \n\
 uniform vec4 fw_viewport; \n\
 uniform vec3 fw_dimensions; \n\
-uniform vec3 fw_RayOrigin; \n\
+//uniform vec3 fw_RayOrigin; \n\
 uniform sampler2D fw_Texture_unit0; \n\
+uniform sampler2D fw_Texture_unit1; \n\
+uniform sampler2D fw_Texture_unit2; \n\
+uniform sampler2D fw_Texture_unit3; \n\
 #ifdef TEX3D \n\
-uniform int tex3dDepth; \n\
+uniform int tex3dTiles[3]; \n\
 uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
 #endif //TEX3D \n\
+#ifdef SEGMENT \n\
+uniform int fw_enableIDs[]; \n\
+uniform int fw_nIDs; \n\
+vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3); \n\
+bool inEnabledSegment(vec3 texcoords){ \n\
+	vec4 segel = texture3Demu(fw_Texture_unit1,texcoords); \n\
+	//convert from GL_FLOAT 0-1 to int 0-255 \n\
+	//Q. is there a way to do int images in GLES2? \n\
+	int ID = int(floor(segel.a * 255.0 + .1)); \n\
+	//specs: The indices of this array corresponds to the segment identifier. \n\
+	return fw_enableIDs[ID] == 0 ? false : true; \n\
+} \n\
+#endif //SEGMENT \n\
+#ifdef ISO \n\
+uniform float fw_stepSize; \n\
+uniform float fw_tolerance; \n\
+uniform float fw_surfaceVals[]; \n\
+uniform int fw_nVals; \n\
+uniform int fw_surfaceStyles[]; \n\
+uniform int fw_nStyles; \n\
+#endif //ISO \n\
  \n\
 struct Ray { \n\
   vec3 Origin; \n\
@@ -1815,28 +1879,24 @@ void main(void) \n\
 	float stepSize = maxDist/fnumSamples; \n\
 	 \n\
     vec4 fragment_color; \n\
-	vec4 fragment_color_main = castle_Color; \n\
+	vec4 raysum; \n\
     vec3 rayDirection; \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
-	vec3 rayOrigin = fw_RayOrigin; \n\
-	if(true){ \n\
-		//the equivalent of gluUnproject \n\
-		//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
-		vec4 ray4 = vec4(rayDirection,1.0); \n\
-		vec4 org4 = ray4; \n\
-		ray4.z = 1.0; \n\
-		org4.z = 0.0; \n\
-		// out = modelviewProjectionInverse x in \n\
-		ray4 = fw_ModelViewProjInverse * ray4; \n\
-		org4 = fw_ModelViewProjInverse * org4; \n\
-		ray4 /= ray4.w; \n\
-		org4 /= org4.w; \n\
-		rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
-	}else{ \n\
-		rayDirection.z = -fw_FocalLength; \n\
-		rayDirection = (vec4(rayDirection, 0) * fw_ModelViewMatrix).xyz; \n\
-	} \n\
+	vec3 rayOrigin; // = fw_RayOrigin; \n\
+	//the equivalent of gluUnproject \n\
+	//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
+	vec4 ray4 = vec4(rayDirection,1.0); \n\
+	vec4 org4 = ray4; \n\
+	ray4.z = 1.0; \n\
+	org4.z = 0.0; \n\
+	// out = modelviewProjectionInverse x in \n\
+	ray4 = fw_ModelViewProjInverse * ray4; \n\
+	org4 = fw_ModelViewProjInverse * org4; \n\
+	ray4 /= ray4.w; \n\
+	org4 /= org4.w; \n\
+	rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
+	rayOrigin = org4.xyz; \n\
 	\n\
     Ray eye = Ray( rayOrigin, normalize(rayDirection) ); \n\
     //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
@@ -1861,7 +1921,7 @@ void main(void) \n\
     float travel = distance(rayStop, rayStart); \n\
     float T = 1.0; \n\
     vec3 Lo = vec3(0.0); \n\
-	vec3 normal_eye_fragment = vec3(0.0); //not used in plug \n\
+	vec3 normal_eye = rayDirection.xyz; \n\
 	fragment_color.a = 1.0; \n\
 	//if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
 	//if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
@@ -1870,83 +1930,438 @@ void main(void) \n\
 	vec3 pos2 = pos; \n\
     // Transform from object space to texture coordinate space: \n\
 	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
-	pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
+	//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 	pos2 = clamp(pos2,0.001,.999); \n\
-	fw_TexCoord[0] = pos2; //vertex_model; //vec3(.2,.2,.5); \n\
 	fragment_color = vec4(1.0,0.0,1.0,0.0); \n\
-	//fragment_color = texture2D(fw_Texture_unit0,fw_TexCoord[0].st); \n\
-	/* P_LUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
-	fragment_color_main = fragment_color; \n\
-	//fragment_color_main.a = 1.0; \n\
+	raysum = vec4(0.0); \n\
+	float depth = 0.0; \n\
+	float lastdensity; \n\
+	float lastdensity_iso; \n\
 	\n\
     for (int i=0; i < numSamples; ++i) { \n\
        // ...lighting and absorption stuff here... \n\
-		fragment_color = vec4(1.0); \n\
+		fragment_color = vec4(1.0,1.0,1.0,1.0); \n\
 		pos2 = pos; \n\
+		vec3 vertex_eye = pos2; \n\
 	    // Transform from object space to texture coordinate space: \n\
 		pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
-		pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
+		//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 		pos2 = clamp(pos2,0.001,.999); \n\
-		fw_TexCoord[0] = pos2; \n\
-		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */ \n\
+		vec3 texcoord3 = pos2; \n\
+		/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
+		#ifdef SEGMENT \n\
+		if(inEnabledSegment(texcoord3)){ \n\
+		#endif //SEGMENT \n\
         //float density = texture3D(Density, pos).x * densityFactor; \n\
-		float density = fragment_color.a * densityFactor; \n\
+		float density = fragment_color.a * densityFactor; ; \n\
+		vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
 		\n\
-        //if (density <= 0.0) \n\
-        //    continue; \n\
-		//\n\
+		#ifdef ISO \n\
+		if(i==0){ \n\
+			lastdensity = density; \n\
+			lastdensity_iso = 0.0; \n\
+		} \n\
+		int MODE = fw_nVals == 1 ? 1 : 3; \n\
+		MODE = fw_stepSize != 0.0 && MODE == 1 ? 2 : 1; \n\
+		#ifdef ISO_MODE3 \n\
+		if(MODE == 3){ \n\
+			for(int i=0;i<fw_nVals;i++){ \n\
+				float iso = fw_surfaceVals[i]; \n\
+				if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+					int jstyle = min(i,fw_nStyles-1); \n\
+					jstyle = fw_surfaceStyles[jstyle]; \n\
+					if(jstyle == 1){ \n\
+						/* PLUG: raysum_apply_DEFAULT (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 2) { \n\
+						/* PLUG: raysum_apply_OPACITY (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 3) { \n\
+						/* PLUG: raysum_apply_BLENDED (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 4) { \n\
+						/* PLUG: raysum_apply_BOUNDARY (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 5) { \n\
+						/* PLUG: raysum_apply_CARTOON (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 6) { \n\
+						/* PLUG: raysum_apply_DEFAULT (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 7) { \n\
+						/* PLUG: raysum_apply_EDGE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 8) { \n\
+						/* PLUG: raysum_apply_PROJECTION (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 9) { \n\
+						/* PLUG: raysum_apply_SHADED (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 10) { \n\
+						/* PLUG: raysum_apply_SILHOUETTE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} else if(jstyle == 11) { \n\
+						/* PLUG: raysum_apply_TONE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+					} \n\
+				} \n\
+			} \n\
+			lastdensity = density; \n\
+		} \n\
+		#else //ISO_MODE3 \n\
+		if(MODE == 1){ \n\
+			float iso = fw_surfaceVals[0]; \n\
+			if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+				/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+			} \n\
+			lastdensity = density; \n\
+		} else if(MODE == 2){ \n\
+			float iso = fw_surfaceVals[0]; \n\
+			float density_iso = density / fw_stepSize; \n\
+			if( sign( density_iso - iso) != sign( lastdensity_iso - iso) && length(gradient) > fw_tolerance ){ \n\
+				/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+			} \n\
+			lastdensity = density; \n\
+			lastdensity_iso = density_iso; \n\
+		}  \n\
+		#endif //ISO_MODE3 \n\
+		#else //ISO \n\
+		//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) \n\
+		/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+		#endif //ISO \n\
         T *= 1.0-density*stepSize*Absorption; \n\
-		fragment_color_main.a = 1.0 - T; \n\
-		//fragment_color_main.rgb = fragment_color.rgb; \n\
+		raysum.a = 1.0 - T; \n\
+		//raysum.rgb = raysum.rgb + fragment_color.rgb*density; \n\
         if (T <= 0.01) { \n\
             break; \n\
 		} \n\
+		#ifdef SEGMENT \n\
+		} //if inEnabledSegment \n\
+		#endif //SEGMENT \n\
 		travel -= stepSize; \n\
+		depth += stepSize; \n\
 		if(travel <= 0.0) break; \n\
 		pos += step; \n\
 		\n\
     }  \n\
-	gl_FragColor = fragment_color_main; \n\
+	gl_FragColor = raysum; \n\
 } \n\
 ";
 
 
-static const GLchar *plug_fragment_texture3D_apply_volume =	"\
-void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
+//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+
+static const GLchar *plug_raysum_DEFAULT =	"\
+void raysum_apply_DEFAULT (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum.rgb = vec3(1.0,0.0,1.0); //*density; \n\
+} \n\
+void PLUG_raysum_apply_DEFAULT (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_DEFAULT(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_DEFAULT(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+
+static const GLchar *plug_raysum_OPACITY =	"\
+uniform int fw_opacTexture; \n\
+//uniform sampler2D fw_Texture_unit3; \n\
+void raysum_apply_OPACITY (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	if(fw_opacTexture){ \n\
+		vec2 texcoord = vec2(density,0); \n\
+		//this is too simple for the lookups in the specs \n\
+		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#t-transferFunctionTextureCoordinateMapping \n\
+		raysum.rgb = texture2D(fw_Texture_unit3,texcoord); \n\
+		raysum.a = 1.0; \n\
+	}else{ \n\
+		raysum.rgb = vec3(density); \n\
+		raysum.a = 1.0; \n\
+	} \n\
+} \n\
+void PLUG_raysum_apply_OPACITY (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_OPACITY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_OPACITY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+static const GLchar *plug_raysum_BLENDED =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+} \n\
+";
+static const GLchar *plug_raysum_BOUNDARY =	"\n\
+uniform float fw_boundaryOpacity; \n\
+uniform float fw_retainedOpacity; \n\
+uniform float fw_opacityFactor; \n\
+void raysum_apply_BOUNDARY (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	float magnitude = length(gradient); \n\
+	float ndotv = abs(dot(normal_eye,ng)); \n\
+	raysum.a = density * (fw_retainedOpacity + fw_boundaryOpacity*pow(magnitude,fw_opacityFactor) ); \n\
+} \n\
+void PLUG_raysum_apply_BOUNDARY (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_BOUNDARY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_BOUNDARY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+
+static const GLchar *plug_raysum_CARTOON =	"\n\
+uniform int fw_colorSteps; \n\
+uniform vec4 fw_orthoColor; \n\
+uniform vec4 fw_paraColor; \n\
+void raysum_apply_CARTOON (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	vec3 ng = normalize(gradient); \n\
+	float ndotv = abs(dot(normal_eye,ng)); \n\
+	ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
+	raysum = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
+} \n\
+void PLUG_raysum_apply_CARTOON (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_CARTOON(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_CARTOON(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+static const GLchar *plug_raysum_COMPOSED =	"\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+} \n\
+";
+static const GLchar *plug_raysum_EDGE =	"\
+uniform float fw_gradientThreshold; \n\
+uniform vec4 fw_edgeColor; \n\
+void raysum_apply_EDGE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	vec3 ng = normalize(gradient); \n\
+	float ndotv = abs(dot(normal_eye,ng)); //vec4(ng,density);  \n\
+	vec4 drawcolor = vec4(0.0,0.0,0.0,density); \n\
+	vec4 texel; \n\
+	ndotv = ndotv > cos(fw_gradientThreshold) ? 1.0 : ndotv; \n\
+	texel = mix(drawcolor,fw_edgeColor,1.0 -ndotv); \n\
+	raysum.rgb += texel.rgb * texel.a; \n\
+	density += texel.a; \n\
+} \n\
+void PLUG_raysum_apply_EDGE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_EDGE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_EDGE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+static const GLchar *plug_raysum_PROJECTION =	"\n\
+uniform float fw_intensityThreshold; \n\
+uniform int fw_projType; \n\
+float MAXPROJ = 0.0; \n\
+float MINPROJ = 1.0; \n\
+float AVEPROJ = 0.0; \n\
+float LMIP = 0.0; \n\
+int PROJCOUNT = 0; \n\
+void raysum_apply_PROJECTION (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	PROJCOUNT++; \n\
+	float value = 0.0; \n\
+	if(fw_projType == 1){ \n\
+		//MIN \n\
+		MINPROJ = min(MINPROJ,density); \n\
+		value = MINPROJ; \n\
+	}else if(fw_projType == 2){ \n\
+		//MAX \n\
+		MAXPROJ = max(MAXPROJ,density); \n\
+		if(fw_intensityThreshold > 0.0){ \n\
+			//LMIP \n\
+			if(LMIP == 0.0) \n\
+				LMIP = density; \n\
+			value = LMIP; \n\
+		} else { \n\
+			//MIP \n\
+			MAXPROJ = max(MAXPROJ,density); \n\
+			value = MAXPROJ; \n\
+		} \n\
+	}else if(fw_projType==3){ \n\
+		//AVERAGE \n\
+		AVEPROJ += density; \n\
+		value = AVEPROJ / float(PROJCOUNT); \n\
+	} \n\
+	raysum.rgb += vec3(value)*density; \n\
+} \n\
+void PLUG_raysum_apply_PROJECTION (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_PROJECTION(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_PROJECTION(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+static const GLchar *plug_raysum_SHADED =	"\
+#ifdef LITE \n\
+#define MAX_LIGHTS 8 \n\
+uniform int lightcount; \n\
+//uniform float lightRadius[MAX_LIGHTS]; \n\
+uniform int lightType[MAX_LIGHTS];//ANGLE like this \n\
+struct fw_LightSourceParameters { \n\
+  vec4 ambient;  \n\
+  vec4 diffuse;   \n\
+  vec4 specular; \n\
+  vec4 position;   \n\
+  vec4 halfVector;  \n\
+  vec4 spotDirection; \n\
+  float spotExponent; \n\
+  float spotCutoff; \n\
+  float spotCosCutoff; \n\
+  vec3 Attenuations; \n\
+  float lightRadius; \n\
+}; \n\
 \n\
-  #ifdef TEX3D \n\
-  vec3 texcoord = fw_TexCoord[0]; \n\
-  texcoord.z = 1.0 - texcoord.z; //flip z from RHS to LHS\n\
-  float depth = max(1.0,float(tex3dDepth)); \n\
-  if(repeatSTR[0] == 0) texcoord.x = clamp(texcoord.x,0.0001,.9999); \n\
-  else texcoord.x = mod(texcoord.x,1.0); \n\
-  if(repeatSTR[1] == 0) texcoord.y = clamp(texcoord.y,0.0001,.9999); \n\
-  else texcoord.y = mod(texcoord.y,1.0); \n\
-  if(repeatSTR[2] == 0) texcoord.z = clamp(texcoord.z,0.0001,.9999); \n\
-  else texcoord.z = mod(texcoord.z,1.0); \n\
-  vec4 texel; \n\
-  int flay = int(floor(texcoord.z*depth)); \n\
-  int clay = int(ceil(texcoord.z*depth)); \n\
-  clay = clay == tex3dDepth ? 0 : clay; \n\
-  vec4 ftexel, ctexel; \n\
-  vec3 ftexcoord, ctexcoord; \n\
-  ftexcoord = texcoord; \n\
-  ctexcoord = texcoord; \n\
-  ftexcoord.y += float(flay); \n\
-  ftexcoord.y /= depth; \n\
-  ctexcoord.y += float(clay); \n\
-  ctexcoord.y /= depth; \n\
-  ftexel = texture2D(fw_Texture_unit0,ftexcoord.st); \n\
-  ctexel = texture2D(fw_Texture_unit0,ctexcoord.st); \n\
-  float fraction = mod(ftexcoord.z*depth,1.0); \n\
-  if(magFilter == 1) \n\
-	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
-  else \n\
-	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
-  finalFrag *= texel; \n\
-  #endif //TEX3D \n\
-  \n\
-}\n";
+uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;\n\
+#endif //LITE \n\
+ \n\
+#ifdef FOG \n\
+struct fogParams \n\
+{  \n\
+  vec4 fogColor; \n\
+  float visibilityRange; \n\
+  float fogScale; \n\
+  int fogType; // 0 None, 1= FOGTYPE_LINEAR, 2 = FOGTYPE_EXPONENTIAL \n\
+  // ifdefed int haveFogCoords; \n\
+}; \n\
+uniform fogParams fw_fogparams; \n\
+#endif //FOG \n\
+#ifdef LIT \n\
+#ifdef LITE \n\
+//per-fragment lighting ie phong \n\
+struct fw_MaterialParameters { \n\
+  vec4 emission; \n\
+  vec4 ambient; \n\
+  vec4 diffuse; \n\
+  vec4 specular; \n\
+  float shininess; \n\
+}; \n\
+uniform fw_MaterialParameters fw_FrontMaterial; \n\
+#ifdef TWO \n\
+uniform fw_MaterialParameters fw_BackMaterial; \n\
+#endif //TWO \n\
+vec3 castle_ColorES; \n\
+#else //LITE \n\
+//per-vertex lighting - interpolated Emissive-specular \n\
+varying vec3 castle_ColorES; //emissive shininess term \n\
+#endif //LITE \n\
+#endif //LIT\n\
+uniform int fw_phase; \n\
+uniform int fw_lighting; \n\
+uniform int fw_shadows; \n\
+void raysum_apply_SHADED (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+  #ifdef LIT \n\
+  vec3 castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
+  raysum.rgb = fw_FrontMaterial.diffuse.rgb; \n\
+  #else //LIT \n\
+  raysum.rgb = vec3(0,0,0.0,0.0); \n\
+  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
+  #endif //LIT	\n\
+  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
+  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
+  /* PLUG: add_light_contribution2 (raysum, castle_ColorES, vertex_eye4, normal_eye, fw_FrontMaterial.shininess) */ \n\
+} \n\
+void PLUG_raysum_apply_SHADED (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_SHADED(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_SHADED(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+static const GLchar *plug_raysum_SILHOUETTE =	"\n\
+uniform float fw_BoundaryOpacity; \n\
+uniform float fw_RetainedOpacity; \n\
+uniform float fw_Sharpness; \n\
+void raysum_apply_SILHOUETTE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	vec3 ng = normalize(gradient); \n\
+	float ndotv = abs(dot(ng,normal_eye)); \n\
+	raysum.a = raysum.a * (fw_RetainedOpacity + fw_BoundaryOpacity*pow(1.0 - ndotv,fw_Sharpness)); \n\
+} \n\
+void PLUG_raysum_apply_SILHOUETTE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_SILHOUETTE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_SILHOUETTE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+static const GLchar *plug_raysum_TONE =	"\
+uniform vec4 fw_coolColor; \n\
+uniform vec4 fw_warmColor; \n\
+void raysum_apply_TONE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	vec3 ng = normalize(gradient); \n\
+	float cc = 1.0 + dot(normal_eye,ng); \n\
+	raysum = mix(fw_coolColor,fw_warmColor,cc); \n\
+} \n\
+void PLUG_raysum_apply_TONE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_TONE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+	raysum_apply_TONE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+} \n\
+";
+
+// blended (BlendedVolumeStyle) works (was interpreted and implemented by dug9, Oct 2016)
+//  by rendering 2 volumedatas to 2 fbo textures, then running
+// this shader to blend the 2 fbo textures and spit out fragments just
+// where the box is. Use with the regular volume Vertex shader so
+// only frags over the box show, and so we get box depth for depth blending
+// with the main scene
+static const GLchar *volumeBlendedFragmentGLES2 = " \n\
+/* DEFINES */ \n\
+#ifdef MOBILE \n\
+//precision highp float; \n\
+precision mediump float; \n\
+#endif //MOBILE \n\
+ \n\
+uniform sampler2D fw_Texture_unit0; \n\
+uniform sampler2D fw_Texture_unit1; \n\
+uniform sampler2D fw_Texture_unit2; \n\
+uniform sampler2D fw_Texture_unit3; \n\
+uniform float fw_iwtc1; \n\
+uniform float fw_iwtc2; \n\
+uniform int fw_iwtf1; \n\
+uniform int fw_iwtf2; \n\
+uniform int fw_haveTransfers; \n\
+vec3 weightcolor( in vec3 color, in int func, in float wt, in float ov,  in float oblend, in sampler2D table){ \n\
+	vec3 ret; \n\
+	if(func == 1){ \n\
+		ret = color * wt; \n\
+	}else if(func == 2){ \n\
+		ret = color * ov; \n\
+	}else if(func == 3){ \n\
+		ret = color * oblend; \n\
+	}else if(func == 4){ \n\
+		ret = color * (1.0 - oblend); \n\
+	}else if(func == 5){ \n\
+		vec2 texcoord = color.rg;\n\
+		ret = color * texture2D(table,texcoord).r; \n\
+	} \n\
+	return ret; \n\
+} \n\
+float weightalpha( in float alpha, in int func, in float wt, in float ov, in float oblend, in sampler2D table){ \n\
+	float ret; \n\
+	if(func == 1){ \n\
+		ret = alpha * wt; \n\
+	}else if(func == 2){ \n\
+		ret = alpha * ov; \n\
+	}else if(func == 3){ \n\
+		ret = alpha * oblend; \n\
+	}else if(func == 4){ \n\
+		ret = alpha * (1.0 - oblend); \n\
+	}else if(func == 5){ \n\
+		vec2 texcoord = vec2(alpha,0);\n\
+		ret = alpha * texture2D(table,texcoord).r; \n\
+	} \n\
+	return ret; \n\
+} \n\
+void main(void) \n\
+{ \n\
+	vec4 frag0 = texture2D(fw_Texture_unit0,gl_FragCoord.xy); \n\
+	vec4 frag1 = texture2D(fw_Texture_unit1,gl_FragCoord.xy); \n\
+	vec3 cv = frag0.rgb; \n\
+	float ov = frag0.a; \n\
+	vec3 cblend = frag1.rgb; \n\
+	float oblend = frag1.a; \n\
+	vec3 cvw, cbw; \n\
+	float ovw, obw; \n\
+	cvw = weightcolor(cv,fw_iwtf1,fw_iwtc1,ov,oblend,fw_Texture_unit2); \n\
+	ovw = weightalpha(ov,fw_iwtf1,fw_iwtc1,ov,oblend,fw_Texture_unit2); \n\
+	cbw = weightcolor(cblend,fw_iwtf2,fw_iwtc2,ov,oblend,fw_Texture_unit3); \n\
+	obw = weightalpha(oblend,fw_iwtf2,fw_iwtc2,ov,oblend,fw_Texture_unit3); \n\
+	vec3 cg = clamp( cvw + cbw, 0.0, 1.0); \n\
+	float og = clamp(ovw + obw, 0.0, 1.0); \n\
+	\n\
+	//gl_FragColor = vec4(cg,og); \n\
+	gl_FragColor = frag1; \n\
+} \n\
+";
+
 
 const char *getVolumeVertex(void){
 	return volumeVertexGLES2; //genericVertexDesktop
@@ -1961,6 +2376,7 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	//whichone - a bitmask of shader requirements, one bit for each requirement, so shader permutation can be built
 
 	int retval, unique_int;
+	unsigned int volflags;
 	char *CompleteCode[3];
 	char *vs, *fs;
 	retval = FALSE;
@@ -1974,7 +2390,12 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		
 	CompleteCode[SHADERPART_VERTEX] = vs;
 	CompleteCode[SHADERPART_GEOMETRY] = NULL;
-	CompleteCode[SHADERPART_FRAGMENT] = fs;
+	if(whichOne.volume == SHADERFLAGS_VOLUME_STYLE_BLENDED << 4){
+		CompleteCode[SHADERPART_FRAGMENT] = STRDUP(volumeBlendedFragmentGLES2);
+
+	}else{
+		CompleteCode[SHADERPART_FRAGMENT] = fs;
+	}
 
 	// what we really have here: UberShader with CastlePlugs
 	// UberShader: one giant shader peppered with #ifdefs, and you add #defines at the top for permutations
@@ -1991,19 +2412,116 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		AddVersion(SHADERPART_FRAGMENT, 110, CompleteCode); //lower precision floats
 	}
 
+	if(whichOne.volume == SHADERFLAGS_VOLUME_STYLE_BLENDED << 4){
+		*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
+		*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
+		return retval;
+	}
+
 	unique_int = 0; //helps generate method name PLUG_xxx_<unique_int> to avoid clash when multiple PLUGs supplied for same PLUG 
 
-	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_XYZ)){
-		AddDefine(SHADERPART_VERTEX,"XYZ",CompleteCode);
+	//if(DESIRE(whichOne.volume,TEX3D_SHADER)){
+	AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
+	Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply_volume,CompleteCode,&unique_int); //uses TILED
+	//}
+
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_DATA_BASIC)){
+		AddDefine(SHADERPART_FRAGMENT,"BASIC",CompleteCode); 
 	}
-	if(DESIRE(whichOne.volume,TEX3D_SHADER)){
-		AddDefine(SHADERPART_FRAGMENT,"TEX3D",CompleteCode); 
-		Plug(SHADERPART_FRAGMENT,plug_fragment_texture3D_apply,CompleteCode,&unique_int);
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_DATA_ISO)){
+		AddDefine(SHADERPART_FRAGMENT,"ISO",CompleteCode); 
+		if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_DATA_ISO_MODE3)){
+			AddDefine(SHADERPART_FRAGMENT,"ISO_MODE3",CompleteCode); 
+		}
+	}
+	if(DESIRE(whichOne.volume,SHADERFLAGS_VOLUME_DATA_SEGMENT)){
+		AddDefine(SHADERPART_FRAGMENT,"SEGMENT",CompleteCode); 
+	}
+	if(DESIRE(whichOne.base,CLIPPLANE_SHADER)){
+		AddDefine(SHADERPART_VERTEX,"CLIP",CompleteCode);	
+		Plug(SHADERPART_VERTEX,vertex_plug_clip_apply,CompleteCode,&unique_int);	
+		AddDefine(SHADERPART_FRAGMENT,"CLIP",CompleteCode);	
+		Plug(SHADERPART_FRAGMENT,frag_plug_clip_apply,CompleteCode,&unique_int);	
+	}
+
+	//unsigned int 32 bits - 4 for basic, leaves 28/4 = max 7 styles
+	//work from left to right (the order declared), skip any 0/null/empties
+	volflags = whichOne.volume;
+	unsigned char volflag[7];
+	int kflags = 0;
+	for(int i=0;i<7;i++){
+		int iflag = (volflags >> (7-i)*4) & 0xF;
+		if(iflag){
+			volflag[kflags] = iflag;
+			kflags++;
+		}
+	}
+	//now volflag[] is in the order declared with no 0s/nulls 
+	for(int k=0;k<kflags;k++){
+
+		switch(volflag[k]){
+		case SHADERFLAGS_VOLUME_STYLE_DEFAULT:
+			AddDefine(SHADERPART_FRAGMENT,"DEFAULT",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_DEFAULT,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_OPACITY:
+			AddDefine(SHADERPART_FRAGMENT,"OPACITY",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_OPACITY,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_BLENDED:
+			AddDefine(SHADERPART_FRAGMENT,"BLENDED",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_BLENDED,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_BOUNDARY:
+			AddDefine(SHADERPART_FRAGMENT,"BOUNDARY",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_BOUNDARY,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_CARTOON:
+			AddDefine(SHADERPART_FRAGMENT,"CARTOON",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_CARTOON,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_COMPOSED:
+			AddDefine(SHADERPART_FRAGMENT,"COMPOSED",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_COMPOSED,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_EDGE:
+			AddDefine(SHADERPART_FRAGMENT,"EDGE",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_EDGE,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_PROJECTION:
+			AddDefine(SHADERPART_FRAGMENT,"PROJECTION",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_PROJECTION,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_SHADED:
+			AddDefine(SHADERPART_FRAGMENT,"SHADED",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_SHADED,CompleteCode,&unique_int);
+			//if you want a plug within a plug, then if you include the higher level
+			// plug first, then the lower level plug should find its tartget in the CompleteCode
+			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode); 
+			AddDefine(SHADERPART_FRAGMENT,"LITE",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_SILHOUETTE:
+			AddDefine(SHADERPART_FRAGMENT,"SILHOUETTE",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_SILHOUETTE,CompleteCode,&unique_int);
+			break;
+		case SHADERFLAGS_VOLUME_STYLE_TONE:
+			AddDefine(SHADERPART_FRAGMENT,"TONE",CompleteCode); 
+			Plug(SHADERPART_FRAGMENT,plug_raysum_TONE,CompleteCode,&unique_int);
+			break;
+		default:
+			//if 0, just skip
+			break;
+		}
 	}
 
 
+	//shader doesn't compile?
+	//in visual studio, this is a good place to get the composed shader source, then paste into
+	// an editor that has line numbers, to get to the ERROR line
 	*fragmentSource = CompleteCode[SHADERPART_FRAGMENT]; //original_fragment; //fs;
 	*vertexSource = CompleteCode[SHADERPART_VERTEX]; //original_vertex; //vs;
 	return retval;
 
 }
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< END MIT, VOLUME RENDERING

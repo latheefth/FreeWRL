@@ -702,7 +702,7 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 		if(YDirection == 'U') iydown = 0;
 			
 		totalbytes = 4 * nx * ny * nz; //output 4 channel RGBA image size
-		if(totalbytes <= 128 * 128 * 128 * 4){
+		if(totalbytes <= 256 * 256 * 256 * 4){
 			unsigned char *rgbablob;
 			rgbablob = malloc(totalbytes);
 			memset(rgbablob,0,totalbytes);
@@ -1443,7 +1443,8 @@ encoding: raw
 		if(1) printf("nrrd image voxel range hi %lf lo %lf 255range scale factor %lf\n",dhi,dlo,d255range);
 		//now convert to display usable data type which currently is RGBA
 		tti->texdata = MALLOC(unsigned char *,nvoxel * 4); //4 for RGBA
-		tti->channels = 2; //1=lum 2=lum-alpha 3=rgb 4=rgba //doing 2-channel allows modulation of material color
+		tti->channels = 1; //1=lum 2=lum-alpha 3=rgb 4=rgba //doing 2-channel allows modulation of material color
+			//Oct 16, 2016: in textures.c we now compute gradient automatically and put in RGB, if channels == 1 and z > 1
 		tti->hasAlpha = TRUE;
 		tti->x = isize[0];
 		tti->y = isize[1];
@@ -2349,7 +2350,8 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 		case IMAGETYPE_WEB3DIT:
 			ret = loadImage_web3dit(this_tex,fname); break;
 		case IMAGETYPE_NRRD:
-			ret = loadImage_nrrd(this_tex,fname); break;
+			ret = loadImage_nrrd(this_tex,fname); 
+			break;
 		case IMAGETYPE_VOL:
 			ret = loadImage3DVol(this_tex, fname); break;
 		case IMAGETYPE_UNKNOWN:
@@ -2387,7 +2389,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	//close_openned_file(myFile);
 	FREE_IF_NZ(myFile);
 	*/
-	return this_tex->frames;
+	return (ret != 0); // this_tex->frames;
 
 #endif //ANDROIDNDK
 
@@ -2819,6 +2821,11 @@ static bool texture_process_entry(textureTableIndexStruct_s *entry)
 		parentPath = (resource_item_t *)(((struct X3D_ImageTexture3D *)entry->scenegraphNode)->_parentResource);
 		restype = resm_image;
 		break;
+
+	case NODE_ComposedTexture3D:
+		return TRUE;
+		break;
+
 
 	case NODE_MovieTexture:
 		url = & (((struct X3D_MovieTexture *)entry->scenegraphNode)->url);

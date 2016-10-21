@@ -206,6 +206,104 @@ static void myScaleImage(int srcX,int srcY,int destX,int destY,unsigned char *sr
 	}
 }
 
+static void myScaleImage3D(int srcX,int srcY,int srcZ, int destX,int destY,int destZ, unsigned char *src, unsigned char *dest) {
+	float YscaleFactor;
+	float XscaleFactor;
+	float ZscaleFactor;
+	float fx,fy,fz;
+	int iy, ix, iz;
+	uint32 *src32 = (uint32 *)src;
+	uint32 *dest32 = (uint32 *)dest;
+
+	if ((srcY<=0) || (destY<=0) || (srcX<=0) || (destX<=0) || (srcZ<=0) || (destZ<=0)) return;
+	if (src == NULL) return;
+	if (dest == NULL) return;
+
+	if ((srcY==destY) && (srcX==destX) && (srcZ==destZ)) {
+		/* printf ("simple copy\n"); */
+		memcpy (dest,src,srcY*srcX*srcZ*4); /* assuming FreeWRL-standard RGBA or BGRA textures */
+	}
+
+	/* do x direction first */
+	YscaleFactor = ((float)srcY) / ((float)destY);
+	XscaleFactor = ((float)srcX) / ((float)destX);
+	ZscaleFactor = ((float)srcZ) / ((float)destZ);
+
+	for (iz=0; iz<destZ; iz++) {
+		int page;
+		fz = ZscaleFactor * ((float) iz);
+		page = (int)fz;
+		for (iy=0; iy<destY; iy++) {
+			int row;
+			fy = YscaleFactor * ((float) iy);
+			row = (int)(fy);
+			for (ix=0; ix<destX; ix++) {
+				int column;
+				int oldIndex;
+
+				fx = XscaleFactor * ((float) ix);
+				column = (int)(fx);
+				oldIndex = (page * srcY + row) * srcX + column; /* so many rows, each row has srcX columns */
+				dest32[(iz*destY + iy)*destX+ix] = src32[oldIndex];
+			}
+		}
+	}
+}
+void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
+	//assumes we have a scalar image with info only in alpha, but (unused) RGB channels
+	//we compute 3D alpha/scalar gradient using one of sobel, roberts ...
+	//gradient has magnitude and direction (vs normal, which is of unit length)
+	//here we do an axis-aligned roberts ie gradient_x = x1 - x0
+	int iz,iy,ix, jz,jy,jx,jzz,jyy,jxx, k;
+	char *rgba0, *rgba1;
+	int gradient[3]; 
+	unsigned char *urgba, a;
+	uint32 *pixels = (uint32 *)dest;
+
+	for(iz=0;iz<z;iz++){
+		for(iy=0;iy<y;iy++){
+			for(ix=0;ix<x;ix++){
+				//initialize gradient
+				for(k=0;k<3;k++) gradient[k] = 0;
+				//sum onto gradient
+				jxx = jyy = jzz = 0;
+				//what if we are on the edge? for roberts, just duplicate next-to-edge by backing up one
+				if(iz == z-1) jzz = -1;
+				if(iy == y-1) jyy = -1;
+				if(ix == x-1) jxx = -1;
+				jx = jxx; jy = jyy; jz = jzz;
+				rgba0 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				urgba = (unsigned char *)rgba0;
+				jx = jxx + 1;
+				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				gradient[0] = (int)rgba1[3] - (int)rgba0[3];
+				jx = jxx;
+				jy = jyy+1;
+				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				gradient[1] = (int)rgba1[3] - (int)rgba0[3];
+				jy = jyy;
+				jz = jzz+1;
+				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+				gradient[2] = (int)rgba1[3] - (int)rgba0[3];
+				//scale gradient to -127 to +127 in each dimension
+				//roberts: a1 - a0 could be in range (255 - 0) to (0 -255) or -255 to 255, 
+				// we need -127 to 127 signed char on each dim
+				for(k=0;k<3;k++) gradient[k] /= 2;  
+				//but when texture2D / sampler2D convert from image pixel to float, 
+				//the expect the pixels to be unsigned char.
+				//so we add 127 here, and subtract .5 in the shader, once they are float
+				for(k=0;k<3;k++) gradient[k] += 127;  
+				//set gradient in RGB channels
+				for(k=0;k<3;k++) urgba[k] = (unsigned char)gradient[k];
+				//if(rgba0[0] || rgba0[1] || rgba0[2]){
+				//	if(rgba0[0] != rgba0[1] || rgba0[1] != rgba0[2])
+				//		printf("[%d %d %d]",(int)rgba0[0],(int)rgba0[1],(int)rgba0[2]);
+				//}
+			}
+		}
+	}
+
+}
 static void GenMipMap2D( GLubyte *src, GLubyte **dst, int srcWidth, int srcHeight, int *dstWidth, int *dstHeight )
 {
    int x,
@@ -1162,9 +1260,9 @@ DEF_FINDFIELD(TEXTUREBOUNDARYKEYWORDS)
 DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
 
 
-
+void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
 void move_texture_to_opengl(textureTableIndexStruct_s* me) {
-	int rx,ry,sx,sy;
+	int rx,ry,rz,sx,sy,sz;
 	int x,y,z,itile3d;
 	GLint iformat;
 	GLenum format;
@@ -1220,6 +1318,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		char buff[] = {0x70, 0x70, 0x70, 0xff} ; /* same format as ImageTextures - GL_BGRA or GL_RGBA here */
 		me->x = 1;
 		me->y = 1;
+		me->z = 1;
 		me->hasAlpha = FALSE;
 		me->texdata = MALLOC(unsigned char *, 4);
 		memcpy (me->texdata, buff, 4);
@@ -1544,50 +1643,10 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
 				glHint(GL_TEXTURE_COMPRESSION_HINT, compression);
 			}
-			itile3d = FALSE; //TRUE;
 			int npot = rdr_caps->av_npot_texture;
 			x = me->x;
-			y = me->y * me->z; //takes care of texture3D using strip image
-			unsigned char *texdataTiles = NULL;
-			if(itile3d && me->z > 1){
-				uint32 *p2, *p1;
-				int nx, ny, ix, iy, nxx, nyy, xy;
-				x = me->x;
-				y = me->y;
-				z = me->z;
-				nx = sqrt(z) + 1;
-				ny = z / nx + 1;
-				nxx = nx*x;
-				nyy = ny*y;
-				xy = x*y;
-				texdataTiles =  MALLOC(unsigned char *,nxx * nyy * 4);
-				p2 = (uint32 *)texdataTiles;
-				p1 = (uint32 *)me->texdata;
-				for(int i=0;i<z;i++){
-					ix = i % nx;
-					iy = i / nx;
-					for(int j=0;j<y;j++){
-						for(int k=0;k<x;k++){
-							int ifrom, ito;
-							ifrom = i*xy + j*x + k;
-							ito = iy*nx*xy + j*nxx + ix*x + k;
-							uint32 pixel = p1[ifrom];
-							p2[ito] = pixel;
-							//p2[iy*nx*xy + j*nxx + ix*x + k] = p1[i*xy + j*x + k];
-						}
-					}
-				}
-				x = nxx;
-				y = nyy;
-				z = 1;
-				me->texdata = texdataTiles;
-				mytexdata = me->texdata;
-				npot = TRUE;
-				generateMipMaps = FALSE;
-				FREE_IF_NZ(p1);
-				
-			}
-		
+			y = me->y; // * me->z; //takes care of texture3D using strip image
+			z = me->z;
 		
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
@@ -1606,7 +1665,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 		
 				/* do we have to do power of two textures? */
 				if (npot) { //rdr_caps->av_npot_texture) {
-					rx = x; ry = y;
+					rx = x; ry = y; rz = z;
 				} else {
 					/* find a power of two that fits */
 					rx = 1;
@@ -1617,6 +1676,11 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 					sy = y;
 					while(sy) {sy /= 2; ry *= 2;}
 					if(ry/2 == y) {ry /= 2;}
+
+					rz = 1; 
+					sz = z;
+					while(sz) {sz /= 2; rz *= 2;}
+					if(rz/2 == z) {rz /= 2;}
 				}
 		
 				if (gglobal()->internalc.global_print_opengl_errors) {
@@ -1624,59 +1688,205 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				}
 		
 				//ConsoleMessage ("loadTextureNode, runtime texture size %d",gglobal()->display.rdr_caps.runtime_max_texture_size);
-
-				if(rx != x || ry != y || rx > rdr_caps->runtime_max_texture_size || ry > rdr_caps->runtime_max_texture_size) {
-					/* do we have texture limits??? */
-					if (rx > rdr_caps->runtime_max_texture_size) rx = rdr_caps->runtime_max_texture_size;
-					if (ry > rdr_caps->runtime_max_texture_size) ry = rdr_caps->runtime_max_texture_size;
-				}
+				if(z > 1){
+					//its a texture3D / volume image
+					int emulating3D_TILED;
+					emulating3D_TILED = TRUE;
+					generateMipMaps = FALSE;
+					if(emulating3D_TILED){
+						//tiled uses more of the max_texture_size x max_texture_size
+						//	texture3D emulator via TILED texture2D
+						//  reason for emulating: 2016 GLES2 via ANGLEPROJECT(gles emulator over DirectX on windows)
+						//     doesn't have Texture3D or Texture3DOES or Texture3DEXT.
+						//  reason for TILES: an oblong Y-STRIP approach exceded max texture size in Y (but had lots left in X)
+						//     desktop computer max_size (of 2D image in one dimension) 16384
+						//     android phone max_size 4096
+						//     and so would be resampled (blurry) in y and good in x
+						//     using tiles means room for more full z slices ie 256x256x256 == 4096x4096 == 16M, 
+						//			512x512x512 == 134M == 16384x16384/2, and therefore less blurry images
+						//  tiles start in upper left with z=0, increase in y,
+						//  then when hit ny tiles in a y strip, move right one tile, and restart at top
+						//  uniform tex3dTiles[3] = {nx,ny,z}
+						//  example ny = 4, nx = 3, z = 11
+						//  1  5  9
+						//  2  6  10
+						//  3  7  11
+						//  4  8
+						//  
+						// 
+						int rc,sc,c,cube_root, max_size;
+						max_size = rdr_caps->runtime_max_texture_size;
+						//if(32bit) I find process doesn't have enough RAM left for opengl to malloc 512x512x512x4byte.
+						//could try single channel, single byte textures, but for now we'll keep it under 17M pixels
+						if(x * y * z > 256 * 256 * 256) 
+							max_size = min(max_size,4096);
+						//max_size = 2048; //can re-set here for experiments
+						cube_root = (int)pow( max_size * max_size  + 3, 1.0/3.0);
+						c = cube_root;
+						//need lower-power-of-two so we squeeze into space available, and leave a little
+						rc = 1; 
+						sc = c;
+						while(sc) {sc /= 2; rc *= 2;}
+						if(rc > c) {rc /= 2;}
+						//ConsoleMessage("pow2 cube root %d\n",rc);
+						cube_root = rc;
+						if(rx != x || ry != y || rz != z || rx > cube_root || ry > cube_root || rz > cube_root) {
+							/* do we have texture limits??? 
+							dug9: windows intel i5: desktop opengl and uwp/angleproject 16384 
+							16384 x 16394 = 268M. cube-root 268M = 645.xx lets round down to pow2: 512
+							android LG nexus 4096
+							4096 x 4096 = 16.7M; cube-root 16.7M = 256. 
+							*/
+							if (rx > cube_root) rx = cube_root;
+							if (ry > cube_root) ry = cube_root;
+							if (rz > cube_root) rz = cube_root;
+						}
 		
-				if (gglobal()->internalc.global_print_opengl_errors) {
-					DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
-				}
-				printf("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+						if (gglobal()->internalc.global_print_opengl_errors) {
+							DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+						}
+						//ConsoleMessage("texture size after maxTextureSize taken into account: %d %d %d, from %d %d %d\n",rx,ry,rz,x,y,z);
 
-				/* it is a power of 2, lets make sure it is square */
-				/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
-				   lets just keep things consistent 
-				   But if not mipmapping, then (experience with win32 GLES2 emulator and QNX device)
-				   then it's not necessary to square the image, although current code will get here with
-				   generateMipMap always true.
-				   */
-				if (rx != ry) {
-					if(generateMipMaps){
-						if (rx>ry)ry=rx;
-						else rx=ry;
+						//rescale sub-images if/as needed
+						dest = mytexdata;
+						//if(rx != x || ry != y || rz != z){
+						//if(rx > x || ry > y || rz > z){
+						if(x > rx || y > ry || z > rz){
+							int mx,my,mz;
+							mx = min(x,rx);
+							my = min(y,ry);
+							mz = min(z,rz);
+							dest = MALLOC(unsigned char *, 4 * rx * ry * rz);
+							myScaleImage3D(x,y,z,mx,my,mz,mytexdata,dest);
+							x = mx;
+							y = my;
+							z = mz;
+							FREE_IF_NZ(me->texdata);
+						}
+
+						//COMPUTE GRADIENT - we'll do unconditionally if channels == 1 for 3D image
+						//and hope that the one info channel is alpha because we overwrite rgb
+						if(me->channels == 1){
+							//alpha only scalar image, RGB are free to hold gradient
+							compute_3D_alpha_gradient_store_rgb(dest,x,y,z);
+						}
+
+						unsigned char *texdataTiles = NULL;
+						uint32 *p2, *p1;
+						int nx, ny, ix, iy, nxx, nyy, xy;
+						ny = (int) sqrt(z+1);
+						nx = z / ny;
+						nx = z - nx*ny > 0 ? nx+1 : nx;
+
+						me->tiles[0] = nx; //let the shader tiled emulator for texture3D know via uniform about the tile layout
+						me->tiles[1] = ny;
+						me->tiles[2] = z;
+						//ConsoleMessage("Tiles ny %d nx %d zplanes %d\n",nx,ny,z);
+						nxx = nx*rx;
+						nyy = ny*ry;
+
+						//place in tile formation - a series of fullish y strips
+						xy = x*y;
+						texdataTiles =  MALLOC(unsigned char *,nxx * nyy * 4);
+						p2 = (uint32 *)texdataTiles;
+						p1 = (uint32 *)dest;
+						for(int iz=0;iz<z;iz++){
+							iy = iz % ny;
+							ix = iz / ny;
+							for(int j=0;j<y;j++){
+								for(int k=0;k<x;k++){
+									int ifrom, ito;
+									ifrom = (iz*y + j)*x + k;
+									//ito = iy*nx*xy + j*nxx + ix*x + k;
+									ito = (iy*y + j)*nxx + (ix*x) + k;
+									uint32 pixel = p1[ifrom];
+									p2[ito] = pixel;
+									//p2[iy*nx*xy + j*nxx + ix*x + k] = p1[i*xy + j*x + k];
+								}
+							}
+						}
+						if(0){
+							//write out tiled image for inspection
+							textureTableIndexStruct_s tti2, *tti3;
+							tti3 = &tti2;
+							tti3->x = nxx;
+							tti3->y = nyy;
+							tti3->z = 1;
+							tti3->channels = 4;
+							tti3->texdata = texdataTiles;
+							saveImage_web3dit(tti3, "test_tiled_texture.web3dit");
+						}
+						if (gglobal()->internalc.global_print_opengl_errors) {
+							DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
+						}
+						//printf("after proxy image stuff, size %d %d\n",rx,ry);
+
+						myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  nxx, nyy, 0, format, GL_UNSIGNED_BYTE, texdataTiles);
+						ConsoleMessage("final texture2D size %d %d\n",nxx,nyy);
+						FREE_IF_NZ(texdataTiles);
+						if(dest != me->texdata) FREE_IF_NZ(dest);
+					}else{
+						//use Texture3D which android and winRT/uwp don't have
 					}
-				}
+				}else{
+					//ordinary 2D image textures
+					if(rx != x || ry != y || rx > rdr_caps->runtime_max_texture_size || ry > rdr_caps->runtime_max_texture_size) {
+						/* do we have texture limits??? 
+						dug9: windows intel i5: desktop opengl and uwp/angleproject 16384 
+						16384 x 16394 = 268M. cube-root 268M = 645.xx lets round down to pow2: 512
+						android LG nexus 4096
+						4096 x 4096 = 16.7M; cube-root 16.7M = 256. 
+						*/
+						if (rx > rdr_caps->runtime_max_texture_size) rx = rdr_caps->runtime_max_texture_size;
+						if (ry > rdr_caps->runtime_max_texture_size) ry = rdr_caps->runtime_max_texture_size;
+					}
+		
+					if (gglobal()->internalc.global_print_opengl_errors) {
+						DEBUG_MSG("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
+					}
+					//ConsoleMessage("texture size after maxTextureSize taken into account: %d %d, from %d %d\n",rx,ry,x,y);
 
-				/* if scaling is ok... */
-				if ((x==rx) && (y==ry)) {
-					dest = mytexdata;
-				} else {
+					/* it is a power of 2, lets make sure it is square */
+					/* ES 2.0 needs this for cross-platform; do not need to do this for desktops, but
+					   lets just keep things consistent 
+					   But if not mipmapping, then (experience with win32 GLES2 emulator and QNX device)
+					   then it's not necessary to square the image, although current code will get here with
+					   generateMipMap always true.
+					   */
+					if (rx != ry) {
+						if(generateMipMaps){
+							if (rx>ry)ry=rx;
+							else rx=ry;
+						}
+					}
 
-					/* try this texture on for size, keep scaling down until we can do it */
-					/* all textures are 4 bytes/pixel */
-					dest = MALLOC(unsigned char *, 4 * rx * ry);
+					/* if scaling is ok... */
+					if ((x==rx) && (y==ry)) {
+						dest = mytexdata;
+					} else {
 
-					myScaleImage(x,y,rx,ry,mytexdata,dest);
-				}
+						/* try this texture on for size, keep scaling down until we can do it */
+						/* all textures are 4 bytes/pixel */
+						dest = MALLOC(unsigned char *, 4 * rx * ry);
+
+						myScaleImage(x,y,rx,ry,mytexdata,dest);
+					}
 				
 		
-				if (gglobal()->internalc.global_print_opengl_errors) {
-					DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
+					if (gglobal()->internalc.global_print_opengl_errors) {
+						DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
+					}
+					//printf("after proxy image stuff, size %d %d\n",rx,ry);
+
+					myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 				}
-				//printf("after proxy image stuff, size %d %d\n",rx,ry);
-
-				myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
-
 				if(mytexdata != dest) {
 					FREE_IF_NZ(dest);
 				}
 			}
 		
 			/* we can get rid of the original texture data here */
-// experiment for volume, leave malloced			FREE_IF_NZ (me->texdata);
+			FREE_IF_NZ (me->texdata);
 		}
 	}
 
@@ -1720,6 +1930,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	struct Multi_String *mfurl = NULL;
 	ttglobal tg = gglobal();
 	p = (ppTextures)tg->Textures.prv;
+	//#define DEBUG_TEX ConsoleMessage
 
 //	GET_THIS_TEXTURE;
 //#define GET_THIS_TEXTURE 
@@ -1825,6 +2036,7 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 			printf ("unknown texture status %d\n",myTableIndex->status);
 		}
 	}
+	//#define DEBUG_TEX
 }
 
 

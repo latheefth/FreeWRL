@@ -47,6 +47,7 @@ struct textureTableIndexStruct {
     int    x;
     int    y;
 	int    z;
+	int    tiles[3]; //when using TILED emulator for texture3D, nx, ny tiles, and resampled z
     unsigned char *texdata;
     GLint  repeatSTR[3]; //repeatR - used for non-builtin-Texture3D ie shader will manually apply this rule
 	GLint magFilter; //needed in TEX3D frag shader for Z

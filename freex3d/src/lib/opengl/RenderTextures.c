@@ -303,13 +303,9 @@ static void passedInGenTex(struct textureVertexInfo *genTex) {
 					textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tnode);
 					if(tnode->_nodeType != NODE_ComposedTexture3D){
 						//pixelTexture3D, imageTexture3D (but not composedTexture3D which uses textureCount above)
-						GLint tex3dDepth;
 						if(me){
-							tex3dDepth = me->tex3dDepth;
 							if(tti){
-								glUniform1i(me->tex3dDepth,tti->z); //nz is needed in shader when faking texture3D with texture2D
-							}else{
-								glUniform1i(me->tex3dDepth,1);
+								glUniform1iv(me->tex3dTiles,3,tti->tiles);
 							}
 						}
 					}
