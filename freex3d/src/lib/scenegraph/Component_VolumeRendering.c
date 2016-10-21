@@ -1232,10 +1232,17 @@ void child_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
 	static int once = 0;
 	COMPILE_IF_REQUIRED
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+		unsigned int voldataflags;
 		if(!once)
 			printf("child segmentedvolumedata \n");
+		voldataflags = SHADERFLAGS_VOLUME_DATA_ISO;
 
-		int myProg = getVolumeProgram(node->renderStyle.p,node->renderStyle.n, SHADERFLAGS_VOLUME_DATA_ISO);
+		int MODE;
+		MODE = node->surfaceValues.n == 1 ? 1 : 3;
+		MODE = node->contourStepSize != 0.0f && MODE == 1 ? 2 : 1;
+		if(MODE == 3)
+			voldataflags |= SHADERFLAGS_VOLUME_DATA_ISO_MODE3;
+		int myProg = getVolumeProgram(node->renderStyle.p,node->renderStyle.n, voldataflags);
 		//get and set ISO-specific uniforms
 		int itexture = 1; //voxels=0,segmentIDs=1
 		render_ISO_volume_data(myProg,node);

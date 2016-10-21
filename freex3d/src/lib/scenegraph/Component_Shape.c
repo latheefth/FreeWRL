@@ -152,7 +152,7 @@ static int hasUserDefinedShader(struct X3D_Node *node) {
 int hasGeneratedCubeMapTexture(struct X3D_Appearance *appearance){
 	int ret = FALSE;
 	struct X3D_Appearance *tmpN;   
-	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, appearance,tmpN)
+	POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *, X3D_NODE(appearance),tmpN)
 	if(tmpN && tmpN->texture)
 		if(tmpN->texture->_nodeType == NODE_GeneratedCubeMapTexture) ret = TRUE;
 	return ret;
@@ -783,7 +783,7 @@ void child_Shape (struct X3D_Shape *node) {
 	memcpy (&p->appearanceProperties.fw_FrontMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 	memcpy (&p->appearanceProperties.fw_BackMaterial, &defaultMaterials, sizeof (struct fw_MaterialParameters));
 
-	if((renderstate()->render_cube) && hasGeneratedCubeMapTexture(node->appearance))
+	if((renderstate()->render_cube) && hasGeneratedCubeMapTexture((struct X3D_Appearance*)node->appearance))
 		return; //don't draw if this node uses a generatedcubemaptexture and its a cubemaptexture generation pass; is there more optimal place to do this?
 
 	/* now, are we rendering blended nodes or normal nodes?*/
