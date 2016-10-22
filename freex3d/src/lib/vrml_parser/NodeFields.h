@@ -212,7 +212,7 @@ END_NODE(BoundaryEnhancementVolumeStyle)
 /* BoundedPhysicsModel node */
 BEGIN_NODE(BoundedPhysicsModel)
 EXPOSED_FIELD(BoundedPhysicsModel,enabled,sfbool,enabled,FIELDTYPE_SFBool)
-EXPOSED_FIELD(BoundedPhysicsModel,force,sfvec3f,force,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(BoundedPhysicsModel,geometry,sfnode,geometry,FIELDTYPE_SFNode)
 EXPOSED_FIELD(BoundedPhysicsModel,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 END_NODE(BoundedPhysicsModel)
 
@@ -910,6 +910,13 @@ FIELD(FontStyle,spacing,sffloat,spacing,FIELDTYPE_SFFloat)
 FIELD(FontStyle,style,sfstring,style,FIELDTYPE_SFString)
 FIELD(FontStyle,topToBottom,sfbool,topToBottom,FIELDTYPE_SFBool)
 END_NODE(FontStyle)
+
+/* ForcePhysicsModel node */
+BEGIN_NODE(ForcePhysicsModel)
+EXPOSED_FIELD(ForcePhysicsModel,enabled,sfbool,enabled,FIELDTYPE_SFBool)
+EXPOSED_FIELD(ForcePhysicsModel,force,sfvec3f,force,FIELDTYPE_SFVec3f)
+EXPOSED_FIELD(ForcePhysicsModel,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+END_NODE(ForcePhysicsModel)
 
 /* GeneratedCubeMapTexture node */
 BEGIN_NODE(GeneratedCubeMapTexture)

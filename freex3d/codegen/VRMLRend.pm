@@ -239,7 +239,7 @@ our %defaultContainerType = (
 	VolumeEmitter		=>"emitter",
 	WindPhysicsModel	=>"physics",
 	BoundedPhysicsModel	=>"physics",
-	GravityPhysicsModel	=>"physics",
+	ForcePhysicsModel	=>"physics",
 	ParticleSystem		=>"shape",
 
 	
@@ -558,6 +558,7 @@ our %ChildC = map {($_=>1)} qw/
 	VolumeData
 	SegmentedVolumeData
 	IsoSurfaceVolumeData
+	ParticleSystem
 /;
 
 
@@ -673,6 +674,8 @@ our %CompileC = map {($_=>1)} qw/
 	VolumeData
 	SegmentedVolumeData
 	IsoSurfaceVolumeData
+	
+	ParticleSystem
 /;
 
 

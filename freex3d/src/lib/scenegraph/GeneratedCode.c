@@ -240,6 +240,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_origPoint",
 	"_p",
 	"_parentResource",
+	"_particles",
 	"_phaseFunction",
 	"_pointsVBO",
 	"_previousvalue",
@@ -268,6 +269,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_takefirstinput",
 	"_talkToNodes",
 	"_tau",
+	"_tris",
 	"_type",
 	"_values",
 	"_verifiedBackColor",
@@ -2083,6 +2085,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"Fog",
 	"FogCoordinate",
 	"FontStyle",
+	"ForcePhysicsModel",
 	"GeneratedCubeMapTexture",
 	"GeoCoordinate",
 	"GeoElevationGrid",
@@ -2504,6 +2507,8 @@ struct X3D_Virt virt_FogCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,N
 
 struct X3D_Virt virt_FontStyle = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
+struct X3D_Virt virt_ForcePhysicsModel = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
 void render_GeneratedCubeMapTexture(struct X3D_GeneratedCubeMapTexture *);
 void compile_GeneratedCubeMapTexture(struct X3D_GeneratedCubeMapTexture *);
 struct X3D_Virt virt_GeneratedCubeMapTexture = { NULL,(void *)render_GeneratedCubeMapTexture,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_GeneratedCubeMapTexture};
@@ -2879,7 +2884,9 @@ void render_PackagedShader(struct X3D_PackagedShader *);
 void compile_PackagedShader(struct X3D_PackagedShader *);
 struct X3D_Virt virt_PackagedShader = { NULL,(void *)render_PackagedShader,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_PackagedShader};
 
-struct X3D_Virt virt_ParticleSystem = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void child_ParticleSystem(struct X3D_ParticleSystem *);
+void compile_ParticleSystem(struct X3D_ParticleSystem *);
+struct X3D_Virt virt_ParticleSystem = { NULL,NULL,(void *)child_ParticleSystem,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ParticleSystem};
 
 void prep_PickableGroup(struct X3D_PickableGroup *);
 void child_PickableGroup(struct X3D_PickableGroup *);
@@ -3205,6 +3212,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_Fog,
 	 &virt_FogCoordinate,
 	 &virt_FontStyle,
+	 &virt_ForcePhysicsModel,
 	 &virt_GeneratedCubeMapTexture,
 	 &virt_GeoCoordinate,
 	 &virt_GeoElevationGrid,
@@ -3607,7 +3615,7 @@ const int OFFSETS_BoundaryEnhancementVolumeStyle[] = {
 
 const int OFFSETS_BoundedPhysicsModel[] = {
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_BoundedPhysicsModel, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_force, (int) offsetof (struct X3D_BoundedPhysicsModel, force),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_geometry, (int) offsetof (struct X3D_BoundedPhysicsModel, geometry),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_BoundedPhysicsModel, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
@@ -4353,6 +4361,12 @@ const int OFFSETS_FontStyle[] = {
 	(int) FIELDNAMES_spacing, (int) offsetof (struct X3D_FontStyle, spacing),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_style, (int) offsetof (struct X3D_FontStyle, style),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_topToBottom, (int) offsetof (struct X3D_FontStyle, topToBottom),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	-1, -1, -1, -1, -1};
+
+const int OFFSETS_ForcePhysicsModel[] = {
+	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_ForcePhysicsModel, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_force, (int) offsetof (struct X3D_ForcePhysicsModel, force),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ForcePhysicsModel, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_GeneratedCubeMapTexture[] = {
@@ -5778,6 +5792,8 @@ const int OFFSETS_PackagedShader[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ParticleSystem[] = {
+	(int) FIELDNAMES__particles, (int) offsetof (struct X3D_ParticleSystem, _particles),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__tris, (int) offsetof (struct X3D_ParticleSystem, _tris),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_appearance, (int) offsetof (struct X3D_ParticleSystem, appearance),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_ParticleSystem, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_ParticleSystem, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7123,6 +7139,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_Fog,
 	OFFSETS_FogCoordinate,
 	OFFSETS_FontStyle,
+	OFFSETS_ForcePhysicsModel,
 	OFFSETS_GeneratedCubeMapTexture,
 	OFFSETS_GeoCoordinate,
 	OFFSETS_GeoElevationGrid,
@@ -7658,6 +7675,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Fog : {tmp = MALLOC (struct X3D_Fog *, sizeof (struct X3D_Fog)); break;}
 		case NODE_FogCoordinate : {tmp = MALLOC (struct X3D_FogCoordinate *, sizeof (struct X3D_FogCoordinate)); break;}
 		case NODE_FontStyle : {tmp = MALLOC (struct X3D_FontStyle *, sizeof (struct X3D_FontStyle)); break;}
+		case NODE_ForcePhysicsModel : {tmp = MALLOC (struct X3D_ForcePhysicsModel *, sizeof (struct X3D_ForcePhysicsModel)); break;}
 		case NODE_GeneratedCubeMapTexture : {tmp = MALLOC (struct X3D_GeneratedCubeMapTexture *, sizeof (struct X3D_GeneratedCubeMapTexture)); break;}
 		case NODE_GeoCoordinate : {tmp = MALLOC (struct X3D_GeoCoordinate *, sizeof (struct X3D_GeoCoordinate)); break;}
 		case NODE_GeoElevationGrid : {tmp = MALLOC (struct X3D_GeoElevationGrid *, sizeof (struct X3D_GeoElevationGrid)); break;}
@@ -8135,7 +8153,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_BoundedPhysicsModel * tmp2;
 			tmp2 = (struct X3D_BoundedPhysicsModel *) tmp;
 			tmp2->enabled = TRUE;
-			tmp2->force.c[0] = 0.0f;tmp2->force.c[1] = -9.8f;tmp2->force.c[2] = 0.0f;
+			tmp2->geometry = NULL;
 			tmp2->metadata = NULL;
 			tmp2->_defaultContainer = FIELDNAMES_physics;
 		break;
@@ -9111,6 +9129,15 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->style = newASCIIString("PLAIN");
 			tmp2->topToBottom = TRUE;
 			tmp2->_defaultContainer = FIELDNAMES_fontStyle;
+		break;
+		}
+		case NODE_ForcePhysicsModel : {
+			struct X3D_ForcePhysicsModel * tmp2;
+			tmp2 = (struct X3D_ForcePhysicsModel *) tmp;
+			tmp2->enabled = TRUE;
+			tmp2->force.c[0] = 0.0f;tmp2->force.c[1] = -9.8f;tmp2->force.c[2] = 0.0f;
+			tmp2->metadata = NULL;
+			tmp2->_defaultContainer = FIELDNAMES_physics;
 		break;
 		}
 		case NODE_GeneratedCubeMapTexture : {
@@ -10968,6 +10995,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ParticleSystem : {
 			struct X3D_ParticleSystem * tmp2;
 			tmp2 = (struct X3D_ParticleSystem *) tmp;
+			tmp2->_particles = NULL;
+			tmp2->_tris = NULL;
 			tmp2->appearance = NULL;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
@@ -12880,9 +12909,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			tmp = (struct X3D_BoundedPhysicsModel *) node;
 			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
-			spacer fprintf (fp," force (SFVec3f): \t");
-			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->force.c[i]); }
-			fprintf (fp,"\n");
+			spacer fprintf (fp," geometry (SFNode):\n"); dump_scene(fp,level+1,tmp->geometry); 
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -13803,6 +13830,19 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
 			spacer fprintf (fp," size (SFFloat) \t%4.3f\n",tmp->size);
+		    break;
+		}
+		case NODE_ForcePhysicsModel : {
+			struct X3D_ForcePhysicsModel *tmp;
+			tmp = (struct X3D_ForcePhysicsModel *) node;
+			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," force (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->force.c[i]); }
+			fprintf (fp,"\n");
+		    if(allFields) {
+			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
+		    }
 		    break;
 		}
 		case NODE_GeneratedCubeMapTexture : {
@@ -17286,6 +17326,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_Fog: return X3DBindableNode; break;
 	case NODE_FogCoordinate: return X3DGeometricPropertyNode; break;
 	case NODE_FontStyle: return X3DFontStyleNode; break;
+	case NODE_ForcePhysicsModel: return X3DParticlePhysicsModelNode; break;
 	case NODE_GeneratedCubeMapTexture: return X3DEnvironmentTextureNode; break;
 	case NODE_GeoCoordinate: return X3DCoordinateNode; break;
 	case NODE_GeoElevationGrid: return X3DGeometryNode; break;

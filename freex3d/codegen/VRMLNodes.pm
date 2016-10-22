@@ -3604,7 +3604,7 @@ our %Nodes = (
 	],"X3DParticleEmitterNode"),
 	
 	# 40.4.4 ForcePhysicsModel
-	"BoundedPhysicsModel" => new VRML::NodeType("BoundedPhysicsModel", [
+	"ForcePhysicsModel" => new VRML::NodeType("ForcePhysicsModel", [
 		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		force => ["SFVec3f", [0,-9.8,0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3631,6 +3631,8 @@ our %Nodes = (
 		physics => ["MFNode", [], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		texCoordRamp => ["SFNode", "NULL", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		texCoordKey => ["MFFloat", [], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_tris => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_particles => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 	],"X3DShapeNode"),
 	
 	# 40.4.6 PointEmitter

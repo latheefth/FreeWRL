@@ -104,7 +104,111 @@ void Component_ParticleSystems_clear(struct tComponent_ParticleSystems *t){
 			calling render_node(node) on each particle
 		GPU design: send arrray of particle positions/states to GPU
 			in shader iterate over positions, re-rendering for each
-		
+			
+	PROBLEM with trying to do physics in shader: 
+	x how do you update the state of each particle in a way the next frame can access?
+	vs on cpu, if you have 80 particles, you can whip through them, updating their state, 
+	- and resending the state via attribute array on each frame
+	- also more flexible when doing geometryType="GOEMETRY" / goemetry node, that code is CPU
+
+	PROBLEM with sending just the particle position, and generating the sprite geometry
+	in the shader: GLES2 doesn't have gometry shaders.
+
+	GLES2 has no gl_VertexID per vertex in vertex shader, so:
+	- send glAttributeArray of xyz positions to match vertices?
+	- send repetitive triangles - same 3 xyz repetitively?
+	- in shader add position to triangle verts?
+	- or send glAttributeArray of sprite ID of length nvert
+	-- and uniform3fv of xyz of length nsprite
+	-- then lookup xyz[spriteID] in vertex shader?
+
+	PHYSICS - I don't see any rotational momentum needs, which involve cross products
+	- so forces F, positions p, velocities v, accelerations a are vec3
+	- mass, time are scalars
+	- grade 12 physics:
+	- F = m * a
+	-- a = F/m
+	- v2 = v1 + a*dt
+	- p2 = p1 + .5(v1 + v2)*dt
+	- p2 = p1 + v1*dt + .5*a*dt**2 
+	-- p - position
+	-- v - velocity
+	-- a - acceleration
+	-- dt - delta time = (time2 - time1)
+	-- m - mass
+	-- F - force
 
 
 */
+
+
+float uniformRand(){
+	// 0 to 1 inclusive
+	static int once = 0;
+	unsigned int ix;
+	float rx;
+
+	if(!once)
+		srand((unsigned int) Time1970sec());
+	once = 1;
+	ix = rand();  
+	rx = (float)ix/(float)RAND_MAX; //you would do (RAND_MAX - 1) here for excluding 1
+	return rx;
+}
+void circleRand2D(float *xy){
+	//random xy on a circle area radius 1
+	float radius2;
+	for(;;){
+		xy[0] = 2.0f*(uniformRand() - .5f);
+		xy[1] = 2.0f*(uniformRand() - .5f);
+		radius2 = xy[0]*xy[0] + xy[1]*xy[1];
+		if(radius2 <= 1.0f) break;
+	}
+}
+float normalRand(){
+	// in -.5 to .5 range
+	float rxy[2];
+	// by just taking points in a circle radius, this emulates the falloff of a normal curve in one dimension
+	//     .
+	//  . x    .
+	// :        :
+	//  .      .
+	//     .   o
+	//
+	circleRand2D(rxy);
+	return (rxy[0]*.5); //scale from -1 to 1 into -.5 to .5 range
+}
+
+typedef struct {
+	//store at end of current iteration, for use on next iteration
+	double lifetimeRemaining;
+	float position[3];
+	float velocity[3];
+} particle;
+
+GLfloat quadtris [18] = {1.0f,1.0f,0.0f, -1.0f,1.0f,0.0f, -1.0f,-1.0f,0.0f,    1.0f,1.0f,0.0f, -1.0f,-1.0f,0.0f, 1.0f,-1.0f,0.0f};
+void compile_ParticleSystem(struct X3D_ParticleSystem *node){
+	int i,j;
+	float *boxtris;
+
+	ConsoleMessage("compile_particlesystem\n");
+	if(node->_tris == NULL){
+		node->_tris = MALLOC(void *,18 * sizeof(float));
+		memcpy(node->_tris,quadtris,18*sizeof(float));
+	}
+	MARK_NODE_COMPILED
+}
+
+void child_ParticleSystem(struct X3D_ParticleSystem *node){
+	// 
+	// ParticleSystem 
+	s_shader_capabilities_t *caps;
+	static int once = 0;
+	COMPILE_IF_REQUIRED
+
+	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+		if(!once)
+			printf("child particlesystem \n");
+	} //VF_Blend
+	once = 1;
+}
