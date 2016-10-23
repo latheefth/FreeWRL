@@ -90,7 +90,6 @@ const char *texst(int num);
 #define HAVETODOTEXTURES (gglobal()->RenderFuncs.textureStackTop != 0)
 
 void textureCoord_send(struct textureVertexInfo *tex);
-//void textureDraw_end(void);
 void textureTransform_start();
 void textureTransform_end();
 

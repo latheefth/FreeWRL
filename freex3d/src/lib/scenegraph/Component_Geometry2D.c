@@ -429,8 +429,6 @@ void render_Disk2D (struct X3D_Disk2D *node){
 			}
 		}
 
-		//textureDraw_end();
-
 		gglobal()->Mainloop.trisThisLoop += node->__numPoints;
 	}
 }
@@ -527,8 +525,6 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 			sendArraysToGPU (GL_TRIANGLES, 0, node->vertices.n);
 		}
 
-		//textureDraw_end();
-
 		gglobal()->Mainloop.trisThisLoop += node->vertices.n;
 	}
 }
@@ -600,7 +596,6 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	}else{
 		sendArraysToGPU (GL_TRIANGLES, 0, 6);
 	}
-	//textureDraw_end();
 	gglobal()->Mainloop.trisThisLoop += 2;
 }
 

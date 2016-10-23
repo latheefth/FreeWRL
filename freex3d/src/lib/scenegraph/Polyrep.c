@@ -901,7 +901,6 @@ void render_polyrep(void *node) {
 	tg->Mainloop.trisThisLoop += pr->ntri;
 
 
-	//textureDraw_end();
 
 PRINT_GL_ERROR_IF_ANY("");
 

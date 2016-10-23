@@ -856,7 +856,6 @@ void loadBackgroundTextures (struct X3D_Background *node) {
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
         		sendArraysToGPU (GL_TRIANGLES, count*6, 6);
-        		//textureDraw_end();
 				textureTransform_end();
 
 		}
@@ -930,7 +929,6 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
         			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
         			sendArraysToGPU (GL_TRIANGLES, count*6, 6);
-        			//textureDraw_end();
 			} 
 		}
 	}

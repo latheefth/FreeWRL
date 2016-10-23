@@ -235,7 +235,6 @@ void render_Box (struct X3D_Box *node) {
 		sendArraysToGPU (GL_TRIANGLES, 0, 36);
 	}
 
-	//textureDraw_end();
 	gglobal()->Mainloop.trisThisLoop += 24;
 }
 
@@ -535,7 +534,6 @@ void render_Cylinder (struct X3D_Cylinder * node) {
 		}
 		/* turn off */
 		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-	//textureDraw_end();
 }
 
 
@@ -758,7 +756,6 @@ PRINT_GL_ERROR_IF_ANY("END2 render_geom");
 	/* turn off */
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-	//textureDraw_end();
 }
 
 
@@ -987,7 +984,6 @@ void render_Sphere (struct X3D_Sphere *node) {
 	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	//textureDraw_end();
 
 ///* DJTRACK_PICKSENSORS */
 //#ifdef DJTRACK_PICKSENSORS
