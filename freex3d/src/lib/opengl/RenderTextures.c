@@ -133,15 +133,15 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 }
 
 
-void textureDraw_start(struct textureVertexInfo* genTex) {
+void textureCoord_send(struct textureVertexInfo* genTex) {
 #ifdef TEXVERBOSE
     ConsoleMessage("textureDraw_start");
 #endif
 		passedInGenTex(genTex);
 }
-void textureDraw_end(void) {
-	//Oct 2016 stubbed, see textureTransform_end
-}
+//void textureDraw_end(void) {
+//	//Oct 2016 stubbed, see textureTransform_end
+//}
 
 
 /* lets disable texture transforms here */

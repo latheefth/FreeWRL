@@ -868,7 +868,7 @@ void render_polyrep(void *node) {
 			mtf[k].TC_size = pr->ntexdim[k];
 			if(k > 0) mtf[k-1].next = &mtf[k];
 		}
-		textureDraw_start(mtf);
+		textureCoord_send(mtf);
 	} else {
         ConsoleMessage("skipping tds of textures");
 	}
@@ -901,7 +901,7 @@ void render_polyrep(void *node) {
 	tg->Mainloop.trisThisLoop += pr->ntri;
 
 
-	textureDraw_end();
+	//textureDraw_end();
 
 PRINT_GL_ERROR_IF_ANY("");
 

@@ -851,12 +851,12 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 				textureTransform_start();
 				setupShaderB();
 
-        		textureDraw_start(&mtf);
+        		textureCoord_send(&mtf);
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
         		sendArraysToGPU (GL_TRIANGLES, count*6, 6);
-        		textureDraw_end();
+        		//textureDraw_end();
 				textureTransform_end();
 
 		}
@@ -925,12 +925,12 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 				render_node((void *)thistex);
 		                //OLDCODE FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        			textureDraw_start(&mtf);
+        			textureCoord_send(&mtf);
         			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
         			sendArraysToGPU (GL_TRIANGLES, count*6, 6);
-        			textureDraw_end();
+        			//textureDraw_end();
 			} 
 		}
 	}
