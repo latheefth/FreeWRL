@@ -407,7 +407,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 
 		CULL_FACE(node->solid)
 
-		textureDraw_start(&mtf);
+		textureCoord_send(&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->__points.p);
 
 
@@ -428,8 +428,6 @@ void render_Disk2D (struct X3D_Disk2D *node){
 				sendArraysToGPU (GL_TRIANGLE_STRIP, 0, node->__numPoints);
 			}
 		}
-
-		textureDraw_end();
 
 		gglobal()->Mainloop.trisThisLoop += node->__numPoints;
 	}
@@ -516,7 +514,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 
 		CULL_FACE(node->solid)
 
-		textureDraw_start(&mtf);
+		textureCoord_send(&mtf);
 		FW_GL_VERTEX_POINTER (2,GL_FLOAT,0,(GLfloat *)node->vertices.p);
 
 
@@ -526,8 +524,6 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		}else{
 			sendArraysToGPU (GL_TRIANGLES, 0, node->vertices.n);
 		}
-
-		textureDraw_end();
 
 		gglobal()->Mainloop.trisThisLoop += node->vertices.n;
 	}
@@ -588,7 +584,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	CULL_FACE(node->solid)
 
 	/*  Draw it; assume VERTEX and NORMALS already defined.*/
-	textureDraw_start(&mtf);
+	textureCoord_send(&mtf);
 	FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->__points.p);
 	FW_GL_NORMAL_POINTER (GL_FLOAT,0,boxnorms);
 
@@ -600,7 +596,6 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	}else{
 		sendArraysToGPU (GL_TRIANGLES, 0, 6);
 	}
-	textureDraw_end();
 	gglobal()->Mainloop.trisThisLoop += 2;
 }
 

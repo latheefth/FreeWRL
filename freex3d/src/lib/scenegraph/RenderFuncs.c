@@ -761,8 +761,10 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 }
 
 
-
 bool setupShader() {
+	return true;
+}
+bool setupShaderB() {
 
 	s_shader_capabilities_t *mysp = getAppearanceProperties()->currentShaderProperties;
 
