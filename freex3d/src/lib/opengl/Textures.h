@@ -91,6 +91,8 @@ const char *texst(int num);
 
 extern void textureDraw_start(struct textureVertexInfo *tex);
 extern void textureDraw_end(void);
+void textureTransform_start();
+void textureTransform_end();
 
 struct X3D_Node *getThis_textureTransform();
 

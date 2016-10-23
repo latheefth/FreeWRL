@@ -959,7 +959,7 @@ void child_Shape (struct X3D_Shape *node) {
 		textureTransform_start();
 		setupShaderB();
 		render_node(tmpNG);
-		textureDraw_end();
+		textureTransform_end();
 
 		#ifdef SHAPEOCCLUSION
 		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;

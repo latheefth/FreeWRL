@@ -139,10 +139,13 @@ void textureDraw_start(struct textureVertexInfo* genTex) {
 #endif
 		passedInGenTex(genTex);
 }
-
-
-/* lets disable textures here */
 void textureDraw_end(void) {
+	//Oct 2016 stubbed, see textureTransform_end
+}
+
+
+/* lets disable texture transforms here */
+void textureTransform_end(void) {
 	int j;
 	ttglobal tg = gglobal();
     
@@ -434,6 +437,8 @@ static void passedInGenTex_OLD(struct textureVertexInfo *genTex) {
 	PRINT_GL_ERROR_IF_ANY("");
 }
 static void passedInGenTex(struct textureVertexInfo *genTex) {
+	// Oct 2016 refactoring before particleSystem
+	// moved texturetransform stuff out of here and into (below) textureTransform_start()
 	int c;
 	int i, isStrict, isMulti, isIdentity;
 	GLint texUnit[MAX_MULTITEXTURE];

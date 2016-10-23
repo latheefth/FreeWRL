@@ -857,6 +857,8 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 
         		sendArraysToGPU (GL_TRIANGLES, count*6, 6);
         		textureDraw_end();
+				textureTransform_end();
+
 		}
 	}
 }
