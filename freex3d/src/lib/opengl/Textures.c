@@ -848,6 +848,8 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			/* render the proper texture */
 			render_node(X3D_NODE(thistex));
 		        //OLDCODE FW_GL_COLOR3D(1.0,1.0,1.0);
+				textureTransform_start();
+				setupShaderB();
 
         		textureDraw_start(&mtf);
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
