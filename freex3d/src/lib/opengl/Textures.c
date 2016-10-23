@@ -924,11 +924,11 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 				render_node((void *)thistex);
 		                //OLDCODE FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        			textureCoord_send(&mtf);
-        			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
-        			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
+        		textureCoord_send(&mtf);
+        		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
+        		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
-        			sendArraysToGPU (GL_TRIANGLES, count*6, 6);
+        		sendArraysToGPU (GL_TRIANGLES, count*6, 6);
 			} 
 		}
 	}
