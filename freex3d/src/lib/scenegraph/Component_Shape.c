@@ -948,13 +948,13 @@ void child_Shape (struct X3D_Shape *node) {
 		//- render_node
 		//-- render_indexedfaceset (or other specific shape)
 		//--- render_polyrep
-		//---- sendArraysToGPU
+		//---- sendArraysToGPU (or sendElementsToGPU)
 		//----- setupShader
 		//------ sendMaterialsToShader
 		//          Uniforms being sent for materials and hatching
 		//--------- sendLightInfo
 		//           Uniforms sent for lights
-
+		//----- glDrawArrays/glDrawElements
 		render_node(tmpNG);
 
 		#ifdef SHAPEOCCLUSION

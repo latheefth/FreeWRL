@@ -122,23 +122,101 @@ void Component_ParticleSystems_clear(struct tComponent_ParticleSystems *t){
 	-- and uniform3fv of xyz of length nsprite
 	-- then lookup xyz[spriteID] in vertex shader?
 
+	EASIEST CPU/GPU SPLIT:
+		1. just send geometry for 1 particle to shader
+		2. cpu loop over particles:
+			foreach liveparticle
+				send position to shader
+				send texcoord to shader
+				send cpv to shader
+				gl_DrawArrays
+
+	POSITION
+	because position is just xyz (not orientation or scale) the shader could
+		take a vec3 for that, and add it on before transforming from local to view
+	for non-GEOMETRY, the transform needs to keep the face normal parallel to the view Z
+		H: you could do that by transforming 0,0,0 to view, and adding on gl_vertex 
+		x but that wouldn't do scale, or orientation if you need it
+		- for scale also transform gl_vertex, get the |diff| from 0 for scale
+
 	PHYSICS - I don't see any rotational momentum needs, which involve cross products
 	- so forces F, positions p, velocities v, accelerations a are vec3
 	- mass, time are scalars
-	- grade 12 physics:
-	- F = m * a
-	-- a = F/m
-	- v2 = v1 + a*dt
-	- p2 = p1 + .5(v1 + v2)*dt
-	- p2 = p1 + v1*dt + .5*a*dt**2 
-	-- p - position
-	-- v - velocity
-	-- a - acceleration
-	-- dt - delta time = (time2 - time1)
-	-- m - mass
-	-- F - force
+	- physics:
+	  F = m * a
+	   a = F/m
+	  v2 = v1 + a*dt
+	  p2 = p1 + .5(v1 + v2)*dt
+	  p2 = p1 + v1*dt + .5*a*dt**2 
+	   p - position
+	   v - velocity
+	   a - acceleration
+	   dt - delta time = (time2 - time1)
+	   m - mass
+	   F - force
 
+	COMPARISONS - H3D, Octaga, Xj3D claim particle physics
+	- Octaga responds to particle size, has good force and wind effects
 
+Its like a Shape node, or is a shape node, 
+set geometry
+set basic appearance
+foreach liveparticle
+	update texcoord
+	update color (color per vertex)
+	update position
+	gl_DrawArrays or gl_DrawElements
+
+Options in freewrl:
+1. per-particle child_Shape 
+	foreach liveparticle
+		push particle position onto transform stack
+		fiddle with appearance node on child
+		call child_Shape(particle)
+2. per-particle-system child_Shape
+	call child_Shape
+		if(geometryType 'GEOMETRY')
+		.... sendArraysToGPU (hack)
+				foreach liveparticle
+					update position
+					glDrawArrays
+		.... sendElementsToGPU (hack)
+				foreach liveparticle
+					update position
+					glDrawElements
+		if(geometryType !GEOMETRY)
+			send vbo with one line or quad or 2 triangles or point
+			foreach liveparticle
+				update position
+				update texcoord
+				update color (color per vertex)
+				gl_DrawArrays or gl_DrawElements
+3. refactor child shape to flatten the call hierarchy
+	child shape:
+	a) determine shader flags
+	b) compile/set/bind shader program
+	c) set appearance - pull setupShader out of sendArraysToGPU
+		set material
+		set texture
+		set shader
+		...
+	d) set geometry vertices and type element/array, line/triangle
+		if GEOMETRY: render(geom node) - except don't call gl_DrawArrays or gl_DrawElements
+		PROBLEM: some geometries -cylinder, cone- are made from multiple calls to gl_DrawElements
+		OPTION: refactor so uses polyrep, or single permuatation call
+				(cylinder: 4 permutations: full, bottom, top, no-ends)
+		else !GEOMETRY: send one quad/line/point/triangle 
+	e) foreach liveparticle
+		update position
+		update texcoord
+		update color (CPV)
+		gl_Draw xxx: what was set in d) above
+4. half-flatten child_shape
+	as in #3, except just take setupShader out of sendArraysToGPU/sendElementsToGPU, and put in 
+		child_shape body
+	then child_particlesystem can be a copy of child_shape, with loop over particles 
+		calling render_node(geometry) for GEOMETRY type (resending vbos)
+5. make sendArrays etc a callback function, different for particles
 */
 
 
