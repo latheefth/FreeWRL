@@ -64,7 +64,7 @@ void RenderTextures_init(struct tRenderTextures *t){
 
 
 /* function params */
-static void passedInGenTex(struct textureVertexInfo *genTex);
+//static void passedInGenTex(struct textureVertexInfo *genTex);
 
 /* which texture unit are we going to use? is this texture not OFF?? Should we set the
    background coloUr??? Larry the Cucumber, help! */
@@ -133,12 +133,12 @@ static int setActiveTexture (int c, GLfloat thisTransparency,  GLint *texUnit, G
 }
 
 
-void textureCoord_send(struct textureVertexInfo* genTex) {
-#ifdef TEXVERBOSE
-    ConsoleMessage("textureDraw_start");
-#endif
-		passedInGenTex(genTex);
-}
+//void textureCoord_send(struct textureVertexInfo* genTex) {
+//#ifdef TEXVERBOSE
+//    ConsoleMessage("textureDraw_start");
+//#endif
+//		passedInGenTex(genTex);
+//}
 //void textureDraw_end(void) {
 //	//Oct 2016 stubbed, see textureTransform_end
 //}
@@ -436,7 +436,7 @@ static void passedInGenTex_OLD(struct textureVertexInfo *genTex) {
 
 	PRINT_GL_ERROR_IF_ANY("");
 }
-static void passedInGenTex(struct textureVertexInfo *genTex) {
+void textureCoord_send(struct textureVertexInfo *genTex) {
 	// Oct 2016 refactoring before particleSystem
 	// moved texturetransform stuff out of here and into (below) textureTransform_start()
 	int c;
