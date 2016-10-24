@@ -895,8 +895,8 @@ void render_polyrep(void *node) {
 	}
 
 	/* turn VBOs off for now */
-	FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
-	FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+	//FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+	//FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	tg->Mainloop.trisThisLoop += pr->ntri;
 

@@ -155,6 +155,15 @@ void Component_ParticleSystems_clear(struct tComponent_ParticleSystems *t){
 	   m - mass
 	   F - force
 
+	RANDOM DIRECTIONS
+	http://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d
+
+	RANDOM TRIANGLE COORDS
+	picking a random triangle won't evenly distribute by area, so we can be approx with point inside tri too
+	can pick 2 0-1 range numbers, and use as barycentric coords b1,b2:
+	https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+	p = b1*p1 + b2*p2 + (1 - b1 - b2)*p3
+
 	COMPARISONS - H3D, Octaga, Xj3D claim particle physics
 	- Octaga responds to particle size, has good force and wind effects
 
@@ -217,6 +226,14 @@ Options in freewrl:
 	then child_particlesystem can be a copy of child_shape, with loop over particles 
 		calling render_node(geometry) for GEOMETRY type (resending vbos)
 5. make sendArrays etc a callback function, different for particles
+CHOICE: #3 
+	setup shader //sends materials, matrices to shader
+	render_node(geometry) //sends vertex data to shader, saves call parameters to gl_DrawArrays/Elements
+	foreach liveparticle
+		update particle-specific position, color, texcoords
+		reallyDrawOnce() //calls glDrawArrays or Elements
+	clearDraw()
+
 */
 
 
@@ -255,6 +272,38 @@ float normalRand(){
 	//
 	circleRand2D(rxy);
 	return (rxy[0]*.5); //scale from -1 to 1 into -.5 to .5 range
+}
+
+void randomTriangleCoord(float *p, float* p1, float *p2, float *p3){
+	// get 2 random barycentric coords 0-1, and use those
+	// https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+	int i;
+	float b1, b2;
+	b1 = uniformRand();
+	b2 = uniformRand();
+	for(i=0;i<3;i++){
+		p[i] = b1*p1[i] + b2*p2[i] + (1.0f - b1 - b2)*p3[i];
+	}
+}
+
+void randomDirection(float *xyz){
+	//random xyz direction from a point
+	//http://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d
+	float radius3;
+	for(;;){
+		//get random point in a unit cube
+		xyz[0] = (uniformRand() - .5f);
+		xyz[1] = (uniformRand() - .5f);
+		xyz[2] = (uniformRand() - .5f);
+		//discard point if outside unit sphere
+		radius3 = xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2];
+		if(radius3 <= 1.0f && radius3 > 0.0000001f){
+			//vecnormalize3f(xyz,xyz);
+			//normalize direction to point
+			vecscale3f(xyz,xyz,1.0f/sqrtf(radius3));
+			break;
+		}
+	}
 }
 
 typedef struct {
