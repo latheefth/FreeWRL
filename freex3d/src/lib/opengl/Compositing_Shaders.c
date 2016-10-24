@@ -588,6 +588,9 @@ vec4 castle_Specular; \n\
 attribute vec4 fw_Color; //castle_ColorPerVertex; \n\
 varying vec4 cpv_Color; \n\
 #endif //CPV \n\
+#ifdef PARTICLE \n\
+uniform vec3 particlePosition; \n\
+#endif //PARTICLE \n\
  \n\
  vec3 dehomogenize(in mat4 matrix, in vec4 vector){ \n\
 	vec4 tempv = vector; \n\
@@ -624,6 +627,9 @@ void main(void) \n\
   #endif //FILL \n\
   \n\
   vec4 vertex_object = fw_Vertex; \n\
+  #ifdef PARTICLE \n\
+  vertex_object.xyz += particlePosition; \n\
+  #endif //PARTICLE \n\
   vec3 normal_object = fw_Normal; \n\
   /* PLUG: vertex_object_space_change (vertex_object, normal_object) */ \n\
   /* PLUG: vertex_object_space (vertex_object, normal_object) */ \n\
@@ -1761,7 +1767,9 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 		AddDefine(SHADERPART_FRAGMENT,"CLIP",CompleteCode);	
 		Plug(SHADERPART_FRAGMENT,frag_plug_clip_apply,CompleteCode,&unique_int);	
 	}
-
+	if(DESIRE(whichOne.base,PARTICLE_SHADER)){
+		AddDefine(SHADERPART_VERTEX,"PARTICLE",CompleteCode);
+	}
 	//EFFECTS - castle game engine effect nodes X3D_Effect with plugs applied here
 	EnableEffects(CompleteCode,&unique_int);
 

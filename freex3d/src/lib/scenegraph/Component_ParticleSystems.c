@@ -50,6 +50,7 @@ X3D Particle Systems Component
 #include "LinearAlgebra.h"
 //#include "Component_ParticleSystems.h"
 #include "Children.h"
+#include "Component_Shape.h"
 
 typedef struct pComponent_ParticleSystems{
 	int something;
@@ -443,6 +444,9 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		double ttime;
 		float dtime;
 		Stack *_particles;
+		struct X3D_Node *tmpNG;
+		ttglobal tg = gglobal();
+
 		ttime = TickTime();
 		dtime = (float)(ttime - node->_lasttime); //increment to particle age
 
@@ -484,8 +488,24 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		_particles->n = j;
 		if(node->createParticles && _particles->n < maxparticles){
 			//create new particles to reach maxparticles limit
-			j = _particles->n -1;
-			for(i=j;i<maxparticles;i++){
+			int n_per_frame, n_needed, n_this_frame;
+			float particles_per_second, particles_per_frame;
+			n_needed = maxparticles - _particles->n;
+			//for explosion emitter, we want them all created on the first pass
+			//for all the rest we want maxparticles spread over a lifetime, so by the
+			//time some start dying, well be at maxparticles
+			//particles_per_second [p/s] = maxparticles[p] / particleLifetime[s]
+			particles_per_second = (float)node->maxParticles / (float) node->particleLifetime;
+			//particles_per_frame [p/f] = particles_per_second [p/s] / frames_per_second [f/s]
+			particles_per_frame = particles_per_second * dtime;
+			particles_per_frame += node->_remainder;
+			n_per_frame = (int)particles_per_frame;
+			node->_remainder = particles_per_frame - (float)n_per_frame;
+			n_this_frame = min(n_per_frame,n_needed);
+			if(node->emitter->_nodeType == NODE_ExplosionEmitter)
+				n_this_frame = n_needed;
+			j = _particles->n;
+			for(i=0;i<n_this_frame;i++,j++){
 				particle pp;
 				pp.age = 0.0f;
 				pp.lifespan = node->particleLifetime * (1.0f + uniformRandCentered()*node->lifetimeVariation);
@@ -493,7 +513,9 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				//emit particles
 				switch(node->emitter->_nodeType){
 					case NODE_ConeEmitter:		apply_ConeEmitter(&pp,node->emitter); break;
-					case NODE_ExplosionEmitter: apply_ExplosionEmitter(&pp,node->emitter); break;
+					case NODE_ExplosionEmitter: apply_ExplosionEmitter(&pp,node->emitter); 
+						node->createParticles = FALSE;
+						break;
 					case NODE_PointEmitter:		apply_PointEmitter(&pp,node->emitter); break;
 					case NODE_PolylineEmitter:	apply_PolylineEmitter(&pp,node->emitter); break;
 					case NODE_SurfaceEmitter:	apply_SurfaceEmitter(&pp,node->emitter); break;
@@ -503,15 +525,169 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				}
 				//save particle
 				vector_set(particle,_particles,j,pp);
-				j++;
 			}
 			_particles->n = j;
 		}
 
 		//prepare to draw, like child_shape
 		//render appearance
-		render_node(node->appearance);
+		//BORROWED FROM CHILD SHAPE >>>>>>>>>
+
+		int colorSource, alphaSource, isLit, isUserShader; 
+		s_shader_capabilities_t *scap;
+		//unsigned int shader_requirements;
+		shaderflagsstruct shader_requirements;
+		memset(&shader_requirements,0,sizeof(shaderflagsstruct));
+
+		//prep_Appearance
+		RENDER_MATERIAL_SUBNODES(node->appearance); //child_Appearance
+
+
+#ifdef HAVE_P
+		if (p->material_oneSided != NULL) {
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_oneSided->_verifiedColor.p, sizeof (struct fw_MaterialParameters));
+			/* copy the emissive colour over for lines and points */
+			memcpy(p->appearanceProperties.emissionColour,p->material_oneSided->_verifiedColor.p, 3*sizeof(float));
+
+		} else if (p->material_twoSided != NULL) {
+			memcpy (&p->appearanceProperties.fw_FrontMaterial, p->material_twoSided->_verifiedFrontColor.p, sizeof (struct fw_MaterialParameters));
+			memcpy (&p->appearanceProperties.fw_BackMaterial, p->material_twoSided->_verifiedBackColor.p, sizeof (struct fw_MaterialParameters));
+			/* copy the emissive colour over for lines and points */
+			memcpy(p->appearanceProperties.emissionColour,p->material_twoSided->_verifiedFrontColor.p, 3*sizeof(float));
+		} else {
+			/* no materials selected.... */
+		}
+#endif
+
+		/* enable the shader for this shape */
+		//ConsoleMessage("turning shader on %x",node->_shaderTableEntry);
+
+		POSSIBLE_PROTO_EXPANSION(struct X3D_Node *, node->geometry,tmpNG);
+
+		shader_requirements.base = node->_shaderflags_base; //_shaderTableEntry;  
+		shader_requirements.effects = node->_shaderflags_effects;
+		shader_requirements.usershaders = node->_shaderflags_usershaders;
+		isUserShader = shader_requirements.usershaders ? TRUE : FALSE; // >= USER_DEFINED_SHADER_START ? TRUE : FALSE;
+		//if(!p->userShaderNode || !(shader_requirements >= USER_DEFINED_SHADER_START)){
+		if(!isUserShader){
+			//for Luminance and Luminance-Alpha images, we have to tinker a bit in the Vertex shader
+			// New concept of operations Aug 26, 2016
+			// in the specs there are some things that can replace other things (but not the reverse)
+			// Texture can repace CPV, diffuse and 111
+			// CPV can replace diffuse and 111
+			// diffuse can replace 111
+			// Texture > CPV > Diffuse > (1,1,1)
+			// so there's a kind of order / sequence to it.
+			// There can be a flag at each step saying if you want to replace the prior value (otherwise modulate)
+			// Diffuse replacing or modulating (111) is the same thing, no flag needed
+			// Therefore we need at most 2 flags for color:
+			// TEXTURE_REPLACE_PRIOR and CPV_REPLACE_PRIOR.
+			// and other flag for alpha: ALPHA_REPLACE_PRIOR (same as ! WANT_TEXALPHA)
+			// if all those are false, then its full modulation.
+			// our WANT_LUMINANCE is really == ! TEXTURE_REPLACE_PRIOR
+			// we are missing a CPV_REPLACE_PRIOR, or more precisely this is a default burned into the shader
+
+			int channels;
+			//modulation:
+			//- for Castle-style full-modulation of texture x CPV x mat.diffuse
+			//     and texalpha x (1-mat.trans), set 2
+			//- for specs table 17-2 RGB Tex replaces CPV with modulation 
+			//     of table 17-2 entries with mat.diffuse and (1-mat.trans) set 1
+			//- for specs table 17-3 as written and ignoring modulation sentences
+			//    so CPV replaces diffuse, texture replaces CPV and diffuse- set 0
+			// testing: KelpForest SharkLefty.x3d has CPV, ImageTexture RGB, and mat.diffuse
+			//    29C.wrl has mat.transparency=1 and LumAlpha image, modulate=0 shows sphere, 1,2 inivisble
+			//    test all combinations of: modulation {0,1,2} x shadingStyle {gouraud,phong}: 0 looks bright texture only, 1 texture and diffuse, 2 T X C X D
+			int modulation = 1; //freewrl default 1 (dug9 Aug 27, 2016 interpretation of Lighting specs)
+			channels = getImageChannelCountFromTTI(node->appearance);
+
+			if(modulation == 0)
+				shader_requirements.base |= MAT_FIRST; //strict use of table 17-3, CPV can replace mat.diffuse, so texture > cpv > diffuse > 111
+
+			if(shader_requirements.base & COLOUR_MATERIAL_SHADER){
+				//printf("has a color node\n");
+				//lets turn it off, and see if we get texture
+				//shader_requirements &= ~(COLOUR_MATERIAL_SHADER);
+				if(modulation == 0) 
+					shader_requirements.base |= CPV_REPLACE_PRIOR;
+			}
+
+			if(channels && (channels == 3 || channels == 4) && modulation < 2)
+				shader_requirements.base |= TEXTURE_REPLACE_PRIOR;
+			//if the image has a real alpha, we may want to turn off alpha modulation, 
+			// see comment about modulate in Compositing_Shaders.c
+			if(channels && (channels == 2 || channels == 4) && modulation == 0)
+				shader_requirements.base |= TEXALPHA_REPLACE_PRIOR;
+
+			//getShaderFlags() are from non-leaf-node shader influencers: 
+			//   fog, local_lights, clipplane, Effect/EffectPart (for CastlePlugs) ...
+			// - as such they may be different for the same shape node DEF/USEd in different branches of the scenegraph
+			// - so they are ORd here before selecting a shader permutation
+			shader_requirements.base |= getShaderFlags().base; 
+			shader_requirements.effects |= getShaderFlags().effects;
+			//if(shader_requirements & FOG_APPEARANCE_SHADER)
+			//	printf("fog in child_shape\n");
+
+			//ParticleSystem flag
+			shader_requirements.base |= PARTICLE_SHADER;
+		}
+		//printf("child_shape shader_requirements base %d effects %d user %d\n",shader_requirements.base,shader_requirements.effects,shader_requirements.usershaders);
+		scap = getMyShaders(shader_requirements);
+		enableGlobalShader(scap);
+		//enableGlobalShader (getMyShader(shader_requirements)); //node->_shaderTableEntry));
+
+		//see if we have to set up a TextureCoordinateGenerator type here
+		if (tmpNG && tmpNG->_intern) {
+			if (tmpNG->_intern->tcoordtype == NODE_TextureCoordinateGenerator) {
+				getAppearanceProperties()->texCoordGeneratorType = tmpNG->_intern->texgentype;
+				//ConsoleMessage("shape, matprop val %d, geom val %d",getAppearanceProperties()->texCoordGeneratorType, node->geometry->_intern->texgentype);
+			}
+		}
+		//userDefined = (whichOne >= USER_DEFINED_SHADER_START) ? TRUE : FALSE;
+		//if (p->userShaderNode != NULL && shader_requirements >= USER_DEFINED_SHADER_START) {
+		#ifdef ALLOW_USERSHADERS
+		if(isUserShader && p->userShaderNode){
+			//we come in here right after a COMPILE pass in APPEARANCE which renders the shader, which sets p->userShaderNode
+			//if nothing changed with appearance -no compile pass- we don't come in here again
+			//ConsoleMessage ("have a shader of type %s",stringNodeType(p->userShaderNode->_nodeType));
+			switch (p->userShaderNode->_nodeType) {
+				case NODE_ComposedShader:
+					if (X3D_COMPOSEDSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_COMPOSEDSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
+					break;
+				case NODE_ProgramShader:
+					if (X3D_PROGRAMSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_PROGRAMSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
+
+					break;
+				case NODE_PackagedShader:
+					if (X3D_PACKAGEDSHADER(p->userShaderNode)->isValid) {
+						if (!X3D_PACKAGEDSHADER(p->userShaderNode)->_initialized) {
+							sendInitialFieldsToShader(p->userShaderNode);
+						}
+					}
+
+					break;
+			}
+		}
+		#endif //ALLOW_USERSHADERS
+		//update effect field uniforms
+		if(shader_requirements.effects){
+			update_effect_uniforms();
+		}
+
+		//<<<<< BORROWED FROM CHILD SHAPE
+
+
 		//send materials, textures, matrices to shader
+		textureTransform_start();
 		setupShaderB();
 		//send vertex buffer to shader
 		switch(node->_geometryType){
@@ -532,14 +708,70 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				break;
 		}
 
+		GLint ppos = GET_UNIFORM(scap->myShaderProgram,"particlePosition");
 		//loop over live particles, drawing each one
 		for(i=0;i<vectorSize(_particles);i++){
+			particle pp = vector_get(particle,_particles,i);
 			//update particle-specific uniforms
+			glUniform3fv(ppos,1,pp.position);
 			//draw
 			reallyDrawOnce();
 		}
 		clearDraw();
 		//cleanup after draw, like child_shape
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+		textureTransform_end();
+
+		//BORROWED FROM CHILD_SHAPE >>>>>>
+		//fin_Appearance
+		if(node->appearance){
+			struct X3D_Appearance *tmpA;
+			POSSIBLE_PROTO_EXPANSION(struct X3D_Appearance *,node->appearance,tmpA);
+			if(tmpA->effects.n)
+				fin_sibAffectors(X3D_NODE(tmpA),&tmpA->effects);
+		}
+		/* any shader turned on? if so, turn it off */
+
+		//ConsoleMessage("turning shader off");
+		finishedWithGlobalShader();
+#ifdef HAVE_P
+		p->material_twoSided = NULL;
+		p->material_oneSided = NULL;
+		p->userShaderNode = NULL;
+#endif
+		tg->RenderFuncs.shapenode = NULL;
+    
+		/* load the identity matrix for textures. This is necessary, as some nodes have TextureTransforms
+			and some don't. So, if we have a TextureTransform, loadIdentity */
+    
+#ifdef HAVE_P
+		if (p->this_textureTransform) {
+			p->this_textureTransform = NULL;
+#endif //HAVE_P
+			FW_GL_MATRIX_MODE(GL_TEXTURE);
+			FW_GL_LOAD_IDENTITY();
+			FW_GL_MATRIX_MODE(GL_MODELVIEW);
+#ifdef HAVE_P
+		}
+#endif    
+		/* LineSet, PointSets, set the width back to the original. */
+		{
+			float gl_linewidth = tg->Mainloop.gl_linewidth;
+			glLineWidth(gl_linewidth);
+#ifdef HAVE_P
+			p->appearanceProperties.pointSize = gl_linewidth;
+#endif
+		}
+
+		/* did the lack of an Appearance or Material node turn lighting off? */
+		LIGHTING_ON;
+
+		/* turn off face culling */
+		DISABLE_CULL_FACE;
+
+		//<<<<< BORROWED FROM CHILD_SHAPE
+
 		node->_lasttime = ttime;
 	} //isActive
 	} //enabled

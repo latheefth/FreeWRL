@@ -247,6 +247,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_pointsVBO",
 	"_previousvalue",
 	"_radius",
+	"_remainder",
 	"_retrievedURLData",
 	"_rotationAngle",
 	"_scale",
@@ -5801,6 +5802,7 @@ const int OFFSETS_ParticleSystem[] = {
 	(int) FIELDNAMES__geometryType, (int) offsetof (struct X3D_ParticleSystem, _geometryType),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttime, (int) offsetof (struct X3D_ParticleSystem, _lasttime),  (int) FIELDTYPE_SFDouble, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__particles, (int) offsetof (struct X3D_ParticleSystem, _particles),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__remainder, (int) offsetof (struct X3D_ParticleSystem, _remainder),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__shaderflags_base, (int) offsetof (struct X3D_ParticleSystem, _shaderflags_base),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__shaderflags_effects, (int) offsetof (struct X3D_ParticleSystem, _shaderflags_effects),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__shaderflags_usershaders, (int) offsetof (struct X3D_ParticleSystem, _shaderflags_usershaders),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -11023,6 +11025,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_geometryType = 0;
 			tmp2->_lasttime = 0;
 			tmp2->_particles = NULL;
+			tmp2->_remainder = 0.0f;
 			tmp2->_shaderflags_base = 0;
 			tmp2->_shaderflags_effects = 0;
 			tmp2->_shaderflags_usershaders = 0;

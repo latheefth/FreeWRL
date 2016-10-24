@@ -3641,6 +3641,7 @@ our %Nodes = (
 		_particles => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 		_lasttime => ["SFDouble", 0.0, "initializeOnly", 0],
 		_geometryType =>["SFInt32",0,"initializeOnly",0],
+		_remainder =>["SFFloat",0.0,"initializeOnly",0],
 	],"X3DShapeNode"),
 	
 	# 40.4.6 PointEmitter
