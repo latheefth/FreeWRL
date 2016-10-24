@@ -244,7 +244,7 @@ float uniformRand(){
 	float rx;
 
 	if(!once)
-		srand((unsigned int) Time1970sec());
+		srand((unsigned int) TickTime());
 	once = 1;
 	ix = rand();  
 	rx = (float)ix/(float)RAND_MAX; //you would do (RAND_MAX - 1) here for excluding 1
@@ -308,7 +308,7 @@ void randomDirection(float *xyz){
 
 typedef struct {
 	//store at end of current iteration, for use on next iteration
-	double lifetimeRemaining;
+	float age;
 	float position[3];
 	float velocity[3];
 } particle;
@@ -323,6 +323,11 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 		node->_tris = MALLOC(void *,18 * sizeof(float));
 		memcpy(node->_tris,quadtris,18*sizeof(float));
 	}
+	node->_lasttime = TickTime();
+	if(node->enabled){
+		node->isActive = TRUE;
+		MARK_EVENT (X3D_NODE(node),offsetof (struct X3D_ParticleSystem, isActive));
+	}
 	MARK_NODE_COMPILED
 }
 void reallyDrawOnce();
@@ -330,13 +335,24 @@ void clearDraw();
 void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	// 
 	// ParticleSystem 
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#ParticleSystem
 	s_shader_capabilities_t *caps;
 	static int once = 0;
 	COMPILE_IF_REQUIRED
-
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
+	if(node->enabled){
+	if(node->isActive){
+		double ttime;
+		float dtime;
+		ttime = TickTime();
+		dtime = (float)(ttime - node->_lasttime); //increment to particle age
+
 		if(!once)
 			printf("child particlesystem \n");
+
+		node->_lasttime = ttime;
+	} //isActive
+	} //enabled
 	} //VF_Blend
 	once = 1;
 }

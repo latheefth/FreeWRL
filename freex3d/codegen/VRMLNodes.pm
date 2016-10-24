@@ -587,19 +587,19 @@ our %Nodes = (
 	],"X3DMaterialNode"),
 
 	"Shape" => new VRML::NodeType ("Shape", [
+		# shared with particlesystem, keep in same order as particlesystem:
 		appearance => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		geometry => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__visible =>["SFInt32",0,"initializeOnly", 0], # for Occlusion tests.
-		__occludeCheckCount =>["SFInt32",-1,"initializeOnly", 0], # for Occlusion tests.
-		__Samples =>["SFInt32",-1,"initializeOnly", 0],		# Occlude samples from last pass
-
 		_shaderflags_base =>["SFInt32",0,"initializeOnly",0], # shaders
 		_shaderflags_effects =>["SFInt32",0,"initializeOnly",0], # shaders
 		_shaderflags_usershaders =>["SFInt32",0,"initializeOnly",0], # shaders
-
+		# shape-specific:
+		__visible =>["SFInt32",0,"initializeOnly", 0], # for Occlusion tests.
+		__occludeCheckCount =>["SFInt32",-1,"initializeOnly", 0], # for Occlusion tests.
+		__Samples =>["SFInt32",-1,"initializeOnly", 0],		# Occlude samples from last pass
 
 	],"X3DBoundedObject"),
 
@@ -3610,20 +3610,26 @@ our %Nodes = (
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	],"X3DParticlePhysicsModelNode"),
 	
+	
 	# 40.4.5 ParticleSystem
 	"ParticleSystem" => new VRML::NodeType ("ParticleSystem", [
+		# shared with Shape, keep in same order as Shape:
 		appearance => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		createParticles  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		geometry => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_shaderflags_base =>["SFInt32",0,"initializeOnly",0], # shaders
+		_shaderflags_effects =>["SFInt32",0,"initializeOnly",0], # shaders
+		_shaderflags_usershaders =>["SFInt32",0,"initializeOnly",0], # shaders
+		# particlesystem specific:
+		createParticles  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		lifetimeVariation  => ["SFFloat", .25,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		maxParticles  => ["SFInt32", 200,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		particleLifetime  => ["SFFloat", 5,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		particleSize => ["SFVec2f", [.02,.02], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isActive  => ["SFBool", "TRUE","outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		colorRamp => ["SFNode", "NULL", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		colorKey => ["MFFloat", [], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		emitter => ["SFNode", "NULL", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3633,6 +3639,7 @@ our %Nodes = (
 		texCoordKey => ["MFFloat", [], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_tris => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 		_particles => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_lasttime => ["SFDouble", 0.0, "initializeOnly", 0],
 	],"X3DShapeNode"),
 	
 	# 40.4.6 PointEmitter

@@ -221,6 +221,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_keyVBO",
 	"_keyValueVBO",
 	"_lasttick",
+	"_lasttime",
 	"_layerId",
 	"_loc",
 	"_needs_gradient",
@@ -5792,7 +5793,11 @@ const int OFFSETS_PackagedShader[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ParticleSystem[] = {
+	(int) FIELDNAMES__lasttime, (int) offsetof (struct X3D_ParticleSystem, _lasttime),  (int) FIELDTYPE_SFDouble, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__particles, (int) offsetof (struct X3D_ParticleSystem, _particles),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderflags_base, (int) offsetof (struct X3D_ParticleSystem, _shaderflags_base),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderflags_effects, (int) offsetof (struct X3D_ParticleSystem, _shaderflags_effects),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__shaderflags_usershaders, (int) offsetof (struct X3D_ParticleSystem, _shaderflags_usershaders),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__tris, (int) offsetof (struct X3D_ParticleSystem, _tris),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_appearance, (int) offsetof (struct X3D_ParticleSystem, appearance),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_ParticleSystem, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10995,7 +11000,11 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ParticleSystem : {
 			struct X3D_ParticleSystem * tmp2;
 			tmp2 = (struct X3D_ParticleSystem *) tmp;
+			tmp2->_lasttime = 0;
 			tmp2->_particles = NULL;
+			tmp2->_shaderflags_base = 0;
+			tmp2->_shaderflags_effects = 0;
+			tmp2->_shaderflags_usershaders = 0;
 			tmp2->_tris = NULL;
 			tmp2->appearance = NULL;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
