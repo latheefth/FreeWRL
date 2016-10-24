@@ -325,7 +325,8 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 	}
 	MARK_NODE_COMPILED
 }
-
+void reallyDrawOnce();
+void clearDraw();
 void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	// 
 	// ParticleSystem 

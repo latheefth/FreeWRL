@@ -1050,7 +1050,7 @@ static void recalculateBackgroundVectors(struct X3D_Background *node) {
 		FREE_IF_NZ(combinedBuffer);
 	}
 }
-
+void reallyDraw();
 void render_Background (struct X3D_Background *node) {
 	ttglobal tg = gglobal();
     

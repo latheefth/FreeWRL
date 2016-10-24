@@ -861,7 +861,7 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 		}
 	}
 }
-
+void reallyDraw();
 /* do TextureBackground textures, if possible */
 void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	struct X3D_Node *thistex = NULL;
