@@ -308,20 +308,67 @@ void randomDirection(float *xyz){
 
 typedef struct {
 	//store at end of current iteration, for use on next iteration
+	int live; //0 dead, ignor, 1 live
 	float age;
 	float position[3];
 	float velocity[3];
 } particle;
-
+enum {
+	GEOM_QUAD = 1,
+	GEOM_LINE = 2,
+	GEOM_POINT = 3,
+	GEOM_SPRITE = 4,
+	GEOM_TRIANGLE = 5,
+	GEOM_GEOMETRY = 6,
+};
+struct {
+const char *name;
+int type;
+} geomtype_table [] = {
+{"QUAD",GEOM_QUAD},
+{"LINE",GEOM_LINE},
+{"POINT",GEOM_POINT},
+{"SPRITE",GEOM_SPRITE},
+{"TRIANGLE",GEOM_TRIANGLE},
+{"GEOMETRY",GEOM_GEOMETRY},
+{NULL,0},
+};
+int lookup_geomtype(const char *name){
+	int iret,i;
+	iret=i=0;
+	for(;;){
+		if(geomtype_table[i].name == NULL) break;
+		if(!strcmp(geomtype_table[i].name,name)){
+			iret = geomtype_table[i].type;
+			break;
+		}
+		i++;
+	}
+	return iret;
+}
 GLfloat quadtris [18] = {1.0f,1.0f,0.0f, -1.0f,1.0f,0.0f, -1.0f,-1.0f,0.0f,    1.0f,1.0f,0.0f, -1.0f,-1.0f,0.0f, 1.0f,-1.0f,0.0f};
 void compile_ParticleSystem(struct X3D_ParticleSystem *node){
-	int i,j;
+	int i,j, maxparticles;
 	float *boxtris;
+	Stack *_particles;
 
 	ConsoleMessage("compile_particlesystem\n");
+	//delegate to compile_shape - same order to appearance, geometry fields
+	compile_Shape((struct X3D_Shape*)node);
+
+	node->_geometryType = lookup_geomtype(node->geometryType->strptr);
 	if(node->_tris == NULL){
 		node->_tris = MALLOC(void *,18 * sizeof(float));
 		memcpy(node->_tris,quadtris,18*sizeof(float));
+	}
+	maxparticles = min(node->maxParticles,10000);
+	if(node->_particles == NULL)
+		node->_particles = newVector(particle,maxparticles);
+	_particles = node->_particles;
+	if(_particles->allocn < maxparticles) {
+		//resize /realloc vector, set nalloc, in case someone changed maxparticles on the fly
+		_particles->data = realloc(_particles->data,maxparticles);
+		_particles->allocn = maxparticles;
 	}
 	node->_lasttime = TickTime();
 	if(node->enabled){
@@ -350,6 +397,15 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		if(!once)
 			printf("child particlesystem \n");
 
+		//update current particles based on age and physics
+		//remove deceased/retired particles
+		if(node->createParticles){
+			//create new particles to reach maxparticles limit
+			//emit particles
+		}
+		//prepare to draw, like child_shape
+		//loop over live particles, drawing each one
+		//cleanup after draw, like child_shape
 		node->_lasttime = ttime;
 	} //isActive
 	} //enabled

@@ -212,6 +212,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_floatInpFIFO",
 	"_floatOutFIFO",
 	"_geom",
+	"_geometryType",
 	"_hatchScale",
 	"_initialized",
 	"_input",
@@ -5793,6 +5794,7 @@ const int OFFSETS_PackagedShader[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_ParticleSystem[] = {
+	(int) FIELDNAMES__geometryType, (int) offsetof (struct X3D_ParticleSystem, _geometryType),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__lasttime, (int) offsetof (struct X3D_ParticleSystem, _lasttime),  (int) FIELDTYPE_SFDouble, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__particles, (int) offsetof (struct X3D_ParticleSystem, _particles),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__shaderflags_base, (int) offsetof (struct X3D_ParticleSystem, _shaderflags_base),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -11000,6 +11002,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ParticleSystem : {
 			struct X3D_ParticleSystem * tmp2;
 			tmp2 = (struct X3D_ParticleSystem *) tmp;
+			tmp2->_geometryType = 0;
 			tmp2->_lasttime = 0;
 			tmp2->_particles = NULL;
 			tmp2->_shaderflags_base = 0;
