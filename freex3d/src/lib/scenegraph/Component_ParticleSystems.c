@@ -250,6 +250,9 @@ float uniformRand(){
 	rx = (float)ix/(float)RAND_MAX; //you would do (RAND_MAX - 1) here for excluding 1
 	return rx;
 }
+float uniformRandCentered(){
+	return uniformRand() - .5f; //center on 0
+}
 void circleRand2D(float *xy){
 	//random xy on a circle area radius 1
 	float radius2;
@@ -309,9 +312,13 @@ void randomDirection(float *xyz){
 typedef struct {
 	//store at end of current iteration, for use on next iteration
 	float age;
-	float lifespan;
+	float lifespan; //assigned at birth
+	float size[2];  //assigned at birth
 	float position[3];
-	float velocity[3];
+	float direction[3];
+	float speed;
+	float mass;
+	float surfaceArea;
 } particle;
 enum {
 	GEOM_QUAD = 1,
@@ -378,7 +385,7 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 	MARK_NODE_COMPILED
 }
 
-
+//PHYSICS
 void apply_windphysics(particle *pp, struct X3D_Node *physics){
 	struct X3D_WindPhysicsModel *px = (struct X3D_WindPhysicsModel *)physics;
 }
@@ -389,6 +396,7 @@ void apply_forcephysics(particle *pp, struct X3D_Node *physics){
 	struct X3D_ForcePhysicsModel *px = (struct X3D_ForcePhysicsModel *)physics;
 }
 
+//EMITTERS
 void apply_ConeEmitter(particle *pp, struct X3D_Node *emitter){
 	struct X3D_ConeEmitter *e = (struct X3D_ConeEmitter *)emitter;
 }
@@ -397,6 +405,17 @@ void apply_ExplosionEmitter(particle *pp, struct X3D_Node *emitter){
 }
 void apply_PointEmitter(particle *pp, struct X3D_Node *emitter){
 	struct X3D_PointEmitter *e = (struct X3D_PointEmitter *)emitter;
+	memcpy(pp->position,e->position.c,3*sizeof(float));
+	if(veclength3f(e->direction.c) < .00001){
+		randomDirection(pp->direction);
+	}else{
+		memcpy(pp->direction,e->direction.c,3*sizeof(float));
+		vecnormalize3f(pp->direction,pp->direction);
+	}
+	pp->speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
+	pp->mass = e->mass*(1.0f + uniformRandCentered()*e->variation);
+	pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
+	
 }
 void apply_PolylineEmitter(particle *pp, struct X3D_Node *emitter){
 	struct X3D_PolylineEmitter *e = (struct X3D_PolylineEmitter *)emitter;
@@ -438,6 +457,14 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 			particle pp = vector_get(particle,_particles,i);
 			pp.age += dtime;
 			if(pp.age < pp.lifespan){
+				float velocity[3];
+
+				//default update:
+				// position += velocity * dtime
+				vecscale3f(velocity,pp.direction,pp.speed*dtime);
+				vecadd3f(pp.position,pp.position,velocity);
+
+				//physics update, accelerations applied here
 				for(k=0;k<node->physics.n;k++){
 					switch(node->physics.p[k]->_nodeType){
 						case NODE_WindPhysicsModel:
@@ -461,7 +488,8 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 			for(i=j;i<maxparticles;i++){
 				particle pp;
 				pp.age = 0.0f;
-				pp.lifespan = node->particleLifetime * (1.0f + uniformRand()*node->lifetimeVariation);
+				pp.lifespan = node->particleLifetime * (1.0f + uniformRandCentered()*node->lifetimeVariation);
+				memcpy(pp.size,node->particleSize.c,2*sizeof(float));
 				//emit particles
 				switch(node->emitter->_nodeType){
 					case NODE_ConeEmitter:		apply_ConeEmitter(&pp,node->emitter); break;
@@ -479,8 +507,38 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 			}
 			_particles->n = j;
 		}
+
 		//prepare to draw, like child_shape
+		//render appearance
+		render_node(node->appearance);
+		//send materials, textures, matrices to shader
+		setupShaderB();
+		//send vertex buffer to shader
+		switch(node->_geometryType){
+			case GEOM_LINE: 
+			break;
+			case GEOM_POINT: 
+			break;
+			case GEOM_QUAD: 
+			break;
+			case GEOM_SPRITE: 
+			break;
+			case GEOM_TRIANGLE: 
+			break;
+			case GEOM_GEOMETRY: 
+				render_node(node->geometry);
+			break;
+			default:
+				break;
+		}
+
 		//loop over live particles, drawing each one
+		for(i=0;i<vectorSize(_particles);i++){
+			//update particle-specific uniforms
+			//draw
+			reallyDrawOnce();
+		}
+		clearDraw();
 		//cleanup after draw, like child_shape
 		node->_lasttime = ttime;
 	} //isActive
