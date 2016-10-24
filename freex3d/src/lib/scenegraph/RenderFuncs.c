@@ -68,6 +68,23 @@ struct point_XYZ3 {
 	struct point_XYZ p3;
 };
 
+typedef struct {
+int calltype;
+union {
+	struct arrays {
+		int arrays_mode;
+		int arrays_count;
+		int arrays_first;
+	} arrays;
+	struct elements {
+		int elements_mode;
+		int elements_count;
+		//GLenum elements_type;
+		ushort *elements_indices;
+	} elements;
+};
+} draw_call_params;
+
 typedef struct pRenderFuncs{
 	int profile_entry_count;
 	struct profile_entry profile_entries[100];
@@ -120,6 +137,7 @@ typedef struct pRenderFuncs{
 	struct point_XYZ3 t_r123;
 	struct point_XYZ hp;
 	Stack *usehits_stack;
+	Stack *draw_call_params_stack;
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
 	void *v = MALLOCV(sizeof(struct pRenderFuncs));
@@ -171,6 +189,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->shaderflags_stack = newStack(shaderflagsstruct); //newStack(unsigned int);
 		p->fog_stack = newStack(struct X3D_Node*);
 		p->localLight_stack = newStack(int);
+		p->draw_call_params_stack = newStack(draw_call_params);
 		//t->t_r123 = (void *)&p->t_r123;
 		t->hp = (void *)&p->hp;
 	}
@@ -244,6 +263,7 @@ void RenderFuncs_clear(struct tRenderFuncs *t){
 	deleteVector(shaderflagsstruct,p->shaderflags_stack);
 	deleteVector(struct X3D_Node*,p->fog_stack);
 	deleteVector(int,p->localLight_stack);
+	deleteVector(draw_call_params,p->draw_call_params_stack);
 }
 void unload_libraryscenes(){
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
@@ -798,7 +818,70 @@ PRINT_GL_ERROR_IF_ANY("BEGIN setupShader");
 	return true;
 }
 
+// for particlephysics component we want to be able to do:
+// send vbos to shader/gpu
+// foreach liveparticle
+//    send particle-specific age-related color, texcoords, position to gpu
+//    drawOnce()
+// clearDraw()
+void saveArraysForGPU(int mode, int first, int count){
+	draw_call_params params;
+	ppRenderFuncs p;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
 
+	params.calltype = 1;
+	params.arrays.arrays_mode = mode;
+	params.arrays.arrays_count = count;
+	params.arrays.arrays_first = first;
+	stack_push(draw_call_params,p->draw_call_params_stack,params);
+}
+
+
+void saveElementsForGPU(int mode, int count, ushort *indices){
+	//we use a vector/stack because IndexedLineSet and LineSet call several times
+	// for one polyline vbo
+	draw_call_params params;
+	ppRenderFuncs p;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	
+	params.calltype = 2;
+	params.elements.elements_count = count;
+	params.elements.elements_mode = mode;
+	params.elements.elements_indices = indices;
+	stack_push(draw_call_params,p->draw_call_params_stack,params);
+}
+
+void reallyDrawOnce(){
+	//particle system will call this
+	int i;
+	draw_call_params params;
+	ppRenderFuncs p;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+
+	for(i=0;i<vectorSize(p->draw_call_params_stack);i++){
+		params = vector_get(draw_call_params,p->draw_call_params_stack,i);
+		if(params.calltype == 1)
+			glDrawArrays(params.arrays.arrays_mode,params.arrays.arrays_first,params.arrays.arrays_count);
+		else if(params.calltype == 2)
+			glDrawElements(params.elements.elements_mode,params.elements.elements_count,GL_UNSIGNED_SHORT,params.elements.elements_indices);
+	}
+	//p->draw_call_params_stack->n = 0;
+}
+void clearDraw(){
+	// particlesystem will call this
+	ppRenderFuncs p;
+	ttglobal tg = gglobal();
+	p = (ppRenderFuncs)tg->RenderFuncs.prv;
+	p->draw_call_params_stack->n = 0;
+}
+void reallyDraw(){
+	//child_Shape will call this
+	reallyDrawOnce();
+	clearDraw();
+}
 void sendArraysToGPU (int mode, int first, int count) {
 	#ifdef RENDERVERBOSE
 	printf ("sendArraysToGPU start\n"); 
@@ -817,7 +900,8 @@ void sendArraysToGPU (int mode, int first, int count) {
 
 	if (setupShader()){
 		profile_start("draw_arr");
-		glDrawArrays(mode,first,count);
+//		glDrawArrays(mode,first,count);
+		saveArraysForGPU(mode,first,count);
 		profile_end("draw_arr");
 	}
 	#ifdef RENDERVERBOSE
@@ -834,7 +918,8 @@ void sendElementsToGPU (int mode, int count, ushort *indices) {
     
 	if (setupShader()){
 		profile_start("draw_el");
-        glDrawElements(mode,count,GL_UNSIGNED_SHORT,indices);
+//        glDrawElements(mode,count,GL_UNSIGNED_SHORT,indices);
+		saveElementsForGPU(mode,count,indices);
 		profile_end("draw_el");
 	}
 
