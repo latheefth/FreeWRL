@@ -308,8 +308,8 @@ void randomDirection(float *xyz){
 
 typedef struct {
 	//store at end of current iteration, for use on next iteration
-	int live; //0 dead, ignor, 1 live
 	float age;
+	float lifespan;
 	float position[3];
 	float velocity[3];
 } particle;
@@ -377,6 +377,37 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 	}
 	MARK_NODE_COMPILED
 }
+
+
+void apply_windphysics(particle *pp, struct X3D_Node *physics){
+	struct X3D_WindPhysicsModel *px = (struct X3D_WindPhysicsModel *)physics;
+}
+void apply_boundedphysics(particle *pp, struct X3D_Node *physics){
+	struct X3D_BoundedPhysicsModel *px = (struct X3D_BoundedPhysicsModel *)physics;
+}
+void apply_forcephysics(particle *pp, struct X3D_Node *physics){
+	struct X3D_ForcePhysicsModel *px = (struct X3D_ForcePhysicsModel *)physics;
+}
+
+void apply_ConeEmitter(particle *pp, struct X3D_Node *emitter){
+	struct X3D_ConeEmitter *e = (struct X3D_ConeEmitter *)emitter;
+}
+void apply_ExplosionEmitter(particle *pp, struct X3D_Node *emitter){
+	struct X3D_ExplosionEmitter *e = (struct X3D_ExplosionEmitter *)emitter;
+}
+void apply_PointEmitter(particle *pp, struct X3D_Node *emitter){
+	struct X3D_PointEmitter *e = (struct X3D_PointEmitter *)emitter;
+}
+void apply_PolylineEmitter(particle *pp, struct X3D_Node *emitter){
+	struct X3D_PolylineEmitter *e = (struct X3D_PolylineEmitter *)emitter;
+}
+void apply_SurfaceEmitter(particle *pp, struct X3D_Node *emitter){
+	struct X3D_SurfaceEmitter *e = (struct X3D_SurfaceEmitter *)emitter;
+}
+void apply_VolumeEmitter(particle *pp, struct X3D_Node *emitter){
+	struct X3D_VolumeEmitter *e = (struct X3D_VolumeEmitter *)emitter;
+}
+
 void reallyDrawOnce();
 void clearDraw();
 void child_ParticleSystem(struct X3D_ParticleSystem *node){
@@ -389,8 +420,10 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 	if(node->enabled){
 	if(node->isActive){
+		int i,j,k,maxparticles;
 		double ttime;
 		float dtime;
+		Stack *_particles;
 		ttime = TickTime();
 		dtime = (float)(ttime - node->_lasttime); //increment to particle age
 
@@ -398,10 +431,53 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 			printf("child particlesystem \n");
 
 		//update current particles based on age and physics
-		//remove deceased/retired particles
-		if(node->createParticles){
+		//remove deceased/retired particles (by packing vector)
+		_particles = node->_particles;
+		maxparticles = min(node->maxParticles,10000);
+		for(i=0,j=0;i<vectorSize(_particles);i++){
+			particle pp = vector_get(particle,_particles,i);
+			pp.age += dtime;
+			if(pp.age < pp.lifespan){
+				for(k=0;k<node->physics.n;k++){
+					switch(node->physics.p[k]->_nodeType){
+						case NODE_WindPhysicsModel:
+							apply_windphysics(&pp,node->physics.p[k]); break;
+						case NODE_BoundedPhysicsModel:
+							apply_boundedphysics(&pp,node->physics.p[k]); break;
+						case NODE_ForcePhysicsModel:
+							apply_forcephysics(&pp,node->physics.p[k]); break;
+						default:
+							break;
+					}
+				}
+				vector_set(particle,_particles,j,pp); //pack vector to live position j
+				j++;
+			}
+		}
+		_particles->n = j;
+		if(node->createParticles && _particles->n < maxparticles){
 			//create new particles to reach maxparticles limit
-			//emit particles
+			j = _particles->n -1;
+			for(i=j;i<maxparticles;i++){
+				particle pp;
+				pp.age = 0.0f;
+				pp.lifespan = node->particleLifetime * (1.0f + uniformRand()*node->lifetimeVariation);
+				//emit particles
+				switch(node->emitter->_nodeType){
+					case NODE_ConeEmitter:		apply_ConeEmitter(&pp,node->emitter); break;
+					case NODE_ExplosionEmitter: apply_ExplosionEmitter(&pp,node->emitter); break;
+					case NODE_PointEmitter:		apply_PointEmitter(&pp,node->emitter); break;
+					case NODE_PolylineEmitter:	apply_PolylineEmitter(&pp,node->emitter); break;
+					case NODE_SurfaceEmitter:	apply_SurfaceEmitter(&pp,node->emitter); break;
+					case NODE_VolumeEmitter:	apply_VolumeEmitter(&pp,node->emitter); break;
+					default:
+						break;
+				}
+				//save particle
+				vector_set(particle,_particles,j,pp);
+				j++;
+			}
+			_particles->n = j;
 		}
 		//prepare to draw, like child_shape
 		//loop over live particles, drawing each one

@@ -398,9 +398,10 @@ typedef int indexT;
 #define NODE_Viewport	278
 #define NODE_VisibilitySensor	279
 #define NODE_VolumeData	280
-#define NODE_VolumePickSensor	281
-#define NODE_WindPhysicsModel	282
-#define NODE_WorldInfo	283
+#define NODE_VolumeEmitter	281
+#define NODE_VolumePickSensor	282
+#define NODE_WindPhysicsModel	283
+#define NODE_WorldInfo	284
 
 
 /* Table of built-in fieldIds */
@@ -8127,7 +8128,6 @@ struct X3D_PolylineEmitter {
 	float speed;
 	float variation;
 	struct Multi_Int32 coordIndex;
-	int internal;
 	float mass;
 	float surfaceArea;
 };
@@ -10365,6 +10365,34 @@ struct X3D_VolumeData {
 	struct X3D_Node *renderStyle;
 };
 extern struct X3D_Virt virt_VolumeData;
+/***********************/
+struct X3D_VolumeEmitter {
+       int _nodeType; /* unique integer for each type */ 
+       int _renderFlags; /*sensitive, etc */ 
+       int _hit; 
+       int _change; 
+       int _ichange; 
+       struct Vector* _parentVector; 
+       double _dist; /*sorting for blending */ 
+       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ 
+       struct X3D_PolyRep *_intern; 
+       int referenceCount; /* if this reaches zero, nobody wants it anymore */ 
+       int _defaultContainer; /* holds the container */
+       void* _gc; /* ptr to vector of ptrs to free */
+       struct X3D_Node* _executionContext; /* scene or protoInstance */
+ 	/*** node specific data: *****/
+	struct Multi_Int32 set_coordIndex;
+	struct X3D_Node *coord;
+	struct SFVec3f direction;
+	struct X3D_Node *metadata;
+	float speed;
+	float variation;
+	struct Multi_Int32 coordIndex;
+	int internal;
+	float mass;
+	float surfaceArea;
+};
+extern struct X3D_Virt virt_VolumeEmitter;
 /***********************/
 struct X3D_VolumePickSensor {
        int _nodeType; /* unique integer for each type */ 
