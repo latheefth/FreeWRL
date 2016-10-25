@@ -278,9 +278,10 @@ float normalRand(){
 	return (rxy[0]*.5); //scale from -1 to 1 into -.5 to .5 range
 }
 
-void randomTriangleCoord(float *p, float* p1, float *p2, float *p3){
+void randomTriangleCoord_dug9_uneducated_guess(float *p, float* p1, float *p2, float *p3){
 	// get 2 random barycentric coords 0-1, and use those
 	// https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+	// x I think b1 + b2 can be > 1.0 and thats wrong
 	int i;
 	float b1, b2;
 	b1 = uniformRand();
@@ -289,7 +290,19 @@ void randomTriangleCoord(float *p, float* p1, float *p2, float *p3){
 		p[i] = b1*p1[i] + b2*p2[i] + (1.0f - b1 - b2)*p3[i];
 	}
 }
+void randomTriangleCoord(float *p, float* p1, float *p2, float *p3){
+	// http://math.stackexchange.com/questions/18686/uniform-random-point-in-triangle
+	int i;
+	float r1, r2, sqr1,sqr2;
+	r1 = uniformRand();
+	r2 = uniformRand();
+	sqr1 = sqrtf(r1);
+	sqr2 = sqrtf(r2);
+	for(i=0;i<3;i++){
+		p[i] = (1.0f - sqr1)*p1[i] + (sqr1*(1.0f - sqr2))*p2[i] + (r2*sqr1)*p3[i];
+	}
 
+}
 void randomDirection(float *xyz){
 	//random xyz direction from a point
 	//http://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d
@@ -387,14 +400,46 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 }
 
 //PHYSICS
-void apply_windphysics(particle *pp, struct X3D_Node *physics){
+void apply_windphysics(particle *pp, struct X3D_Node *physics, float dtime){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#WindPhysicsModel
 	struct X3D_WindPhysicsModel *px = (struct X3D_WindPhysicsModel *)physics;
+	if(px->enabled){
+		float pressure;
+		float force, speed;
+		float turbdir[3], pdir[3];
+		speed = px->speed * (1.0f + uniformRandCentered()*px->gustiness);
+		pressure = powf(10.0f,2.0f*log10f(px->speed)) * .64615f;
+		force = pressure * pp->surfaceArea;
+		randomDirection(turbdir);
+		vecscale3f(turbdir,turbdir,px->turbulence);
+		vecadd3f(pdir,px->direction.c,turbdir);
+		vecnormalize3f(pdir,pdir);
+		vecscale3f(pdir,pdir,force);
+
+		float acceleration[3], at2[3];
+		vecscale3f(acceleration,pdir,1.0f/pp->mass);
+		vecscale3f(at2,acceleration,.5f * dtime * dtime);
+		vecadd3f(pp->position,pp->position,at2);
+
+	}
 }
-void apply_boundedphysics(particle *pp, struct X3D_Node *physics){
+void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float dtime){
 	struct X3D_BoundedPhysicsModel *px = (struct X3D_BoundedPhysicsModel *)physics;
+	if(px->enabled){
+
+	}
 }
-void apply_forcephysics(particle *pp, struct X3D_Node *physics){
+void apply_forcephysics(particle *pp, struct X3D_Node *physics, float dtime){
 	struct X3D_ForcePhysicsModel *px = (struct X3D_ForcePhysicsModel *)physics;
+	//a = F/m;
+	//v += .5*a*dt**2
+	//pp->position += .5f * px->
+	if(px->enabled){
+		float acceleration[3], at2[3];
+		vecscale3f(acceleration,px->force.c,1.0f/pp->mass);
+		vecscale3f(at2,acceleration,.5f * dtime * dtime);
+		vecadd3f(pp->position,pp->position,at2);
+	}
 }
 
 //EMITTERS
@@ -472,11 +517,11 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				for(k=0;k<node->physics.n;k++){
 					switch(node->physics.p[k]->_nodeType){
 						case NODE_WindPhysicsModel:
-							apply_windphysics(&pp,node->physics.p[k]); break;
+							apply_windphysics(&pp,node->physics.p[k],dtime); break;
 						case NODE_BoundedPhysicsModel:
-							apply_boundedphysics(&pp,node->physics.p[k]); break;
+							apply_boundedphysics(&pp,node->physics.p[k],dtime); break;
 						case NODE_ForcePhysicsModel:
-							apply_forcephysics(&pp,node->physics.p[k]); break;
+							apply_forcephysics(&pp,node->physics.p[k],dtime); break;
 						default:
 							break;
 					}
