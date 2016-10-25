@@ -329,8 +329,9 @@ typedef struct {
 	float lifespan; //assigned at birth
 	float size[2];  //assigned at birth
 	float position[3];
-	float direction[3];
-	float speed;
+	float velocity[3];
+	//float direction[3];
+	//float speed;
 	float mass;
 	float surfaceArea;
 } particle;
@@ -400,15 +401,22 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 }
 
 //PHYSICS
+void prep_windphysics(struct X3D_Node *physics){
+	//per-frame gustiness update
+	struct X3D_WindPhysicsModel *px = (struct X3D_WindPhysicsModel *)physics;
+	float speed;
+	speed = px->speed * (1.0f + uniformRandCentered()*px->gustiness);
+	px->_frameSpeed = speed;
+}
 void apply_windphysics(particle *pp, struct X3D_Node *physics, float dtime){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#WindPhysicsModel
 	struct X3D_WindPhysicsModel *px = (struct X3D_WindPhysicsModel *)physics;
-	if(px->enabled){
+	if(px->enabled && pp->mass != 0.0f){
 		float pressure;
 		float force, speed;
 		float turbdir[3], pdir[3];
-		speed = px->speed * (1.0f + uniformRandCentered()*px->gustiness);
-		pressure = powf(10.0f,2.0f*log10f(px->speed)) * .64615f;
+		speed = px->_frameSpeed;
+		pressure = powf(10.0f,2.0f*log10f(speed)) * .64615f;
 		force = pressure * pp->surfaceArea;
 		randomDirection(turbdir);
 		vecscale3f(turbdir,turbdir,px->turbulence);
@@ -416,49 +424,126 @@ void apply_windphysics(particle *pp, struct X3D_Node *physics, float dtime){
 		vecnormalize3f(pdir,pdir);
 		vecscale3f(pdir,pdir,force);
 
-		float acceleration[3], at2[3];
+		float acceleration[3], v2[3];
 		vecscale3f(acceleration,pdir,1.0f/pp->mass);
-		vecscale3f(at2,acceleration,.5f * dtime * dtime);
-		vecadd3f(pp->position,pp->position,at2);
+		vecscale3f(v2,acceleration,dtime);
+		vecadd3f(pp->velocity,pp->velocity,v2);
 
 	}
 }
 void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float dtime){
 	struct X3D_BoundedPhysicsModel *px = (struct X3D_BoundedPhysicsModel *)physics;
-	if(px->enabled){
+	if(px->enabled && pp->mass != 0.0f){
 
 	}
 }
 void apply_forcephysics(particle *pp, struct X3D_Node *physics, float dtime){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#ForcePhysicsModel
+	// I think Octaga mis-interprets the [0 -9.81 0] force as acceleartion of gravity.
+	// it will be if mass==1. Otherwise you need to scale your force by mass:
+	// ie if your mass is 10, then force needs to be [0 98.1 0]
 	struct X3D_ForcePhysicsModel *px = (struct X3D_ForcePhysicsModel *)physics;
 	//a = F/m;
-	//v += .5*a*dt**2
-	//pp->position += .5f * px->
-	if(px->enabled){
-		float acceleration[3], at2[3];
+	//v += a*dt
+	if(px->enabled && pp->mass != 0.0f){
+		float acceleration[3], v2[3];
 		vecscale3f(acceleration,px->force.c,1.0f/pp->mass);
-		vecscale3f(at2,acceleration,.5f * dtime * dtime);
-		vecadd3f(pp->position,pp->position,at2);
+		vecscale3f(v2,acceleration,dtime);
+		vecadd3f(pp->velocity,pp->velocity,v2);
 	}
 }
 
 //EMITTERS
 void apply_ConeEmitter(particle *pp, struct X3D_Node *emitter){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#ConeEmitter
+	// like point emitter, except we need work in the direction:
+	// 2 randoms, one for angle-from-direction < e.angle, and one for angle-around-direction 0-2PI
 	struct X3D_ConeEmitter *e = (struct X3D_ConeEmitter *)emitter;
+	float direction[3], tilt, azimuth, speed;
+	{
+		//prep - can be done once per direction
+		//need 2 orthogonal axes 
+		//a) find a minor axis
+		vecnormalize3f(direction,e->direction.c);
+		float amin = min(min(abs(direction[0]),abs(direction[1])),abs(direction[2]));
+		int i,imin = 0;
+		for(i=0;i<3;i++){
+			if(abs(direction[i]) == amin){
+				imin = i; break;
+			}
+		}
+		//make a vector with the minor axis dominant
+		float orthog1[3],orthog2[3];
+		for(i=0;i<3;i++) orthog1[i] = 0.0f;
+		orthog1[imin] = 1.0f;
+		//orthog1 will only be approximately orthogonal to direction
+		//do a cross product to get ortho2
+		veccross3f(orthog2,direction,orthog1);
+		//orthog2 will be truely orthogonal
+		//cross orthog2 with direction to get truely orthog1
+		veccross3f(orthog1,direction,orthog2);
+
+		//for this particle
+		//direction = cos(tilt)*direction
+		//az = cos(azimuth)*orthog1 + sin(azimuth)*orthog2
+		//az = sin(tilt)*az
+		//direction += az;
+		//where
+		// tilt - from e.direction axis
+		// azimuth - angle around e.direction vector (in plane orthogonal to direction vector)
+		// az[3] - vector in the orthogonal plane, in direction of azimuth
+		float az[3],az1[3],az2[3],ctilt,stilt,caz,saz;
+		tilt = uniformRand()*e->angle;
+		ctilt = cosf(tilt);
+		stilt = sinf(tilt);
+		azimuth = uniformRand()*2.0f*PI;
+		caz = cosf(azimuth);
+		saz = sinf(azimuth);
+		vecscale3f(az1,orthog1,caz);
+		vecscale3f(az2,orthog2,saz);
+		vecadd3f(az,az1,az2);
+		//now az is a unit vector in orthogonal plane, in direction of azimuth
+		vecscale3f(az,az,stilt);
+		//now az is scaled for adding to direction
+		vecscale3f(direction,direction,ctilt);
+		//direction is shrunk (or reversed) to account for tilt
+		vecadd3f(direction,direction,az);
+		//now direction is unit vector in tilt,az direction from e.direction
+	}
+	memcpy(pp->position,e->position.c,3*sizeof(float));
+	speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
+	vecscale3f(pp->velocity,direction,speed);
+	pp->mass = e->mass*(1.0f + uniformRandCentered()*e->variation);
+	pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
+
 }
 void apply_ExplosionEmitter(particle *pp, struct X3D_Node *emitter){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#ExplosionEmitter
+	// like point emitter, except always random direction
+	// the create-all-at-time-zero is handled up one level
 	struct X3D_ExplosionEmitter *e = (struct X3D_ExplosionEmitter *)emitter;
+	float direction[3], speed;
+	memcpy(pp->position,e->position.c,3*sizeof(float));
+	randomDirection(direction);
+	speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
+	vecscale3f(pp->velocity,direction,speed);
+	pp->mass = e->mass*(1.0f + uniformRandCentered()*e->variation);
+	pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
 }
 void apply_PointEmitter(particle *pp, struct X3D_Node *emitter){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#PointEmitter
+	// like explosion, except may have a non-random direction
 	struct X3D_PointEmitter *e = (struct X3D_PointEmitter *)emitter;
+	float direction[3], speed;
 	memcpy(pp->position,e->position.c,3*sizeof(float));
 	if(veclength3f(e->direction.c) < .00001){
-		randomDirection(pp->direction);
+		randomDirection(direction);
 	}else{
-		memcpy(pp->direction,e->direction.c,3*sizeof(float));
-		vecnormalize3f(pp->direction,pp->direction);
+		memcpy(direction,e->direction.c,3*sizeof(float));
+		vecnormalize3f(direction,direction);
 	}
-	pp->speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
+	speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
+	vecscale3f(pp->velocity,direction,speed);
 	pp->mass = e->mass*(1.0f + uniformRandCentered()*e->variation);
 	pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
 	
@@ -498,38 +583,58 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		if(!once)
 			printf("child particlesystem \n");
 
-		//update current particles based on age and physics
-		//remove deceased/retired particles (by packing vector)
+
+		//RETIRE remove deceased/retired particles (by packing vector)
 		_particles = node->_particles;
 		maxparticles = min(node->maxParticles,10000);
 		for(i=0,j=0;i<vectorSize(_particles);i++){
 			particle pp = vector_get(particle,_particles,i);
 			pp.age += dtime;
 			if(pp.age < pp.lifespan){
-				float velocity[3];
-
-				//default update:
-				// position += velocity * dtime
-				vecscale3f(velocity,pp.direction,pp.speed*dtime);
-				vecadd3f(pp.position,pp.position,velocity);
-
-				//physics update, accelerations applied here
-				for(k=0;k<node->physics.n;k++){
-					switch(node->physics.p[k]->_nodeType){
-						case NODE_WindPhysicsModel:
-							apply_windphysics(&pp,node->physics.p[k],dtime); break;
-						case NODE_BoundedPhysicsModel:
-							apply_boundedphysics(&pp,node->physics.p[k],dtime); break;
-						case NODE_ForcePhysicsModel:
-							apply_forcephysics(&pp,node->physics.p[k],dtime); break;
-						default:
-							break;
-					}
-				}
 				vector_set(particle,_particles,j,pp); //pack vector to live position j
 				j++;
 			}
 		}
+
+		//PREP PHYSICS - wind geta a per-frame gustiness update
+		for(k=0;k<node->physics.n;k++){
+			switch(node->physics.p[k]->_nodeType){
+				case NODE_WindPhysicsModel:
+					prep_windphysics(node->physics.p[k]); break;
+				default:
+					break;
+			}
+		}
+		//APPLY PHYSICS
+		for(i=0;i<vectorSize(_particles);i++){
+			particle pp = vector_get(particle,_particles,i);
+			float positionChange[3];
+
+
+			//update velocity vector based on physics accelerations
+			// A = F/M
+			// V2 = V1 + A*dT
+			for(k=0;k<node->physics.n;k++){
+				switch(node->physics.p[k]->_nodeType){
+					case NODE_WindPhysicsModel:
+						apply_windphysics(&pp,node->physics.p[k],dtime); break;
+					case NODE_BoundedPhysicsModel:
+						apply_boundedphysics(&pp,node->physics.p[k],dtime); break;
+					case NODE_ForcePhysicsModel:
+						apply_forcephysics(&pp,node->physics.p[k],dtime); break;
+					default:
+						break;
+				}
+			}
+
+			//update position: P1 = P0 + .5(V0 + V1) x dT
+			vecscale3f(positionChange,pp.velocity,.5f * dtime);
+			vecadd3f(pp.position,pp.position,positionChange);
+
+			vector_set(particle,_particles,i,pp); //pack vector to live position j
+		}
+
+		//CREATE via emitters (implied dtime = 0, so no physics on first frame)
 		_particles->n = j;
 		if(node->createParticles && _particles->n < maxparticles){
 			//create new particles to reach maxparticles limit

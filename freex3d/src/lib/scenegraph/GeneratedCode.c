@@ -211,6 +211,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_fbohandles",
 	"_floatInpFIFO",
 	"_floatOutFIFO",
+	"_frameSpeed",
 	"_geom",
 	"_geometryType",
 	"_hatchScale",
@@ -7077,6 +7078,7 @@ const int OFFSETS_VolumePickSensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_WindPhysicsModel[] = {
+	(int) FIELDNAMES__frameSpeed, (int) offsetof (struct X3D_WindPhysicsModel, _frameSpeed),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_WindPhysicsModel, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_WindPhysicsModel, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_gustiness, (int) offsetof (struct X3D_WindPhysicsModel, gustiness),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -12636,6 +12638,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_WindPhysicsModel : {
 			struct X3D_WindPhysicsModel * tmp2;
 			tmp2 = (struct X3D_WindPhysicsModel *) tmp;
+			tmp2->_frameSpeed = 0.0f;
 			tmp2->direction.c[0] = 0.0f;tmp2->direction.c[1] = 1.0f;tmp2->direction.c[2] = 0.0f;
 			tmp2->enabled = TRUE;
 			tmp2->gustiness = 0.1f;
