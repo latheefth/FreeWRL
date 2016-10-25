@@ -484,31 +484,57 @@ void apply_ConeEmitter(particle *pp, struct X3D_Node *emitter){
 		veccross3f(orthog1,direction,orthog2);
 
 		//for this particle
-		//direction = cos(tilt)*direction
-		//az = cos(azimuth)*orthog1 + sin(azimuth)*orthog2
-		//az = sin(tilt)*az
-		//direction += az;
-		//where
-		// tilt - from e.direction axis
-		// azimuth - angle around e.direction vector (in plane orthogonal to direction vector)
-		// az[3] - vector in the orthogonal plane, in direction of azimuth
-		float az[3],az1[3],az2[3],ctilt,stilt,caz,saz;
-		tilt = uniformRand()*e->angle;
-		ctilt = cosf(tilt);
-		stilt = sinf(tilt);
-		azimuth = uniformRand()*2.0f*PI;
-		caz = cosf(azimuth);
-		saz = sinf(azimuth);
-		vecscale3f(az1,orthog1,caz);
-		vecscale3f(az2,orthog2,saz);
-		vecadd3f(az,az1,az2);
-		//now az is a unit vector in orthogonal plane, in direction of azimuth
-		vecscale3f(az,az,stilt);
-		//now az is scaled for adding to direction
-		vecscale3f(direction,direction,ctilt);
-		//direction is shrunk (or reversed) to account for tilt
-		vecadd3f(direction,direction,az);
-		//now direction is unit vector in tilt,az direction from e.direction
+		int method = 2;
+		if(method == 1){
+			//METHOD 1: TILT + AZIMUTH
+			//tends to crowd/cluster around central direction, and fade with tilt
+			//(due to equal chance of tilt angle, but larger area to cover as tilt goes up)
+			//direction = cos(tilt)*direction
+			//az = cos(azimuth)*orthog1 + sin(azimuth)*orthog2
+			//az = sin(tilt)*az
+			//direction += az;
+			//where
+			// tilt - from e.direction axis
+			// azimuth - angle around e.direction vector (in plane orthogonal to direction vector)
+			// az[3] - vector in the orthogonal plane, in direction of azimuth
+			float az[3],az1[3],az2[3],ctilt,stilt,caz,saz;
+			tilt = uniformRand()*e->angle;
+			ctilt = cosf(tilt);
+			stilt = sinf(tilt);
+			azimuth = uniformRand()*2.0f*PI;
+			caz = cosf(azimuth);
+			saz = sinf(azimuth);
+			vecscale3f(az1,orthog1,caz);
+			vecscale3f(az2,orthog2,saz);
+			vecadd3f(az,az1,az2);
+			//now az is a unit vector in orthogonal plane, in direction of azimuth
+			vecscale3f(az,az,stilt);
+			//now az is scaled for adding to direction
+			vecscale3f(direction,direction,ctilt);
+			//direction is shrunk (or reversed) to account for tilt
+			vecadd3f(direction,direction,az);
+			//now direction is unit vector in tilt,az direction from e.direction
+		}
+		if(method == 2){
+			//METHOD 2: POINT IN CIRCLE
+			//tends to give even distribution over circle face of cone
+			//xy = randomCircle
+			//orthog = x*orthog1 + y*orthog2
+			//direction += orthog
+			float xy[2], orx[3],ory[3], orthog[3];
+			circleRand2D(xy);
+			//orthog = x*orthog1 + y*orthog2
+			vecscale3f(orx,orthog1,xy[0]);
+			vecscale3f(ory,orthog2,xy[1]);
+			vecadd3f(orthog,orx,ory);
+			vecscale3f(orthog,orthog,sinf(e->angle));
+			vecscale3f(direction,direction,cosf(e->angle));
+			//direction += orthog
+			vecadd3f(direction,orthog,direction);
+			//normalize(direction)
+			vecnormalize3f(direction,direction);
+		}
+
 	}
 	memcpy(pp->position,e->position.c,3*sizeof(float));
 	speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
