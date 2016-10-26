@@ -187,6 +187,7 @@ void render_ArcClose2D (struct X3D_ArcClose2D *node) {
 		gglobal()->Mainloop.trisThisLoop += node->__numPoints;
 	}
 }
+// rendray_ArcClose2D
 
 /***********************************************************************************/
 
@@ -432,6 +433,7 @@ void render_Disk2D (struct X3D_Disk2D *node){
 		gglobal()->Mainloop.trisThisLoop += node->__numPoints;
 	}
 }
+//rendray_Disk2D
 
 /***********************************************************************************/
 
@@ -528,6 +530,7 @@ void render_TriangleSet2D (struct X3D_TriangleSet2D *node){
 		gglobal()->Mainloop.trisThisLoop += node->vertices.n;
 	}
 }
+//rendray_TriangleSet2D
 
 
 /***********************************************************************************/
@@ -598,6 +601,7 @@ void render_Rectangle2D (struct X3D_Rectangle2D *node) {
 	}
 	gglobal()->Mainloop.trisThisLoop += 2;
 }
+// rendray_Rectangle2D
 
 /***********************************************************************************/
 //http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/geometry2D.html#ArcClose2D

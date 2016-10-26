@@ -107,6 +107,7 @@ s_shader_capabilities_t *getMyShaders(shaderflagsstruct);
 #define TEX3D_LAYER_SHADER     0x800000
 #define CLIPPLANE_SHADER       0x1000000
 #define PARTICLE_SHADER        0X2000000
+#define HAVE_UNLIT_COLOR       0x4000000
 //can go up to 2^32 - for future components like volume, particle, hanim 
 
 //goes into flags.volume

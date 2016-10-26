@@ -807,6 +807,8 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 
 			//ParticleSystem flag
 			shader_requirements.base |= PARTICLE_SHADER;
+			if(node->colorRamp)
+				shader_requirements.base |= HAVE_UNLIT_COLOR;
 		}
 		//printf("child_shape shader_requirements base %d effects %d user %d\n",shader_requirements.base,shader_requirements.effects,shader_requirements.usershaders);
 		scap = getMyShaders(shader_requirements);
@@ -885,11 +887,54 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		}
 
 		GLint ppos = GET_UNIFORM(scap->myShaderProgram,"particlePosition");
+		GLint cr = GET_UNIFORM(scap->myShaderProgram,"fw_UnlitColor");
 		//loop over live particles, drawing each one
 		for(i=0;i<vectorSize(_particles);i++){
 			particle pp = vector_get(particle,_particles,i);
 			//update particle-specific uniforms
 			glUniform3fv(ppos,1,pp.position);
+			if(node->colorRamp){
+				int ifloor, iceil, found;
+				float rgbaf[4], rgbac[4], rgba[4], fraclife;
+				found = FALSE;
+				fraclife = pp.age / pp.lifespan;
+				for(j=0;j<node->colorKey.n;j++){
+					if(node->colorKey.p[j] <= fraclife && node->colorKey.p[j+1] > fraclife){
+						ifloor = j;
+						iceil = j+1;
+						found = TRUE;
+						break;
+					}
+				}
+				if(found){
+					float spread, fraction;
+					struct SFColorRGBA * crgba = NULL;
+					struct SFColor *crgb = NULL;
+					switch(node->colorRamp->_nodeType){
+						case NODE_ColorRGBA: crgba = ((struct X3D_ColorRGBA *)node->colorRamp)->color.p; break;
+						case NODE_Color: crgb = ((struct X3D_Color *)node->colorRamp)->color.p; break;
+						default:
+						break;
+					}
+					spread = node->colorKey.p[iceil] - node->colorKey.p[ifloor];
+					fraction = (fraclife - node->colorKey.p[ifloor]) / spread;
+					if(crgba){
+						memcpy(rgbaf,&crgba[ifloor],sizeof(struct SFColorRGBA));
+						memcpy(rgbac,&crgba[iceil],sizeof(struct SFColorRGBA));
+					}else if(crgb){
+						memcpy(rgbaf,&crgb[ifloor],sizeof(struct SFColor));
+						rgbaf[3] = 1.0f;
+						memcpy(rgbac,&crgb[iceil],sizeof(struct SFColor));
+						rgbac[3] = 1.0f;
+					}
+					for(k=0;k<4;k++){
+						rgba[k] = (1.0f - fraction)*rgbaf[k] + fraction*rgbac[k];
+					}
+					glUniform4fv(cr,1,rgba);
+				}else{
+					//re-use last color
+				}
+			}
 			//draw
 			reallyDrawOnce();
 		}

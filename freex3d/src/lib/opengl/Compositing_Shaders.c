@@ -549,6 +549,9 @@ uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;
 \n\
 //uniform vec3 castle_SceneColor; \n\
 //uniform vec4 castle_UnlitColor; \n\
+#ifdef UNLIT \n\
+uniform vec4 fw_UnlitColor; \n\
+#endif //UNLIT \n\
 #ifdef LIT \n\
 struct fw_MaterialParameters { \n\
   vec4 emission; \n\
@@ -618,6 +621,7 @@ void main(void) \n\
    castle_SceneColor = vec3(0.0,0.0,0.0); //line gets color from castle_Emissive \n\
   #endif //LINE\n\
   #else //LIT \n\
+  //default unlits in case we dont set them \n\
   castle_UnlitColor = vec4(1.0,1.0,1.0,1.0); \n\
   castle_MaterialDiffuseAlpha = 1.0; \n\
   #endif //LIT \n\
@@ -733,6 +737,9 @@ void main(void) \n\
   castle_vertex_eye.z = fw_FogCoords; \n\
   #endif //FOGCOORD \n\
   #endif //FOG \n\
+  #ifdef UNLIT \n\
+  castle_Color = fw_UnlitColor; \n\
+  #endif //UNLIT \n\
 } \n";
 
 
@@ -1096,6 +1103,9 @@ void main(void) \n\
   fragment_color.rgb = matdiff_color.rgb; \n\
   #endif //MATFIR \n\
   #endif //LIT \n\
+  #ifdef UNLIT \n\
+  fragment_color = castle_Color; \n\
+  #endif //UNLIT \n\
   \n\
   #ifdef CPV \n\
   #ifdef CPVREP \n\
@@ -1697,6 +1707,10 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 	*/
 	#define NOT_MODULATE_IMG_AND_MAT_ALPHAS 1  
 
+	if(DESIRE(whichOne.base,HAVE_UNLIT_COLOR)){
+		AddDefine(SHADERPART_VERTEX,"UNLIT",CompleteCode);
+		AddDefine(SHADERPART_FRAGMENT,"UNLIT",CompleteCode);
+	}
 	if (DESIRE(whichOne.base,ONE_TEX_APPEARANCE_SHADER) ||
 		DESIRE(whichOne.base,HAVE_TEXTURECOORDINATEGENERATOR) ||
 		DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE) ||
