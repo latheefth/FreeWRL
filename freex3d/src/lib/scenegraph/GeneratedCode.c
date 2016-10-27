@@ -227,8 +227,10 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_layerId",
 	"_loc",
 	"_ltex",
+	"_method",
 	"_needs_gradient",
 	"_npoints",
+	"_nseg",
 	"_offsetUnits",
 	"_oldhitNormal",
 	"_oldhitPoint",
@@ -247,6 +249,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_particles",
 	"_phaseFunction",
 	"_pointsVBO",
+	"_portions",
 	"_previousvalue",
 	"_radius",
 	"_remainder",
@@ -255,6 +258,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_scale",
 	"_scaleMode",
 	"_screendata",
+	"_segs",
 	"_selected",
 	"_shaderLoadThread",
 	"_shaderUserDefinedFields",
@@ -5951,6 +5955,10 @@ const int OFFSETS_Polyline2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_PolylineEmitter[] = {
+	(int) FIELDNAMES__method, (int) offsetof (struct X3D_PolylineEmitter, _method),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__nseg, (int) offsetof (struct X3D_PolylineEmitter, _nseg),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__portions, (int) offsetof (struct X3D_PolylineEmitter, _portions),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__segs, (int) offsetof (struct X3D_PolylineEmitter, _segs),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_coord, (int) offsetof (struct X3D_PolylineEmitter, coord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_coordIndex, (int) offsetof (struct X3D_PolylineEmitter, coordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_PolylineEmitter, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11207,6 +11215,10 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_PolylineEmitter : {
 			struct X3D_PolylineEmitter * tmp2;
 			tmp2 = (struct X3D_PolylineEmitter *) tmp;
+			tmp2->_method = 0;
+			tmp2->_nseg = 0;
+			tmp2->_portions = NULL;
+			tmp2->_segs = NULL;
 			tmp2->coord = NULL;
 			tmp2->coordIndex.p = MALLOC (int *, sizeof(int)*1);
 			tmp2->coordIndex.p[0] = -1;

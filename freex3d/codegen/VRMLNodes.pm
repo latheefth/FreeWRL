@@ -3668,6 +3668,10 @@ our %Nodes = (
 		coordIndex => ["MFInt32", [-1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		mass  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surfaceArea  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_method =>["SFInt32",0,"initializeOnly",0],
+		_nseg =>["SFInt32",0,"initializeOnly",0],
+		_segs => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_portions => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 	],"X3DParticleEmitterNode"),
 	
 	# 40.4.8 SurfaceEmitter

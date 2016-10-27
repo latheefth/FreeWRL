@@ -686,10 +686,118 @@ void apply_PointEmitter(particle *pp, struct X3D_Node *emitter){
 	pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
 	
 }
-void apply_PolylineEmitter(particle *pp, struct X3D_Node *emitter){
+enum {
+	POLYLINEEMITTER_METHODA = 1,
+	POLYLINEEMITTER_METHODB = 2,
+};
+void compile_PolylineEmitter(struct X3D_Node *node){
+	struct X3D_PolylineEmitter *e = (struct X3D_PolylineEmitter *)node;
+	float *segs = NULL;
+	//e->_method = POLYLINEEMITTER_METHODA;
+	e->_method = POLYLINEEMITTER_METHODB;
+	if(e->coord && e->coordIndex.n > 1){
+		//convert IndexedLineSet to pairs of coordinates
+		int i,k,ind, n,nseg = 0;
+		float *pts[2];
+		struct X3D_Coordinate *coord = (struct X3D_Coordinate *)e->coord;
+		n = e->coordIndex.n;
+		segs = MALLOC(void*,2*3*sizeof(float) *n*2 ); //2 vertices per lineseg, and 1 lineseg per coordindex should be more than enough
+		k = 0;
+		nseg = 0;
+		for(i=0;i<e->coordIndex.n;i++){
+			ind = e->coordIndex.p[i];
+			if( ind == -1) {
+				k = 0;
+				continue;
+			}
+			pts[k] = (float*)&coord->point.p[ind];
+			k++;
+			if(k==2){
+				veccopy3f(&segs[(nseg*2 +0)*3],pts[0]);
+				veccopy3f(&segs[(nseg*2 +1)*3],pts[1]);
+				pts[0] = pts[1];
+				nseg++;
+				k = 1;
+			}
+		}
+		e->_segs = segs;
+		e->_nseg = nseg;
+	}
+	if(e->_method == POLYLINEEMITTER_METHODB){
+		int i;
+		float *portions, totaldist, dist, delta[3];
+		portions = MALLOC(float *,e->_nseg * sizeof(float));
+		e->_portions = portions;
+		totaldist = 0.0f;
+		for(i=0;i<e->_nseg;i++){
+			vecdif3f(delta,&segs[(i*2 + 1)*3],&segs[(i*2 + 0)*3]);
+			dist = veclength3f(delta);
+			//printf("dist %d %f\n",i,dist);
+			portions[i] = dist;
+			totaldist += dist;
+		}
+		for(i=0;i<e->_nseg;i++){
+			portions[i] = portions[i]/totaldist;
+			//printf("portion %d %f\n",i,portions[i]);
+		}
+	}
+	MARK_NODE_COMPILED
+}
+void apply_PolylineEmitter(particle *pp, struct X3D_Node *node){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#PolylineEmitter
-	struct X3D_PolylineEmitter *e = (struct X3D_PolylineEmitter *)emitter;
+	struct X3D_PolylineEmitter *e = (struct X3D_PolylineEmitter *)node;
 	//like point emitter, except posiion is drawn randomly along polyline
+	//option A: pick segment index at random, then pick distance along segment at random (Octaga?)
+	//option B: pick random 0-1, then map that to cumulative distance along polyline
+	if(NODE_NEEDS_COMPILING)
+		compile_PolylineEmitter(node);
+	memset(pp->position,0,3*sizeof(float)); //in case no coords/polyline/segs
+	if(e->_method == POLYLINEEMITTER_METHODA && e->_nseg){
+		float *segs, delta[3], pos[3];
+		// pick a segment at random:
+		int iseg = (int) floorf(uniformRand() * (float)e->_nseg);
+		//pick a point on the segment
+		float fraction = uniformRand();
+		segs = (float *)e->_segs;
+		vecdif3f(delta,&segs[(iseg*2 + 1)*3],&segs[(iseg*2 + 0)*3]);
+		vecscale3f(delta,delta,fraction);
+		vecadd3f(pos,&segs[(iseg*2 + 0)*3],delta);
+		veccopy3f(pp->position,pos);
+	}
+	if(e->_method == POLYLINEEMITTER_METHODB && e->_nseg){
+		//pick rand 0-1
+		int i;
+		float cumulative, fraction, *portions, *segs, delta[3], pos[3], segfraction;
+		fraction = uniformRand();
+		portions = (float*)e->_portions;
+		cumulative = 0.0f;
+		for(i=0;i<e->_nseg;i++){
+			cumulative +=portions[i];
+			if(cumulative > fraction){
+				segfraction = (cumulative - fraction) / portions[i];
+				segs = (float *)e->_segs;
+				vecdif3f(delta,&segs[(i*2 + 1)*3],&segs[(i*2 + 0)*3]);
+				vecscale3f(delta,delta,segfraction);
+				vecadd3f(pos,&segs[(i*2 + 0)*3],delta);
+				veccopy3f(pp->position,pos);
+				break;
+			}
+		}
+	}
+
+	//the rest is like point emitter:
+	float direction[3], speed;
+//not for polyline see above	memcpy(pp->position,e->position.c,3*sizeof(float));
+	if(veclength3f(e->direction.c) < .00001){
+		randomDirection(direction);
+	}else{
+		memcpy(direction,e->direction.c,3*sizeof(float));
+		vecnormalize3f(direction,direction);
+	}
+	speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
+	vecscale3f(pp->velocity,direction,speed);
+	pp->mass = e->mass*(1.0f + uniformRandCentered()*e->variation);
+	pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
 
 }
 void apply_SurfaceEmitter(particle *pp, struct X3D_Node *emitter){
