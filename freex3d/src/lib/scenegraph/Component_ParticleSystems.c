@@ -781,6 +781,12 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	// 
 	// ParticleSystem 
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#ParticleSystem
+	// In here we are doing basically what child_Shape does to draw a single geom,
+	// except once we send the geometry vertex buffer to the shader,
+	// we go into a loop to draw all the particles, sending an xyz position update to the shader
+	// for each particle (and color update if colorRamp, or texCoordUpdate if texCoordRamp, and
+	//  velocity direction if LINE)
+	//
 	s_shader_capabilities_t *caps;
 	static int once = 0;
 	COMPILE_IF_REQUIRED
