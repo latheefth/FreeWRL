@@ -47,10 +47,12 @@ X3D Particle Systems Component
 #include "../input/EAIHelpers.h"	/* for newASCIIString() */
 
 #include "Polyrep.h"
+#include "RenderFuncs.h"
 #include "LinearAlgebra.h"
 //#include "Component_ParticleSystems.h"
 #include "Children.h"
 #include "Component_Shape.h"
+#include "../opengl/Textures.h"
 
 typedef struct pComponent_ParticleSystems{
 	int something;
@@ -368,10 +370,14 @@ int lookup_geomtype(const char *name){
 	}
 	return iret;
 }
-GLfloat quadtris [18] = {1.0f,1.0f,0.0f, -1.0f,1.0f,0.0f, -1.0f,-1.0f,0.0f,    1.0f,1.0f,0.0f, -1.0f,-1.0f,0.0f, 1.0f,-1.0f,0.0f};
+//GLfloat quadtris [18] = {1.0f,1.0f,0.0f, -1.0f,1.0f,0.0f, -1.0f,-1.0f,0.0f,    1.0f,1.0f,0.0f, -1.0f,-1.0f,0.0f, 1.0f,-1.0f,0.0f};
+GLfloat quadtris [18] = {-.5f,-.5f,0.0f, .5f,-.5f,0.0f, .5f,.5f,0.0f,   .5f,.5f,0.0f, -.5f,.5f,0.0f, -.5f,-.5f,0.0f,};
+GLfloat twotrisnorms [18] = {0.f,0.f,1.f, 0.f,0.f,1.f, 0.f,0.f,1.f,    0.f,0.f,1.f, 0.f,0.f,1.f, 0.f,0.f,1.f,};
+GLfloat twotristex [12] = {0.f,0.f, 1.f,0.f, 1.f,1.f,    1.f,1.f, 0.f,1.f, 0.f,0.f};
+
 void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 	int i,j, maxparticles;
-	float *boxtris;
+	float *boxtris, *vertices;
 	Stack *_particles;
 
 	ConsoleMessage("compile_particlesystem\n");
@@ -381,8 +387,19 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 	node->_geometryType = lookup_geomtype(node->geometryType->strptr);
 	if(node->_tris == NULL){
 		node->_tris = MALLOC(void *,18 * sizeof(float));
-		memcpy(node->_tris,quadtris,18*sizeof(float));
+		//memcpy(node->_tris,quadtris,18*sizeof(float));
 	}
+	vertices = (float*)(node->_tris);
+	//rescale vertices, in case scale changed
+	for(i=0;i<6;i++){
+		float *vert, *vert0;
+		vert0 = &quadtris[i*3];
+		vert = &vertices[i*3];
+		vert[0] = vert0[0]*node->particleSize.c[0];
+		vert[1] = vert0[1]*node->particleSize.c[1];
+		vert[2] = vert0[2];
+	}
+
 	maxparticles = min(node->maxParticles,10000);
 	if(node->_particles == NULL)
 		node->_particles = newVector(particle,maxparticles);
@@ -583,9 +600,53 @@ void apply_SurfaceEmitter(particle *pp, struct X3D_Node *emitter){
 void apply_VolumeEmitter(particle *pp, struct X3D_Node *emitter){
 	struct X3D_VolumeEmitter *e = (struct X3D_VolumeEmitter *)emitter;
 }
+void updateColorRamp(struct X3D_ParticleSystem *node, particle *pp, GLint cramp){
+	int j,k,ifloor, iceil, found;
+	float rgbaf[4], rgbac[4], rgba[4], fraclife;
+	found = FALSE;
+	fraclife = pp->age / pp->lifespan;
+	for(j=0;j<node->colorKey.n;j++){
+		if(node->colorKey.p[j] <= fraclife && node->colorKey.p[j+1] > fraclife){
+			ifloor = j;
+			iceil = j+1;
+			found = TRUE;
+			break;
+		}
+	}
+	if(found){
+		float spread, fraction;
+		struct SFColorRGBA * crgba = NULL;
+		struct SFColor *crgb = NULL;
+		switch(node->colorRamp->_nodeType){
+			case NODE_ColorRGBA: crgba = ((struct X3D_ColorRGBA *)node->colorRamp)->color.p; break;
+			case NODE_Color: crgb = ((struct X3D_Color *)node->colorRamp)->color.p; break;
+			default:
+			break;
+		}
+		spread = node->colorKey.p[iceil] - node->colorKey.p[ifloor];
+		fraction = (fraclife - node->colorKey.p[ifloor]) / spread;
+		if(crgba){
+			memcpy(rgbaf,&crgba[ifloor],sizeof(struct SFColorRGBA));
+			memcpy(rgbac,&crgba[iceil],sizeof(struct SFColorRGBA));
+		}else if(crgb){
+			memcpy(rgbaf,&crgb[ifloor],sizeof(struct SFColor));
+			rgbaf[3] = 1.0f;
+			memcpy(rgbac,&crgb[iceil],sizeof(struct SFColor));
+			rgbac[3] = 1.0f;
+		}
+		for(k=0;k<4;k++){
+			rgba[k] = (1.0f - fraction)*rgbaf[k] + fraction*rgbac[k];
+		}
+		glUniform4fv(cramp,1,rgba);
+	}else{
+		//re-use last color
+	}
+}
 
 void reallyDrawOnce();
 void clearDraw();
+GLfloat linepts [6] = {-.5f,0.f,0.f, .5f,0.f,0.f};
+ushort lineindices[2] = {0,1};
 void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	// 
 	// ParticleSystem 
@@ -868,16 +929,48 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		textureTransform_start();
 		setupShaderB();
 		//send vertex buffer to shader
+		int allowsTexcoordRamp = FALSE;
 		switch(node->_geometryType){
 			case GEOM_LINE: 
+			{
+				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)linepts);
+				sendElementsToGPU(GL_LINES,2,(ushort *)lineindices);
+				allowsTexcoordRamp = TRUE;
+			}
 			break;
 			case GEOM_POINT: 
+			{
+				float point[3];
+				memset(point,0,3*sizeof(float));
+				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)point);
+        		sendArraysToGPU (GL_POINTS, 0, 1);
+			}
 			break;
 			case GEOM_QUAD: 
+			{
+				//textureCoord_send(&mtf);
+				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->_tris);
+				FW_GL_NORMAL_POINTER (GL_FLOAT,0,twotrisnorms);
+				sendArraysToGPU (GL_TRIANGLES, 0, 6);
+				allowsTexcoordRamp = TRUE;
+			}
 			break;
 			case GEOM_SPRITE: 
+			{
+				//textureCoord_send(&mtf);
+				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->_tris);
+				FW_GL_NORMAL_POINTER (GL_FLOAT,0,twotrisnorms);
+				sendArraysToGPU (GL_TRIANGLES, 0, 6);
+			}
 			break;
 			case GEOM_TRIANGLE: 
+			{
+				//textureCoord_send(&mtf);
+				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->_tris);
+				FW_GL_NORMAL_POINTER (GL_FLOAT,0,twotrisnorms);
+				sendArraysToGPU (GL_TRIANGLES, 0, 6);
+				allowsTexcoordRamp = TRUE;
+			}
 			break;
 			case GEOM_GEOMETRY: 
 				render_node(node->geometry);
@@ -888,18 +981,25 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 
 		GLint ppos = GET_UNIFORM(scap->myShaderProgram,"particlePosition");
 		GLint cr = GET_UNIFORM(scap->myShaderProgram,"fw_UnlitColor");
+		GLint gtype = GET_UNIFORM(scap->myShaderProgram,"fw_ParticleGeomType");
+		glUniform1i(gtype,node->_geometryType); //for SPRITE = 4, screen alignment
 		//loop over live particles, drawing each one
+		int haveColorRamp = node->colorRamp ? TRUE : FALSE;
+		haveColorRamp = haveColorRamp && cr > -1;
+		int haveTexcoordRamp = node->texCoordRamp ? TRUE : FALSE;
+		haveTexcoordRamp = haveTexcoordRamp && allowsTexcoordRamp; 
 		for(i=0;i<vectorSize(_particles);i++){
 			particle pp = vector_get(particle,_particles,i);
 			//update particle-specific uniforms
 			glUniform3fv(ppos,1,pp.position);
-			if(node->colorRamp){
-				int ifloor, iceil, found;
-				float rgbaf[4], rgbac[4], rgba[4], fraclife;
-				found = FALSE;
+			if(haveColorRamp)
+				updateColorRamp(node,&pp,cr);
+			if(haveTexcoordRamp){
+				int found, ifloor, iceil;
+				float fraclife;
 				fraclife = pp.age / pp.lifespan;
-				for(j=0;j<node->colorKey.n;j++){
-					if(node->colorKey.p[j] <= fraclife && node->colorKey.p[j+1] > fraclife){
+				for(j=0;j<node->texCoordKey.n;j++){
+					if(node->texCoordKey.p[j] <= fraclife && node->texCoordKey.p[j+1] > fraclife){
 						ifloor = j;
 						iceil = j+1;
 						found = TRUE;
@@ -907,33 +1007,26 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 					}
 				}
 				if(found){
-					float spread, fraction;
-					struct SFColorRGBA * crgba = NULL;
-					struct SFColor *crgb = NULL;
-					switch(node->colorRamp->_nodeType){
-						case NODE_ColorRGBA: crgba = ((struct X3D_ColorRGBA *)node->colorRamp)->color.p; break;
-						case NODE_Color: crgb = ((struct X3D_Color *)node->colorRamp)->color.p; break;
+					struct X3D_TextureCoordinate *tc = (struct X3D_TextureCoordinate *)node->texCoordRamp;
+					switch(node->_geometryType){
+						case GEOM_LINE:
+						break;
+						case GEOM_QUAD:
+						case GEOM_TRIANGLE:
+							//I think I need to pre-process this to get 6 of them
+							FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&tc->point.p[ifloor],0);
+						break;
 						default:
 						break;
 					}
-					spread = node->colorKey.p[iceil] - node->colorKey.p[ifloor];
-					fraction = (fraclife - node->colorKey.p[ifloor]) / spread;
-					if(crgba){
-						memcpy(rgbaf,&crgba[ifloor],sizeof(struct SFColorRGBA));
-						memcpy(rgbac,&crgba[iceil],sizeof(struct SFColorRGBA));
-					}else if(crgb){
-						memcpy(rgbaf,&crgb[ifloor],sizeof(struct SFColor));
-						rgbaf[3] = 1.0f;
-						memcpy(rgbac,&crgb[iceil],sizeof(struct SFColor));
-						rgbac[3] = 1.0f;
-					}
-					for(k=0;k<4;k++){
-						rgba[k] = (1.0f - fraction)*rgbaf[k] + fraction*rgbac[k];
-					}
-					glUniform4fv(cr,1,rgba);
-				}else{
-					//re-use last color
 				}
+			}
+			if(node->_geometryType == GEOM_LINE){
+				float lpts[6], vel[3];
+				vecnormalize3f(vel,pp.velocity);
+				vecscale3f(&lpts[3],vel,.5*node->particleSize.c[1]);
+				vecscale3f(&lpts[0],vel,-.5*node->particleSize.c[1]);
+				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)lpts);
 			}
 			//draw
 			reallyDrawOnce();

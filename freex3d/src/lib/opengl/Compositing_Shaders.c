@@ -593,6 +593,7 @@ varying vec4 cpv_Color; \n\
 #endif //CPV \n\
 #ifdef PARTICLE \n\
 uniform vec3 particlePosition; \n\
+uniform int fw_ParticleGeomType; \n\
 #endif //PARTICLE \n\
  \n\
  vec3 dehomogenize(in mat4 matrix, in vec4 vector){ \n\
@@ -632,7 +633,9 @@ void main(void) \n\
   \n\
   vec4 vertex_object = fw_Vertex; \n\
   #ifdef PARTICLE \n\
-  vertex_object.xyz += particlePosition; \n\
+  if(fw_ParticleGeomType != 4){ \n\
+    vertex_object.xyz += particlePosition; \n\
+  } \n\
   #endif //PARTICLE \n\
   vec3 normal_object = fw_Normal; \n\
   /* PLUG: vertex_object_space_change (vertex_object, normal_object) */ \n\
@@ -650,6 +653,17 @@ void main(void) \n\
   #endif //CASTLE_BUGGY_GLSL_READ_VARYING \n\
   \n\
   castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
+  #ifdef PARTICLE \n\
+  //sprite: align to viewer \n\
+  if(fw_ParticleGeomType == 4){ \n\
+	vec4 ppos = vec4(particlePosition,1.0); \n\
+	vec4 particle_eye = fw_ModelViewMatrix * ppos; \n\
+	ppos.x += 1.0; \n\
+	vec4 particle_eye1 = fw_ModelViewMatrix * ppos; \n\
+	float pscal = length(particle_eye1.xyz - particle_eye.xyz); \n\
+	castle_vertex_eye = particle_eye + pscal*vertex_object; \n\
+  } \n\
+  #endif //PARTICLE \n\
   castle_normal_eye = normalize(fw_NormalMatrix * normal_object); \n\
   \n\
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */ \n\
