@@ -687,7 +687,10 @@ void apply_PointEmitter(particle *pp, struct X3D_Node *emitter){
 	
 }
 void apply_PolylineEmitter(particle *pp, struct X3D_Node *emitter){
+	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#PolylineEmitter
 	struct X3D_PolylineEmitter *e = (struct X3D_PolylineEmitter *)emitter;
+	//like point emitter, except posiion is drawn randomly along polyline
+
 }
 void apply_SurfaceEmitter(particle *pp, struct X3D_Node *emitter){
 	struct X3D_SurfaceEmitter *e = (struct X3D_SurfaceEmitter *)emitter;
@@ -735,6 +738,38 @@ void updateColorRamp(struct X3D_ParticleSystem *node, particle *pp, GLint cramp)
 		glUniform4fv(cramp,1,rgba);
 	}else{
 		//re-use last color
+	}
+}
+void updateTexCoordRamp(struct X3D_ParticleSystem *node, particle *pp, float *texcoord){
+	int found, ifloor,j;
+	float fraclife, fracKey;
+	fraclife = pp->age / pp->lifespan;
+	fracKey = 1.0f / (float)(node->texCoordKey.n); 
+	//if(node->_geometryType != GEOM_LINE)
+	fraclife -= fracKey; //for 3 keys, fracKey will be .333
+	//    v   0000 v 1111111 v 222    change points
+	//        0        .5        1  key
+	for(j=0;j<node->texCoordKey.n;j++){
+		if( node->texCoordKey.p[j] > fraclife){
+			ifloor = j;
+			found = TRUE;
+			break;
+		}
+	}
+	if(found){
+		struct X3D_TextureCoordinate *tc = (struct X3D_TextureCoordinate *)node->texCoordRamp;
+		switch(node->_geometryType){
+			case GEOM_LINE:
+				FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&texcoord[ifloor*2*2],0);
+			break;
+			case GEOM_QUAD:
+			case GEOM_TRIANGLE:
+				//we use triangles for both quad and triangle, 6 vertices per age
+				FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&texcoord[ifloor*2*6],0);
+			break;
+			default:
+			break;
+		}
 	}
 }
 
@@ -1094,38 +1129,8 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 			glUniform3fv(ppos,1,pp.position);
 			if(haveColorRamp)
 				updateColorRamp(node,&pp,cr);
-			if(haveTexcoordRamp){
-				int found, ifloor;
-				float fraclife, fracKey;
-				fraclife = pp.age / pp.lifespan;
-				fracKey = 1.0f / (float)(node->texCoordKey.n); 
-				//if(node->_geometryType != GEOM_LINE)
-				fraclife -= fracKey; //for 3 keys, fracKey will be .333
-				//    v   0000 v 1111111 v 222    change points
-				//        0        .5        1  key
-				for(j=0;j<node->texCoordKey.n;j++){
-					if( node->texCoordKey.p[j] > fraclife){
-						ifloor = j;
-						found = TRUE;
-						break;
-					}
-				}
-				if(found){
-					struct X3D_TextureCoordinate *tc = (struct X3D_TextureCoordinate *)node->texCoordRamp;
-					switch(node->_geometryType){
-						case GEOM_LINE:
-							FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&texcoord[ifloor*2*2],0);
-						break;
-						case GEOM_QUAD:
-						case GEOM_TRIANGLE:
-							//we use triangles for both quad and triangle, 6 vertices per age
-							FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&texcoord[ifloor*2*6],0);
-						break;
-						default:
-						break;
-					}
-				}
-			}
+			if(haveTexcoordRamp)
+				updateTexCoordRamp(node,&pp,texcoord);
 			if(node->_geometryType == GEOM_LINE){
 				float lpts[6], vel[3];
 				vecnormalize3f(vel,pp.velocity);
