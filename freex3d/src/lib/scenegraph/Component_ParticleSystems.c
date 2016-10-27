@@ -399,7 +399,91 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 		vert[1] = vert0[1]*node->particleSize.c[1];
 		vert[2] = vert0[2];
 	}
+	if(node->texCoordRamp){
+		int ml,mq,mt,n;
+		struct X3D_TextureCoordinate *tc = (struct X3D_TextureCoordinate *)node->texCoordRamp;
+		n = node->texCoordKey.n;
+		mq = n*4; //quad
+		ml = n*2; //2 pt line
+		mt = n*6; //2 triangles
 
+		//malloc for both lines and tex, in case changed on the fly
+		if(!node->_ttex)
+			node->_ttex = MALLOC(void *,mt*2*sizeof(float));
+		if(!node->_ltex)
+			node->_ltex = MALLOC(void *,ml*2*sizeof(float));
+		if(tc->point.n == mq){
+			//enough tex coords for quads, expand to suit triangles
+			//  4 - 3
+			//  5 / 2  2 triangle config
+			//  0 _ 1
+			float *ttex, *ltex;
+			ttex = (float*)node->_ttex;
+			for(i=0;i<n;i++){
+				int k;
+				for(j=0,k=0;j<4;j++,k++){
+					float *p = (float*)(float *)&tc->point.p[i*4 + j];
+					veccopy2f(&ttex[(i*6 + k)*2],p);
+					if(k==0){
+						veccopy2f(&ttex[(i*6 + 5)*2],p); //copy to 5 (last of 0-6 2-triangle)
+					}
+					if(k==2){
+						k++;
+						veccopy2f(&ttex[(i*6 + k)*2],p); //copy 2 to 3 (start of 2nd triangle
+					}
+				}
+			}
+			if(0) for(i=0;i<n;i++){
+				for(j=0;j<6;j++)
+					printf("%f %f,",ttex[(i*6 + j)*2 +0],ttex[(i*6 + j)*2 +1]);
+				printf("\n");
+			}
+			//for(i=0;i<(n*6*2);i++){
+			//	printf("%f \n",ttex[i]);
+			//}
+
+			ltex = (float*)node->_ltex;
+			for(i=0;i<n;i++){
+				// make something up for lines
+				for(j=0;j<2;j++){
+					float *p = (float*)(float *)&tc->point.p[i*4 + j];
+					veccopy2f(&ltex[(i*2 + j)*2],p);
+					
+				}
+			}
+		}
+		if(tc->point.n == ml){
+			//enough points for lines
+			float *ttex, *ltex;
+
+			ltex = (float*)node->_ltex;
+			for(i=0;i<n;i++){
+				// copy lines straightforwardly
+				for(j=0;j<2;j++){
+					float *p = (float*)(float *)&tc->point.p[i*2 + j];
+					veccopy2f(&ltex[(i*2 + j)*2],p);
+				}
+			}
+			//make something up for triangles
+			ttex = (float*)node->_ttex;
+			for(i=0;i<n;i++){
+				float *p;
+				j = i;
+				p = (float*)(float *)&tc->point.p[j*2 + 0];
+				veccopy2f(&ttex[(i*6 + 0)*2],p); //copy to 0 
+				veccopy2f(&ttex[(i*6 + 5)*2],p); //copy to 5
+				p = (float*)(float *)&tc->point.p[j*2 + 1];
+				veccopy2f(&ttex[(i*6 + 1)*2],p); //copy to 1
+				j++;
+				j = j == n ? j - 1 : j; //clamp to last
+				p = (float*)(float *)&tc->point.p[j*2 + 1];
+				veccopy2f(&ttex[(i*6 + 2)*2],p); //copy to 2
+				veccopy2f(&ttex[(i*6 + 3)*2],p); //copy to 3
+				p = (float*)(float *)&tc->point.p[j*2 + 0];
+				veccopy2f(&ttex[(i*6 + 4)*2],p); //copy to 4
+			}
+		}
+	}
 	maxparticles = min(node->maxParticles,10000);
 	if(node->_particles == NULL)
 		node->_particles = newVector(particle,maxparticles);
@@ -930,11 +1014,13 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		setupShaderB();
 		//send vertex buffer to shader
 		int allowsTexcoordRamp = FALSE;
+		float *texcoord = NULL;
 		switch(node->_geometryType){
 			case GEOM_LINE: 
 			{
 				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)linepts);
 				sendElementsToGPU(GL_LINES,2,(ushort *)lineindices);
+				texcoord = (float*)node->_ltex;
 				allowsTexcoordRamp = TRUE;
 			}
 			break;
@@ -952,6 +1038,7 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->_tris);
 				FW_GL_NORMAL_POINTER (GL_FLOAT,0,twotrisnorms);
 				sendArraysToGPU (GL_TRIANGLES, 0, 6);
+				texcoord = (float*)node->_ttex;
 				allowsTexcoordRamp = TRUE;
 			}
 			break;
@@ -969,6 +1056,7 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(GLfloat *)node->_tris);
 				FW_GL_NORMAL_POINTER (GL_FLOAT,0,twotrisnorms);
 				sendArraysToGPU (GL_TRIANGLES, 0, 6);
+				texcoord = (float*)node->_ttex;
 				allowsTexcoordRamp = TRUE;
 			}
 			break;
@@ -987,7 +1075,8 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		int haveColorRamp = node->colorRamp ? TRUE : FALSE;
 		haveColorRamp = haveColorRamp && cr > -1;
 		int haveTexcoordRamp = node->texCoordRamp ? TRUE : FALSE;
-		haveTexcoordRamp = haveTexcoordRamp && allowsTexcoordRamp; 
+		haveTexcoordRamp = haveTexcoordRamp && allowsTexcoordRamp && texcoord; 
+
 		for(i=0;i<vectorSize(_particles);i++){
 			particle pp = vector_get(particle,_particles,i);
 			//update particle-specific uniforms
@@ -995,13 +1084,16 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 			if(haveColorRamp)
 				updateColorRamp(node,&pp,cr);
 			if(haveTexcoordRamp){
-				int found, ifloor, iceil;
-				float fraclife;
+				int found, ifloor;
+				float fraclife, fracKey;
 				fraclife = pp.age / pp.lifespan;
+				fracKey = 1.0f / (float)(node->texCoordKey.n); 
+				fraclife -= fracKey; //for 3 keys, fracKey will be .333
+				//    v   0000 v 1111111 v 222    change points
+				//        0        .5        1  key
 				for(j=0;j<node->texCoordKey.n;j++){
-					if(node->texCoordKey.p[j] <= fraclife && node->texCoordKey.p[j+1] > fraclife){
+					if( node->texCoordKey.p[j] > fraclife){
 						ifloor = j;
-						iceil = j+1;
 						found = TRUE;
 						break;
 					}
@@ -1010,11 +1102,12 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 					struct X3D_TextureCoordinate *tc = (struct X3D_TextureCoordinate *)node->texCoordRamp;
 					switch(node->_geometryType){
 						case GEOM_LINE:
+							FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&texcoord[ifloor*2*2],0);
 						break;
 						case GEOM_QUAD:
 						case GEOM_TRIANGLE:
-							//I think I need to pre-process this to get 6 of them
-							FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&tc->point.p[ifloor],0);
+							//we use triangles for both quad and triangle, 6 vertices per age
+							FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&texcoord[ifloor*2*6],0);
 						break;
 						default:
 						break;
