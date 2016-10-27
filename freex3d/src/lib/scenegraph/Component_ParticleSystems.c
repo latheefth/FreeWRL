@@ -375,6 +375,8 @@ GLfloat quadtris [18] = {-.5f,-.5f,0.0f, .5f,-.5f,0.0f, .5f,.5f,0.0f,   .5f,.5f,
 GLfloat twotrisnorms [18] = {0.f,0.f,1.f, 0.f,0.f,1.f, 0.f,0.f,1.f,    0.f,0.f,1.f, 0.f,0.f,1.f, 0.f,0.f,1.f,};
 GLfloat twotristex [12] = {0.f,0.f, 1.f,0.f, 1.f,1.f,    1.f,1.f, 0.f,1.f, 0.f,0.f};
 
+
+// COMPILE PARTICLE SYSTEM
 void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 	int i,j, maxparticles;
 	float *boxtris, *vertices;
@@ -446,7 +448,10 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 			for(i=0;i<n;i++){
 				// make something up for lines
 				for(j=0;j<2;j++){
-					float *p = (float*)(float *)&tc->point.p[i*4 + j];
+					float p[2];
+					struct SFVec2f *sf = (struct SFVec2f *)&tc->point.p[i*4 + j];
+					p[0] = sf->c[0];
+					p[1] = min(sf->c[1],.9999); //clamp texture here otherwise tends to wrap around
 					veccopy2f(&ltex[(i*2 + j)*2],p);
 					
 				}
@@ -460,9 +465,15 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 			for(i=0;i<n;i++){
 				// copy lines straightforwardly
 				for(j=0;j<2;j++){
-					float *p = (float*)(float *)&tc->point.p[i*2 + j];
+					float p[2];
+					struct SFVec2f *sf = (struct SFVec2f *)&tc->point.p[i*2 + j];
+					p[0] = sf->c[0];
+					p[1] = min(sf->c[1],.9999); //clamp texture here otherwise tends to wrap around
 					veccopy2f(&ltex[(i*2 + j)*2],p);
 				}
+			}
+			if(0) for(i=0;i<n;i++){
+				printf("%f %f, %f %f\n",ltex[i*2*2 + 0],ltex[i*2*2 + 1],ltex[i*2*2 + 2],ltex[i*2*2 + 3]);
 			}
 			//make something up for triangles
 			ttex = (float*)node->_ttex;
@@ -1088,6 +1099,7 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				float fraclife, fracKey;
 				fraclife = pp.age / pp.lifespan;
 				fracKey = 1.0f / (float)(node->texCoordKey.n); 
+				//if(node->_geometryType != GEOM_LINE)
 				fraclife -= fracKey; //for 3 keys, fracKey will be .333
 				//    v   0000 v 1111111 v 222    change points
 				//        0        .5        1  key
