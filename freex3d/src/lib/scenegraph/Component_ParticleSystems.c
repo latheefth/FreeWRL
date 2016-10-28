@@ -912,8 +912,44 @@ void apply_PolylineEmitter(particle *pp, struct X3D_Node *node){
 	pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
 
 }
+int getPolyrepTriangleCount(struct X3D_Node *node);
+int getPolyrepTriangleByIndex(struct X3D_Node *node, int index, float *v1, float *v2, float *v3);
+
 void apply_SurfaceEmitter(particle *pp, struct X3D_Node *emitter){
 	struct X3D_SurfaceEmitter *e = (struct X3D_SurfaceEmitter *)emitter;
+	struct X3D_Node *node;
+
+	node = e->surface ? e->surface : e->geometry;
+	if(NODE_NEEDS_COMPILING){
+		compile_geometry(X3D_NODE(node));
+	}
+	if(node){
+		int index, ntri;
+		float fraction;
+		float xyz[3], v1[3],v2[3],v3[3],e1[3],e2[3], normal[3], direction[3];
+		
+		fraction = uniformRand();
+		ntri = getPolyrepTriangleCount(node);
+		if(ntri){
+			index = floorf(fraction * (float)(ntri-1));
+			getPolyrepTriangleByIndex(node,index,v1,v2,v3);
+			randomTriangleCoord(xyz,v1,v2,v3);
+			vecdif3f(e1,v2,v1);
+			vecdif3f(e2,v3,v1);
+			veccross3f(normal,e1,e2);
+			vecnormalize3f(direction,normal);
+
+		}
+
+		//the rest is like point emitter
+		float speed;
+		memcpy(pp->position,xyz,3*sizeof(float));
+		speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
+		vecscale3f(pp->velocity,direction,speed);
+		pp->mass = e->mass*(1.0f + uniformRandCentered()*e->variation);
+		pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
+	}
+
 }
 void apply_VolumeEmitter(particle *pp, struct X3D_Node *emitter){
 	struct X3D_VolumeEmitter *e = (struct X3D_VolumeEmitter *)emitter;

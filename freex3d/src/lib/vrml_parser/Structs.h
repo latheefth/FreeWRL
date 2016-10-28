@@ -9427,6 +9427,8 @@ struct X3D_SurfaceEmitter {
 	float mass;
 	struct X3D_Node *surface;
 	float surfaceArea;
+	struct X3D_Node *geometry;
+	void * _ifs;
 };
 extern struct X3D_Virt virt_SurfaceEmitter;
 /***********************/

@@ -6597,7 +6597,9 @@ const int OFFSETS_StringSensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SurfaceEmitter[] = {
+	(int) FIELDNAMES__ifs, (int) offsetof (struct X3D_SurfaceEmitter, _ifs),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_coordIndex, (int) offsetof (struct X3D_SurfaceEmitter, coordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_geometry, (int) offsetof (struct X3D_SurfaceEmitter, geometry),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_mass, (int) offsetof (struct X3D_SurfaceEmitter, mass),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_SurfaceEmitter, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_set_coordIndex, (int) offsetof (struct X3D_SurfaceEmitter, set_coordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11989,9 +11991,11 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SurfaceEmitter : {
 			struct X3D_SurfaceEmitter * tmp2;
 			tmp2 = (struct X3D_SurfaceEmitter *) tmp;
+			tmp2->_ifs = NULL;
 			tmp2->coordIndex.p = MALLOC (int *, sizeof(int)*1);
 			tmp2->coordIndex.p[0] = -1;
 			tmp2->coordIndex.n=1;;
+			tmp2->geometry = NULL;
 			tmp2->mass = 0.0f;
 			tmp2->metadata = NULL;
 			tmp2->set_coordIndex.n=0; tmp2->set_coordIndex.p=0;
@@ -16651,6 +16655,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_SurfaceEmitter *tmp;
 			tmp = (struct X3D_SurfaceEmitter *) node;
 			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," geometry (SFNode):\n"); dump_scene(fp,level+1,tmp->geometry); 
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }

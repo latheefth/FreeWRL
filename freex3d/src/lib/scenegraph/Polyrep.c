@@ -1359,6 +1359,28 @@ int intersect_polyrep(struct X3D_Node *node, float *p1, float *p2, float *neares
 	// +ve if hit and intersections, 0 -nothing
 }
 
+int getPolyrepTriangleCount(struct X3D_Node *node){
+	int iret;
+	iret = 0;
+	if(node->_intern){
+		struct X3D_PolyRep *polyrep = (struct X3D_PolyRep *)node->_intern;
+		iret = polyrep->ntri;
+	}
+	return iret;
+}
+int getPolyrepTriangleByIndex(struct X3D_Node *node, int index, float *v1, float *v2, float *v3){
+	int iret;
+	iret = 0;
+	if(node->_intern){
+		struct X3D_PolyRep *polyrep = (struct X3D_PolyRep *)node->_intern;
+		veccopy3f(v1,&polyrep->actualCoord[(index*3 + 0)*3]);
+		veccopy3f(v2,&polyrep->actualCoord[(index*3 + 1)*3]);
+		veccopy3f(v3,&polyrep->actualCoord[(index*3 + 2)*3]);
+	}
+	return iret;
+
+}
+
 /* make the internal polyrep structure - this will contain the actual RUNTIME parameters for OpenGL */
 void compile_polyrep(void *innode, void *coord, void *fogCoord, void *color, void *normal, struct X3D_TextureCoordinate *texCoord) {
 	struct X3D_Virt *virt;

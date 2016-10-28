@@ -3684,6 +3684,8 @@ our %Nodes = (
 		mass  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surface => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surfaceArea  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		geometry => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_ifs => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 	],"X3DParticleEmitterNode"),
 	
 	# 40.4.9 VolumeEmitter

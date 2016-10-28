@@ -2939,6 +2939,7 @@ END_NODE(StringSensor)
 /* SurfaceEmitter node */
 BEGIN_NODE(SurfaceEmitter)
 FIELD(SurfaceEmitter,coordIndex,mfint32,coordIndex,FIELDTYPE_MFInt32)
+EXPOSED_FIELD(SurfaceEmitter,geometry,sfnode,geometry,FIELDTYPE_SFNode)
 FIELD(SurfaceEmitter,mass,sffloat,mass,FIELDTYPE_SFFloat)
 EXPOSED_FIELD(SurfaceEmitter,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(SurfaceEmitter,set_coordIndex,mfint32,set_coordIndex,FIELDTYPE_MFInt32)
