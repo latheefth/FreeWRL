@@ -545,15 +545,46 @@ void apply_windphysics(particle *pp, struct X3D_Node *physics, float dtime){
 	}
 }
 int intersect_polyrep(struct X3D_Node *node, float *p1, float *p2, float *nearest, float *normal);
+
+void compile_geometry(struct X3D_Node *gnode){
+	//this needs generalizing, for all triangle geometry, and I don't know how
+	if(gnode)
+	switch(gnode->_nodeType){
+		case NODE_IndexedFaceSet:
+		{
+			struct X3D_IndexedFaceSet *node = (struct X3D_IndexedFaceSet *)gnode;
+			COMPILE_POLY_IF_REQUIRED (node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
+		}
+		break;
+		default:
+		break;
+	}
+	
+}
+int intersect_geometry(struct X3D_Node *gnode, float *p1, float *p2, float *nearest, float *normal){
+	//this needs generalizing for all triangle geometry 
+	int iret = 0;
+	if(gnode)
+	switch(gnode->_nodeType){
+		case NODE_IndexedFaceSet:
+			iret = intersect_polyrep(gnode,p1,p2,nearest,normal);
+		break;
+		default:
+		break;
+	}
+	return iret;
+}
 void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float *positionChange){
 	struct X3D_BoundedPhysicsModel *px = (struct X3D_BoundedPhysicsModel *)physics;
 	if(px->enabled && px->geometry ) {   //&& pp->mass != 0.0f){
 		//shall we assume its a 100% elastic bounce?
 		int nintersections, ntries;
-		struct X3D_IndexedFaceSet *node = (struct X3D_IndexedFaceSet *) px->geometry;
+		struct X3D_Node *node = (struct X3D_Node *) px->geometry;
 		float pos1[3], pos2[3], pnearest[3],normal[3], delta[3];
 		//make_IndexedFaceSet((struct X3D_IndexedFaceSet*)px->geometry);
-		COMPILE_POLY_IF_REQUIRED (node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
+		//COMPILE_POLY_IF_REQUIRED (node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
+		if(NODE_NEEDS_COMPILING)
+			compile_geometry(node);
 
 		//if polyrep
 		//veccopy3f(pos1,pp->position);
@@ -567,7 +598,7 @@ void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float *positio
 		{
 			//if(pos2[0] >= .5f)
 			//	printf("should hit\n");
-			nintersections = intersect_polyrep(px->geometry,pos1,pos2,pnearest,normal);
+			nintersections = intersect_geometry(px->geometry,pos1,pos2,pnearest,normal);
 			if(nintersections > 0){
 				count++;
 				float d[3], r[3], rn[3], rd[3], n[3], ddotnn[3], orthogn[3], orthogn2[3];
