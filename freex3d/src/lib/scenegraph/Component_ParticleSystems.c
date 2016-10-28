@@ -305,15 +305,22 @@ void randomTriangleCoord(float *p, float* p1, float *p2, float *p3){
 	}
 
 }
+void randomPoint3D(float *xyz){
+	//- .5 to .5 range
+	xyz[0] = (uniformRand() - .5f);
+	xyz[1] = (uniformRand() - .5f);
+	xyz[2] = (uniformRand() - .5f);
+}
 void randomDirection(float *xyz){
 	//random xyz direction from a point
 	//http://math.stackexchange.com/questions/44689/how-to-find-a-random-axis-or-unit-vector-in-3d
 	float radius3;
 	for(;;){
 		//get random point in a unit cube
-		xyz[0] = (uniformRand() - .5f);
-		xyz[1] = (uniformRand() - .5f);
-		xyz[2] = (uniformRand() - .5f);
+		//xyz[0] = (uniformRand() - .5f);
+		//xyz[1] = (uniformRand() - .5f);
+		//xyz[2] = (uniformRand() - .5f);
+		randomPoint3D(xyz);
 		//discard point if outside unit sphere
 		radius3 = xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2];
 		if(radius3 <= 1.0f && radius3 > 0.0000001f){
@@ -910,6 +917,51 @@ void apply_SurfaceEmitter(particle *pp, struct X3D_Node *emitter){
 }
 void apply_VolumeEmitter(particle *pp, struct X3D_Node *emitter){
 	struct X3D_VolumeEmitter *e = (struct X3D_VolumeEmitter *)emitter;
+	if(!e->_ifs && e->coord){
+		struct X3D_IndexedFaceSet *ifs;
+		ifs = createNewX3DNode0(NODE_IndexedFaceSet);
+		ifs->coord = e->coord;
+		ifs->coordIndex = e->coordIndex;
+		compile_geometry(X3D_NODE(ifs));
+		e->_ifs = ifs;
+	}
+	if(e->_ifs){
+		int nint, i, isInside;
+		float xyz[3], plumb[3], nearest[3], normal[3];
+		struct X3D_IndexedFaceSet *ifs = (struct X3D_IndexedFaceSet *)e->_ifs;
+		
+		isInside = FALSE;
+		for(i=0;i<10;i++){
+			randomPoint3D(xyz);
+			//spread random points over box
+			xyz[0] *= ifs->EXTENT_MAX_X - ifs->EXTENT_MIN_X;
+			xyz[1] *= ifs->EXTENT_MAX_Y - ifs->EXTENT_MIN_Y;
+			xyz[2] *= ifs->EXTENT_MAX_Z - ifs->EXTENT_MIN_Z;
+			veccopy3f(plumb,xyz);
+			plumb[2] = ifs->EXTENT_MIN_Z - 1.0f; //ray end point below box
+			nint = intersect_geometry(e->_ifs,xyz,plumb,nearest,normal);
+			nint = abs(nint) % 2;
+			if(nint == 1){
+				isInside = TRUE;
+				break; //if there's an odd number of intersections, its inside, else even outside
+			}
+		}
+		if(!isInside)
+			vecscale3f(xyz,xyz,0.0f); //emit from 0
+		//the rest is like point emitter
+		float direction[3], speed;
+		memcpy(pp->position,xyz,3*sizeof(float));
+		if(veclength3f(e->direction.c) < .00001){
+			randomDirection(direction);
+		}else{
+			memcpy(direction,e->direction.c,3*sizeof(float));
+			vecnormalize3f(direction,direction);
+		}
+		speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
+		vecscale3f(pp->velocity,direction,speed);
+		pp->mass = e->mass*(1.0f + uniformRandCentered()*e->variation);
+		pp->surfaceArea = e->surfaceArea*(1.0f + uniformRandCentered()*e->variation);
+	}
 }
 void updateColorRamp(struct X3D_ParticleSystem *node, particle *pp, GLint cramp){
 	int j,k,ifloor, iceil, found;

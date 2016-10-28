@@ -215,6 +215,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_geom",
 	"_geometryType",
 	"_hatchScale",
+	"_ifs",
 	"_initialized",
 	"_input",
 	"_int32InpFIFO",
@@ -7064,6 +7065,7 @@ const int OFFSETS_VolumeData[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_VolumeEmitter[] = {
+	(int) FIELDNAMES__ifs, (int) offsetof (struct X3D_VolumeEmitter, _ifs),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_coord, (int) offsetof (struct X3D_VolumeEmitter, coord),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_coordIndex, (int) offsetof (struct X3D_VolumeEmitter, coordIndex),  (int) FIELDTYPE_MFInt32, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_direction, (int) offsetof (struct X3D_VolumeEmitter, direction),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -12622,6 +12624,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_VolumeEmitter : {
 			struct X3D_VolumeEmitter * tmp2;
 			tmp2 = (struct X3D_VolumeEmitter *) tmp;
+			tmp2->_ifs = NULL;
 			tmp2->coord = NULL;
 			tmp2->coordIndex.p = MALLOC (int *, sizeof(int)*1);
 			tmp2->coordIndex.p[0] = -1;
