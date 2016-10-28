@@ -549,6 +549,9 @@ uniform fw_LightSourceParameters fw_LightSource[MAX_LIGHTS] /* gl_MaxLights */ ;
 \n\
 //uniform vec3 castle_SceneColor; \n\
 //uniform vec4 castle_UnlitColor; \n\
+#ifdef UNLIT \n\
+uniform vec4 fw_UnlitColor; \n\
+#endif //UNLIT \n\
 #ifdef LIT \n\
 struct fw_MaterialParameters { \n\
   vec4 emission; \n\
@@ -588,6 +591,10 @@ vec4 castle_Specular; \n\
 attribute vec4 fw_Color; //castle_ColorPerVertex; \n\
 varying vec4 cpv_Color; \n\
 #endif //CPV \n\
+#ifdef PARTICLE \n\
+uniform vec3 particlePosition; \n\
+uniform int fw_ParticleGeomType; \n\
+#endif //PARTICLE \n\
  \n\
  vec3 dehomogenize(in mat4 matrix, in vec4 vector){ \n\
 	vec4 tempv = vector; \n\
@@ -615,6 +622,7 @@ void main(void) \n\
    castle_SceneColor = vec3(0.0,0.0,0.0); //line gets color from castle_Emissive \n\
   #endif //LINE\n\
   #else //LIT \n\
+  //default unlits in case we dont set them \n\
   castle_UnlitColor = vec4(1.0,1.0,1.0,1.0); \n\
   castle_MaterialDiffuseAlpha = 1.0; \n\
   #endif //LIT \n\
@@ -624,6 +632,11 @@ void main(void) \n\
   #endif //FILL \n\
   \n\
   vec4 vertex_object = fw_Vertex; \n\
+  #ifdef PARTICLE \n\
+  if(fw_ParticleGeomType != 4){ \n\
+    vertex_object.xyz += particlePosition; \n\
+  } \n\
+  #endif //PARTICLE \n\
   vec3 normal_object = fw_Normal; \n\
   /* PLUG: vertex_object_space_change (vertex_object, normal_object) */ \n\
   /* PLUG: vertex_object_space (vertex_object, normal_object) */ \n\
@@ -640,6 +653,17 @@ void main(void) \n\
   #endif //CASTLE_BUGGY_GLSL_READ_VARYING \n\
   \n\
   castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
+  #ifdef PARTICLE \n\
+  //sprite: align to viewer \n\
+  if(fw_ParticleGeomType == 4){ \n\
+	vec4 ppos = vec4(particlePosition,1.0); \n\
+	vec4 particle_eye = fw_ModelViewMatrix * ppos; \n\
+	ppos.x += 1.0; \n\
+	vec4 particle_eye1 = fw_ModelViewMatrix * ppos; \n\
+	float pscal = length(particle_eye1.xyz - particle_eye.xyz); \n\
+	castle_vertex_eye = particle_eye + pscal*vertex_object; \n\
+  } \n\
+  #endif //PARTICLE \n\
   castle_normal_eye = normalize(fw_NormalMatrix * normal_object); \n\
   \n\
   /* PLUG: vertex_eye_space (castle_vertex_eye, castle_normal_eye) */ \n\
@@ -727,6 +751,9 @@ void main(void) \n\
   castle_vertex_eye.z = fw_FogCoords; \n\
   #endif //FOGCOORD \n\
   #endif //FOG \n\
+  #ifdef UNLIT \n\
+  castle_Color = fw_UnlitColor; \n\
+  #endif //UNLIT \n\
 } \n";
 
 
@@ -1090,6 +1117,9 @@ void main(void) \n\
   fragment_color.rgb = matdiff_color.rgb; \n\
   #endif //MATFIR \n\
   #endif //LIT \n\
+  #ifdef UNLIT \n\
+  fragment_color = castle_Color; \n\
+  #endif //UNLIT \n\
   \n\
   #ifdef CPV \n\
   #ifdef CPVREP \n\
@@ -1691,6 +1721,10 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 	*/
 	#define NOT_MODULATE_IMG_AND_MAT_ALPHAS 1  
 
+	if(DESIRE(whichOne.base,HAVE_UNLIT_COLOR)){
+		AddDefine(SHADERPART_VERTEX,"UNLIT",CompleteCode);
+		AddDefine(SHADERPART_FRAGMENT,"UNLIT",CompleteCode);
+	}
 	if (DESIRE(whichOne.base,ONE_TEX_APPEARANCE_SHADER) ||
 		DESIRE(whichOne.base,HAVE_TEXTURECOORDINATEGENERATOR) ||
 		DESIRE(whichOne.base,HAVE_CUBEMAP_TEXTURE) ||
@@ -1761,7 +1795,9 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 		AddDefine(SHADERPART_FRAGMENT,"CLIP",CompleteCode);	
 		Plug(SHADERPART_FRAGMENT,frag_plug_clip_apply,CompleteCode,&unique_int);	
 	}
-
+	if(DESIRE(whichOne.base,PARTICLE_SHADER)){
+		AddDefine(SHADERPART_VERTEX,"PARTICLE",CompleteCode);
+	}
 	//EFFECTS - castle game engine effect nodes X3D_Effect with plugs applied here
 	EnableEffects(CompleteCode,&unique_int);
 

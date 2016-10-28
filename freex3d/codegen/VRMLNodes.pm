@@ -587,19 +587,19 @@ our %Nodes = (
 	],"X3DMaterialNode"),
 
 	"Shape" => new VRML::NodeType ("Shape", [
+		# shared with particlesystem, keep in same order as particlesystem:
 		appearance => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		geometry => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__visible =>["SFInt32",0,"initializeOnly", 0], # for Occlusion tests.
-		__occludeCheckCount =>["SFInt32",-1,"initializeOnly", 0], # for Occlusion tests.
-		__Samples =>["SFInt32",-1,"initializeOnly", 0],		# Occlude samples from last pass
-
 		_shaderflags_base =>["SFInt32",0,"initializeOnly",0], # shaders
 		_shaderflags_effects =>["SFInt32",0,"initializeOnly",0], # shaders
 		_shaderflags_usershaders =>["SFInt32",0,"initializeOnly",0], # shaders
-
+		# shape-specific:
+		__visible =>["SFInt32",0,"initializeOnly", 0], # for Occlusion tests.
+		__occludeCheckCount =>["SFInt32",-1,"initializeOnly", 0], # for Occlusion tests.
+		__Samples =>["SFInt32",-1,"initializeOnly", 0],		# Occlude samples from last pass
 
 	],"X3DBoundedObject"),
 
@@ -3604,26 +3604,32 @@ our %Nodes = (
 	],"X3DParticleEmitterNode"),
 	
 	# 40.4.4 ForcePhysicsModel
-	"BoundedPhysicsModel" => new VRML::NodeType("BoundedPhysicsModel", [
+	"ForcePhysicsModel" => new VRML::NodeType("ForcePhysicsModel", [
 		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		force => ["SFVec3f", [0,-9.8,0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 	],"X3DParticlePhysicsModelNode"),
 	
+	
 	# 40.4.5 ParticleSystem
 	"ParticleSystem" => new VRML::NodeType ("ParticleSystem", [
+		# shared with Shape, keep in same order as Shape:
 		appearance => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		createParticles  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		geometry => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+                metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_shaderflags_base =>["SFInt32",0,"initializeOnly",0], # shaders
+		_shaderflags_effects =>["SFInt32",0,"initializeOnly",0], # shaders
+		_shaderflags_usershaders =>["SFInt32",0,"initializeOnly",0], # shaders
+		# particlesystem specific:
+		createParticles  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		enabled  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		lifetimeVariation  => ["SFFloat", .25,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		maxParticles  => ["SFInt32", 200,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-                metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		particleLifetime  => ["SFFloat", 5,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		particleSize => ["SFVec2f", [.02,.02], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isActive  => ["SFBool", "TRUE","outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		colorRamp => ["SFNode", "NULL", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		colorKey => ["MFFloat", [], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		emitter => ["SFNode", "NULL", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3631,6 +3637,13 @@ our %Nodes = (
 		physics => ["MFNode", [], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		texCoordRamp => ["SFNode", "NULL", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		texCoordKey => ["MFFloat", [], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_tris => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_ttex => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_ltex => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_particles => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_lasttime => ["SFDouble", 0.0, "initializeOnly", 0],
+		_geometryType =>["SFInt32",0,"initializeOnly",0],
+		_remainder =>["SFFloat",0.0,"initializeOnly",0],
 	],"X3DShapeNode"),
 	
 	# 40.4.6 PointEmitter
@@ -3655,6 +3668,10 @@ our %Nodes = (
 		coordIndex => ["MFInt32", [-1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		mass  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surfaceArea  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_method =>["SFInt32",0,"initializeOnly",0],
+		_nseg =>["SFInt32",0,"initializeOnly",0],
+		_segs => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
+		_portions => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 	],"X3DParticleEmitterNode"),
 	
 	# 40.4.8 SurfaceEmitter
@@ -3667,10 +3684,12 @@ our %Nodes = (
 		mass  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surface => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surfaceArea  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		geometry => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_ifs => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 	],"X3DParticleEmitterNode"),
 	
 	# 40.4.9 VolumeEmitter
-	"PolylineEmitter" => new VRML::NodeType("PolylineEmitter", [
+	"VolumeEmitter" => new VRML::NodeType("VolumeEmitter", [
 		set_coordIndex => ["MFInt32", [], "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		coord => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		direction  => ["SFVec3f", [0,1,0],"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3681,6 +3700,7 @@ our %Nodes = (
 		internal  => ["SFBool", "TRUE","inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		mass  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surfaceArea  => ["SFFloat", 0,"initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_ifs => ["FreeWRLPTR", "NULL", "initializeOnly", 0],
 	],"X3DParticleEmitterNode"),
 	
 	# 40.4.10 WindPhysicsModel
@@ -3691,6 +3711,7 @@ our %Nodes = (
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		speed  => ["SFFloat", .1,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		turbulence  => ["SFFloat", 0,"inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_frameSpeed =>["SFFloat",0.0,"initializeOnly",0],
 	],"X3DParticlePhysicsModelNode"),
 	
 

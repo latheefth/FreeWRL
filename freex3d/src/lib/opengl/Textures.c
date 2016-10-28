@@ -848,17 +848,20 @@ void loadBackgroundTextures (struct X3D_Background *node) {
 			/* render the proper texture */
 			render_node(X3D_NODE(thistex));
 		        //OLDCODE FW_GL_COLOR3D(1.0,1.0,1.0);
+				textureTransform_start();
+				setupShaderB();
 
-        		textureDraw_start(&mtf);
+        		textureCoord_send(&mtf);
         		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
         		sendArraysToGPU (GL_TRIANGLES, count*6, 6);
-        		textureDraw_end();
+				textureTransform_end();
+
 		}
 	}
 }
-
+void reallyDraw();
 /* do TextureBackground textures, if possible */
 void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	struct X3D_Node *thistex = NULL;
@@ -921,12 +924,12 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 				render_node((void *)thistex);
 		                //OLDCODE FW_GL_COLOR3D(1.0,1.0,1.0);
 
-        			textureDraw_start(&mtf);
-        			FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
-        			FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
+        		textureCoord_send(&mtf);
+        		FW_GL_VERTEX_POINTER(3,GL_FLOAT,0,BackgroundVert);
+        		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
-        			sendArraysToGPU (GL_TRIANGLES, count*6, 6);
-        			textureDraw_end();
+        		sendArraysToGPU (GL_TRIANGLES, count*6, 6);
+				reallyDraw();
 			} 
 		}
 	}

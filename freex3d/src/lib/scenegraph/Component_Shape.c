@@ -750,6 +750,9 @@ int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode ){
 shaderflagsstruct getShaderFlags();
 struct X3D_Node *getFogParams();
 void update_effect_uniforms();
+bool setupShaderB();
+void textureTransform_start();
+void reallyDraw();
 
 void child_Shape (struct X3D_Shape *node) {
 	struct X3D_Node *tmpNG;  
@@ -948,14 +951,20 @@ void child_Shape (struct X3D_Shape *node) {
 		//- render_node
 		//-- render_indexedfaceset (or other specific shape)
 		//--- render_polyrep
-		//---- sendArraysToGPU
+		//---- sendArraysToGPU (or sendElementsToGPU)
 		//----- setupShader
 		//------ sendMaterialsToShader
 		//          Uniforms being sent for materials and hatching
 		//--------- sendLightInfo
 		//           Uniforms sent for lights
-
+		//----- glDrawArrays/glDrawElements
+		textureTransform_start();
+		setupShaderB();
 		render_node(tmpNG);
+		reallyDraw();
+		FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
+		FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
+		textureTransform_end();
 
 		#ifdef SHAPEOCCLUSION
 		endOcclusionQuery((struct X3D_VisibilitySensor*)node,renderstate()->render_geom); //ENDOCCLUSIONQUERY;
