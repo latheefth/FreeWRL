@@ -1155,6 +1155,7 @@ int triangle_intersection( float *  V1,  // Triangle vertices
 enum {
 	RAYTRIALGO_DEFAULT = 1,
 	RAYTRIALGO_MULLER = 2,
+	//Not implemented: watertight  http://jcgt.org/published/0002/01/05/paper.pdf
 };
 static int raytrialgo = RAYTRIALGO_MULLER;
 int intersect_polyrep(struct X3D_Node *node, float *p1, float *p2, float *nearest, float *normal){
