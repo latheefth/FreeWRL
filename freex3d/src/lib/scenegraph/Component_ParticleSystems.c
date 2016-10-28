@@ -332,6 +332,7 @@ typedef struct {
 	float size[2];  //assigned at birth
 	float position[3];
 	float velocity[3];
+	float origin[3]; //zero normally. For boundedphysics, updated on each reflection to be last reflection point.
 	//float direction[3];
 	//float speed;
 	float mass;
@@ -543,10 +544,83 @@ void apply_windphysics(particle *pp, struct X3D_Node *physics, float dtime){
 
 	}
 }
-void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float dtime){
+int intersect_polyrep(struct X3D_Node *node, float *p1, float *p2, float *nearest, float *normal);
+void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float *positionChange){
 	struct X3D_BoundedPhysicsModel *px = (struct X3D_BoundedPhysicsModel *)physics;
-	if(px->enabled && pp->mass != 0.0f){
+	if(px->enabled && px->geometry ) {   //&& pp->mass != 0.0f){
+		//shall we assume its a 100% elastic bounce?
+		int nintersections, ntries;
+		struct X3D_IndexedFaceSet *node = (struct X3D_IndexedFaceSet *) px->geometry;
+		float pos1[3], pos2[3], pnearest[3],normal[3], delta[3];
+		//make_IndexedFaceSet((struct X3D_IndexedFaceSet*)px->geometry);
+		COMPILE_POLY_IF_REQUIRED (node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
 
+		//if polyrep
+		//veccopy3f(pos1,pp->position);
+
+		veccopy3f(pos1,pp->origin);
+		//vecadd3f(pos2,pp->position,positionChange);
+		vecadd3f(pos2,pp->position,positionChange);
+		ntries = 0;
+		static int count = 0;
+		//for(;;) //in theory we may travel far enough for 2 bounces
+		{
+			//if(pos2[0] >= .5f)
+			//	printf("should hit\n");
+			nintersections = intersect_polyrep(px->geometry,pos1,pos2,pnearest,normal);
+			if(nintersections > 0){
+				count++;
+				float d[3], r[3], rn[3], rd[3], n[3], ddotnn[3], orthogn[3], orthogn2[3];
+				float ddotn, speed, dlengthi,dlength;
+				vecdif3f(delta,pos2,pos1);
+				dlength = veclength3f(delta);
+
+				// get reflection 
+				//  pos1
+				// o|\d
+				// n<--x
+				// o|/r
+				// ddotn = dot(d,n)*n //projection of d onto n, as vector
+				// o = d - ddotn  //vector orthogonal to n, such that d = ddotn + o
+				// r = ddotn - o 
+				// or 
+				// r = ddotn - (d - ddotn)
+				// or
+				// r = 2*ddotn - d
+				// or
+				// r = -(d - 2*dot(d,n)*n)
+				// http://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+			
+				vecdif3f(d,pnearest,pos1);
+				dlengthi = veclength3f(d);
+				vecnormalize3f(n,normal);
+				ddotn = vecdot3f(d,n);
+				//ddotn = -ddotn; //assuming the surface normal is pointing out
+				vecscale3f(ddotnn,n,ddotn);
+				vecdif3f(orthogn,d,ddotnn);
+				vecscale3f(orthogn2,orthogn,2.0f);
+				vecdif3f(r,d,orthogn2);
+				vecscale3f(r,r,-1.0f); //reverse direction
+				vecnormalize3f(rn,r);
+				// update the velocity vector direction (keep speed constant, assuming elastic bounce)
+				// specs: could use an elasticity factor
+				speed = veclength3f(pp->velocity);
+				vecscale3f(pp->velocity,rn,speed);
+				//do positionChange here, and zero positionchange for calling code
+				vecscale3f(rd,rn,dlength - dlengthi);
+				vecadd3f(pp->position,pnearest,rd);
+				vecscale3f(positionChange,positionChange,0.0f);
+				veccopy3f(pos1,pnearest);
+				veccopy3f(pp->origin,pos1);
+				veccopy3f(pos2,pp->position);
+				if(0) pp->age = 1000.0f; //simply expire if / when goes outside 
+				// specs could add death-on-hitting-wall
+			}
+			//break;
+			//if(nintersections == 0)break;
+			//ntries++;
+			//if(ntries > 3)break;
+		}
 	}
 }
 void apply_forcephysics(particle *pp, struct X3D_Node *physics, float dtime){
@@ -949,8 +1023,6 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				switch(node->physics.p[k]->_nodeType){
 					case NODE_WindPhysicsModel:
 						apply_windphysics(&pp,node->physics.p[k],dtime); break;
-					case NODE_BoundedPhysicsModel:
-						apply_boundedphysics(&pp,node->physics.p[k],dtime); break;
 					case NODE_ForcePhysicsModel:
 						apply_forcephysics(&pp,node->physics.p[k],dtime); break;
 					default:
@@ -960,6 +1032,15 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 
 			//update position: P1 = P0 + .5(V0 + V1) x dT
 			vecscale3f(positionChange,pp.velocity,.5f * dtime);
+
+			for(k=0;k<node->physics.n;k++){
+				switch(node->physics.p[k]->_nodeType){
+					case NODE_BoundedPhysicsModel:
+						apply_boundedphysics(&pp,node->physics.p[k],positionChange); break;
+					default:
+						break;
+				}
+			}
 			vecadd3f(pp.position,pp.position,positionChange);
 
 			vector_set(particle,_particles,i,pp); //pack vector to live position j
@@ -989,6 +1070,7 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 			for(i=0;i<n_this_frame;i++,j++){
 				particle pp;
 				pp.age = 0.0f;
+				memset(pp.origin,0,sizeof(float)*3); //for bounded physics
 				pp.lifespan = node->particleLifetime * (1.0f + uniformRandCentered()*node->lifetimeVariation);
 				memcpy(pp.size,node->particleSize.c,2*sizeof(float));
 				//emit particles
