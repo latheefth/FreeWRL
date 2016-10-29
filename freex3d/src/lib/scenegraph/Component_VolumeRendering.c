@@ -60,8 +60,14 @@ Before starting to implement this there are a few other nodes and components tha
 Links:
 	http://http.developer.nvidia.com/GPUGems/gpugems_ch39.html
 	- GpuGems online, ideas about volume rendering
-		- Note also http://teem.sourceforge.net/ link in References
-		- same place as nrrd file format lib
+	http://teem.sourceforge.net/ 
+	- same place as nrrd file format lib
+	- unu.exe commandline program is handy:
+		print nrrd file header:
+			unu head brain.nrrd
+		resize an image ie from 512x512x512 to 128x128x128:
+			unu resample -s 128 128 128 -i brain.nrrd -o brain128.nrrd
+				
 	http://castle-engine.sourceforge.net/compositing_shaders.php
 	- in the "Compositing Shaders in X3D" .pdf, page 9 mentions volume nodes
 	- the VolumeRendering Component has 10 style nodes, and Kambu is suggesting his Plug/hook method
@@ -89,6 +95,91 @@ Links:
 	- xyz texture preparation, related to volume raycasting shader technique
 	http://http.developer.nvidia.com/GPUGems3/gpugems3_ch30.html
 	- see 30.3.1 Volume Rendering for raymarching nuances
+
+
+COMPONENT VOLUMERENDERING ISSUES Oct 29, 2016
+http://dug9.users.sourceforge.net/web3d/tests/volume/
+- these sample scenes use max size 128 .nrrd textures
+
+By Node:
+
+VoiumeData
+	- funny box-side effect
+	- all the Basics
+	- BasicInternals - blackscreens
+SegmentedVolumeData
+	- no confirmation its working
+	- SegmentedVentricles.x3d - cycles every 3 seconds or so
+IsoSurfaceVolumeData
+	- no confirm
+	- IsoSurfaceSkull.x3d
+
+BlendedVolumeStyle
+	- blackscreens
+	- BlendedBodyInternals.x3d - blackscreens
+	- BlendedComposedVolumes.x3d - blackscreens
+BoundaryEnhancementVolumeStyle
+	- no confirm
+	- BoundaryEnhancementInternals.x3d - blackscreens
+	- BlendedComposedVolumes.x3d - blackscreens
+CartoonVolumeStyle
+	- no confirm
+	- CartoonBackpack.x3d - whitescreens
+	- BlendedComposedVolumes.x3d
+ComposedVolumeStyle
+	- no confirm
+	- ComposedBackpack.x3d
+	- BlendedComposedVolumes.x3d
+EdgeEnhancementVolumeStyle
+	- no confirm
+	- EdgeBrain.x3d
+	- EdgeBrainB.x3d
+	- ComposedBackpack.x3d
+	- BlendedComposedVolumes.x3d
+OpacityMapVolumeStyle
+	- no TransferFunction verification
+	- basics - implicit, plus explicit:
+	- BlendedComposedVolumes.x3d
+	- SegmentedVentricles.x3d
+ProjectionVolumeStyle
+	- no confirm
+	- ProjectionMaxVentricles.x3d = blackscreens
+ShadedVolumeStyle
+	- no confirm
+	- ShadedBrain.x3d - no evidence of shading
+SillouetteEnhancementVolumeStyle
+	- no confirm
+	- SilhouetteSkull.x3d - blackscreens
+	- ComposedBackpack.x3d
+	- BlendedComposedVolumes.x3d
+ToneMappedVolumeStyle
+	- no confirm
+	- BlendedComposedVolumes.x3d
+	- ToneInternal.x3d - blackscreens
+
+
+By Technique:
+
+gradients:
+	IsoSurfaceVolumeData
+
+surfaceNormals:
+	CartoonVolumeStyle
+	EdgeEnhacementVolumeStyle
+	ShadedVolumeStyle
+	SilhouetteEnhancementVolumeStyle
+	ToneMappedVolumeStyle
+
+segmentIdentifiers:
+	SegmentedVolumeData
+
+Texture2D as transfer function:
+	BlendedVolumeStyle > weightTransferFunction1, weightTransferFunction2
+	OpacityMapVolumeStyle > transferFunction
+
+MF list:
+MFNode -renderStyle > ComposedVolumeStyle, IsoSurfaceVolumeData, SegmentedVolumeStyle
+MFFloat -surfaceValues > IsoSurfaceVolumeData
 
 
 */
