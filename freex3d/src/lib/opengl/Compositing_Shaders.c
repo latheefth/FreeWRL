@@ -1905,8 +1905,31 @@ bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1) \n\
 /* PLUG-DECLARATIONS */ \n\
  \n\
 vec3 fw_TexCoord[1]; \n\
+vec4 HeatMapColor(float value, float minValue, float maxValue) \n\
+{ \n\
+	//used for debugging. If min=0,max=1 then magenta is 0, blue,green,yellow, red is 1 \n\
+	vec4 ret; \n\
+    int HEATMAP_COLORS_COUNT; \n\
+    vec4 colors[6]; \n\
+	HEATMAP_COLORS_COUNT = 6; \n\
+	colors[0] = vec4(0.32, 0.00, 0.32, 1.0); \n\
+    colors[1] = vec4( 0.00, 0.00, 1.00, 1.00); \n\
+    colors[2] = vec4(0.00, 1.00, 0.00, 1.00); \n\
+    colors[3] = vec4(1.00, 1.00, 0.00, 1.00); \n\
+    colors[4] = vec4(1.00, 0.60, 0.00, 1.00); \n\
+    colors[5] = vec4(1.00, 0.00, 0.00, 1.00); \n\
+    float ratio=(float(HEATMAP_COLORS_COUNT)-1.0)*clamp((value-minValue)/(maxValue-minValue),0.0,1.0); \n\
+    int indexMin=int(floor(ratio)); \n\
+    int indexMax= indexMin+1 < HEATMAP_COLORS_COUNT-1 ? indexMin+1 : HEATMAP_COLORS_COUNT-1; \n\
+    ret = mix(colors[indexMin], colors[indexMax], ratio-float(indexMin)); \n\
+	if(value < minValue) ret = vec4(0.0,0.0,0.0,1.0); \n\
+	if(value > maxValue) ret = vec4(1.0,1.0,1.0,1.0); \n\
+	return ret; \n\
+} \n\
+vec4 debug_color; \n\
 void main(void) \n\
 { \n\
+	debug_color = vec4(0.0); \n\
 	float maxDist = length(fw_dimensions); //1.414214; //sqrt(2.0); \n\
 	float densityFactor = 5.0; \n\
 	float Absorption = 1.0; \n\
@@ -1919,14 +1942,15 @@ void main(void) \n\
     vec3 rayDirection; \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
+	rayDirection.z = 0.0; \n\
 	vec3 rayOrigin; // = fw_RayOrigin; \n\
 	//the equivalent of gluUnproject \n\
 	//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
 	vec4 ray4 = vec4(rayDirection,1.0); \n\
 	vec4 org4 = ray4; \n\
-	ray4.z = 1.0; \n\
-	org4.z = 0.0; \n\
-	// out = modelviewProjectionInverse x in \n\
+	//if I back up the ray origin by -1.0 the front plane clipping works properly \n\
+	ray4.z = 0.0; //1.0; \n\
+	org4.z = -1.0; //0.0; \n\
 	ray4 = fw_ModelViewProjInverse * ray4; \n\
 	org4 = fw_ModelViewProjInverse * org4; \n\
 	ray4 /= ray4.w; \n\
@@ -1935,8 +1959,6 @@ void main(void) \n\
 	rayOrigin = org4.xyz; \n\
 	\n\
     Ray eye = Ray( rayOrigin, normalize(rayDirection) ); \n\
-    //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
-	//AABB aabb = AABB(vec3(fw_dimensions*-.5),vec3(fw_dimensions*.5)); \n\
 	vec3 half_dimensions = fw_dimensions * .5; \n\
 	vec3 minus_half_dimensions = half_dimensions * -1.0; \n\
 	AABB aabb = AABB(minus_half_dimensions,half_dimensions); \n\
@@ -1944,13 +1966,8 @@ void main(void) \n\
     float tnear, tfar; \n\
     IntersectBox(eye, aabb, tnear, tfar); \n\
     if (tnear < 0.0) tnear = 0.0; \n\
-	\n\
     vec3 rayStart = eye.Origin + eye.Dir * tnear; \n\
     vec3 rayStop = eye.Origin + eye.Dir * tfar; \n\
-    // Transform from object space to texture coordinate space: \n\
-    //rayStart = 0.5 * (rayStart + 1.0); \n\
-    //rayStop = 0.5 * (rayStop + 1.0); \n\
-	\n\
     // Perform the ray marching: \n\
     vec3 pos = rayStart; \n\
     vec3 step = normalize(rayStop-rayStart) * stepSize; \n\
@@ -1959,14 +1976,9 @@ void main(void) \n\
     vec3 Lo = vec3(0.0); \n\
 	vec3 normal_eye = rayDirection.xyz; \n\
 	fragment_color.a = 1.0; \n\
-	//if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
-	//if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
-	//numSamples = int(floor((tfar - tnear)/stepSize)); \n\
-	//numSamples = 0; \n\
 	vec3 pos2 = pos; \n\
     // Transform from object space to texture coordinate space: \n\
 	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
-	//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 	pos2 = clamp(pos2,0.001,.999); \n\
 	fragment_color = vec4(1.0,0.0,1.0,0.0); \n\
 	raysum = vec4(0.0); \n\
@@ -1975,6 +1987,8 @@ void main(void) \n\
 	float lastdensity_iso; \n\
 	\n\
     for (int i=0; i < numSamples; ++i) { \n\
+		//raysum = HeatMapColor(travel,0.0,2.0); \n\
+		//break; \n\
        // ...lighting and absorption stuff here... \n\
 		fragment_color = vec4(1.0,1.0,1.0,1.0); \n\
 		pos2 = pos; \n\
@@ -2069,7 +2083,8 @@ void main(void) \n\
 		pos += step; \n\
 		\n\
     }  \n\
-	gl_FragColor = raysum; \n\
+	if(true) gl_FragColor = raysum; \n\
+	else gl_FragColor = debug_color; \n\
 } \n\
 ";
 
@@ -2310,9 +2325,18 @@ static const GLchar *plug_raysum_TONE =	"\
 uniform vec4 fw_coolColor; \n\
 uniform vec4 fw_warmColor; \n\
 void raysum_apply_TONE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	vec3 ng = normalize(gradient); \n\
-	float cc = 1.0 + dot(normal_eye,ng); \n\
-	raysum = mix(fw_coolColor,fw_warmColor,cc); \n\
+	if(length(gradient) > 0.0) { \n\
+		vec4 color; \n\
+		vec3 ng = normalize(gradient); \n\
+		//vec3 L = normalize(vec3(-.707,-.707,.707)); \n\
+		float cc = (1.0 + dot(normal_eye,ng))*.5; \n\
+		//float cc = (1.0 + dot(L,ng))*.5; \n\
+		color = mix(fw_coolColor,fw_warmColor,cc); \n\
+		raysum = clamp(raysum + (color * density*2.0),0.0,1.0); \n\
+		debug_color = vec4(0.0,0.0,1.0,.5); \n\
+	} else { \n\
+		density = 0.0; \n\
+	} \n\
 } \n\
 void PLUG_raysum_apply_TONE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
 	raysum_apply_TONE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
