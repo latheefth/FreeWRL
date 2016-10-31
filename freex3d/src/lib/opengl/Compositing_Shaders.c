@@ -1137,7 +1137,8 @@ void main(void) \n\
   #endif //TEX \n\
   \n\
   /* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
-  #define normal_eye_fragment castle_normal_eye //vec3(0.0) \n\
+  //#define normal_eye_fragment castle_normal_eye //vec3(0.0) \n\
+  #define normal_eye_fragment vec3(0.0) \n\
   \n\
   #ifdef FILL \n\
   fillPropCalc(fragment_color, hatchPosition, algorithm); \n\
@@ -1600,8 +1601,10 @@ static const GLchar *frag_plug_clip_apply =	"\
 uniform int fw_nclipplanes; \n\
 varying float fw_ClipDistance[FW_MAXCLIPPLANES]; \n\
 void PLUG_fog_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
-	for(int i=0;i<fw_nclipplanes;i++) \n\
-      if(normal_eye_fragment.z > fw_ClipDistance[i]) discard;  \n\
+	for(int i=0;i<fw_nclipplanes;i++) { \n\
+      //if(normal_eye_fragment.z > fw_ClipDistance[i]) discard;  \n\
+	  if(fw_ClipDistance[i] < 0.0) discard; \n\
+	} \n\
 } \n\
 #endif //CLIP \n\
 ";
