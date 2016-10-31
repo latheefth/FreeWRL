@@ -229,8 +229,46 @@ void Component_VolumeRendering_clear(struct tComponent_VolumeRendering *t){
 
 //6 faces x 2 triangles per face x 3 vertices per triangle x 3 scalars (xyz) per vertex = 6 x 2 x 3 x 3 = 108
 GLfloat box [108] = {1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, };
+
+//      6  7 //back far z
+//      4  5
+// 2  3   //front near z
+// 0  1 
+float boxvert [24] = {
+-.5f,-.5f, .5f, .5f,-.5f, .5f, -.5f,.5f, .5f, .5f,.5f, .5f, //near z LL LR UL UR
+-.5f,-.5f,-.5f, .5f,-.5f,-.5f, -.5f,.5f,-.5f, .5f,.5f,-.5f, //far z
+};
+//ccw tris
+ushort boxtriindccw [48] = {
+0, 1, 3, -1,  //near z
+3, 2, 0, -1,
+1, 5, 7, -1, //right
+7, 3, 1, -1,
+5, 4, 6, -1, //back z
+6, 7, 5, -1, 
+4, 0, 2, -1, //left
+2, 6, 4, -1,
+2, 3, 7, -1, //top y
+7, 6, 2, -1,
+4, 5, 1, -1, //bottom y
+1, 0, 4, -1,
+};
+ushort boxtriindcw [48] = {
+0, 3, 1, -1,  //near z
+3, 0, 2, -1,
+1, 7, 5, -1, //right
+7, 1, 3, -1,
+5, 6, 4, -1, //back z
+6, 5, 7, -1, 
+4, 2, 0, -1, //left
+2, 4, 6, -1,
+2, 7, 3, -1, //top y
+7, 2, 6, -1,
+4, 1, 5, -1, //bottom y
+1, 4, 0, -1,
+};
 void compile_VolumeData(struct X3D_VolumeData *node){
-	int i,j;
+	int i,j,itri, ind, jvert;
 	float *boxtris;
 
 	ConsoleMessage("compile_volumedata\n");
@@ -238,11 +276,25 @@ void compile_VolumeData(struct X3D_VolumeData *node){
 		node->_boxtris = MALLOC(void *,108 * sizeof(float));
 	}
 	boxtris = (float*)node->_boxtris;
+	if(0)
 	for(i=0;i<36;i++){
 		for(j=0;j<3;j++)
 			boxtris[i*3 + j] = .5f * node->dimensions.c[j] * box[i*3 + j];  //raw triangles are -1 to 1, dimensions are absolute
 
 	}
+	if(1)
+	for(itri=0;itri<12;itri++){
+		for(jvert=0;jvert<3;jvert++) {
+			float *vert;
+			ind = boxtriindccw[itri*4 + jvert];
+			vert = &boxvert[ind*3];
+			for(j=0;j<3;j++){
+				boxtris[(itri*3 +jvert)*3 + j] = node->dimensions.c[j]*vert[j];
+			}
+		}
+	}
+	//for(i=0;i<36;i++)
+	//	printf("%f %f %f\n",boxtris[i*3 +0],boxtris[i*3 +1],boxtris[i*3 +2]);
 	MARK_NODE_COMPILED
 }
 void pushnset_framebuffer(int ibuffer);
@@ -1211,9 +1263,20 @@ void render_GENERIC_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *
 	//3.2 draw with shader
 	glEnableVertexAttribArray(Vertices);
 	glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, node->_boxtris);
-
+	// https://www.opengl.org/wiki/Face_Culling
+	glEnable(GL_CULL_FACE);
+	//we want to draw only either back/far or front/near triangles, not both
+	//so that we comput a ray only once.
+	//and because we want to use clipplane (or frustum near side) to slice into
+	//volumes, we want to make sure we are still getting ray fragments when slicing
+	//so instead of drawing the front faces (which would slice away fragments/rays)
+	//we want to draw only the far/back triangles so even when slicing, we'll get
+	//fragment shader calls, and can compute rays.
+	//assuming our triangles are defined CCW (normal)
+	//setting front-face to GL_CW should ensure only the far/back triangles are rendered
+	glFrontFace(GL_CW); 
 	glDrawArrays(GL_TRIANGLES,0,36);
-
+	glDisable(GL_CULL_FACE);
 	if(voxels){
 		tg->RenderFuncs.textureStackTop = 0;
 		tg->RenderFuncs.texturenode = NULL;
