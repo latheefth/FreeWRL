@@ -1141,7 +1141,7 @@ void main(void) \n\
   #define normal_eye_fragment vec3(0.0) \n\
   \n\
   #ifdef FILL \n\
-  fillPropCalc(fragment_color, hatchPosition, algorithm); \n\
+  fillPropCalc(matdiff_color, hatchPosition, algorithm); \n\
   #endif //FILL \n\
   \n\
   #ifdef LIT \n\
