@@ -2332,7 +2332,8 @@ void raysum_apply_TONE (inout vec4 raysum, inout float density, inout vec3 gradi
 		float cc = (1.0 + dot(normal_eye,ng))*.5; \n\
 		//float cc = (1.0 + dot(L,ng))*.5; \n\
 		color = mix(fw_coolColor,fw_warmColor,cc); \n\
-		raysum = clamp(raysum + (color * density*2.0),0.0,1.0); \n\
+		//raysum.rgb = clamp(raysum.rgb + (color.rgb * color.a*density),0.0,1.0); \n\
+		raysum = color*density; \n\
 		debug_color = vec4(0.0,0.0,1.0,.5); \n\
 	} else { \n\
 		density = 0.0; \n\
