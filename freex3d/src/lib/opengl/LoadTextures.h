@@ -31,6 +31,6 @@ void send_texture_to_loader(textureTableIndexStruct_s *entry);
 bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename);
 void texitem_queue_flush();
 void texitem_queue_exit();
-
+void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
 
 #endif /* __FREEWRL_LOAD_TEXTURES_H__ */
