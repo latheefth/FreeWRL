@@ -1829,7 +1829,8 @@ varying vec4 castle_Color; \n\
 void main(void) \n\
 { \n\
   vec4 vertex_object = fw_Vertex; \n\
-   \n\
+  vec3 normal_object = vec3(0.0); \n\
+  /* PLUG: vertex_object_space (vertex_object, normal_object) */ \n\
   castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
    \n\
    castle_Color = vec4(1.0,.5,.5,1.0); \n\
@@ -1838,6 +1839,13 @@ void main(void) \n\
    \n\
 } \n\
 ";
+
+
+
+
+
+
+
 /* Generic GLSL fragment shader, used on OpenGL ES. */
 static const GLchar *volumeFragmentGLES2 = " \n\
 /* DEFINES */ \n\
@@ -1929,6 +1937,19 @@ vec4 HeatMapColor(float value, float minValue, float maxValue) \n\
 	if(value > maxValue) ret = vec4(1.0,1.0,1.0,1.0); \n\
 	return ret; \n\
 } \n\
+#ifdef CLIP \n\
+#define FW_MAXCLIPPLANES 4 \n\
+uniform int fw_nclipplanes; \n\
+uniform vec4 fw_clipplanes[FW_MAXCLIPPLANES]; \n\
+bool clip (in vec3 vertex_object){ \n\
+  bool iclip = false; \n\
+  for ( int i=0; i<fw_nclipplanes; i++ ) { \n\
+    if( dot( fw_clipplanes[i], vec4(vertex_object,1.0)) < 0.0) \n\
+		iclip = true; \n\
+  } \n\
+  return iclip; \n\
+} \n\
+#endif //CLIP \n\
 vec4 debug_color; \n\
 void main(void) \n\
 { \n\
@@ -1974,7 +1995,8 @@ void main(void) \n\
     // Perform the ray marching: \n\
     vec3 pos = rayStart; \n\
     vec3 step = normalize(rayStop-rayStart) * stepSize; \n\
-    float travel = distance(rayStop, rayStart); \n\
+    float totaltravel = distance(rayStop, rayStart); \n\
+	float travel = totaltravel; \n\
     float T = 1.0; \n\
     vec3 Lo = vec3(0.0); \n\
 	vec3 normal_eye = rayDirection.xyz; \n\
@@ -2001,91 +2023,98 @@ void main(void) \n\
 		//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 		pos2 = clamp(pos2,0.001,.999); \n\
 		vec3 texcoord3 = pos2; \n\
-		/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
-		#ifdef SEGMENT \n\
-		if(inEnabledSegment(texcoord3)){ \n\
-		#endif //SEGMENT \n\
-        //float density = texture3D(Density, pos).x * densityFactor; \n\
-		float density = fragment_color.a * densityFactor; ; \n\
-		vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
-		\n\
-		#ifdef ISO \n\
-		if(i==0){ \n\
-			lastdensity = density; \n\
-			lastdensity_iso = 0.0; \n\
-		} \n\
-		int MODE = fw_nVals == 1 ? 1 : 3; \n\
-		MODE = fw_stepSize != 0.0 && MODE == 1 ? 2 : 1; \n\
-		#ifdef ISO_MODE3 \n\
-		if(MODE == 3){ \n\
-			for(int i=0;i<fw_nVals;i++){ \n\
-				float iso = fw_surfaceVals[i]; \n\
-				if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
-					int jstyle = min(i,fw_nStyles-1); \n\
-					jstyle = fw_surfaceStyles[jstyle]; \n\
-					if(jstyle == 1){ \n\
-						/* PLUG: raysum_apply_DEFAULT (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 2) { \n\
-						/* PLUG: raysum_apply_OPACITY (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 3) { \n\
-						/* PLUG: raysum_apply_BLENDED (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 4) { \n\
-						/* PLUG: raysum_apply_BOUNDARY (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 5) { \n\
-						/* PLUG: raysum_apply_CARTOON (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 6) { \n\
-						/* PLUG: raysum_apply_DEFAULT (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 7) { \n\
-						/* PLUG: raysum_apply_EDGE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 8) { \n\
-						/* PLUG: raysum_apply_PROJECTION (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 9) { \n\
-						/* PLUG: raysum_apply_SHADED (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 10) { \n\
-						/* PLUG: raysum_apply_SILHOUETTE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 11) { \n\
-						/* PLUG: raysum_apply_TONE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+		bool iclip = false; \n\
+		#ifdef CLIP \n\
+		iclip = clip(vertex_eye); //clip(totaltravel - travel); \n\
+		#endif //CLIP \n\
+		if(!iclip) { \n\
+			/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
+			#ifdef SEGMENT \n\
+			if(inEnabledSegment(texcoord3)){ \n\
+			#endif //SEGMENT \n\
+			//float density = texture3D(Density, pos).x * densityFactor; \n\
+			float density = fragment_color.a * densityFactor; ; \n\
+			vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
+			\n\
+			#ifdef ISO \n\
+			if(i==0){ \n\
+				lastdensity = density; \n\
+				lastdensity_iso = 0.0; \n\
+			} \n\
+			int MODE = fw_nVals == 1 ? 1 : 3; \n\
+			MODE = fw_stepSize != 0.0 && MODE == 1 ? 2 : 1; \n\
+			#ifdef ISO_MODE3 \n\
+			if(MODE == 3){ \n\
+				for(int i=0;i<fw_nVals;i++){ \n\
+					float iso = fw_surfaceVals[i]; \n\
+					if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+						int jstyle = min(i,fw_nStyles-1); \n\
+						jstyle = fw_surfaceStyles[jstyle]; \n\
+						if(jstyle == 1){ \n\
+							/* PLUG: raysum_apply_DEFAULT (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 2) { \n\
+							/* PLUG: raysum_apply_OPACITY (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 3) { \n\
+							/* PLUG: raysum_apply_BLENDED (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 4) { \n\
+							/* PLUG: raysum_apply_BOUNDARY (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 5) { \n\
+							/* PLUG: raysum_apply_CARTOON (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 6) { \n\
+							/* PLUG: raysum_apply_DEFAULT (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 7) { \n\
+							/* PLUG: raysum_apply_EDGE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 8) { \n\
+							/* PLUG: raysum_apply_PROJECTION (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 9) { \n\
+							/* PLUG: raysum_apply_SHADED (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 10) { \n\
+							/* PLUG: raysum_apply_SILHOUETTE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} else if(jstyle == 11) { \n\
+							/* PLUG: raysum_apply_TONE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+						} \n\
 					} \n\
 				} \n\
+				lastdensity = density; \n\
 			} \n\
-			lastdensity = density; \n\
-		} \n\
-		#else //ISO_MODE3 \n\
-		if(MODE == 1){ \n\
-			float iso = fw_surfaceVals[0]; \n\
-			if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
-				/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+			#else //ISO_MODE3 \n\
+			if(MODE == 1){ \n\
+				float iso = fw_surfaceVals[0]; \n\
+				if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+					/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+				} \n\
+				lastdensity = density; \n\
+			} else if(MODE == 2){ \n\
+				float iso = fw_surfaceVals[0]; \n\
+				float density_iso = density / fw_stepSize; \n\
+				if( sign( density_iso - iso) != sign( lastdensity_iso - iso) && length(gradient) > fw_tolerance ){ \n\
+					/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+				} \n\
+				lastdensity = density; \n\
+				lastdensity_iso = density_iso; \n\
+			}  \n\
+			#endif //ISO_MODE3 \n\
+			#else //ISO \n\
+			//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) \n\
+			/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+			#endif //ISO \n\
+			T *= 1.0-density*stepSize*Absorption; \n\
+			raysum.a = 1.0 - T; \n\
+			//raysum.rgb = raysum.rgb + fragment_color.rgb*density; \n\
+			if (T <= 0.01) { \n\
+				break; \n\
 			} \n\
-			lastdensity = density; \n\
-		} else if(MODE == 2){ \n\
-			float iso = fw_surfaceVals[0]; \n\
-			float density_iso = density / fw_stepSize; \n\
-			if( sign( density_iso - iso) != sign( lastdensity_iso - iso) && length(gradient) > fw_tolerance ){ \n\
-				/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-			} \n\
-			lastdensity = density; \n\
-			lastdensity_iso = density_iso; \n\
-		}  \n\
-		#endif //ISO_MODE3 \n\
-		#else //ISO \n\
-		//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) \n\
-		/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-		#endif //ISO \n\
-        T *= 1.0-density*stepSize*Absorption; \n\
-		raysum.a = 1.0 - T; \n\
-		//raysum.rgb = raysum.rgb + fragment_color.rgb*density; \n\
-        if (T <= 0.01) { \n\
-            break; \n\
-		} \n\
-		#ifdef SEGMENT \n\
-		} //if inEnabledSegment \n\
-		#endif //SEGMENT \n\
+			#ifdef SEGMENT \n\
+			} //if inEnabledSegment \n\
+			#endif //SEGMENT \n\
+		} //iclip \n\
 		travel -= stepSize; \n\
 		depth += stepSize; \n\
 		if(travel <= 0.0) break; \n\
 		pos += step; \n\
 		\n\
     }  \n\
+	vec3 normal_eye_fragment = vec3(0.0); \n\
 	if(true) gl_FragColor = raysum; \n\
 	else gl_FragColor = debug_color; \n\
 } \n\
@@ -2502,10 +2531,8 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		AddDefine(SHADERPART_FRAGMENT,"SEGMENT",CompleteCode); 
 	}
 	if(DESIRE(whichOne.base,CLIPPLANE_SHADER)){
-		AddDefine(SHADERPART_VERTEX,"CLIP",CompleteCode);	
-		Plug(SHADERPART_VERTEX,vertex_plug_clip_apply,CompleteCode,&unique_int);	
 		AddDefine(SHADERPART_FRAGMENT,"CLIP",CompleteCode);	
-		Plug(SHADERPART_FRAGMENT,frag_plug_clip_apply,CompleteCode,&unique_int);	
+		// we use a special function in frag for clip for volume
 	}
 
 	//unsigned int 32 bits - 4 for basic, leaves 28/4 = max 7 styles
