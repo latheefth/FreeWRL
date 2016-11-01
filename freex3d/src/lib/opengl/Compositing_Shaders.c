@@ -2396,9 +2396,12 @@ uniform float fw_BoundaryOpacity; \n\
 uniform float fw_RetainedOpacity; \n\
 uniform float fw_Sharpness; \n\
 void voxel_apply_SILHOUETTE (inout vec4 voxel, inout vec3 gradient) { \n\
-	vec3 ng = normalize(gradient); \n\
-	float ndotv = abs(dot(ng,normal_eye)); \n\
-	voxel.a = voxel.a * (fw_RetainedOpacity + fw_BoundaryOpacity*pow(1.0 - ndotv,fw_Sharpness)); \n\
+	float len = length(gradient); \n\
+	if(len > 0.01) { \n\
+		vec3 ng = normalize(gradient); \n\
+		float ndotv = abs(dot(ng,normal_eye)); \n\
+		voxel.a = voxel.a * (fw_RetainedOpacity + fw_BoundaryOpacity*pow(1.0 - ndotv,fw_Sharpness)); \n\
+	} \n\
 } \n\
 void PLUG_voxel_apply_SILHOUETTE (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_SILHOUETTE(voxel, gradient); \n\
