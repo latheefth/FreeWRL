@@ -104,9 +104,7 @@ http://dug9.users.sourceforge.net/web3d/tests/volume/
 By Node:
 
 VoiumeData
-	- funny box-side effect
-	- all the Basics
-	- BasicInternals - blackscreens
+	- works
 SegmentedVolumeData
 	- no confirmation its working
 	- SegmentedVentricles.x3d - cycles every 3 seconds or so

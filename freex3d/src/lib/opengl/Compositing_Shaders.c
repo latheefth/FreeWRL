@@ -2123,6 +2123,8 @@ void main(void) \n\
 
 //void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
+// opacity with intensity == intensity lookup/transferFunction
 static const GLchar *plug_raysum_DEFAULT =	"\
 void raysum_apply_DEFAULT (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
 	raysum.rgb = vec3(1.0,0.0,1.0); //*density; \n\
@@ -2135,6 +2137,7 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 } \n\
 ";
 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
 static const GLchar *plug_raysum_OPACITY =	"\
 uniform int fw_opacTexture; \n\
 //uniform sampler2D fw_Texture_unit3; \n\
@@ -2157,10 +2160,14 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 	raysum_apply_OPACITY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
 } \n\
 ";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
 static const GLchar *plug_raysum_BLENDED =	"\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
 } \n\
 ";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BoundaryEnhancementVolumeStyle
 static const GLchar *plug_raysum_BOUNDARY =	"\n\
 uniform float fw_boundaryOpacity; \n\
 uniform float fw_retainedOpacity; \n\
@@ -2178,6 +2185,7 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 } \n\
 ";
 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#CartoonVolumeStyle
 static const GLchar *plug_raysum_CARTOON =	"\n\
 uniform int fw_colorSteps; \n\
 uniform vec4 fw_orthoColor; \n\
@@ -2195,10 +2203,14 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 	raysum_apply_CARTOON(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
 } \n\
 ";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ComposedVolumeStyle
 static const GLchar *plug_raysum_COMPOSED =	"\
 void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
 } \n\
 ";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#EdgeEnhancementVolumeStyle
 static const GLchar *plug_raysum_EDGE =	"\
 uniform float fw_gradientThreshold; \n\
 uniform vec4 fw_edgeColor; \n\
@@ -2219,6 +2231,8 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 	raysum_apply_EDGE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
 } \n\
 ";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ProjectionVolumeStyle
 static const GLchar *plug_raysum_PROJECTION =	"\n\
 uniform float fw_intensityThreshold; \n\
 uniform int fw_projType; \n\
@@ -2261,6 +2275,8 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 	raysum_apply_PROJECTION(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
 } \n\
 ";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ShadedVolumeStyle
 static const GLchar *plug_raysum_SHADED =	"\
 #ifdef LITE \n\
 #define MAX_LIGHTS 8 \n\
@@ -2337,6 +2353,8 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 	raysum_apply_SHADED(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
 } \n\
 ";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#SilhouetteEnhancementVolumeStyle
 static const GLchar *plug_raysum_SILHOUETTE =	"\n\
 uniform float fw_BoundaryOpacity; \n\
 uniform float fw_RetainedOpacity; \n\
@@ -2353,6 +2371,8 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 	raysum_apply_SILHOUETTE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
 } \n\
 ";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ToneMappedVolumeStyle
 static const GLchar *plug_raysum_TONE =	"\
 uniform vec4 fw_coolColor; \n\
 uniform vec4 fw_warmColor; \n\
@@ -2379,6 +2399,7 @@ void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradi
 } \n\
 ";
 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
 // blended (BlendedVolumeStyle) works (was interpreted and implemented by dug9, Oct 2016)
 //  by rendering 2 volumedatas to 2 fbo textures, then running
 // this shader to blend the 2 fbo textures and spit out fragments just
