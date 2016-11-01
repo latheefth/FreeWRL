@@ -691,7 +691,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					icool = GET_UNIFORM(myProg,"fw_coolColor");
 					glUniform4fv(icool,1,style->coolColor.c);
 					iwarm = GET_UNIFORM(myProg,"fw_warmColor");
-					glUniform4fv(iwarm,1,style->coolColor.c);
+					glUniform4fv(iwarm,1,style->warmColor.c);
 				}
 				break;
 			default:

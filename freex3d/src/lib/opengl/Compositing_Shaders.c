@@ -2413,18 +2413,19 @@ static const GLchar *plug_voxel_TONE =	"\
 uniform vec4 fw_coolColor; \n\
 uniform vec4 fw_warmColor; \n\
 void voxel_apply_TONE (inout vec4 voxel, inout vec3 gradient) { \n\
-	if(length(gradient) > 0.0) { \n\
-		vec4 color; \n\
+	float len = length(gradient); \n\
+	if(len > 0.01) { \n\
+		vec3 color; \n\
 		vec3 ng = normalize(gradient); \n\
 		//vec3 L = normalize(vec3(-.707,-.707,.707)); \n\
 		float cc = (1.0 + dot(normal_eye,ng))*.5; \n\
 		//float cc = (1.0 + dot(L,ng))*.5; \n\
-		color = mix(fw_coolColor,fw_warmColor,cc); \n\
-		//voxel.rgb = clamp(voxel.rgb + (color.rgb * color.a*voxel.a),0.0,1.0); \n\
-		voxel = color*voxel.a; \n\
-		debug_color = vec4(0.0,0.0,1.0,.5); \n\
+		//debug_color = HeatMapColor(cc,0.0,1.0); \n\
+		color = mix(fw_coolColor.rgb,fw_warmColor.rgb,cc); \n\
+		voxel = vec4(color,voxel.a); \n\
 	} else { \n\
 		voxel.a = 0.0; \n\
+		//debug_color = vec4(0.0); \n\
 	} \n\
 } \n\
 void PLUG_voxel_apply_TONE (inout vec4 voxel, inout vec3 gradient) { \n\
