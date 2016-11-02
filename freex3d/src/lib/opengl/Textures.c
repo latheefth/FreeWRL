@@ -266,14 +266,14 @@ void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
 				//initialize gradient
 				for(k=0;k<3;k++) gradient[k] = 0;
 				//sum onto gradient
+				rgba0 = (char *) &pixels[(iz*y +iy)*x + ix];
+				urgba = (unsigned char *)rgba0;
 				jxx = jyy = jzz = 0;
 				//what if we are on the edge? for roberts, just duplicate next-to-edge by backing up one
 				if(iz == z-1) jzz = -1;
 				if(iy == y-1) jyy = -1;
 				if(ix == x-1) jxx = -1;
 				jx = jxx; jy = jyy; jz = jzz;
-				rgba0 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
-				urgba = (unsigned char *)rgba0;
 				jx = jxx + 1;
 				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
 				gradient[0] = (int)rgba1[3] - (int)rgba0[3];
@@ -293,6 +293,7 @@ void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
 				//the expect the pixels to be unsigned char.
 				//so we add 127 here, and subtract .5 in the shader, once they are float
 				for(k=0;k<3;k++) gradient[k] += 127;  
+
 				//set gradient in RGB channels
 				for(k=0;k<3;k++) urgba[k] = (unsigned char)gradient[k];
 				//if(rgba0[0] || rgba0[1] || rgba0[2]){
@@ -301,6 +302,20 @@ void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
 				//}
 			}
 		}
+	}
+	if(0){
+		//save gradient image for testing
+		textureTableIndexStruct_s *tti2, tt;
+		tti2 = &tt;
+		tti2->x = x;
+		tti2->y = y;
+		tti2->z = z;
+		tti2->texdata = dest;
+		tti2->channels = 3;
+		saveImage_web3dit(tti2,"gradientRGB.web3dit");
+		tti2->channels = 4;
+		saveImage_web3dit(tti2,"gradientRGBA.web3dit");
+
 	}
 
 }
@@ -1263,7 +1278,6 @@ DEF_FINDFIELD(TEXTUREBOUNDARYKEYWORDS)
 DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
 
 
-void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
 void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	int rx,ry,rz,sx,sy,sz;
 	int x,y,z,itile3d;

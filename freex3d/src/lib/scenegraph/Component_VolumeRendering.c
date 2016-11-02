@@ -60,8 +60,14 @@ Before starting to implement this there are a few other nodes and components tha
 Links:
 	http://http.developer.nvidia.com/GPUGems/gpugems_ch39.html
 	- GpuGems online, ideas about volume rendering
-		- Note also http://teem.sourceforge.net/ link in References
-		- same place as nrrd file format lib
+	http://teem.sourceforge.net/ 
+	- same place as nrrd file format lib
+	- unu.exe commandline program is handy:
+		print nrrd file header:
+			unu head brain.nrrd
+		resize an image ie from 512x512x512 to 128x128x128:
+			unu resample -s 128 128 128 -i brain.nrrd -o brain128.nrrd
+				
 	http://castle-engine.sourceforge.net/compositing_shaders.php
 	- in the "Compositing Shaders in X3D" .pdf, page 9 mentions volume nodes
 	- the VolumeRendering Component has 10 style nodes, and Kambu is suggesting his Plug/hook method
@@ -89,6 +95,88 @@ Links:
 	- xyz texture preparation, related to volume raycasting shader technique
 	http://http.developer.nvidia.com/GPUGems3/gpugems3_ch30.html
 	- see 30.3.1 Volume Rendering for raymarching nuances
+
+
+COMPONENT VOLUMERENDERING ISSUES Oct 29, 2016
+http://dug9.users.sourceforge.net/web3d/tests/volume/
+- these sample scenes use max size 128 .nrrd textures
+
+By Node:
+
+VoiumeData
+	- works
+SegmentedVolumeData
+	- no confirmation its working
+	- SegmentedVentricles.x3d - cycles every 3 seconds or so
+IsoSurfaceVolumeData
+	- no confirm
+	- IsoSurfaceSkull.x3d
+
+BlendedVolumeStyle
+	- blackscreens
+	- BlendedBodyInternals.x3d - blackscreens
+	- BlendedComposedVolumes.x3d - blackscreens
+BoundaryEnhancementVolumeStyle
+	- no confirm
+	- BoundaryEnhancementInternals.x3d - blackscreens
+	- BlendedComposedVolumes.x3d - blackscreens
+CartoonVolumeStyle
+	- works
+	- CartoonBackpack.x3d 
+	- BlendedComposedVolumes.x3d
+ComposedVolumeStyle
+	- no confirm
+	- ComposedBackpack.x3d
+	- BlendedComposedVolumes.x3d
+EdgeEnhancementVolumeStyle
+	- works
+	- EdgeBrain.x3d
+	- ComposedBackpack.x3d
+	- BlendedComposedVolumes.x3d
+OpacityMapVolumeStyle
+	- no TransferFunction verification
+	- basics (implicit) works, plus explicit:
+	- BlendedComposedVolumes.x3d
+	- SegmentedVentricles.x3d
+ProjectionVolumeStyle
+	- works
+	- ProjectionMaxVentricles.x3d 
+ShadedVolumeStyle
+	- no confirm
+	- ShadedBrain.x3d - no evidence of shading
+SillouetteEnhancementVolumeStyle
+	- works but hard to see a difference
+	- SilhouetteSkull.x3d
+	- ComposedBackpack.x3d
+	- BlendedComposedVolumes.x3d
+ToneMappedVolumeStyle
+	- works
+	- BlendedComposedVolumes.x3d
+	- ToneInternal.x3d - blackscreens
+
+
+By Technique:
+
+gradients:
+	IsoSurfaceVolumeData
+
+surfaceNormals:
+	CartoonVolumeStyle
+	EdgeEnhacementVolumeStyle
+	ShadedVolumeStyle
+	SilhouetteEnhancementVolumeStyle
+	ToneMappedVolumeStyle
+
+segmentIdentifiers:
+	SegmentedVolumeData
+
+Texture2D as transfer function:
+	BlendedVolumeStyle > weightTransferFunction1, weightTransferFunction2
+	OpacityMapVolumeStyle > transferFunction
+
+MF list:
+MFNode -renderStyle > ComposedVolumeStyle, IsoSurfaceVolumeData, SegmentedVolumeStyle
+MFFloat -surfaceValues > IsoSurfaceVolumeData
 
 
 */
@@ -138,8 +226,46 @@ void Component_VolumeRendering_clear(struct tComponent_VolumeRendering *t){
 
 //6 faces x 2 triangles per face x 3 vertices per triangle x 3 scalars (xyz) per vertex = 6 x 2 x 3 x 3 = 108
 GLfloat box [108] = {1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, };
+
+//      6  7 //back far z
+//      4  5
+// 2  3   //front near z
+// 0  1 
+float boxvert [24] = {
+-.5f,-.5f, .5f, .5f,-.5f, .5f, -.5f,.5f, .5f, .5f,.5f, .5f, //near z LL LR UL UR
+-.5f,-.5f,-.5f, .5f,-.5f,-.5f, -.5f,.5f,-.5f, .5f,.5f,-.5f, //far z
+};
+//ccw tris
+ushort boxtriindccw [48] = {
+0, 1, 3, -1,  //near z
+3, 2, 0, -1,
+1, 5, 7, -1, //right
+7, 3, 1, -1,
+5, 4, 6, -1, //back z
+6, 7, 5, -1, 
+4, 0, 2, -1, //left
+2, 6, 4, -1,
+2, 3, 7, -1, //top y
+7, 6, 2, -1,
+4, 5, 1, -1, //bottom y
+1, 0, 4, -1,
+};
+ushort boxtriindcw [48] = {
+0, 3, 1, -1,  //near z
+3, 0, 2, -1,
+1, 7, 5, -1, //right
+7, 1, 3, -1,
+5, 6, 4, -1, //back z
+6, 5, 7, -1, 
+4, 2, 0, -1, //left
+2, 4, 6, -1,
+2, 7, 3, -1, //top y
+7, 2, 6, -1,
+4, 1, 5, -1, //bottom y
+1, 4, 0, -1,
+};
 void compile_VolumeData(struct X3D_VolumeData *node){
-	int i,j;
+	int i,j,itri, ind, jvert;
 	float *boxtris;
 
 	ConsoleMessage("compile_volumedata\n");
@@ -147,11 +273,25 @@ void compile_VolumeData(struct X3D_VolumeData *node){
 		node->_boxtris = MALLOC(void *,108 * sizeof(float));
 	}
 	boxtris = (float*)node->_boxtris;
+	if(0)
 	for(i=0;i<36;i++){
 		for(j=0;j<3;j++)
 			boxtris[i*3 + j] = .5f * node->dimensions.c[j] * box[i*3 + j];  //raw triangles are -1 to 1, dimensions are absolute
 
 	}
+	if(1)
+	for(itri=0;itri<12;itri++){
+		for(jvert=0;jvert<3;jvert++) {
+			float *vert;
+			ind = boxtriindccw[itri*4 + jvert];
+			vert = &boxvert[ind*3];
+			for(j=0;j<3;j++){
+				boxtris[(itri*3 +jvert)*3 + j] = node->dimensions.c[j]*vert[j];
+			}
+		}
+	}
+	//for(i=0;i<36;i++)
+	//	printf("%f %f %f\n",boxtris[i*3 +0],boxtris[i*3 +1],boxtris[i*3 +2]);
 	MARK_NODE_COMPILED
 }
 void pushnset_framebuffer(int ibuffer);
@@ -371,8 +511,8 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					rgba = style->edgeColor.c;
 					iedgeColor = GET_UNIFORM(myProg,"fw_edgeColor");
 					glUniform4fv(iedgeColor,1,rgba);
-					igradientThreshold = GET_UNIFORM(myProg,"fw_gradientThreshold");
-					glUniform1f(igradientThreshold,style->gradientThreshold);
+					igradientThreshold = GET_UNIFORM(myProg,"fw_cosGradientThreshold");
+					glUniform1f(igradientThreshold,cosf(style->gradientThreshold));
 					//printf("edge uniforms color %d gradthresh %d\n",iedgeColor,igradientThreshold);
 				}
 				break;
@@ -390,12 +530,15 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					itype = GET_UNIFORM(myProg,"fw_projType");
 					if(style->_type == 0){
 						ctype = style->type->strptr;
-						if(!strcmp(ctype,"MAX")) ktype = 1;
-						else if(!strcmp(ctype,"MIN")) ktype = 2;
-						else if(!strcmp(ctype,"AVERAGE")) ktype = 3;
+						if(!strcmp(ctype,"MIN")) 
+							ktype = 1;
+						else if(!strcmp(ctype,"MAX")) 
+							ktype = 2;
+						else if(!strcmp(ctype,"AVERAGE")) 
+							ktype = 3;
 						style->_type = ktype;
 					}
-					glUniform1f(itype,style->_type);
+					glUniform1i(itype,style->_type);
 				}
 				break;
 			case NODE_ShadedVolumeStyle:
@@ -535,7 +678,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					isilretain = GET_UNIFORM(myProg,"fw_RetainedOpacity");
 					glUniform1f(isilretain,style->silhouetteRetainedOpacity);
 					isilsharp = GET_UNIFORM(myProg,"fw_Sharpness");
-					glUniform1f(isilretain,style->silhouetteSharpness);
+					glUniform1f(isilsharp,style->silhouetteSharpness);
 				}
 				break;
 			case NODE_ToneMappedVolumeStyle:
@@ -550,7 +693,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					icool = GET_UNIFORM(myProg,"fw_coolColor");
 					glUniform4fv(icool,1,style->coolColor.c);
 					iwarm = GET_UNIFORM(myProg,"fw_warmColor");
-					glUniform4fv(iwarm,1,style->coolColor.c);
+					glUniform4fv(iwarm,1,style->warmColor.c);
 				}
 				break;
 			default:
@@ -884,7 +1027,7 @@ void compile_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 	// VolumeData + 2 fields:
 	//MFBool  [in,out] segmentEnabled     []
 	//SFNode  [in,out] segmentIdentifiers NULL     [X3DTexture3DNode]
-	printf("compile_segmentedvolumedata not implemented\n");
+	printf("compile_segmentedvolumedata \n");
 	compile_VolumeData((struct X3D_VolumeData *)node);
 }
 s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int nstyle, int VOLUME_DATA_FLAG){
@@ -897,7 +1040,7 @@ s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int ns
 	volflags = 0;
 	if(nstyle){
 		for(int i=0;i<nstyle;i++){
-			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle;
+			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle[i];
 			if(style0->enabled){
 				volflags = prep_volumestyle(renderStyle[i], volflags); //get shader flags
 			}
@@ -946,8 +1089,10 @@ s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int ns
 	return caps; 
 }
 
-void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *segmentIDs, int itexture, int *enabledIDs, int nIDs ) {
+void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *segmentIDs, int itexture, struct X3D_SegmentedVolumeData *node) {
 	int myProg;
+	int *enabledIDs = node->segmentEnabled.p;
+	int nIDs = node->segmentEnabled.n;
 	myProg = caps->myShaderProgram;
 	if(segmentIDs){
 		struct X3D_Node *tmpN;
@@ -977,11 +1122,26 @@ void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node
 			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
 		}
 	}
+	GLint inids = GET_UNIFORM(myProg,"fw_nIDs");
+	glUniform1i(inids,nIDs); 
 	GLint ienable = GET_UNIFORM(myProg,"fw_enableIDs");
 	glUniform1iv(ienable,nIDs,enabledIDs); 
 
-	GLint inids = GET_UNIFORM(myProg,"fw_nIDs");
-	glUniform1i(inids,nIDs); 
+	//similar to ISO, there are multiple rendering styles
+	if(node->renderStyle.n){
+		int *styleflags = MALLOC(int*,sizeof(int)*node->renderStyle.n);
+		for(int i=0;i<node->renderStyle.n;i++){
+			styleflags[i] = prep_volumestyle(node->renderStyle.p[i],0);
+		}
+		//printf("%d %d\n",styleflags[0],styleflags[1]);
+		GLint istyles = GET_UNIFORM(myProg,"fw_surfaceStyles");
+		glUniform1iv(istyles,node->renderStyle.n,styleflags);
+		int instyles = GET_UNIFORM(myProg,"fw_nStyles");
+		glUniform1i(instyles,node->renderStyle.n);
+	}
+
+
+
 }
 
 float *getTransformedClipPlanes();
@@ -1120,9 +1280,20 @@ void render_GENERIC_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *
 	//3.2 draw with shader
 	glEnableVertexAttribArray(Vertices);
 	glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, node->_boxtris);
-
+	// https://www.opengl.org/wiki/Face_Culling
+	glEnable(GL_CULL_FACE);
+	//we want to draw only either back/far or front/near triangles, not both
+	//so that we comput a ray only once.
+	//and because we want to use clipplane (or frustum near side) to slice into
+	//volumes, we want to make sure we are still getting ray fragments when slicing
+	//so instead of drawing the front faces (which would slice away fragments/rays)
+	//we want to draw only the far/back triangles so even when slicing, we'll get
+	//fragment shader calls, and can compute rays.
+	//assuming our triangles are defined CCW (normal)
+	//setting front-face to GL_CW should ensure only the far/back triangles are rendered
+	glFrontFace(GL_CW); 
 	glDrawArrays(GL_TRIANGLES,0,36);
-
+	glDisable(GL_CULL_FACE);
 	if(voxels){
 		tg->RenderFuncs.textureStackTop = 0;
 		tg->RenderFuncs.texturenode = NULL;
@@ -1148,15 +1319,15 @@ void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 
 		if(!once)
 			printf("child segmentedvolumedata \n");
-		int nstyles = 0;
-		if(node->renderStyle) nstyles = 1;
+		//int nstyles = 0;
+		//if(node->renderStyle) nstyles = 1;
 
-		caps = getVolumeProgram(&node->renderStyle,nstyles, SHADERFLAGS_VOLUME_DATA_SEGMENT);
+		caps = getVolumeProgram(node->renderStyle.p,node->renderStyle.n, SHADERFLAGS_VOLUME_DATA_SEGMENT);
 		//get and set segment-specific uniforms
 		int itexture = 1; //voxels=0,segmentIDs=1
-		render_SEGMENTED_volume_data(caps,node->segmentIdentifiers,itexture,node->segmentEnabled.p,node->segmentEnabled.n);
+		render_SEGMENTED_volume_data(caps,node->segmentIdentifiers,itexture,node);
 		//render generic volume 
-		render_GENERIC_volume_data(caps,&node->renderStyle,nstyles,node->voxels,(struct X3D_VolumeData*)node );
+		render_GENERIC_volume_data(caps,node->renderStyle.p,node->renderStyle.n,node->voxels,(struct X3D_VolumeData*)node );
 		once = 1;
 	} //if VF_Blend
 

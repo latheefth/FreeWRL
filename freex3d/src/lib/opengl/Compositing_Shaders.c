@@ -1137,10 +1137,11 @@ void main(void) \n\
   #endif //TEX \n\
   \n\
   /* Fragment shader on mobile doesn't get a normal vector now, for speed. */ \n\
-  #define normal_eye_fragment castle_normal_eye //vec3(0.0) \n\
+  //#define normal_eye_fragment castle_normal_eye //vec3(0.0) \n\
+  #define normal_eye_fragment vec3(0.0) \n\
   \n\
   #ifdef FILL \n\
-  fillPropCalc(fragment_color, hatchPosition, algorithm); \n\
+  fillPropCalc(matdiff_color, hatchPosition, algorithm); \n\
   #endif //FILL \n\
   \n\
   #ifdef LIT \n\
@@ -1600,8 +1601,10 @@ static const GLchar *frag_plug_clip_apply =	"\
 uniform int fw_nclipplanes; \n\
 varying float fw_ClipDistance[FW_MAXCLIPPLANES]; \n\
 void PLUG_fog_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n\
-	for(int i=0;i<fw_nclipplanes;i++) \n\
-      if(normal_eye_fragment.z > fw_ClipDistance[i]) discard;  \n\
+	for(int i=0;i<fw_nclipplanes;i++) { \n\
+      //if(normal_eye_fragment.z > fw_ClipDistance[i]) discard;  \n\
+	  if(fw_ClipDistance[i] < 0.0) discard; \n\
+	} \n\
 } \n\
 #endif //CLIP \n\
 ";
@@ -1826,7 +1829,8 @@ varying vec4 castle_Color; \n\
 void main(void) \n\
 { \n\
   vec4 vertex_object = fw_Vertex; \n\
-   \n\
+  vec3 normal_object = vec3(0.0); \n\
+  /* PLUG: vertex_object_space (vertex_object, normal_object) */ \n\
   castle_vertex_eye = fw_ModelViewMatrix * vertex_object; \n\
    \n\
    castle_Color = vec4(1.0,.5,.5,1.0); \n\
@@ -1835,6 +1839,13 @@ void main(void) \n\
    \n\
 } \n\
 ";
+
+
+
+
+
+
+
 /* Generic GLSL fragment shader, used on OpenGL ES. */
 static const GLchar *volumeFragmentGLES2 = " \n\
 /* DEFINES */ \n\
@@ -1843,6 +1854,28 @@ static const GLchar *volumeFragmentGLES2 = " \n\
 precision mediump float; \n\
 #endif //MOBILE \n\
  \n\
+ vec4 HeatMapColor(float value, float minValue, float maxValue) \n\
+{ \n\
+	//used for debugging. If min=0,max=1 then magenta is 0, blue,green,yellow, red is 1 \n\
+	vec4 ret; \n\
+    int HEATMAP_COLORS_COUNT; \n\
+    vec4 colors[6]; \n\
+	HEATMAP_COLORS_COUNT = 6; \n\
+	colors[0] = vec4(0.32, 0.00, 0.32, 1.0); \n\
+    colors[1] = vec4( 0.00, 0.00, 1.00, 1.00); \n\
+    colors[2] = vec4(0.00, 1.00, 0.00, 1.00); \n\
+    colors[3] = vec4(1.00, 1.00, 0.00, 1.00); \n\
+    colors[4] = vec4(1.00, 0.60, 0.00, 1.00); \n\
+    colors[5] = vec4(1.00, 0.00, 0.00, 1.00); \n\
+    float ratio=(float(HEATMAP_COLORS_COUNT)-1.0)*clamp((value-minValue)/(maxValue-minValue),0.0,1.0); \n\
+    int indexMin=int(floor(ratio)); \n\
+    int indexMax= indexMin+1 < HEATMAP_COLORS_COUNT-1 ? indexMin+1 : HEATMAP_COLORS_COUNT-1; \n\
+    ret = mix(colors[indexMin], colors[indexMax], ratio-float(indexMin)); \n\
+	if(value < minValue) ret = vec4(0.0,0.0,0.0,1.0); \n\
+	if(value > maxValue) ret = vec4(1.0,1.0,1.0,1.0); \n\
+	return ret; \n\
+} \n\
+vec4 debug_color; \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
 uniform mat4 fw_ModelViewProjInverse; \n\
@@ -1860,16 +1893,34 @@ uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
 #endif //TEX3D \n\
 #ifdef SEGMENT \n\
-uniform int fw_enableIDs[]; \n\
 uniform int fw_nIDs; \n\
+uniform int fw_enableIDs[10]; \n\
+uniform int fw_surfaceStyles[2]; \n\
+uniform int fw_nStyles; \n\
 vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3); \n\
-bool inEnabledSegment(vec3 texcoords){ \n\
+bool inEnabledSegment(in vec3 texcoords, inout int jstyle){ \n\
+	bool inside = true; \n\
+	jstyle = 1; //DEFAULT \n\
 	vec4 segel = texture3Demu(fw_Texture_unit1,texcoords); \n\
 	//convert from GL_FLOAT 0-1 to int 0-255 \n\
 	//Q. is there a way to do int images in GLES2? \n\
 	int ID = int(floor(segel.a * 255.0 + .1)); \n\
-	//specs: The indices of this array corresponds to the segment identifier. \n\
-	return fw_enableIDs[ID] == 0 ? false : true; \n\
+	debug_color = HeatMapColor(float(ID),0.0,255.0); \n\
+	debug_color.a = .2; \n\
+	if(ID < fw_nIDs){ \n\
+		//specs: The indices of this array corresponds to the segment identifier. \n\
+		inside = fw_enableIDs[ID] == 0 ? false : true; \n\
+	} \n\
+	if(inside){ \n\
+		if(ID < 100) jstyle = 1; \n\
+		if(ID > 99){ \n\
+			int kstyle = fw_nStyles-1; \n\
+			kstyle = ID < fw_nStyles ? ID : kstyle; \n\
+			jstyle = fw_surfaceStyles[kstyle]; \n\
+			jstyle = jstyle == 1 ? 0 : jstyle; \n\
+		} \n\
+	} \n\
+	return inside; \n\
 } \n\
 #endif //SEGMENT \n\
 #ifdef ISO \n\
@@ -1905,38 +1956,52 @@ bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1) \n\
 /* PLUG-DECLARATIONS */ \n\
  \n\
 vec3 fw_TexCoord[1]; \n\
+#ifdef CLIP \n\
+#define FW_MAXCLIPPLANES 4 \n\
+uniform int fw_nclipplanes; \n\
+uniform vec4 fw_clipplanes[FW_MAXCLIPPLANES]; \n\
+bool clip (in vec3 vertex_object){ \n\
+  bool iclip = false; \n\
+  for ( int i=0; i<fw_nclipplanes; i++ ) { \n\
+    if( dot( fw_clipplanes[i], vec4(vertex_object,1.0)) < 0.0) \n\
+		iclip = true; \n\
+  } \n\
+  return iclip; \n\
+} \n\
+#endif //CLIP \n\
+vec3 vertex_eye; \n\
+vec3 normal_eye; \n\
 void main(void) \n\
 { \n\
+	debug_color = vec4(0.0); \n\
 	float maxDist = length(fw_dimensions); //1.414214; //sqrt(2.0); \n\
-	float densityFactor = 5.0; \n\
-	float Absorption = 1.0; \n\
 	int numSamples = 128; \n\
 	float fnumSamples = float(numSamples); \n\
 	float stepSize = maxDist/fnumSamples; \n\
+	float densityFactor = .88; // 1.0=normal H3D, .5 see deeper  \n\
 	 \n\
     vec4 fragment_color; \n\
 	vec4 raysum; \n\
     vec3 rayDirection; \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
+	rayDirection.z = 0.0; \n\
 	vec3 rayOrigin; // = fw_RayOrigin; \n\
 	//the equivalent of gluUnproject \n\
 	//by unprojecting 2 points on ray here, this should also work with ortho viewpoint \n\
 	vec4 ray4 = vec4(rayDirection,1.0); \n\
 	vec4 org4 = ray4; \n\
-	ray4.z = 1.0; \n\
-	org4.z = 0.0; \n\
-	// out = modelviewProjectionInverse x in \n\
+	//if I back up the ray origin by -1.0 the front plane clipping works properly \n\
+	ray4.z = 0.0; //1.0; \n\
+	org4.z = -1.0; //0.0; \n\
 	ray4 = fw_ModelViewProjInverse * ray4; \n\
 	org4 = fw_ModelViewProjInverse * org4; \n\
 	ray4 /= ray4.w; \n\
 	org4 /= org4.w; \n\
-	rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
+	rayDirection = normalize(ray4.xyz - org4.xyz); \n\
 	rayOrigin = org4.xyz; \n\
 	\n\
-    Ray eye = Ray( rayOrigin, normalize(rayDirection) ); \n\
-    //AABB aabb = AABB(vec3(-1.0), vec3(+1.0)); \n\
-	//AABB aabb = AABB(vec3(fw_dimensions*-.5),vec3(fw_dimensions*.5)); \n\
+    Ray eye = Ray( rayOrigin, rayDirection); \n\
 	vec3 half_dimensions = fw_dimensions * .5; \n\
 	vec3 minus_half_dimensions = half_dimensions * -1.0; \n\
 	AABB aabb = AABB(minus_half_dimensions,half_dimensions); \n\
@@ -1944,277 +2009,381 @@ void main(void) \n\
     float tnear, tfar; \n\
     IntersectBox(eye, aabb, tnear, tfar); \n\
     if (tnear < 0.0) tnear = 0.0; \n\
-	\n\
     vec3 rayStart = eye.Origin + eye.Dir * tnear; \n\
     vec3 rayStop = eye.Origin + eye.Dir * tfar; \n\
-    // Transform from object space to texture coordinate space: \n\
-    //rayStart = 0.5 * (rayStart + 1.0); \n\
-    //rayStop = 0.5 * (rayStop + 1.0); \n\
-	\n\
     // Perform the ray marching: \n\
     vec3 pos = rayStart; \n\
     vec3 step = normalize(rayStop-rayStart) * stepSize; \n\
-    float travel = distance(rayStop, rayStart); \n\
+    float totaltravel = distance(rayStop, rayStart); \n\
+	float travel = totaltravel; \n\
     float T = 1.0; \n\
     vec3 Lo = vec3(0.0); \n\
-	vec3 normal_eye = rayDirection.xyz; \n\
-	fragment_color.a = 1.0; \n\
-	//if(travel <= 0.0) fragment_color.rgb = vec3(.5,.5,.5); \n\
-	//if(numSamples <= 0) fragment_color.rgb = vec3(.1,.5,.1); \n\
-	//numSamples = int(floor((tfar - tnear)/stepSize)); \n\
-	//numSamples = 0; \n\
+	normal_eye = rayDirection; \n\
 	vec3 pos2 = pos; \n\
     // Transform from object space to texture coordinate space: \n\
 	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
-	//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 	pos2 = clamp(pos2,0.001,.999); \n\
-	fragment_color = vec4(1.0,0.0,1.0,0.0); \n\
 	raysum = vec4(0.0); \n\
 	float depth = 0.0; \n\
 	float lastdensity; \n\
 	float lastdensity_iso; \n\
 	\n\
     for (int i=0; i < numSamples; ++i) { \n\
+		//raysum = HeatMapColor(travel,0.0,2.0); \n\
+		//break; \n\
        // ...lighting and absorption stuff here... \n\
-		fragment_color = vec4(1.0,1.0,1.0,1.0); \n\
 		pos2 = pos; \n\
-		vec3 vertex_eye = pos2; \n\
+		vertex_eye = pos2; \n\
 	    // Transform from object space to texture coordinate space: \n\
 		pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
 		//pos2.z = 1.0 - pos2.z; //RHS to LHS \n\
 		pos2 = clamp(pos2,0.001,.999); \n\
 		vec3 texcoord3 = pos2; \n\
-		/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
-		#ifdef SEGMENT \n\
-		if(inEnabledSegment(texcoord3)){ \n\
-		#endif //SEGMENT \n\
-        //float density = texture3D(Density, pos).x * densityFactor; \n\
-		float density = fragment_color.a * densityFactor; ; \n\
-		vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
-		\n\
-		#ifdef ISO \n\
-		if(i==0){ \n\
-			lastdensity = density; \n\
-			lastdensity_iso = 0.0; \n\
-		} \n\
-		int MODE = fw_nVals == 1 ? 1 : 3; \n\
-		MODE = fw_stepSize != 0.0 && MODE == 1 ? 2 : 1; \n\
-		#ifdef ISO_MODE3 \n\
-		if(MODE == 3){ \n\
-			for(int i=0;i<fw_nVals;i++){ \n\
-				float iso = fw_surfaceVals[i]; \n\
-				if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
-					int jstyle = min(i,fw_nStyles-1); \n\
-					jstyle = fw_surfaceStyles[jstyle]; \n\
-					if(jstyle == 1){ \n\
-						/* PLUG: raysum_apply_DEFAULT (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 2) { \n\
-						/* PLUG: raysum_apply_OPACITY (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 3) { \n\
-						/* PLUG: raysum_apply_BLENDED (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 4) { \n\
-						/* PLUG: raysum_apply_BOUNDARY (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 5) { \n\
-						/* PLUG: raysum_apply_CARTOON (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 6) { \n\
-						/* PLUG: raysum_apply_DEFAULT (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 7) { \n\
-						/* PLUG: raysum_apply_EDGE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 8) { \n\
-						/* PLUG: raysum_apply_PROJECTION (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 9) { \n\
-						/* PLUG: raysum_apply_SHADED (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 10) { \n\
-						/* PLUG: raysum_apply_SILHOUETTE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-					} else if(jstyle == 11) { \n\
-						/* PLUG: raysum_apply_TONE (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+		bool iclip = false; \n\
+		#ifdef CLIP \n\
+		iclip = clip(vertex_eye); //clip(totaltravel - travel); \n\
+		#endif //CLIP \n\
+		if(!iclip) { \n\
+			fragment_color = vec4(1.0,0.0,1.0,1.0); //do I need a default? seems not \n\
+			/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
+			#ifdef SEGMENT \n\
+			int jstyle = 1; \n\
+			if(inEnabledSegment(texcoord3,jstyle)){ \n\
+			#endif //SEGMENT \n\
+			//assuming we had a scalar input image and put L into .a, \n\
+			// and computed gradient and put in .rgb : \n\
+			float density = fragment_color.a; //recover the scalar value \n\
+			vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
+			vec4 voxel = vec4(density,density,density,density); //this is where the black visual voxels come from\n\
+			\n\
+			#ifdef ISO \n\
+			if(i==0){ \n\
+				lastdensity = density; \n\
+				lastdensity_iso = 0.0; \n\
+			} \n\
+			int MODE = fw_nVals == 1 ? 1 : 3; \n\
+			MODE = fw_stepSize != 0.0 && MODE == 1 ? 2 : 1; \n\
+			#ifdef ISO_MODE3 \n\
+			if(MODE == 3){ \n\
+				for(int i=0;i<fw_nVals;i++){ \n\
+					float iso = fw_surfaceVals[i]; \n\
+					if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+						int jstyle = min(i,fw_nStyles-1); \n\
+						jstyle = fw_surfaceStyles[jstyle]; \n\
+						if(jstyle == 1){ \n\
+							/* PLUG: voxel_apply_DEFAULT (voxel, gradient) */ \n\
+						} else if(jstyle == 2) { \n\
+							/* PLUG: voxel_apply_OPACITY (voxel, gradient) */ \n\
+						} else if(jstyle == 3) { \n\
+							/* PLUG: voxel_apply_BLENDED (voxel, gradient) */ \n\
+						} else if(jstyle == 4) { \n\
+							/* PLUG: voxel_apply_BOUNDARY (voxel, gradient) */ \n\
+						} else if(jstyle == 5) { \n\
+							/* PLUG: voxel_apply_CARTOON (voxel, gradient) */ \n\
+						} else if(jstyle == 6) { \n\
+							/* PLUG: voxel_apply_DEFAULT (voxel, gradient) */ \n\
+						} else if(jstyle == 7) { \n\
+							/* PLUG: voxel_apply_EDGE (voxel, gradient) */ \n\
+						} else if(jstyle == 8) { \n\
+							/* PLUG: voxel_apply_PROJECTION (voxel, gradient) */ \n\
+						} else if(jstyle == 9) { \n\
+							/* PLUG: voxel_apply_SHADED (voxel, gradient) */ \n\
+						} else if(jstyle == 10) { \n\
+							/* PLUG: voxel_apply_SILHOUETTE (voxel, gradient) */ \n\
+						} else if(jstyle == 11) { \n\
+							/* PLUG: voxel_apply_TONE (voxel, gradient) */ \n\
+						} \n\
 					} \n\
 				} \n\
+				lastdensity = density; \n\
 			} \n\
-			lastdensity = density; \n\
-		} \n\
-		#else //ISO_MODE3 \n\
-		if(MODE == 1){ \n\
-			float iso = fw_surfaceVals[0]; \n\
-			if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
-				/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+			#else //ISO_MODE3 \n\
+			if(MODE == 1){ \n\
+				float iso = fw_surfaceVals[0]; \n\
+				if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+					/* PLUG: voxel_apply (voxel, gradient) */ \n\
+				} \n\
+				lastdensity = density; \n\
+			} else if(MODE == 2){ \n\
+				float iso = fw_surfaceVals[0]; \n\
+				float density_iso = density / fw_stepSize; \n\
+				if( sign( density_iso - iso) != sign( lastdensity_iso - iso) && length(gradient) > fw_tolerance ){ \n\
+					/* PLUG: voxel_apply (voxel, gradient) */ \n\
+				} \n\
+				lastdensity = density; \n\
+				lastdensity_iso = density_iso; \n\
+			}  \n\
+			#endif //ISO_MODE3 \n\
+			#elif SEGMENT \n\
+			//debug_color = HeatMapColor(float(jstyle),1.0,12.0); \n\
+			//debug_color.a = .2; \n\
+			if(jstyle == 1){ \n\
+				/* PLUG: voxel_apply_DEFAULT (voxel, gradient) */ \n\
+			} else if(jstyle == 2) { \n\
+				/* PLUG: voxel_apply_OPACITY (voxel, gradient) */ \n\
+			} else if(jstyle == 3) { \n\
+				/* PLUG: voxel_apply_BLENDED (voxel, gradient) */ \n\
+			} else if(jstyle == 4) { \n\
+				/* PLUG: voxel_apply_BOUNDARY (voxel, gradient) */ \n\
+			} else if(jstyle == 5) { \n\
+				/* PLUG: voxel_apply_CARTOON (voxel, gradient) */ \n\
+			} else if(jstyle == 6) { \n\
+				/* PLUG: voxel_apply_DEFAULT (voxel, gradient) */ \n\
+			} else if(jstyle == 7) { \n\
+				/* PLUG: voxel_apply_EDGE (voxel, gradient) */ \n\
+			} else if(jstyle == 8) { \n\
+				/* PLUG: voxel_apply_PROJECTION (voxel, gradient) */ \n\
+			} else if(jstyle == 9) { \n\
+				/* PLUG: voxel_apply_SHADED (voxel, gradient) */ \n\
+			} else if(jstyle == 10) { \n\
+				/* PLUG: voxel_apply_SILHOUETTE (voxel, gradient) */ \n\
+			} else if(jstyle == 11) { \n\
+				/* PLUG: voxel_apply_TONE (voxel, gradient) */ \n\
 			} \n\
-			lastdensity = density; \n\
-		} else if(MODE == 2){ \n\
-			float iso = fw_surfaceVals[0]; \n\
-			float density_iso = density / fw_stepSize; \n\
-			if( sign( density_iso - iso) != sign( lastdensity_iso - iso) && length(gradient) > fw_tolerance ){ \n\
-				/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
+			#else //ISO SEGMENT \n\
+			//non-iso rendering styles \n\
+			//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) \n\
+			/* PLUG: voxel_apply (voxel, gradient) */ \n\
+			#endif //ISO \n\
+			//density *= densityFactor; \n\
+			//density = voxel.a * density; //* densityFactor; \n\
+			density = voxel.a; \n\
+			//debug_color = HeatMapColor(densityFactor,0.134,.135); \n\
+			bool modulate_transparency = false; \n\
+			if(modulate_transparency) { \n\
+				//modulate T, lighter \n\
+				T *= 1.0-density; \n\
+				raysum.a = 1.0 - T; \n\
+			} else { \n\
+				//sum opacity, closer to H3D \n\
+				raysum.a += density; \n\
 			} \n\
-			lastdensity = density; \n\
-			lastdensity_iso = density_iso; \n\
-		}  \n\
-		#endif //ISO_MODE3 \n\
-		#else //ISO \n\
-		//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) \n\
-		/* PLUG: raysum_apply (raysum, density, gradient, depth, vertex_eye, normal_eye) */ \n\
-		#endif //ISO \n\
-        T *= 1.0-density*stepSize*Absorption; \n\
-		raysum.a = 1.0 - T; \n\
-		//raysum.rgb = raysum.rgb + fragment_color.rgb*density; \n\
-        if (T <= 0.01) { \n\
-            break; \n\
-		} \n\
-		#ifdef SEGMENT \n\
-		} //if inEnabledSegment \n\
-		#endif //SEGMENT \n\
+			raysum.rgb += voxel.rgb * density; \n\
+			if(raysum.a > .99) { \n\
+				break; \n\
+			} \n\
+			#ifdef SEGMENT \n\
+			} //if inEnabledSegment \n\
+			#endif //SEGMENT \n\
+		} //iclip \n\
 		travel -= stepSize; \n\
 		depth += stepSize; \n\
 		if(travel <= 0.0) break; \n\
 		pos += step; \n\
 		\n\
     }  \n\
-	gl_FragColor = raysum; \n\
+	//void PLUG_ray_apply (inout vec4 raysum) \n\
+	/* PLUG: ray_apply (raysum) */ \n\
+	if(true) gl_FragColor = raysum; \n\
+	else gl_FragColor = debug_color; \n\
 } \n\
 ";
 
 
-//void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
 
-static const GLchar *plug_raysum_DEFAULT =	"\
-void raysum_apply_DEFAULT (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum.rgb = vec3(1.0,0.0,1.0); //*density; \n\
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
+// opacity with intensity == intensity lookup/transferFunction
+static const GLchar *plug_voxel_DEFAULT =	"\
+void voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
+	float alpha = voxel.a; \n\
+	voxel.a = voxel.r; \n\
+	voxel.rgb = vec3(alpha); \n\
 } \n\
-void PLUG_raysum_apply_DEFAULT (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_DEFAULT(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_DEFAULT(voxel,gradient); \n\
 } \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_DEFAULT(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_DEFAULT(voxel,gradient); \n\
 } \n\
 ";
 
-static const GLchar *plug_raysum_OPACITY =	"\
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
+static const GLchar *plug_voxel_OPACITY =	"\
 uniform int fw_opacTexture; \n\
 //uniform sampler2D fw_Texture_unit3; \n\
-void raysum_apply_OPACITY (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	if(fw_opacTexture){ \n\
-		vec2 texcoord = vec2(density,0); \n\
+void voxel_apply_OPACITY (inout vec4 voxel, inout vec3 gradient) { \n\
+	if(fw_opacTexture == 1){ \n\
+		vec4 lookup_color; \n\
+		float lum = voxel.r; \n\
+		vec2 texcoord = vec2(lum,0.0); \n\
 		//this is too simple for the lookups in the specs \n\
 		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#t-transferFunctionTextureCoordinateMapping \n\
-		raysum.rgb = texture2D(fw_Texture_unit3,texcoord); \n\
-		raysum.a = 1.0; \n\
+		lookup_color = texture2D(fw_Texture_unit3,texcoord); \n\
+		voxel.rgb = lookup_color.rgb; \n\
+		voxel.a = lum; \n\
 	}else{ \n\
-		raysum.rgb = vec3(density); \n\
-		raysum.a = 1.0; \n\
+		//like default \n\
+		float alpha = voxel.a; \n\
+		voxel.a = voxel.r; \n\
+		voxel.rgb = vec3(alpha); \n\
 	} \n\
 } \n\
-void PLUG_raysum_apply_OPACITY (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_OPACITY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply_OPACITY (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_OPACITY(voxel, gradient); \n\
 } \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_OPACITY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
-} \n\
-";
-static const GLchar *plug_raysum_BLENDED =	"\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_OPACITY(voxel, gradient); \n\
 } \n\
 ";
-static const GLchar *plug_raysum_BOUNDARY =	"\n\
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
+static const GLchar *plug_voxel_BLENDED =	"\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+} \n\
+";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BoundaryEnhancementVolumeStyle
+static const GLchar *plug_voxel_BOUNDARY =	"\n\
 uniform float fw_boundaryOpacity; \n\
 uniform float fw_retainedOpacity; \n\
 uniform float fw_opacityFactor; \n\
-void raysum_apply_BOUNDARY (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+void voxel_apply_BOUNDARY (inout vec4 voxel, inout vec3 gradient) { \n\
 	float magnitude = length(gradient); \n\
-	float ndotv = abs(dot(normal_eye,ng)); \n\
-	raysum.a = density * (fw_retainedOpacity + fw_boundaryOpacity*pow(magnitude,fw_opacityFactor) ); \n\
+	float factor = (fw_retainedOpacity + fw_boundaryOpacity*pow(magnitude,fw_opacityFactor) ); \n\
+	voxel.a = voxel.a * factor; \n\
+	//debug_color = HeatMapColor(factor,0.0,1.0); \n\
 } \n\
-void PLUG_raysum_apply_BOUNDARY (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_BOUNDARY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply_BOUNDARY (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_BOUNDARY(voxel, gradient); \n\
 } \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_BOUNDARY(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_BOUNDARY(voxel, gradient); \n\
 } \n\
 ";
 
-static const GLchar *plug_raysum_CARTOON =	"\n\
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#CartoonVolumeStyle
+static const GLchar *plug_voxel_CARTOON =	"\n\
 uniform int fw_colorSteps; \n\
 uniform vec4 fw_orthoColor; \n\
 uniform vec4 fw_paraColor; \n\
-void raysum_apply_CARTOON (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	vec3 ng = normalize(gradient); \n\
-	float ndotv = abs(dot(normal_eye,ng)); \n\
-	ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
-	raysum = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
+void voxel_apply_CARTOON (inout vec4 voxel, inout vec3 gradient) { \n\
+	float len = length(gradient); \n\
+	if(len > 0.0) { \n\
+		vec3 ng = normalize(gradient); \n\
+		float ndotv = abs(dot(normal_eye,ng)); \n\
+		ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
+		vec4 color = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
+		voxel.rgb = color.rgb*voxel.a; \n\
+	} \n\
 } \n\
-void PLUG_raysum_apply_CARTOON (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_CARTOON(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply_CARTOON (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_CARTOON(voxel, gradient); \n\
 } \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_CARTOON(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_CARTOON(voxel, gradient); \n\
 } \n\
 ";
-static const GLchar *plug_raysum_COMPOSED =	"\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ComposedVolumeStyle
+static const GLchar *plug_voxel_COMPOSED =	"\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
 } \n\
 ";
-static const GLchar *plug_raysum_EDGE =	"\
-uniform float fw_gradientThreshold; \n\
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#EdgeEnhancementVolumeStyle
+static const GLchar *plug_voxel_EDGE =	"\
+uniform float fw_cosGradientThreshold; \n\
 uniform vec4 fw_edgeColor; \n\
-void raysum_apply_EDGE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	vec3 ng = normalize(gradient); \n\
-	float ndotv = abs(dot(normal_eye,ng)); //vec4(ng,density);  \n\
-	vec4 drawcolor = vec4(0.0,0.0,0.0,density); \n\
-	vec4 texel; \n\
-	ndotv = ndotv > cos(fw_gradientThreshold) ? 1.0 : ndotv; \n\
-	texel = mix(drawcolor,fw_edgeColor,1.0 -ndotv); \n\
-	raysum.rgb += texel.rgb * texel.a; \n\
-	density += texel.a; \n\
+void voxel_apply_EDGE (inout vec4 voxel, inout vec3 gradient) { \n\
+	float len = length(gradient); \n\
+	if(len > 0.01) { \n\
+		vec3 ng = normalize(gradient); \n\
+		float ndotv = abs(dot(normal_eye,ng));  \n\
+		if( ndotv < fw_cosGradientThreshold ) { \n\
+			voxel = mix(voxel,fw_edgeColor,1.0 -ndotv); \n\
+		} \n\
+	} \n\
 } \n\
-void PLUG_raysum_apply_EDGE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_EDGE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply_EDGE (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_EDGE(voxel, gradient); \n\
 } \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_EDGE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_EDGE(voxel, gradient); \n\
 } \n\
 ";
-static const GLchar *plug_raysum_PROJECTION =	"\n\
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ProjectionVolumeStyle
+static const GLchar *plug_voxel_PROJECTION =	"\n\
 uniform float fw_intensityThreshold; \n\
 uniform int fw_projType; \n\
 float MAXPROJ = 0.0; \n\
 float MINPROJ = 1.0; \n\
 float AVEPROJ = 0.0; \n\
 float LMIP = 0.0; \n\
+vec4 RGBAPROJ; \n\
 int PROJCOUNT = 0; \n\
-void raysum_apply_PROJECTION (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
+void voxel_apply_PROJECTION (inout vec4 voxel, inout vec3 gradient) { \n\
 	PROJCOUNT++; \n\
-	float value = 0.0; \n\
+	float cval = length(voxel.rgb); \n\
 	if(fw_projType == 1){ \n\
 		//MIN \n\
-		MINPROJ = min(MINPROJ,density); \n\
-		value = MINPROJ; \n\
+		if(cval < MINPROJ){ \n\
+			MINPROJ = cval; \n\
+			RGBAPROJ = voxel; \n\
+		} \n\
 	}else if(fw_projType == 2){ \n\
 		//MAX \n\
-		MAXPROJ = max(MAXPROJ,density); \n\
 		if(fw_intensityThreshold > 0.0){ \n\
 			//LMIP \n\
-			if(LMIP == 0.0) \n\
-				LMIP = density; \n\
-			value = LMIP; \n\
+			if(LMIP == 0.0) { \n\
+				LMIP = cval; \n\
+				RGBAPROJ = voxel; \n\
+			} \n\
 		} else { \n\
 			//MIP \n\
-			MAXPROJ = max(MAXPROJ,density); \n\
-			value = MAXPROJ; \n\
+			if(cval > MAXPROJ){ \n\
+				MAXPROJ = cval; \n\
+				RGBAPROJ = voxel; \n\
+			} \n\
 		} \n\
 	}else if(fw_projType==3){ \n\
 		//AVERAGE \n\
-		AVEPROJ += density; \n\
-		value = AVEPROJ / float(PROJCOUNT); \n\
+		AVEPROJ += cval; \n\
+		RGBAPROJ += voxel; \n\
 	} \n\
-	raysum.rgb += vec3(value)*density; \n\
 } \n\
-void PLUG_raysum_apply_PROJECTION (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_PROJECTION(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply_PROJECTION (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_PROJECTION(voxel, gradient); \n\
 } \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_PROJECTION(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_PROJECTION(voxel, gradient); \n\
+} \n\
+void PLUG_ray_apply (inout vec4 raysum) { \n\
+	float value = 0.0; \n\
+	vec4 color = vec4(1.0); \n\
+	if(fw_projType == 1){ \n\
+		//MIN \n\
+		value = MINPROJ; \n\
+		color = RGBAPROJ; \n\
+	}else if(fw_projType == 2){ \n\
+		//MAX \n\
+		if(fw_intensityThreshold > 0.0){ \n\
+			//LMIP \n\
+			value = LMIP; \n\
+			color = RGBAPROJ; \n\
+		} else { \n\
+			//MIP \n\
+			value = MAXPROJ; \n\
+			color = RGBAPROJ; \n\
+		} \n\
+	}else if(fw_projType==3){ \n\
+		//AVERAGE \n\
+		value = AVEPROJ / float(PROJCOUNT); \n\
+		color = RGBAPROJ / float(PROJCOUNT); \n\
+	} \n\
+	//raysum.rgb = color.rgb * color.a; \n\
+	//raysum.a = color.a; \n\
+	raysum.rgb = vec3(value,value,value); \n\
+	raysum.a = 1.0 - value; \n\
+	//raysum.a = value;\n\
+	//raysum.a = color.a; \n\
+	//raysum = color; \n\
 } \n\
 ";
-static const GLchar *plug_raysum_SHADED =	"\
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ShadedVolumeStyle
+static const GLchar *plug_voxel_SHADED =	"\
 #ifdef LITE \n\
 #define MAX_LIGHTS 8 \n\
 uniform int lightcount; \n\
@@ -2271,57 +2440,86 @@ varying vec3 castle_ColorES; //emissive shininess term \n\
 uniform int fw_phase; \n\
 uniform int fw_lighting; \n\
 uniform int fw_shadows; \n\
-void raysum_apply_SHADED (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-  #ifdef LIT \n\
-  vec3 castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
-  raysum.rgb = fw_FrontMaterial.diffuse.rgb; \n\
-  #else //LIT \n\
-  raysum.rgb = vec3(0,0,0.0,0.0); \n\
-  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
-  #endif //LIT	\n\
-  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
-  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
-  /* PLUG: add_light_contribution2 (raysum, castle_ColorES, vertex_eye4, normal_eye, fw_FrontMaterial.shininess) */ \n\
+void voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
+  float len = length(gradient); \n\
+  if(len > 0.0){ \n\
+	  vec3 ng = normalize(gradient); \n\
+	  vec4 color = vec4(1.0); \n\
+	  #ifdef LIT \n\
+	  vec3 castle_ColorES = fw_FrontMaterial.specular.rgb; \n\
+	  color.rgb = fw_FrontMaterial.diffuse.rgb; \n\
+	  #else //LIT \n\
+	  color.rgb = vec3(0,0,0.0,0.0); \n\
+	  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
+	  #endif //LIT	\n\
+	  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
+	  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
+	  /* PLUG: add_light_contribution2 (color, castle_ColorES, vertex_eye4, ng, fw_FrontMaterial.shininess) */ \n\
+	 // voxel.rgb = color.rgb; \n\
+	  voxel.rgb = mix(color.rgb,castle_ColorES,dot(ng,normal_eye)); \n\
+  } \n\
 } \n\
-void PLUG_raysum_apply_SHADED (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_SHADED(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_SHADED(voxel, gradient); \n\
 } \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_SHADED(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
-} \n\
-";
-static const GLchar *plug_raysum_SILHOUETTE =	"\n\
-uniform float fw_BoundaryOpacity; \n\
-uniform float fw_RetainedOpacity; \n\
-uniform float fw_Sharpness; \n\
-void raysum_apply_SILHOUETTE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	vec3 ng = normalize(gradient); \n\
-	float ndotv = abs(dot(ng,normal_eye)); \n\
-	raysum.a = raysum.a * (fw_RetainedOpacity + fw_BoundaryOpacity*pow(1.0 - ndotv,fw_Sharpness)); \n\
-} \n\
-void PLUG_raysum_apply_SILHOUETTE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_SILHOUETTE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
-} \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_SILHOUETTE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
-} \n\
-";
-static const GLchar *plug_raysum_TONE =	"\
-uniform vec4 fw_coolColor; \n\
-uniform vec4 fw_warmColor; \n\
-void raysum_apply_TONE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	vec3 ng = normalize(gradient); \n\
-	float cc = 1.0 + dot(normal_eye,ng); \n\
-	raysum = mix(fw_coolColor,fw_warmColor,cc); \n\
-} \n\
-void PLUG_raysum_apply_TONE (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_TONE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
-} \n\
-void PLUG_raysum_apply (inout vec4 raysum, inout float density, inout vec3 gradient, inout float depth, in vec3 vertex_eye, in vec3 normal_eye) { \n\
-	raysum_apply_TONE(raysum,density,gradient,depth,vertex_eye,normal_eye); \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_SHADED(voxel, gradient); \n\
 } \n\
 ";
 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#SilhouetteEnhancementVolumeStyle
+static const GLchar *plug_voxel_SILHOUETTE =	"\n\
+uniform float fw_BoundaryOpacity; \n\
+uniform float fw_RetainedOpacity; \n\
+uniform float fw_Sharpness; \n\
+void voxel_apply_SILHOUETTE (inout vec4 voxel, inout vec3 gradient) { \n\
+	float len = length(gradient); \n\
+	if(len > 0.01) { \n\
+		vec3 ng = normalize(gradient); \n\
+		float ndotv = abs(dot(ng,normal_eye)); \n\
+		float factor = (fw_RetainedOpacity + fw_BoundaryOpacity*pow(1.0 - ndotv,fw_Sharpness)); \n\
+		//float factor = (fw_RetainedOpacity + pow(fw_BoundaryOpacity*(1.0 - ndotv),fw_Sharpness)); \n\
+		//debug_color = HeatMapColor(factor,0.0,1.0); \n\
+		voxel.a = voxel.a * factor; \n\
+	} \n\
+} \n\
+void PLUG_voxel_apply_SILHOUETTE (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_SILHOUETTE(voxel, gradient); \n\
+} \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_SILHOUETTE(voxel, gradient); \n\
+} \n\
+";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#ToneMappedVolumeStyle
+static const GLchar *plug_voxel_TONE =	"\
+uniform vec4 fw_coolColor; \n\
+uniform vec4 fw_warmColor; \n\
+void voxel_apply_TONE (inout vec4 voxel, inout vec3 gradient) { \n\
+	float len = length(gradient); \n\
+	if(len > 0.01) { \n\
+		vec3 color; \n\
+		vec3 ng = normalize(gradient); \n\
+		//vec3 L = normalize(vec3(-.707,-.707,.707)); \n\
+		float cc = (1.0 + dot(normal_eye,ng))*.5; \n\
+		//float cc = (1.0 + dot(L,ng))*.5; \n\
+		//debug_color = HeatMapColor(cc,0.0,1.0); \n\
+		color = mix(fw_coolColor.rgb,fw_warmColor.rgb,cc); \n\
+		voxel = vec4(color,voxel.a); \n\
+	} else { \n\
+		voxel.a = 0.0; \n\
+		//debug_color = vec4(0.0); \n\
+	} \n\
+} \n\
+void PLUG_voxel_apply_TONE (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_TONE(voxel, gradient); \n\
+} \n\
+void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+	voxel_apply_TONE(voxel, gradient); \n\
+} \n\
+";
+
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#BlendedVolumeStyle
 // blended (BlendedVolumeStyle) works (was interpreted and implemented by dug9, Oct 2016)
 //  by rendering 2 volumedatas to 2 fbo textures, then running
 // this shader to blend the 2 fbo textures and spit out fragments just
@@ -2474,10 +2672,8 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		AddDefine(SHADERPART_FRAGMENT,"SEGMENT",CompleteCode); 
 	}
 	if(DESIRE(whichOne.base,CLIPPLANE_SHADER)){
-		AddDefine(SHADERPART_VERTEX,"CLIP",CompleteCode);	
-		Plug(SHADERPART_VERTEX,vertex_plug_clip_apply,CompleteCode,&unique_int);	
 		AddDefine(SHADERPART_FRAGMENT,"CLIP",CompleteCode);	
-		Plug(SHADERPART_FRAGMENT,frag_plug_clip_apply,CompleteCode,&unique_int);	
+		// we use a special function in frag for clip for volume
 	}
 
 	//unsigned int 32 bits - 4 for basic, leaves 28/4 = max 7 styles
@@ -2498,39 +2694,39 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		switch(volflag[k]){
 		case SHADERFLAGS_VOLUME_STYLE_DEFAULT:
 			AddDefine(SHADERPART_FRAGMENT,"DEFAULT",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_DEFAULT,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_DEFAULT,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_OPACITY:
 			AddDefine(SHADERPART_FRAGMENT,"OPACITY",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_OPACITY,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_OPACITY,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_BLENDED:
 			AddDefine(SHADERPART_FRAGMENT,"BLENDED",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_BLENDED,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_BLENDED,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_BOUNDARY:
 			AddDefine(SHADERPART_FRAGMENT,"BOUNDARY",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_BOUNDARY,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_BOUNDARY,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_CARTOON:
 			AddDefine(SHADERPART_FRAGMENT,"CARTOON",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_CARTOON,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_CARTOON,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_COMPOSED:
 			AddDefine(SHADERPART_FRAGMENT,"COMPOSED",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_COMPOSED,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_COMPOSED,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_EDGE:
 			AddDefine(SHADERPART_FRAGMENT,"EDGE",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_EDGE,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_EDGE,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_PROJECTION:
 			AddDefine(SHADERPART_FRAGMENT,"PROJECTION",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_PROJECTION,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_PROJECTION,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_SHADED:
 			AddDefine(SHADERPART_FRAGMENT,"SHADED",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_SHADED,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_SHADED,CompleteCode,&unique_int);
 			//if you want a plug within a plug, then if you include the higher level
 			// plug first, then the lower level plug should find its tartget in the CompleteCode
 			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode); 
@@ -2539,11 +2735,11 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_SILHOUETTE:
 			AddDefine(SHADERPART_FRAGMENT,"SILHOUETTE",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_SILHOUETTE,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_SILHOUETTE,CompleteCode,&unique_int);
 			break;
 		case SHADERFLAGS_VOLUME_STYLE_TONE:
 			AddDefine(SHADERPART_FRAGMENT,"TONE",CompleteCode); 
-			Plug(SHADERPART_FRAGMENT,plug_raysum_TONE,CompleteCode,&unique_int);
+			Plug(SHADERPART_FRAGMENT,plug_voxel_TONE,CompleteCode,&unique_int);
 			break;
 		default:
 			//if 0, just skip
