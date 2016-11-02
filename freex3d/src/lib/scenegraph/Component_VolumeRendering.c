@@ -531,12 +531,15 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					itype = GET_UNIFORM(myProg,"fw_projType");
 					if(style->_type == 0){
 						ctype = style->type->strptr;
-						if(!strcmp(ctype,"MAX")) ktype = 1;
-						else if(!strcmp(ctype,"MIN")) ktype = 2;
-						else if(!strcmp(ctype,"AVERAGE")) ktype = 3;
+						if(!strcmp(ctype,"MIN")) 
+							ktype = 1;
+						else if(!strcmp(ctype,"MAX")) 
+							ktype = 2;
+						else if(!strcmp(ctype,"AVERAGE")) 
+							ktype = 3;
 						style->_type = ktype;
 					}
-					glUniform1f(itype,style->_type);
+					glUniform1i(itype,style->_type);
 				}
 				break;
 			case NODE_ShadedVolumeStyle:

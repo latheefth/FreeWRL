@@ -1960,7 +1960,7 @@ void main(void) \n\
 	int numSamples = 128; \n\
 	float fnumSamples = float(numSamples); \n\
 	float stepSize = maxDist/fnumSamples; \n\
-	float densityFactor = 1.0/fnumSamples; \n\
+	float densityFactor = .88; // 1.0=normal H3D, .5 see deeper  \n\
 	 \n\
     vec4 fragment_color; \n\
 	vec4 raysum; \n\
@@ -2026,15 +2026,16 @@ void main(void) \n\
 		iclip = clip(vertex_eye); //clip(totaltravel - travel); \n\
 		#endif //CLIP \n\
 		if(!iclip) { \n\
-			fragment_color = vec4(1.0,1.0,1.0,1.0); //do I need a default? \n\
+			fragment_color = vec4(1.0,0.0,1.0,1.0); //do I need a default? seems not \n\
 			/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
 			#ifdef SEGMENT \n\
 			if(inEnabledSegment(texcoord3)){ \n\
 			#endif //SEGMENT \n\
-			//assuming we had a scalar input image and put L into .a, and computed gradient and put in .rgb \n\
-			float density = fragment_color.a; \n\
+			//assuming we had a scalar input image and put L into .a, \n\
+			// and computed gradient and put in .rgb : \n\
+			float density = fragment_color.a; //recover the scalar value \n\
 			vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
-			vec4 voxel = vec4(density,density,density,1.0); \n\
+			vec4 voxel = vec4(density,density,density,1.0); //this is where the black visual voxels come from\n\
 			\n\
 			#ifdef ISO \n\
 			if(i==0){ \n\
@@ -2095,15 +2096,23 @@ void main(void) \n\
 			}  \n\
 			#endif //ISO_MODE3 \n\
 			#else //ISO \n\
+			//non-iso rendering styles \n\
 			//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) \n\
 			/* PLUG: voxel_apply (voxel, gradient) */ \n\
 			#endif //ISO \n\
-			density += voxel.a * densityFactor; \n\
+			density *= densityFactor; \n\
 			//debug_color = HeatMapColor(densityFactor,0.134,.135); \n\
-			T *= 1.0-density; \n\
-			raysum.a = 1.0 - T; \n\
+			bool modulate_transparency = false; \n\
+			if(modulate_transparency) { \n\
+				//modulate T, lighter \n\
+				T *= 1.0-density; \n\
+				raysum.a = 1.0 - T; \n\
+			} else { \n\
+				//sum opacity, closer to H3D \n\
+				raysum.a += density; \n\
+			} \n\
 			raysum.rgb += voxel.rgb * density; \n\
-			if (T <= 0.01) { \n\
+			if(raysum.a > .99) { \n\
 				break; \n\
 			} \n\
 			#ifdef SEGMENT \n\
@@ -2306,9 +2315,15 @@ void PLUG_ray_apply (inout vec4 raysum) { \n\
 		value = AVEPROJ / float(PROJCOUNT); \n\
 		color = RGBAPROJ / float(PROJCOUNT); \n\
 	} \n\
-	//raysum.rgb = color.rgb; //vec3(value,value,value); //color; \n\
+	//debug_color = HeatMapColor(float(fw_projType),0.0,5.0); \n\
+	//debug_color = vec4(.5,.5,0.0,1.0); \n\
+	//raysum.rgb = color.rgb * color.a; \n\
+	raysum.a = color.a; \n\
+	raysum.rgb = vec3(value,value,value); \n\
+	raysum.a = 1.0 - value; \n\
 	//raysum.a = value;\n\
-	raysum = color; \n\
+	//raysum.a = color.a; \n\
+	//raysum = color; \n\
 } \n\
 ";
 
