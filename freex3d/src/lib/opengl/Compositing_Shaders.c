@@ -1854,6 +1854,28 @@ static const GLchar *volumeFragmentGLES2 = " \n\
 precision mediump float; \n\
 #endif //MOBILE \n\
  \n\
+ vec4 HeatMapColor(float value, float minValue, float maxValue) \n\
+{ \n\
+	//used for debugging. If min=0,max=1 then magenta is 0, blue,green,yellow, red is 1 \n\
+	vec4 ret; \n\
+    int HEATMAP_COLORS_COUNT; \n\
+    vec4 colors[6]; \n\
+	HEATMAP_COLORS_COUNT = 6; \n\
+	colors[0] = vec4(0.32, 0.00, 0.32, 1.0); \n\
+    colors[1] = vec4( 0.00, 0.00, 1.00, 1.00); \n\
+    colors[2] = vec4(0.00, 1.00, 0.00, 1.00); \n\
+    colors[3] = vec4(1.00, 1.00, 0.00, 1.00); \n\
+    colors[4] = vec4(1.00, 0.60, 0.00, 1.00); \n\
+    colors[5] = vec4(1.00, 0.00, 0.00, 1.00); \n\
+    float ratio=(float(HEATMAP_COLORS_COUNT)-1.0)*clamp((value-minValue)/(maxValue-minValue),0.0,1.0); \n\
+    int indexMin=int(floor(ratio)); \n\
+    int indexMax= indexMin+1 < HEATMAP_COLORS_COUNT-1 ? indexMin+1 : HEATMAP_COLORS_COUNT-1; \n\
+    ret = mix(colors[indexMin], colors[indexMax], ratio-float(indexMin)); \n\
+	if(value < minValue) ret = vec4(0.0,0.0,0.0,1.0); \n\
+	if(value > maxValue) ret = vec4(1.0,1.0,1.0,1.0); \n\
+	return ret; \n\
+} \n\
+vec4 debug_color; \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
 uniform mat4 fw_ModelViewProjInverse; \n\
@@ -1871,16 +1893,34 @@ uniform int repeatSTR[3]; \n\
 uniform int magFilter; \n\
 #endif //TEX3D \n\
 #ifdef SEGMENT \n\
-uniform int fw_enableIDs[]; \n\
 uniform int fw_nIDs; \n\
+uniform int fw_enableIDs[10]; \n\
+uniform int fw_surfaceStyles[2]; \n\
+uniform int fw_nStyles; \n\
 vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3); \n\
-bool inEnabledSegment(vec3 texcoords){ \n\
+bool inEnabledSegment(in vec3 texcoords, inout int jstyle){ \n\
+	bool inside = true; \n\
+	jstyle = 1; //DEFAULT \n\
 	vec4 segel = texture3Demu(fw_Texture_unit1,texcoords); \n\
 	//convert from GL_FLOAT 0-1 to int 0-255 \n\
 	//Q. is there a way to do int images in GLES2? \n\
 	int ID = int(floor(segel.a * 255.0 + .1)); \n\
-	//specs: The indices of this array corresponds to the segment identifier. \n\
-	return fw_enableIDs[ID] == 0 ? false : true; \n\
+	debug_color = HeatMapColor(float(ID),0.0,255.0); \n\
+	debug_color.a = .2; \n\
+	if(ID < fw_nIDs){ \n\
+		//specs: The indices of this array corresponds to the segment identifier. \n\
+		inside = fw_enableIDs[ID] == 0 ? false : true; \n\
+	} \n\
+	if(inside){ \n\
+		if(ID < 100) jstyle = 1; \n\
+		if(ID > 99){ \n\
+			int kstyle = fw_nStyles-1; \n\
+			kstyle = ID < fw_nStyles ? ID : kstyle; \n\
+			jstyle = fw_surfaceStyles[kstyle]; \n\
+			jstyle = jstyle == 1 ? 0 : jstyle; \n\
+		} \n\
+	} \n\
+	return inside; \n\
 } \n\
 #endif //SEGMENT \n\
 #ifdef ISO \n\
@@ -1916,27 +1956,6 @@ bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1) \n\
 /* PLUG-DECLARATIONS */ \n\
  \n\
 vec3 fw_TexCoord[1]; \n\
-vec4 HeatMapColor(float value, float minValue, float maxValue) \n\
-{ \n\
-	//used for debugging. If min=0,max=1 then magenta is 0, blue,green,yellow, red is 1 \n\
-	vec4 ret; \n\
-    int HEATMAP_COLORS_COUNT; \n\
-    vec4 colors[6]; \n\
-	HEATMAP_COLORS_COUNT = 6; \n\
-	colors[0] = vec4(0.32, 0.00, 0.32, 1.0); \n\
-    colors[1] = vec4( 0.00, 0.00, 1.00, 1.00); \n\
-    colors[2] = vec4(0.00, 1.00, 0.00, 1.00); \n\
-    colors[3] = vec4(1.00, 1.00, 0.00, 1.00); \n\
-    colors[4] = vec4(1.00, 0.60, 0.00, 1.00); \n\
-    colors[5] = vec4(1.00, 0.00, 0.00, 1.00); \n\
-    float ratio=(float(HEATMAP_COLORS_COUNT)-1.0)*clamp((value-minValue)/(maxValue-minValue),0.0,1.0); \n\
-    int indexMin=int(floor(ratio)); \n\
-    int indexMax= indexMin+1 < HEATMAP_COLORS_COUNT-1 ? indexMin+1 : HEATMAP_COLORS_COUNT-1; \n\
-    ret = mix(colors[indexMin], colors[indexMax], ratio-float(indexMin)); \n\
-	if(value < minValue) ret = vec4(0.0,0.0,0.0,1.0); \n\
-	if(value > maxValue) ret = vec4(1.0,1.0,1.0,1.0); \n\
-	return ret; \n\
-} \n\
 #ifdef CLIP \n\
 #define FW_MAXCLIPPLANES 4 \n\
 uniform int fw_nclipplanes; \n\
@@ -1950,7 +1969,6 @@ bool clip (in vec3 vertex_object){ \n\
   return iclip; \n\
 } \n\
 #endif //CLIP \n\
-vec4 debug_color; \n\
 vec3 vertex_eye; \n\
 vec3 normal_eye; \n\
 void main(void) \n\
@@ -2029,7 +2047,8 @@ void main(void) \n\
 			fragment_color = vec4(1.0,0.0,1.0,1.0); //do I need a default? seems not \n\
 			/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
 			#ifdef SEGMENT \n\
-			if(inEnabledSegment(texcoord3)){ \n\
+			int jstyle = 1; \n\
+			if(inEnabledSegment(texcoord3,jstyle)){ \n\
 			#endif //SEGMENT \n\
 			//assuming we had a scalar input image and put L into .a, \n\
 			// and computed gradient and put in .rgb : \n\
@@ -2095,7 +2114,33 @@ void main(void) \n\
 				lastdensity_iso = density_iso; \n\
 			}  \n\
 			#endif //ISO_MODE3 \n\
-			#else //ISO \n\
+			#elif SEGMENT \n\
+			//debug_color = HeatMapColor(float(jstyle),1.0,12.0); \n\
+			//debug_color.a = .2; \n\
+			if(jstyle == 1){ \n\
+				/* PLUG: voxel_apply_DEFAULT (voxel, gradient) */ \n\
+			} else if(jstyle == 2) { \n\
+				/* PLUG: voxel_apply_OPACITY (voxel, gradient) */ \n\
+			} else if(jstyle == 3) { \n\
+				/* PLUG: voxel_apply_BLENDED (voxel, gradient) */ \n\
+			} else if(jstyle == 4) { \n\
+				/* PLUG: voxel_apply_BOUNDARY (voxel, gradient) */ \n\
+			} else if(jstyle == 5) { \n\
+				/* PLUG: voxel_apply_CARTOON (voxel, gradient) */ \n\
+			} else if(jstyle == 6) { \n\
+				/* PLUG: voxel_apply_DEFAULT (voxel, gradient) */ \n\
+			} else if(jstyle == 7) { \n\
+				/* PLUG: voxel_apply_EDGE (voxel, gradient) */ \n\
+			} else if(jstyle == 8) { \n\
+				/* PLUG: voxel_apply_PROJECTION (voxel, gradient) */ \n\
+			} else if(jstyle == 9) { \n\
+				/* PLUG: voxel_apply_SHADED (voxel, gradient) */ \n\
+			} else if(jstyle == 10) { \n\
+				/* PLUG: voxel_apply_SILHOUETTE (voxel, gradient) */ \n\
+			} else if(jstyle == 11) { \n\
+				/* PLUG: voxel_apply_TONE (voxel, gradient) */ \n\
+			} \n\
+			#else //ISO SEGMENT \n\
 			//non-iso rendering styles \n\
 			//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) \n\
 			/* PLUG: voxel_apply (voxel, gradient) */ \n\
@@ -2158,15 +2203,20 @@ static const GLchar *plug_voxel_OPACITY =	"\
 uniform int fw_opacTexture; \n\
 //uniform sampler2D fw_Texture_unit3; \n\
 void voxel_apply_OPACITY (inout vec4 voxel, inout vec3 gradient) { \n\
-	if(fw_opacTexture){ \n\
-		vec2 texcoord = vec2(voxel.a,0); \n\
+	if(fw_opacTexture == 1){ \n\
+		vec4 lookup_color; \n\
+		float lum = voxel.r; \n\
+		vec2 texcoord = vec2(lum,0.0); \n\
 		//this is too simple for the lookups in the specs \n\
 		//http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#t-transferFunctionTextureCoordinateMapping \n\
-		voxel.rgb = texture2D(fw_Texture_unit3,texcoord); \n\
-		voxel.a = 1.0; \n\
+		lookup_color = texture2D(fw_Texture_unit3,texcoord); \n\
+		voxel.rgb = lookup_color.rgb; \n\
+		voxel.a = lum; \n\
 	}else{ \n\
-		voxel.rgb = vec3(1.0); \n\
-		voxel.a = voxel.a; \n\
+		//like default \n\
+		float alpha = voxel.a; \n\
+		voxel.a = voxel.r; \n\
+		voxel.rgb = vec3(alpha); \n\
 	} \n\
 } \n\
 void PLUG_voxel_apply_OPACITY (inout vec4 voxel, inout vec3 gradient) { \n\
@@ -2391,16 +2441,23 @@ uniform int fw_phase; \n\
 uniform int fw_lighting; \n\
 uniform int fw_shadows; \n\
 void voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
-  #ifdef LIT \n\
-  vec3 castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
-  voxel.rgb = fw_FrontMaterial.diffuse.rgb; \n\
-  #else //LIT \n\
-  voxel.rgb = vec3(0,0,0.0,0.0); \n\
-  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
-  #endif //LIT	\n\
-  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
-  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
-  /* PLUG: add_light_contribution2 (voxel, castle_ColorES, vertex_eye4, normal_eye, fw_FrontMaterial.shininess) */ \n\
+  float len = length(gradient); \n\
+  if(len > 0.0){ \n\
+	  vec3 ng = normalize(gradient); \n\
+	  vec4 color = vec4(1.0); \n\
+	  #ifdef LIT \n\
+	  vec3 castle_ColorES = fw_FrontMaterial.specular.rgb; \n\
+	  color.rgb = fw_FrontMaterial.diffuse.rgb; \n\
+	  #else //LIT \n\
+	  color.rgb = vec3(0,0,0.0,0.0); \n\
+	  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
+	  #endif //LIT	\n\
+	  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
+	  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
+	  /* PLUG: add_light_contribution2 (color, castle_ColorES, vertex_eye4, ng, fw_FrontMaterial.shininess) */ \n\
+	 // voxel.rgb = color.rgb; \n\
+	  voxel.rgb = mix(color.rgb,castle_ColorES,dot(ng,normal_eye)); \n\
+  } \n\
 } \n\
 void PLUG_voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_SHADED(voxel, gradient); \n\
