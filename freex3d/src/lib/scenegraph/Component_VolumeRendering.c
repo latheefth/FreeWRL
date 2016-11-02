@@ -121,37 +121,36 @@ BoundaryEnhancementVolumeStyle
 	- BoundaryEnhancementInternals.x3d - blackscreens
 	- BlendedComposedVolumes.x3d - blackscreens
 CartoonVolumeStyle
-	- no confirm
-	- CartoonBackpack.x3d - whitescreens
+	- works
+	- CartoonBackpack.x3d 
 	- BlendedComposedVolumes.x3d
 ComposedVolumeStyle
 	- no confirm
 	- ComposedBackpack.x3d
 	- BlendedComposedVolumes.x3d
 EdgeEnhancementVolumeStyle
-	- no confirm
+	- works
 	- EdgeBrain.x3d
-	- EdgeBrainB.x3d
 	- ComposedBackpack.x3d
 	- BlendedComposedVolumes.x3d
 OpacityMapVolumeStyle
 	- no TransferFunction verification
-	- basics - implicit, plus explicit:
+	- basics (implicit) works, plus explicit:
 	- BlendedComposedVolumes.x3d
 	- SegmentedVentricles.x3d
 ProjectionVolumeStyle
-	- no confirm
-	- ProjectionMaxVentricles.x3d = blackscreens
+	- works
+	- ProjectionMaxVentricles.x3d 
 ShadedVolumeStyle
 	- no confirm
 	- ShadedBrain.x3d - no evidence of shading
 SillouetteEnhancementVolumeStyle
-	- no confirm
-	- SilhouetteSkull.x3d - blackscreens
+	- works but hard to see a difference
+	- SilhouetteSkull.x3d
 	- ComposedBackpack.x3d
 	- BlendedComposedVolumes.x3d
 ToneMappedVolumeStyle
-	- no confirm
+	- works
 	- BlendedComposedVolumes.x3d
 	- ToneInternal.x3d - blackscreens
 
@@ -679,7 +678,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					isilretain = GET_UNIFORM(myProg,"fw_RetainedOpacity");
 					glUniform1f(isilretain,style->silhouetteRetainedOpacity);
 					isilsharp = GET_UNIFORM(myProg,"fw_Sharpness");
-					glUniform1f(isilretain,style->silhouetteSharpness);
+					glUniform1f(isilsharp,style->silhouetteSharpness);
 				}
 				break;
 			case NODE_ToneMappedVolumeStyle:

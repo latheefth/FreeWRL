@@ -2413,7 +2413,10 @@ void voxel_apply_SILHOUETTE (inout vec4 voxel, inout vec3 gradient) { \n\
 	if(len > 0.01) { \n\
 		vec3 ng = normalize(gradient); \n\
 		float ndotv = abs(dot(ng,normal_eye)); \n\
-		voxel.a = voxel.a * (fw_RetainedOpacity + fw_BoundaryOpacity*pow(1.0 - ndotv,fw_Sharpness)); \n\
+		float factor = (fw_RetainedOpacity + fw_BoundaryOpacity*pow(1.0 - ndotv,fw_Sharpness)); \n\
+		//float factor = (fw_RetainedOpacity + pow(fw_BoundaryOpacity*(1.0 - ndotv),fw_Sharpness)); \n\
+		//debug_color = HeatMapColor(factor,0.0,1.0); \n\
+		voxel.a = voxel.a * factor; \n\
 	} \n\
 } \n\
 void PLUG_voxel_apply_SILHOUETTE (inout vec4 voxel, inout vec3 gradient) { \n\
