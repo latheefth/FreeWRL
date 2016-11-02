@@ -2233,7 +2233,7 @@ void voxel_apply_EDGE (inout vec4 voxel, inout vec3 gradient) { \n\
 	if(len > 0.01) { \n\
 		vec3 ng = normalize(gradient); \n\
 		float ndotv = abs(dot(normal_eye,ng));  \n\
-		if( ndotv > fw_cosGradientThreshold ) { \n\
+		if( ndotv < fw_cosGradientThreshold ) { \n\
 			voxel = mix(voxel,fw_edgeColor,1.0 -ndotv); \n\
 		} \n\
 	} \n\
@@ -2315,10 +2315,8 @@ void PLUG_ray_apply (inout vec4 raysum) { \n\
 		value = AVEPROJ / float(PROJCOUNT); \n\
 		color = RGBAPROJ / float(PROJCOUNT); \n\
 	} \n\
-	//debug_color = HeatMapColor(float(fw_projType),0.0,5.0); \n\
-	//debug_color = vec4(.5,.5,0.0,1.0); \n\
 	//raysum.rgb = color.rgb * color.a; \n\
-	raysum.a = color.a; \n\
+	//raysum.a = color.a; \n\
 	raysum.rgb = vec3(value,value,value); \n\
 	raysum.a = 1.0 - value; \n\
 	//raysum.a = value;\n\
