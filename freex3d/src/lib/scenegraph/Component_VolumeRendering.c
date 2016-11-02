@@ -512,8 +512,8 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					rgba = style->edgeColor.c;
 					iedgeColor = GET_UNIFORM(myProg,"fw_edgeColor");
 					glUniform4fv(iedgeColor,1,rgba);
-					igradientThreshold = GET_UNIFORM(myProg,"fw_gradientThreshold");
-					glUniform1f(igradientThreshold,style->gradientThreshold);
+					igradientThreshold = GET_UNIFORM(myProg,"fw_cosGradientThreshold");
+					glUniform1f(igradientThreshold,cosf(style->gradientThreshold));
 					//printf("edge uniforms color %d gradthresh %d\n",iedgeColor,igradientThreshold);
 				}
 				break;

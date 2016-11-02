@@ -1960,7 +1960,7 @@ void main(void) \n\
 	int numSamples = 128; \n\
 	float fnumSamples = float(numSamples); \n\
 	float stepSize = maxDist/fnumSamples; \n\
-	float densityFactor = 1.0/fnumSamples; //5.0*stepSize; \n\
+	float densityFactor = 1.0/fnumSamples; \n\
 	 \n\
     vec4 fragment_color; \n\
 	vec4 raysum; \n\
@@ -1980,10 +1980,10 @@ void main(void) \n\
 	org4 = fw_ModelViewProjInverse * org4; \n\
 	ray4 /= ray4.w; \n\
 	org4 /= org4.w; \n\
-	rayDirection.xyz = normalize(ray4.xyz - org4.xyz); \n\
+	rayDirection = normalize(ray4.xyz - org4.xyz); \n\
 	rayOrigin = org4.xyz; \n\
 	\n\
-    Ray eye = Ray( rayOrigin, normalize(rayDirection) ); \n\
+    Ray eye = Ray( rayOrigin, rayDirection); \n\
 	vec3 half_dimensions = fw_dimensions * .5; \n\
 	vec3 minus_half_dimensions = half_dimensions * -1.0; \n\
 	AABB aabb = AABB(minus_half_dimensions,half_dimensions); \n\
@@ -2000,7 +2000,7 @@ void main(void) \n\
 	float travel = totaltravel; \n\
     float T = 1.0; \n\
     vec3 Lo = vec3(0.0); \n\
-	normal_eye = rayDirection.xyz; \n\
+	normal_eye = rayDirection; \n\
 	vec3 pos2 = pos; \n\
     // Transform from object space to texture coordinate space: \n\
 	pos2 = (pos2+half_dimensions)/fw_dimensions; \n\
@@ -2217,17 +2217,17 @@ void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#EdgeEnhancementVolumeStyle
 static const GLchar *plug_voxel_EDGE =	"\
-uniform float fw_gradientThreshold; \n\
+uniform float fw_cosGradientThreshold; \n\
 uniform vec4 fw_edgeColor; \n\
 void voxel_apply_EDGE (inout vec4 voxel, inout vec3 gradient) { \n\
-	vec3 ng = normalize(gradient); \n\
-	float ndotv = abs(dot(normal_eye,ng)); //vec4(ng,voxel.a);  \n\
-	vec4 drawcolor = vec4(0.0,0.0,0.0,voxel.a); \n\
-	vec4 texel; \n\
-	ndotv = ndotv > cos(fw_gradientThreshold) ? 1.0 : ndotv; \n\
-	texel = mix(drawcolor,fw_edgeColor,1.0 -ndotv); \n\
-	voxel.rgb += texel.rgb * texel.a; \n\
-	voxel.a += texel.a; \n\
+	float len = length(gradient); \n\
+	if(len > 0.01) { \n\
+		vec3 ng = normalize(gradient); \n\
+		float ndotv = abs(dot(normal_eye,ng));  \n\
+		if( ndotv > fw_cosGradientThreshold ) { \n\
+			voxel = mix(voxel,fw_edgeColor,1.0 -ndotv); \n\
+		} \n\
+	} \n\
 } \n\
 void PLUG_voxel_apply_EDGE (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_EDGE(voxel, gradient); \n\
