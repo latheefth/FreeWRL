@@ -1027,7 +1027,7 @@ void compile_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 	// VolumeData + 2 fields:
 	//MFBool  [in,out] segmentEnabled     []
 	//SFNode  [in,out] segmentIdentifiers NULL     [X3DTexture3DNode]
-	printf("compile_segmentedvolumedata not implemented\n");
+	printf("compile_segmentedvolumedata \n");
 	compile_VolumeData((struct X3D_VolumeData *)node);
 }
 s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int nstyle, int VOLUME_DATA_FLAG){
@@ -1120,11 +1120,11 @@ void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node
 			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
 		}
 	}
+	GLint inids = GET_UNIFORM(myProg,"fw_nIDs");
+	glUniform1i(inids,nIDs); 
 	GLint ienable = GET_UNIFORM(myProg,"fw_enableIDs");
 	glUniform1iv(ienable,nIDs,enabledIDs); 
 
-	GLint inids = GET_UNIFORM(myProg,"fw_nIDs");
-	glUniform1i(inids,nIDs); 
 }
 
 float *getTransformedClipPlanes();
