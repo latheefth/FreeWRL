@@ -8881,7 +8881,7 @@ struct X3D_SegmentedVolumeData {
 	struct SFVec3f bboxCenter;
 	struct SFVec3f bboxSize;
 	void * _boxtris;
-	struct X3D_Node *renderStyle;
+	struct Multi_Node renderStyle;
 	struct Multi_Bool segmentEnabled;
 	struct X3D_Node *segmentIdentifiers;
 };

@@ -1089,8 +1089,10 @@ s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int ns
 	return caps; 
 }
 
-void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *segmentIDs, int itexture, int *enabledIDs, int nIDs ) {
+void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *segmentIDs, int itexture, struct X3D_SegmentedVolumeData *node) {
 	int myProg;
+	int *enabledIDs = node->segmentEnabled.p;
+	int nIDs = node->segmentEnabled.n;
 	myProg = caps->myShaderProgram;
 	if(segmentIDs){
 		struct X3D_Node *tmpN;
@@ -1124,6 +1126,21 @@ void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node
 	glUniform1i(inids,nIDs); 
 	GLint ienable = GET_UNIFORM(myProg,"fw_enableIDs");
 	glUniform1iv(ienable,nIDs,enabledIDs); 
+
+	//similar to ISO, there are multiple rendering styles
+	if(node->renderStyle.n){
+		int *styleflags = MALLOC(int*,sizeof(int)*node->renderStyle.n);
+		for(int i=0;i<node->renderStyle.n;i++){
+			styleflags[i] = prep_volumestyle(node->renderStyle.p[i],0);
+		}
+		//printf("%d %d\n",styleflags[0],styleflags[1]);
+		GLint istyles = GET_UNIFORM(myProg,"fw_surfaceStyles");
+		glUniform1iv(istyles,node->renderStyle.n,styleflags);
+		int instyles = GET_UNIFORM(myProg,"fw_nStyles");
+		glUniform1i(instyles,node->renderStyle.n);
+	}
+
+
 
 }
 
@@ -1302,15 +1319,15 @@ void child_SegmentedVolumeData(struct X3D_SegmentedVolumeData *node){
 
 		if(!once)
 			printf("child segmentedvolumedata \n");
-		int nstyles = 0;
-		if(node->renderStyle) nstyles = 1;
+		//int nstyles = 0;
+		//if(node->renderStyle) nstyles = 1;
 
-		caps = getVolumeProgram(&node->renderStyle,nstyles, SHADERFLAGS_VOLUME_DATA_SEGMENT);
+		caps = getVolumeProgram(node->renderStyle.p,node->renderStyle.n, SHADERFLAGS_VOLUME_DATA_SEGMENT);
 		//get and set segment-specific uniforms
 		int itexture = 1; //voxels=0,segmentIDs=1
-		render_SEGMENTED_volume_data(caps,node->segmentIdentifiers,itexture,node->segmentEnabled.p,node->segmentEnabled.n);
+		render_SEGMENTED_volume_data(caps,node->segmentIdentifiers,itexture,node);
 		//render generic volume 
-		render_GENERIC_volume_data(caps,&node->renderStyle,nstyles,node->voxels,(struct X3D_VolumeData*)node );
+		render_GENERIC_volume_data(caps,node->renderStyle.p,node->renderStyle.n,node->voxels,(struct X3D_VolumeData*)node );
 		once = 1;
 	} //if VF_Blend
 

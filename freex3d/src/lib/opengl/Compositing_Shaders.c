@@ -1894,18 +1894,31 @@ uniform int magFilter; \n\
 #endif //TEX3D \n\
 #ifdef SEGMENT \n\
 uniform int fw_nIDs; \n\
-uniform int fw_enableIDs[1]; \n\
+uniform int fw_enableIDs[10]; \n\
+uniform int fw_surfaceStyles[2]; \n\
+uniform int fw_nStyles; \n\
 vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3); \n\
-bool inEnabledSegment(vec3 texcoords){ \n\
-	bool inside = false; \n\
+bool inEnabledSegment(in vec3 texcoords, inout int jstyle){ \n\
+	bool inside = true; \n\
+	jstyle = 1; //DEFAULT \n\
 	vec4 segel = texture3Demu(fw_Texture_unit1,texcoords); \n\
 	//convert from GL_FLOAT 0-1 to int 0-255 \n\
 	//Q. is there a way to do int images in GLES2? \n\
 	int ID = int(floor(segel.a * 255.0 + .1)); \n\
-	debug_color = debug_color = HeatMapColor(segel.a,0.0,.4); \n\
-	if(ID <= fw_nIDs){ \n\
+	debug_color = HeatMapColor(float(ID),0.0,255.0); \n\
+	debug_color.a = .2; \n\
+	if(ID < fw_nIDs){ \n\
 		//specs: The indices of this array corresponds to the segment identifier. \n\
 		inside = fw_enableIDs[ID] == 0 ? false : true; \n\
+	} \n\
+	if(inside){ \n\
+		if(ID < 100) jstyle = 1; \n\
+		if(ID > 99){ \n\
+			int kstyle = fw_nStyles-1; \n\
+			kstyle = ID < fw_nStyles ? ID : kstyle; \n\
+			jstyle = fw_surfaceStyles[kstyle]; \n\
+			jstyle = jstyle == 1 ? 0 : jstyle; \n\
+		} \n\
 	} \n\
 	return inside; \n\
 } \n\
@@ -2034,7 +2047,8 @@ void main(void) \n\
 			fragment_color = vec4(1.0,0.0,1.0,1.0); //do I need a default? seems not \n\
 			/* PLUG: texture3D ( fragment_color, texcoord3) */ \n\
 			#ifdef SEGMENT \n\
-			if(inEnabledSegment(texcoord3)){ \n\
+			int jstyle = 1; \n\
+			if(inEnabledSegment(texcoord3,jstyle)){ \n\
 			#endif //SEGMENT \n\
 			//assuming we had a scalar input image and put L into .a, \n\
 			// and computed gradient and put in .rgb : \n\
@@ -2100,7 +2114,33 @@ void main(void) \n\
 				lastdensity_iso = density_iso; \n\
 			}  \n\
 			#endif //ISO_MODE3 \n\
-			#else //ISO \n\
+			#elif SEGMENT \n\
+			//debug_color = HeatMapColor(float(jstyle),1.0,12.0); \n\
+			//debug_color.a = .2; \n\
+			if(jstyle == 1){ \n\
+				/* PLUG: voxel_apply_DEFAULT (voxel, gradient) */ \n\
+			} else if(jstyle == 2) { \n\
+				/* PLUG: voxel_apply_OPACITY (voxel, gradient) */ \n\
+			} else if(jstyle == 3) { \n\
+				/* PLUG: voxel_apply_BLENDED (voxel, gradient) */ \n\
+			} else if(jstyle == 4) { \n\
+				/* PLUG: voxel_apply_BOUNDARY (voxel, gradient) */ \n\
+			} else if(jstyle == 5) { \n\
+				/* PLUG: voxel_apply_CARTOON (voxel, gradient) */ \n\
+			} else if(jstyle == 6) { \n\
+				/* PLUG: voxel_apply_DEFAULT (voxel, gradient) */ \n\
+			} else if(jstyle == 7) { \n\
+				/* PLUG: voxel_apply_EDGE (voxel, gradient) */ \n\
+			} else if(jstyle == 8) { \n\
+				/* PLUG: voxel_apply_PROJECTION (voxel, gradient) */ \n\
+			} else if(jstyle == 9) { \n\
+				/* PLUG: voxel_apply_SHADED (voxel, gradient) */ \n\
+			} else if(jstyle == 10) { \n\
+				/* PLUG: voxel_apply_SILHOUETTE (voxel, gradient) */ \n\
+			} else if(jstyle == 11) { \n\
+				/* PLUG: voxel_apply_TONE (voxel, gradient) */ \n\
+			} \n\
+			#else //ISO SEGMENT \n\
 			//non-iso rendering styles \n\
 			//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) \n\
 			/* PLUG: voxel_apply (voxel, gradient) */ \n\
