@@ -121,37 +121,36 @@ BoundaryEnhancementVolumeStyle
 	- BoundaryEnhancementInternals.x3d - blackscreens
 	- BlendedComposedVolumes.x3d - blackscreens
 CartoonVolumeStyle
-	- no confirm
-	- CartoonBackpack.x3d - whitescreens
+	- works
+	- CartoonBackpack.x3d 
 	- BlendedComposedVolumes.x3d
 ComposedVolumeStyle
 	- no confirm
 	- ComposedBackpack.x3d
 	- BlendedComposedVolumes.x3d
 EdgeEnhancementVolumeStyle
-	- no confirm
+	- works
 	- EdgeBrain.x3d
-	- EdgeBrainB.x3d
 	- ComposedBackpack.x3d
 	- BlendedComposedVolumes.x3d
 OpacityMapVolumeStyle
 	- no TransferFunction verification
-	- basics - implicit, plus explicit:
+	- basics (implicit) works, plus explicit:
 	- BlendedComposedVolumes.x3d
 	- SegmentedVentricles.x3d
 ProjectionVolumeStyle
-	- no confirm
-	- ProjectionMaxVentricles.x3d = blackscreens
+	- works
+	- ProjectionMaxVentricles.x3d 
 ShadedVolumeStyle
 	- no confirm
 	- ShadedBrain.x3d - no evidence of shading
 SillouetteEnhancementVolumeStyle
-	- no confirm
-	- SilhouetteSkull.x3d - blackscreens
+	- works but hard to see a difference
+	- SilhouetteSkull.x3d
 	- ComposedBackpack.x3d
 	- BlendedComposedVolumes.x3d
 ToneMappedVolumeStyle
-	- no confirm
+	- works
 	- BlendedComposedVolumes.x3d
 	- ToneInternal.x3d - blackscreens
 
@@ -512,8 +511,8 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					rgba = style->edgeColor.c;
 					iedgeColor = GET_UNIFORM(myProg,"fw_edgeColor");
 					glUniform4fv(iedgeColor,1,rgba);
-					igradientThreshold = GET_UNIFORM(myProg,"fw_gradientThreshold");
-					glUniform1f(igradientThreshold,style->gradientThreshold);
+					igradientThreshold = GET_UNIFORM(myProg,"fw_cosGradientThreshold");
+					glUniform1f(igradientThreshold,cosf(style->gradientThreshold));
 					//printf("edge uniforms color %d gradthresh %d\n",iedgeColor,igradientThreshold);
 				}
 				break;
@@ -531,12 +530,15 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					itype = GET_UNIFORM(myProg,"fw_projType");
 					if(style->_type == 0){
 						ctype = style->type->strptr;
-						if(!strcmp(ctype,"MAX")) ktype = 1;
-						else if(!strcmp(ctype,"MIN")) ktype = 2;
-						else if(!strcmp(ctype,"AVERAGE")) ktype = 3;
+						if(!strcmp(ctype,"MIN")) 
+							ktype = 1;
+						else if(!strcmp(ctype,"MAX")) 
+							ktype = 2;
+						else if(!strcmp(ctype,"AVERAGE")) 
+							ktype = 3;
 						style->_type = ktype;
 					}
-					glUniform1f(itype,style->_type);
+					glUniform1i(itype,style->_type);
 				}
 				break;
 			case NODE_ShadedVolumeStyle:
@@ -676,7 +678,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					isilretain = GET_UNIFORM(myProg,"fw_RetainedOpacity");
 					glUniform1f(isilretain,style->silhouetteRetainedOpacity);
 					isilsharp = GET_UNIFORM(myProg,"fw_Sharpness");
-					glUniform1f(isilretain,style->silhouetteSharpness);
+					glUniform1f(isilsharp,style->silhouetteSharpness);
 				}
 				break;
 			case NODE_ToneMappedVolumeStyle:
@@ -691,7 +693,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					icool = GET_UNIFORM(myProg,"fw_coolColor");
 					glUniform4fv(icool,1,style->coolColor.c);
 					iwarm = GET_UNIFORM(myProg,"fw_warmColor");
-					glUniform4fv(iwarm,1,style->coolColor.c);
+					glUniform4fv(iwarm,1,style->warmColor.c);
 				}
 				break;
 			default:
@@ -1038,7 +1040,7 @@ s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int ns
 	volflags = 0;
 	if(nstyle){
 		for(int i=0;i<nstyle;i++){
-			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle;
+			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle[i];
 			if(style0->enabled){
 				volflags = prep_volumestyle(renderStyle[i], volflags); //get shader flags
 			}
