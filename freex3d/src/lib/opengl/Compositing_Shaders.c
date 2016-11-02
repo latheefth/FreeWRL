@@ -2035,7 +2035,7 @@ void main(void) \n\
 			// and computed gradient and put in .rgb : \n\
 			float density = fragment_color.a; //recover the scalar value \n\
 			vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
-			vec4 voxel = vec4(density,density,density,1.0); //this is where the black visual voxels come from\n\
+			vec4 voxel = vec4(density,density,density,density); //this is where the black visual voxels come from\n\
 			\n\
 			#ifdef ISO \n\
 			if(i==0){ \n\
@@ -2100,7 +2100,9 @@ void main(void) \n\
 			//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) \n\
 			/* PLUG: voxel_apply (voxel, gradient) */ \n\
 			#endif //ISO \n\
-			density *= densityFactor; \n\
+			//density *= densityFactor; \n\
+			//density = voxel.a * density; //* densityFactor; \n\
+			density = voxel.a; \n\
 			//debug_color = HeatMapColor(densityFactor,0.134,.135); \n\
 			bool modulate_transparency = false; \n\
 			if(modulate_transparency) { \n\
@@ -2141,7 +2143,7 @@ static const GLchar *plug_voxel_DEFAULT =	"\
 void voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
 	float alpha = voxel.a; \n\
 	voxel.a = voxel.r; \n\
-	//voxel.rgb = vec3(alpha); \n\
+	voxel.rgb = vec3(alpha); \n\
 } \n\
 void PLUG_voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_DEFAULT(voxel,gradient); \n\
@@ -2188,8 +2190,9 @@ uniform float fw_retainedOpacity; \n\
 uniform float fw_opacityFactor; \n\
 void voxel_apply_BOUNDARY (inout vec4 voxel, inout vec3 gradient) { \n\
 	float magnitude = length(gradient); \n\
-	float ndotv = abs(dot(normal_eye,ng)); \n\
-	voxel.a = voxel.z * (fw_retainedOpacity + fw_boundaryOpacity*pow(magnitude,fw_opacityFactor) ); \n\
+	float factor = (fw_retainedOpacity + fw_boundaryOpacity*pow(magnitude,fw_opacityFactor) ); \n\
+	voxel.a = voxel.a * factor; \n\
+	//debug_color = HeatMapColor(factor,0.0,1.0); \n\
 } \n\
 void PLUG_voxel_apply_BOUNDARY (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_BOUNDARY(voxel, gradient); \n\
@@ -2205,10 +2208,14 @@ uniform int fw_colorSteps; \n\
 uniform vec4 fw_orthoColor; \n\
 uniform vec4 fw_paraColor; \n\
 void voxel_apply_CARTOON (inout vec4 voxel, inout vec3 gradient) { \n\
-	vec3 ng = normalize(gradient); \n\
-	float ndotv = abs(dot(normal_eye,ng)); \n\
-	ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
-	voxel = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
+	float len = length(gradient); \n\
+	if(len > 0.0) { \n\
+		vec3 ng = normalize(gradient); \n\
+		float ndotv = abs(dot(normal_eye,ng)); \n\
+		ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
+		vec4 color = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
+		voxel.rgb = color.rgb*voxel.a; \n\
+	} \n\
 } \n\
 void PLUG_voxel_apply_CARTOON (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_CARTOON(voxel, gradient); \n\

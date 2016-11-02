@@ -1040,7 +1040,7 @@ s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int ns
 	volflags = 0;
 	if(nstyle){
 		for(int i=0;i<nstyle;i++){
-			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle;
+			struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)renderStyle[i];
 			if(style0->enabled){
 				volflags = prep_volumestyle(renderStyle[i], volflags); //get shader flags
 			}
