@@ -2391,16 +2391,23 @@ uniform int fw_phase; \n\
 uniform int fw_lighting; \n\
 uniform int fw_shadows; \n\
 void voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
-  #ifdef LIT \n\
-  vec3 castle_ColorES = fw_FrontMaterial.emission.rgb; \n\
-  voxel.rgb = fw_FrontMaterial.diffuse.rgb; \n\
-  #else //LIT \n\
-  voxel.rgb = vec3(0,0,0.0,0.0); \n\
-  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
-  #endif //LIT	\n\
-  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
-  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
-  /* PLUG: add_light_contribution2 (voxel, castle_ColorES, vertex_eye4, normal_eye, fw_FrontMaterial.shininess) */ \n\
+  float len = length(gradient); \n\
+  if(len > 0.0){ \n\
+	  vec3 ng = normalize(gradient); \n\
+	  vec4 color = vec4(1.0); \n\
+	  #ifdef LIT \n\
+	  vec3 castle_ColorES = fw_FrontMaterial.specular.rgb; \n\
+	  color.rgb = fw_FrontMaterial.diffuse.rgb; \n\
+	  #else //LIT \n\
+	  color.rgb = vec3(0,0,0.0,0.0); \n\
+	  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
+	  #endif //LIT	\n\
+	  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
+	  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
+	  /* PLUG: add_light_contribution2 (color, castle_ColorES, vertex_eye4, ng, fw_FrontMaterial.shininess) */ \n\
+	 // voxel.rgb = color.rgb; \n\
+	  voxel.rgb = mix(color.rgb,castle_ColorES,dot(ng,normal_eye)); \n\
+  } \n\
 } \n\
 void PLUG_voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_SHADED(voxel, gradient); \n\
