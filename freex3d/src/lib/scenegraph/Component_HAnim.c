@@ -483,6 +483,13 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME 
 
+	if(renderstate()->render_vp){
+		/* Lets do viewpoints */
+		normalChildren(node->viewpoints);
+		return;
+	}
+
+
 	// segments, joints, sites are flat-lists for convenience
 	// skeleton is the scenegraph-like transform hierarchy of joints and segments and sites
 	// skin relies on something updating its vertices based on skeleton transforms
@@ -523,9 +530,6 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	if(0) normalChildren(node->skin);
 	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
-
-	/* Lets do viewpoints last */
-	if(0) normalChildren(node->viewpoints);
 
 	/* did we have that directionalLight? */
 	//LOCAL_LIGHT_OFF
