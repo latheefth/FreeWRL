@@ -676,6 +676,8 @@ our %CompileC = map {($_=>1)} qw/
 	IsoSurfaceVolumeData
 	
 	ParticleSystem
+	HAnimJoint
+	HAnimSite
 /;
 
 

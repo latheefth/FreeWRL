@@ -2583,7 +2583,8 @@ void prep_HAnimJoint(struct X3D_HAnimJoint *);
 void render_HAnimJoint(struct X3D_HAnimJoint *);
 void child_HAnimJoint(struct X3D_HAnimJoint *);
 void fin_HAnimJoint(struct X3D_HAnimJoint *);
-struct X3D_Virt virt_HAnimJoint = { (void *)prep_HAnimJoint,(void *)render_HAnimJoint,(void *)child_HAnimJoint,(void *)fin_HAnimJoint,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_HAnimJoint(struct X3D_HAnimJoint *);
+struct X3D_Virt virt_HAnimJoint = { (void *)prep_HAnimJoint,(void *)render_HAnimJoint,(void *)child_HAnimJoint,(void *)fin_HAnimJoint,NULL,NULL,NULL,NULL,NULL,(void *)compile_HAnimJoint};
 
 void child_HAnimSegment(struct X3D_HAnimSegment *);
 struct X3D_Virt virt_HAnimSegment = { NULL,NULL,(void *)child_HAnimSegment,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
@@ -2591,7 +2592,8 @@ struct X3D_Virt virt_HAnimSegment = { NULL,NULL,(void *)child_HAnimSegment,NULL,
 void prep_HAnimSite(struct X3D_HAnimSite *);
 void child_HAnimSite(struct X3D_HAnimSite *);
 void fin_HAnimSite(struct X3D_HAnimSite *);
-struct X3D_Virt virt_HAnimSite = { (void *)prep_HAnimSite,NULL,(void *)child_HAnimSite,(void *)fin_HAnimSite,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_HAnimSite(struct X3D_HAnimSite *);
+struct X3D_Virt virt_HAnimSite = { (void *)prep_HAnimSite,NULL,(void *)child_HAnimSite,(void *)fin_HAnimSite,NULL,NULL,NULL,NULL,NULL,(void *)compile_HAnimSite};
 
 struct X3D_Virt virt_ImageBackdropBackground = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -4655,6 +4657,7 @@ const int OFFSETS_HAnimHumanoid[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_HAnimJoint[] = {
+	(int) FIELDNAMES___do_anything, (int) offsetof (struct X3D_HAnimJoint, __do_anything),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_center, (int) offsetof (struct X3D_HAnimJoint, __do_center),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_HAnimJoint, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_scale, (int) offsetof (struct X3D_HAnimJoint, __do_scale),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -4699,6 +4702,7 @@ const int OFFSETS_HAnimSegment[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_HAnimSite[] = {
+	(int) FIELDNAMES___do_anything, (int) offsetof (struct X3D_HAnimSite, __do_anything),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_center, (int) offsetof (struct X3D_HAnimSite, __do_center),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_HAnimSite, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_scale, (int) offsetof (struct X3D_HAnimSite, __do_scale),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -9506,6 +9510,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimJoint : {
 			struct X3D_HAnimJoint * tmp2;
 			tmp2 = (struct X3D_HAnimJoint *) tmp;
+			tmp2->__do_anything = 0;
 			tmp2->__do_center = 0;
 			tmp2->__do_rotation = 0;
 			tmp2->__do_scale = 0;
@@ -9570,6 +9575,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimSite : {
 			struct X3D_HAnimSite * tmp2;
 			tmp2 = (struct X3D_HAnimSite *) tmp;
+			tmp2->__do_anything = 0;
 			tmp2->__do_center = 0;
 			tmp2->__do_rotation = 0;
 			tmp2->__do_scale = 0;

@@ -41,6 +41,7 @@ X3D H-Anim Component
 #include "../opengl/OpenGL_Utils.h"
 #include "Children.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../opengl/Frustum.h"
 
 /* #include "OpenFW_GL_Utils.h" */
 
@@ -51,6 +52,7 @@ http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/
 - BoxMan.x3d					good				doesn't animate
 - AllenDutton.x3d				skin stuck			good
 - NancyStandShootRifleM24.x3d	good				anim good, skin bad
+- (KelpForest) NancyDiving.x3d  good				good
 HAnim Prototypes:
 http://www.web3d.org/x3d/content/examples/Basic/HumanoidAnimation/_pages/page11.html
 HAnim examples:
@@ -64,16 +66,19 @@ Here's some free online docs:
 http://www.h-anim.org/
 http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/
 http://h-anim.org/Specifications/H-Anim200x/ISO_IEC_FCD_19774/ObjectInterfaces.html
-- Humanoid
-- Joint
-- Segment
-- Site
-- Displacer
+- Humanoid	has transform, skeleton, skin, (flat lists of) skinCoord, skinNormal, segments,joints,sites,viewpoints
+- Joint		has transform, children, displacers, skinCoord indx,wt
+- Segment	has            children, displacers, mass, coord
+- Site		has transform, children 
+- Displacer has                      displacements, coord, wt, coord index, 
 All the fields are discussed.
 
 July 2016 
 - where we left off years ago?
 - define HANIMHANIM below to compile - lots of errors
+Nov 2016
+- stack errors fixed by removing return; at top of some functions
+x but doesn't render/animate correctly: whole body frozen, various limbs moving independently/dismembered
 
 Related Links on HAnim
 http://www.web3d.org/working-groups/humanoid-animation-h-anim
@@ -124,7 +129,7 @@ b) the skeleton isn't rendered (if no geom on sites/segments?)
 	so when do you traverse the joints and what's the output?
 
 dug9 aug 2016: would this work: 
-Just render_HAnimHumanoid
+Just render_HAnimHumanoid (as un-shared/opaque private scenegraph?)
 - traverse the joints and segments privately from HanimHumanoid to call their render_ functions
 - no HanimHumanoid? then don't render any joints or segments - don't list virtual functions for them
 
@@ -140,7 +145,13 @@ b) for each segment/joint/site (done at the HanimHumanoid level)
 2. Combined step
 a) traverse down segments pushing and multiplying pose
 b) when visiting a segment/joint/site render its children geometry
-3. ???
+	x this wont work with skin/'skinning', just attached solid geometry ie scuba tank
+	* so instead of the 'render' step for skin, there would be vertex-update step
+3. Best Guess
+a) traverse skeleton joints rendering attached solid geometry, and updating influenced skin vertices
+b) divide skin vertices by number of influencers
+c) render skin
+
 Requirements:
 - single deformable mesh should be 'easy' / possible / efficient to update / interpolate 
 
@@ -156,10 +167,33 @@ Guesses:
 - or would we transform the whole mesh for each segment, except weight the points differently,
 	so that the final mesh is a per-vertex-weighted sum of all segment meshes
 
+Nov 2016
+state Nov 3, 2016: 
+NancyDiving.x3d (scene :HanimHumanoid(HH) with 
+	HH->Skeleton children[ RootJoint, Joints, Segments] and 
+	HH->joints, HH->segments
+	no HH->skin,->viewpoints
+x I don't see a single skin mesh/vertices being updated by weighted transforms
+x I don't see any mention of Displacer node type
+H: its a LOA 0 (or lowest level, with separate segments for each limb)
+
+freewrl 
+x I don't see a single skin mesh vertices being updated by weighted transforms in code below
+x I don't see any mention of Displacer node type below, although its in perl/structs.h
+H: 
+it was put together quickly using boilerplate scenegraph calls, for LOA 0,
+but without detailed custom code or testing to make it work for LOA 1+
+
+freewrl rendering of NancyDiving.x3d
+x skin frozen, while indvidual body segments are transformed separately / dismembered, 
+x seem to be missing rotations on the segments
+
+
 */
 
-//#define HANIMHANIM 1
-
+#define HANIMHANIM 1
+static int animate_site = 0;
+static int animate_joint = 1;
 /* last HAnimHumanoid skinCoord and skinNormals */
 //void *HANimSkinCoord = 0;
 //void *HAnimSkinNormal = 0;
@@ -187,148 +221,236 @@ void Component_HAnim_init(struct tComponent_HAnim *t){
 //ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
 
 
+void compile_HAnimJoint (struct X3D_HAnimJoint *node){
+#ifdef HANIMHANIM
+	INITIALIZE_EXTENT;
+
+	/* printf ("changed Transform for node %u\n",node); */
+	node->__do_center = verify_translate ((GLfloat *)node->center.c);
+	node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
+	node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
+	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
+	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.c);
+
+	node->__do_anything = (node->__do_center ||
+			node->__do_trans ||
+			node->__do_scale ||
+			node->__do_rotation ||
+			node->__do_scaleO);
+
+	//REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
+	MARK_NODE_COMPILED
+#endif
+}
 void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
 
 #ifdef HANIMHANIM
-	GLfloat my_rotation;
-	GLfloat my_scaleO=0;
+	if(animate_joint) {
 
-//return;
-        /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
-         * so we do nothing here in that case -ncoder */
+		COMPILE_IF_REQUIRED
 
-	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
-	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
+		/* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
+			* so we do nothing here in that case -ncoder */
 
-	if(!renderstate()->render_vp) {
-		FW_GL_PUSH_MATRIX();
+		/* printf ("prep_Transform, render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+		render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
-		/* might we have had a change to a previously ignored value? */
-		if (node->_change != node->_ichange) {
-			/* printf ("re-rendering for %d\n",node);*/
-			node->__do_center = verify_translate ((GLfloat *)node->center.c);
-			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
-			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
-			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
-			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.c);
-			node->_ichange = node->_change;
+		/* do we have any geometry visible, and are we doing anything with geometry? */
+		//OCCLUSIONTEST
+
+		if(!renderstate()->render_vp) {
+			/* do we actually have any thing to rotate/translate/scale?? */
+			if (node->__do_anything) {
+
+				FW_GL_PUSH_MATRIX();
+
+				/* TRANSLATION */
+				if (node->__do_trans)
+					FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
+
+				/* CENTER */
+				if (node->__do_center)
+					FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]);
+
+				/* ROTATION */
+				if (node->__do_rotation) {
+					FW_GL_ROTATE_RADIANS(node->rotation.c[3], node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
+				}
+
+				/* SCALEORIENTATION */
+				if (node->__do_scaleO) {
+					FW_GL_ROTATE_RADIANS(node->scaleOrientation.c[3], node->scaleOrientation.c[0], node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
+				}
+
+
+				/* SCALE */
+				if (node->__do_scale)
+					FW_GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
+
+				/* REVERSE SCALE ORIENTATION */
+				if (node->__do_scaleO)
+					FW_GL_ROTATE_RADIANS(-node->scaleOrientation.c[3], node->scaleOrientation.c[0], node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
+
+				/* REVERSE CENTER */
+				if (node->__do_center)
+					FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
+			} 
+
+			RECORD_DISTANCE
+
 		}
-
-
-
-		/* TRANSLATION */
-		if (node->__do_trans)
-			FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
-
-		/* CENTER */
-		if (node->__do_center)
-			FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]);
-
-		/* ROTATION */
-		if (node->__do_rotation) {
-			my_rotation = node->rotation.c[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_rotation,
-				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
-		}
-
-		/* SCALEORIENTATION */
-		if (node->__do_scaleO) {
-			my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
-				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
-		}
-
-
-		/* SCALE */
-		if (node->__do_scale)
-			FW_GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
-
-		/* REVERSE SCALE ORIENTATION */
-		if (node->__do_scaleO)
-			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0],
-				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
-
-		/* REVERSE CENTER */
-		if (node->__do_center)
-			FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
-
-		//RECORD_DISTANCE
-        }
+	}
 #endif
 }
 
 
+void fin_HAnimJoint (struct X3D_HAnimJoint *node) {
+#ifdef HANIMHANIM
+	if(animate_joint){
+		OCCLUSIONTEST
+
+		if(!renderstate()->render_vp) {
+			if (node->__do_anything) {
+				FW_GL_POP_MATRIX();
+			}
+		} else {
+			/*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
+			if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
+				FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
+				);
+				FW_GL_ROTATE_RADIANS(((node->scaleOrientation).c[3]),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
+				);
+				FW_GL_SCALE_F((float)1.0/(((node->scale).c[0])),(float)1.0/(((node->scale).c[1])),(float)1.0/(((node->scale).c[2]))
+				);
+				FW_GL_ROTATE_RADIANS(-(((node->scaleOrientation).c[3])),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
+				);
+				FW_GL_ROTATE_RADIANS(-(((node->rotation).c[3])),((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
+				);
+				FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
+				);
+				FW_GL_TRANSLATE_F(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
+				);
+			}
+		}
+	}
+#endif
+} 
+
+void compile_HAnimSite (struct X3D_HAnimSite *node){
+#ifdef HANIMHANIM
+	INITIALIZE_EXTENT;
+
+	/* printf ("changed Transform for node %u\n",node); */
+	node->__do_center = verify_translate ((GLfloat *)node->center.c);
+	node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
+	node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
+	node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
+	node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.c);
+
+	node->__do_anything = (node->__do_center ||
+			node->__do_trans ||
+			node->__do_scale ||
+			node->__do_rotation ||
+			node->__do_scaleO);
+
+	//REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
+	MARK_NODE_COMPILED
+#endif
+}
 void prep_HAnimSite (struct X3D_HAnimSite *node) {
 
-
 #ifdef HANIMHANIM
-	GLfloat my_rotation;
-	GLfloat my_scaleO=0;
+	if(animate_joint) {
 
-//return;
+		COMPILE_IF_REQUIRED
 
-        /* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
-         * so we do nothing here in that case -ncoder */
+		/* rendering the viewpoint means doing the inverse transformations in reverse order (while poping stack),
+			* so we do nothing here in that case -ncoder */
 
-	/* printf ("render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",*/
-	/* render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision);*/
+		/* printf ("prep_Transform, render_hier vp %d geom %d light %d sens %d blend %d prox %d col %d\n",
+		render_vp,render_geom,render_light,render_sensitive,render_blend,render_proximity,render_collision); */
 
-	if(!renderstate()->render_vp) {
-		FW_GL_PUSH_MATRIX();
+		/* do we have any geometry visible, and are we doing anything with geometry? */
+		//OCCLUSIONTEST
 
-		/* might we have had a change to a previously ignored value? */
-		if (node->_change != node->_ichange) {
-			/* printf ("re-rendering for %d\n",node);*/
-			node->__do_center = verify_translate ((GLfloat *)node->center.c);
-			node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
-			node->__do_scale = verify_scale ((GLfloat *)node->scale.c);
-			node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
-			node->__do_scaleO = verify_rotate ((GLfloat *)node->scaleOrientation.c);
-			node->_ichange = node->_change;
+		if(!renderstate()->render_vp) {
+			/* do we actually have any thing to rotate/translate/scale?? */
+			if (node->__do_anything) {
+
+				FW_GL_PUSH_MATRIX();
+
+				/* TRANSLATION */
+				if (node->__do_trans)
+					FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
+
+				/* CENTER */
+				if (node->__do_center)
+					FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]);
+
+				/* ROTATION */
+				if (node->__do_rotation) {
+					FW_GL_ROTATE_RADIANS(node->rotation.c[3], node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
+				}
+
+				/* SCALEORIENTATION */
+				if (node->__do_scaleO) {
+					FW_GL_ROTATE_RADIANS(node->scaleOrientation.c[3], node->scaleOrientation.c[0], node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
+				}
+
+
+				/* SCALE */
+				if (node->__do_scale)
+					FW_GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
+
+				/* REVERSE SCALE ORIENTATION */
+				if (node->__do_scaleO)
+					FW_GL_ROTATE_RADIANS(-node->scaleOrientation.c[3], node->scaleOrientation.c[0], node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
+
+				/* REVERSE CENTER */
+				if (node->__do_center)
+					FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
+			} 
+
+			RECORD_DISTANCE
+
 		}
-
-
-
-		/* TRANSLATION */
-		if (node->__do_trans)
-			FW_GL_TRANSLATE_F(node->translation.c[0],node->translation.c[1],node->translation.c[2]);
-
-		/* CENTER */
-		if (node->__do_center)
-			FW_GL_TRANSLATE_F(node->center.c[0],node->center.c[1],node->center.c[2]);
-
-		/* ROTATION */
-		if (node->__do_rotation) {
-			my_rotation = node->rotation.c[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_rotation,
-				node->rotation.c[0],node->rotation.c[1],node->rotation.c[2]);
-		}
-
-		/* SCALEORIENTATION */
-		if (node->__do_scaleO) {
-			my_scaleO = node->scaleOrientation.c[3]/3.1415926536*180;
-			FW_GL_ROTATE_F(my_scaleO, node->scaleOrientation.c[0],
-				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
-		}
-
-
-		/* SCALE */
-		if (node->__do_scale)
-			FW_GL_SCALE_F(node->scale.c[0],node->scale.c[1],node->scale.c[2]);
-
-		/* REVERSE SCALE ORIENTATION */
-		if (node->__do_scaleO)
-			FW_GL_ROTATE_F(-my_scaleO, node->scaleOrientation.c[0],
-				node->scaleOrientation.c[1],node->scaleOrientation.c[2]);
-
-		/* REVERSE CENTER */
-		if (node->__do_center)
-			FW_GL_TRANSLATE_F(-node->center.c[0],-node->center.c[1],-node->center.c[2]);
-		
-		//RECORD_DISTANCE
-        }
+	}
 #endif
 }
+
+
+void fin_HAnimSite (struct X3D_HAnimSite *node) {
+#ifdef HANIMHANIM
+	if(animate_joint){
+		OCCLUSIONTEST
+
+		if(!renderstate()->render_vp) {
+			if (node->__do_anything) {
+				FW_GL_POP_MATRIX();
+			}
+		} else {
+			/*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
+			if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
+				FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
+				);
+				FW_GL_ROTATE_RADIANS(((node->scaleOrientation).c[3]),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
+				);
+				FW_GL_SCALE_F((float)1.0/(((node->scale).c[0])),(float)1.0/(((node->scale).c[1])),(float)1.0/(((node->scale).c[2]))
+				);
+				FW_GL_ROTATE_RADIANS(-(((node->scaleOrientation).c[3])),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
+				);
+				FW_GL_ROTATE_RADIANS(-(((node->rotation).c[3])),((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
+				);
+				FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
+				);
+				FW_GL_TRANSLATE_F(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
+				);
+			}
+		}
+	}
+#endif
+} 
+
 
 void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node) {
 	/* save the skinCoords and skinNormals for use in following HAnimJoints */
@@ -361,15 +483,25 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME 
 
+	if(renderstate()->render_vp){
+		/* Lets do viewpoints */
+		normalChildren(node->viewpoints);
+		return;
+	}
+
+
+	// segments, joints, sites are flat-lists for convenience
+	// skeleton is the scenegraph-like transform hierarchy of joints and segments and sites
+	// skin relies on something updating its vertices based on skeleton transforms
 	/* Lets do segments first */
 	/* now, just render the non-directionalLight segments */
-	normalChildren(node->segments);
+	if(0) normalChildren(node->segments);
 
 
 	/* Lets do joints second */
 	/* do we have to sort this node? */
 	/* now, just render the non-directionalLight joints */
-	normalChildren(node->joints);
+	if(0) normalChildren(node->joints);
 
 
 	/* Lets do sites third */
@@ -377,12 +509,14 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	/* do we have a local light for a child? */
 	//LOCAL_LIGHT_CHILDREN(node->sites);
 	/* now, just render the non-directionalLight sites */
-	normalChildren(node->sites);
+	if(0) normalChildren(node->sites);
 
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 	/* Lets do skeleton fourth */
 	/* do we have to sort this node? */
 	/* now, just render the non-directionalLight skeleton */
-	normalChildren(node->skeleton);
+	//skeleton is the basic thing to render for LOA 0
+	if(1) normalChildren(node->skeleton);
 
 	/* Lets do skin fifth */
 	/* do we have to sort this node? */
@@ -393,22 +527,16 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	// dug9 Aug 2016: I think its just the skin that would/should get lights
 	// because the other ones -site, segment etc- will have their own children field 
 	// and can put its local lights there, but skin can't
-	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
-	normalChildren(node->skin);
+	if(0) normalChildren(node->skin);
 	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 
-	/* Lets do viewpoints last */
-	normalChildren(node->segments);
-
 	/* did we have that directionalLight? */
 	//LOCAL_LIGHT_OFF
-
 }
 
 
 void child_HAnimJoint(struct X3D_HAnimJoint *node) {
-return;
 #ifdef HANIMHANIM
 	//CHILDREN_COUNT
 	/* any children at all? */
@@ -426,7 +554,6 @@ return;
 }
 
 void child_HAnimSegment(struct X3D_HAnimSegment *node) {
-return;
 #ifdef HANIMHANIM
 	//CHILDREN_COUNT
 
@@ -448,7 +575,6 @@ return;
 
 
 void child_HAnimSite(struct X3D_HAnimSite *node) {
-return;
 #ifdef HANIMHANIM
 	//CHILDREN_COUNT
 	//LOCAL_LIGHT_SAVE
@@ -463,63 +589,9 @@ return;
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
 
-	LOCAL_LIGHT_OFF
+	//LOCAL_LIGHT_OFF
 	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 #endif
-}
-
-void fin_HAnimSite (struct X3D_HAnimSite * node) {
-return;
-#ifdef HANIMHANIM
-        if(!renderstate()->render_vp) {
-            FW_GL_POP_MATRIX();
-        } else {
-           /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
-            if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
-                FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
-                );
-                FW_GL_ROTATE_F(((node->scaleOrientation).c[3])/(float) 3.1415926536*180,((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
-                );
-                FW_GL_SCALE_F((float) 1.0/(((node->scale).c[0])),(float) 1.0/(((node->scale).c[1])),(float) 1.0/(((node->scale).c[2]))
-                );
-                FW_GL_ROTATE_F(-(((node->scaleOrientation).c[3])/(float) 3.1415926536*180),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
-                );
-                FW_GL_ROTATE_F(-(((node->rotation).c[3]))/(float) 3.1415926536*180,((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
-                );
-                FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
-                );
-                FW_GL_TRANSLATE_F(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
-                );
-            }
-        }
-#endif //HANIMHANIM
-}
-
-void fin_HAnimJoint (struct X3D_HAnimJoint * node) {
-return;
-#ifdef HANIMHANIM
-        if(!renderstate()->render_vp) {
-            FW_GL_POP_MATRIX();
-        } else {
-           /*Rendering the viewpoint only means finding it, and calculating the reverse WorldView matrix.*/
-            if((node->_renderFlags & VF_Viewpoint) == VF_Viewpoint) {
-                FW_GL_TRANSLATE_F(((node->center).c[0]),((node->center).c[1]),((node->center).c[2])
-                );
-                FW_GL_ROTATE_F(((node->scaleOrientation).c[3])/(float) 3.1415926536*180,((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
-                );
-                FW_GL_SCALE_F((float) 1.0/(((node->scale).c[0])),(float)1.0/(((node->scale).c[1])),(float)1.0/(((node->scale).c[2]))
-                );
-                FW_GL_ROTATE_F(-(((node->scaleOrientation).c[3])/(float)3.1415926536*180),((node->scaleOrientation).c[0]),((node->scaleOrientation).c[1]),((node->scaleOrientation).c[2])
-                );
-                FW_GL_ROTATE_F(-(((node->rotation).c[3]))/(float)3.1415926536*180,((node->rotation).c[0]),((node->rotation).c[1]),((node->rotation).c[2])
-                );
-                FW_GL_TRANSLATE_F(-(((node->center).c[0])),-(((node->center).c[1])),-(((node->center).c[2]))
-                );
-                FW_GL_TRANSLATE_F(-(((node->translation).c[0])),-(((node->translation).c[1])),-(((node->translation).c[2]))
-                );
-            }
-        }
-#endif //HANIMHANIM
 }
 
