@@ -106,7 +106,7 @@ extern char *BrowserFullPath;
 #define VF_Cube                      0x10000 //when generating generatedcubemap texture to fbo (don't render generatedcubemap parent nodes)
 
 /* for z depth buffer calculations */
-#define DEFAULT_NEARPLANE 0.08
+#define DEFAULT_NEARPLANE 0.07
 #define DEFAULT_FARPLANE 21000.0
 #define DEFAULT_BACKGROUNDPLANE 18000.0 /* approx 80% of DEFAULT_FARPLANE */
 extern double geoHeightinZAxis;

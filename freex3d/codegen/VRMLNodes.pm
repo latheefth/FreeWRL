@@ -1965,7 +1965,7 @@ our %Nodes = (
 			name => ["SFString", "", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			weight => ["SFFloat", 0.0, "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-					],"X3DGeometricPropertyNode"),
+	],"X3DGeometricPropertyNode"),
 
 	"HAnimHumanoid" => new VRML::NodeType("HAnimHumanoid", [
 			center => ["SFVec3f", [0, 0, 0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -1988,7 +1988,7 @@ our %Nodes = (
 			bboxCenter => ["SFVec3f", [0, 0, 0], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-					],"X3DChildNode"),
+	],"X3DChildNode"),
 
 	"HAnimJoint" => new VRML::NodeType("HAnimJoint", [
 
@@ -2013,13 +2013,14 @@ our %Nodes = (
 			bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
-			 # fields for reducing redundant calls
-			 __do_center => ["SFInt32", 0, "initializeOnly", 0],
-			 __do_trans => ["SFInt32", 0, "initializeOnly", 0],
-			 __do_rotation => ["SFInt32", 0, "initializeOnly", 0],
-			 __do_scaleO => ["SFInt32", 0, "initializeOnly", 0],
-			 __do_scale => ["SFInt32", 0, "initializeOnly", 0],
-					],"X3DChildNode"),
+			# fields for reducing redundant calls
+			__do_center => ["SFInt32", 0, "initializeOnly", 0],
+			__do_trans => ["SFInt32", 0, "initializeOnly", 0],
+			__do_rotation => ["SFInt32", 0, "initializeOnly", 0],
+			__do_scaleO => ["SFInt32", 0, "initializeOnly", 0],
+			__do_scale => ["SFInt32", 0, "initializeOnly", 0],
+			__do_anything => ["SFInt32", 0, "initializeOnly", 0],
+	],"X3DChildNode"),
 
 	"HAnimSegment" => new VRML::NodeType("HAnimSegment", [
 			addChildren => ["MFNode", undef, "inputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -2035,7 +2036,7 @@ our %Nodes = (
 			mass => ["SFFloat", 0, "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			momentsOfInertia =>["MFFloat", [0, 0, 0, 0, 0, 0, 0, 0, 0],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-					],"X3DChildNode"),
+	],"X3DChildNode"),
 
 
 
@@ -2054,13 +2055,14 @@ our %Nodes = (
 			translation => ["SFVec3f", [0, 0, 0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 
-			 # fields for reducing redundant calls
-			 __do_center => ["SFInt32", 0, "initializeOnly", 0],
-			 __do_trans => ["SFInt32", 0, "initializeOnly", 0],
-			 __do_rotation => ["SFInt32", 0, "initializeOnly", 0],
-			 __do_scaleO => ["SFInt32", 0, "initializeOnly", 0],
-			 __do_scale => ["SFInt32", 0, "initializeOnly", 0],
-					],"X3DGroupingNode"),
+			# fields for reducing redundant calls
+			__do_center => ["SFInt32", 0, "initializeOnly", 0],
+			__do_trans => ["SFInt32", 0, "initializeOnly", 0],
+			__do_rotation => ["SFInt32", 0, "initializeOnly", 0],
+			__do_scaleO => ["SFInt32", 0, "initializeOnly", 0],
+			__do_scale => ["SFInt32", 0, "initializeOnly", 0],
+			__do_anything => ["SFInt32", 0, "initializeOnly", 0],
+	],"X3DGroupingNode"),
 
 
 	###################################################################################

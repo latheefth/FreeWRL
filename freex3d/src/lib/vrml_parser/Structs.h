@@ -5117,6 +5117,7 @@ struct X3D_HAnimJoint {
 	int __do_rotation;
 	int __do_scaleO;
 	int __do_scale;
+	int __do_anything;
 };
 extern struct X3D_Virt virt_HAnimJoint;
 /***********************/
@@ -5184,6 +5185,7 @@ struct X3D_HAnimSite {
 	int __do_rotation;
 	int __do_scaleO;
 	int __do_scale;
+	int __do_anything;
 };
 extern struct X3D_Virt virt_HAnimSite;
 /***********************/
