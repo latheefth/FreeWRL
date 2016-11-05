@@ -969,6 +969,7 @@ c) look at atts containerField, and if not null and not children, use it.
 			}
 		}else{
 			printf("no where to put node in parent\n");
+			printf("nodetype=%s parenttype=%s\n",stringNodeType(node->_nodeType),stringNodeType(parent->_nodeType));
 
 		}
 	}

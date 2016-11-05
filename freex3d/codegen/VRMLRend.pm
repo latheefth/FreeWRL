@@ -678,6 +678,7 @@ our %CompileC = map {($_=>1)} qw/
 	ParticleSystem
 	HAnimJoint
 	HAnimSite
+	HAnimHumanoid
 /;
 
 

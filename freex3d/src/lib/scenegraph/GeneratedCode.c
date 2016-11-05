@@ -71,6 +71,11 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"FIFOsize",
 	"_CPU_Routes_out",
 	"_GPU_Routes_out",
+	"_JT",
+	"_NT",
+	"_NV",
+	"_PVI",
+	"_PVW",
 	"__DEFnames",
 	"__EXPORTS",
 	"__GC",
@@ -243,6 +248,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_oldrotation",
 	"_oldtrackPoint",
 	"_oldtranslation",
+	"_origCoords",
 	"_origNormalizedPoint",
 	"_origPoint",
 	"_p",
@@ -2577,7 +2583,8 @@ struct X3D_Virt virt_HAnimDisplacer = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 
 void render_HAnimHumanoid(struct X3D_HAnimHumanoid *);
 void child_HAnimHumanoid(struct X3D_HAnimHumanoid *);
-struct X3D_Virt virt_HAnimHumanoid = { NULL,(void *)render_HAnimHumanoid,(void *)child_HAnimHumanoid,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *);
+struct X3D_Virt virt_HAnimHumanoid = { NULL,(void *)render_HAnimHumanoid,(void *)child_HAnimHumanoid,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_HAnimHumanoid};
 
 void prep_HAnimJoint(struct X3D_HAnimJoint *);
 void render_HAnimJoint(struct X3D_HAnimJoint *);
@@ -4634,7 +4641,13 @@ const int OFFSETS_HAnimDisplacer[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_HAnimHumanoid[] = {
+	(int) FIELDNAMES__JT, (int) offsetof (struct X3D_HAnimHumanoid, _JT),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__NT, (int) offsetof (struct X3D_HAnimHumanoid, _NT),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__NV, (int) offsetof (struct X3D_HAnimHumanoid, _NV),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__PVI, (int) offsetof (struct X3D_HAnimHumanoid, _PVI),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__PVW, (int) offsetof (struct X3D_HAnimHumanoid, _PVW),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_HAnimHumanoid, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__origCoords, (int) offsetof (struct X3D_HAnimHumanoid, _origCoords),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_HAnimHumanoid, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_HAnimHumanoid, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_center, (int) offsetof (struct X3D_HAnimHumanoid, center),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9484,7 +9497,13 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_HAnimHumanoid : {
 			struct X3D_HAnimHumanoid * tmp2;
 			tmp2 = (struct X3D_HAnimHumanoid *) tmp;
+			tmp2->_JT = 0;
+			tmp2->_NT = 0;
+			tmp2->_NV = 0;
+			tmp2->_PVI = 0;
+			tmp2->_PVW = 0;
 			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
+			tmp2->_origCoords = 0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
