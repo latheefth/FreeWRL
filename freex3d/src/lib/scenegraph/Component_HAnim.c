@@ -236,20 +236,12 @@ on child_humanoid rendering call:
 
 */
 
-#define HANIMHANIM 1
 
 /* last HAnimHumanoid skinCoord and skinNormals */
 //void *HANimSkinCoord = 0;
 //void *HAnimSkinNormal = 0;
 typedef struct pComponent_HAnim{
-	void *HANimSkinCoord;// = 0;
-	void *HAnimSkinNormal;// = 0;
 	struct X3D_HAnimHumanoid *HH;
-	//Stack *JT;
-	//float *PVI;
-	//float *PVW;
-	//int NT;
-	//int NV;
 	double HHMatrix[16];
 
 }* ppComponent_HAnim;
@@ -264,8 +256,6 @@ void Component_HAnim_init(struct tComponent_HAnim *t){
 	t->prv = Component_HAnim_constructor();
 	{
 		ppComponent_HAnim p = (ppComponent_HAnim)t->prv;
-		p->HANimSkinCoord = 0;
-		p->HAnimSkinNormal = 0;
 		p->HH = NULL;
 
 	}
@@ -281,7 +271,7 @@ void Component_HAnim_clear(struct tComponent_HAnim *t){
 
 
 void compile_HAnimJoint (struct X3D_HAnimJoint *node){
-#ifdef HANIMHANIM
+
 	INITIALIZE_EXTENT;
 
 	/* printf ("changed Transform for node %u\n",node); */
@@ -299,11 +289,11 @@ void compile_HAnimJoint (struct X3D_HAnimJoint *node){
 
 	//REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
 	MARK_NODE_COMPILED
-#endif
+
 }
 void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
 
-#ifdef HANIMHANIM
+
 
 	COMPILE_IF_REQUIRED
 
@@ -357,12 +347,12 @@ void prep_HAnimJoint (struct X3D_HAnimJoint *node) {
 		RECORD_DISTANCE
 
 	}
-#endif
+
 }
 
 
 void fin_HAnimJoint (struct X3D_HAnimJoint *node) {
-#ifdef HANIMHANIM
+
 	OCCLUSIONTEST
 
 	if(!renderstate()->render_vp) {
@@ -388,11 +378,11 @@ void fin_HAnimJoint (struct X3D_HAnimJoint *node) {
 			);
 		}
 	}
-#endif
+
 } 
 
 void compile_HAnimSite (struct X3D_HAnimSite *node){
-#ifdef HANIMHANIM
+
 	INITIALIZE_EXTENT;
 
 	/* printf ("changed Transform for node %u\n",node); */
@@ -410,11 +400,11 @@ void compile_HAnimSite (struct X3D_HAnimSite *node){
 
 	//REINITIALIZE_SORTED_NODES_FIELD(node->children,node->_sortedChildren);
 	MARK_NODE_COMPILED
-#endif
+
 }
 void prep_HAnimSite (struct X3D_HAnimSite *node) {
 
-#ifdef HANIMHANIM
+
 
 	COMPILE_IF_REQUIRED
 
@@ -468,12 +458,12 @@ void prep_HAnimSite (struct X3D_HAnimSite *node) {
 		RECORD_DISTANCE
 
 	}
-#endif
+
 }
 
 
 void fin_HAnimSite (struct X3D_HAnimSite *node) {
-#ifdef HANIMHANIM
+
 	OCCLUSIONTEST
 
 	if(!renderstate()->render_vp) {
@@ -499,7 +489,7 @@ void fin_HAnimSite (struct X3D_HAnimSite *node) {
 			);
 		}
 	}
-#endif
+
 } 
 
 typedef  struct {double mat [16]; }  MATRIX4;
@@ -654,11 +644,6 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	}
 	if(1) normalChildren(node->skeleton);
 
-	//node->_NT = p->NT;
-	//node->_NV = p->NV;
-	//node->_PVI = p->PVI;
-	//node->_PVW = p->PVW;
-	//node->_JT = p->JT;
 
 	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 		//save original coordinates
@@ -756,7 +741,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 
 void child_HAnimJoint(struct X3D_HAnimJoint *node) {
-#ifdef HANIMHANIM
+
 	//CHILDREN_COUNT
 	/* any children at all? */
 	//if (nc==0) return;
@@ -769,11 +754,11 @@ void child_HAnimJoint(struct X3D_HAnimJoint *node) {
 	/* just render the non-directionalLight children */
 	normalChildren(node->children);
 
-#endif
+
 }
 
 void child_HAnimSegment(struct X3D_HAnimSegment *node) {
-#ifdef HANIMHANIM
+
 	//CHILDREN_COUNT
 
 
@@ -789,12 +774,12 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 
 	/* now, just render the non-directionalLight children */
 	normalChildren(node->children);
-#endif
+
 }
 
 
 void child_HAnimSite(struct X3D_HAnimSite *node) {
-#ifdef HANIMHANIM
+
 	//CHILDREN_COUNT
 	//LOCAL_LIGHT_SAVE
 	//RETURN_FROM_CHILD_IF_NOT_FOR_ME
@@ -811,6 +796,6 @@ void child_HAnimSite(struct X3D_HAnimSite *node) {
 	//LOCAL_LIGHT_OFF
 	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
-#endif
+
 }
 
