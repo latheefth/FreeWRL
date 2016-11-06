@@ -875,7 +875,6 @@ b) get the parent's suggested fieldname off stack, and if not null,
 c) look at atts containerField, and if not null and not children, use it.
 	- scene author is trying to over-ride defaults.
 */
-	int defaultContainer; //, instanceContainer, i;
 	struct X3D_Node *node, *parent;
 	char *parentsSuggestion; //*ic,  
 	int type, kind, iifield, ok, isRootNode, mode;
@@ -900,31 +899,40 @@ c) look at atts containerField, and if not null and not children, use it.
 		ok = getFieldFromNodeAndName(parent,"__children",&type,&kind,&iifield,&valueadd);
 		AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,__FILE__,__LINE__);
 	}else{
+		int i, defaultContainer[3], iContainer, ncontainer; //, instanceContainer, i;
+
 		parentsSuggestion = getField(ud,TOP-1);
 
 		//3.a)
-		defaultContainer = node->_defaultContainer;
-		if(defaultContainer == FIELDNAMES_children) defaultContainer = 0;
-		value = NULL;
-		fname = NULL;
-		ok = 0;
-		if(defaultContainer){
-			fname = FIELDNAMES[defaultContainer];
-			ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
-			ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
-		}
-		if(!value && node->_defaultContainer == FIELDNAMES_children){
-			//if you try and put a transform into a proto, or LOD, or Inline (or switch?) you'll come in
-			//here to get the equivalent-to-children field
-			ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
-			ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
-			if(!ok){
-				int kids = indexChildrenName(parent);
-				if(kids > 0){
-					 value = (union anyVrml*)childrenField(parent);
-					 type = FIELDTYPE_MFNode;
+		defaultContainer[0] = (node->_defaultContainer << 16) >> 16; //Nov 2016 I sqeezed multiple defaults into an int in perl, and extract them here
+		defaultContainer[1] = node->_defaultContainer >> 16;
+		ncontainer = 1;
+		if(defaultContainer[1]) ncontainer = 2;
+		for(i=0;i<ncontainer;i++){
+			iContainer = defaultContainer[i];
+			if(iContainer == FIELDNAMES_children) iContainer = 0;
+			value = NULL;
+			fname = NULL;
+			ok = 0;
+			if(iContainer){
+				fname = FIELDNAMES[iContainer];
+				ok = getFieldFromNodeAndName(parent,fname,&type,&kind,&iifield,&value);
+				ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
+			}
+			if(!value && iContainer == FIELDNAMES_children){
+				//if you try and put a transform into a proto, or LOD, or Inline (or switch?) you'll come in
+				//here to get the equivalent-to-children field
+				ok = getFieldFromNodeAndName(parent,"children",&type,&kind,&iifield,&value);
+				ok = ok && (kind == PKW_initializeOnly || kind == PKW_inputOutput); //not inputOnly or outputOnly - we can't park nodes there
+				if(!ok){
+					int kids = indexChildrenName(parent);
+					if(kids > 0){
+						 value = (union anyVrml*)childrenField(parent);
+						 type = FIELDTYPE_MFNode;
+					}
 				}
 			}
+			if(ok)break;
 		}
 		//3.b)
 		//if(parentsSuggestion) {
@@ -1418,7 +1426,12 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 		//int builtinField = findFieldInARR(containerfield,FIELDNAMES,FIELDNAMES_COUNT); 
 		int builtinField = findFieldInFIELDNAMES(containerfield);
 		if(builtinField > INT_ID_UNDEFINED){
-			node->_defaultContainer = builtinField;
+			//if USE, the DEF could specify containerField that's wrong for the USE
+			//so we'll keep the original as well, for linkNodeIn
+			//in theory we should call an update function here, and about 4 other places
+			// in x3dparser.c
+			node->_defaultContainer = (node->_defaultContainer << 16) + builtinField;  
+			//printf("new defaultContainer=%u\n",(unsigned int)node->_defaultContainer);
 		}
 	}
 

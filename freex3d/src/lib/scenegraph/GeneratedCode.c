@@ -8648,7 +8648,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Coordinate *) tmp;
 			tmp2->metadata = NULL;
 			tmp2->point.n=0; tmp2->point.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_coord;
+			tmp2->_defaultContainer = FIELDNAMES_coord + (FIELDNAMES_skinCoord << 16);
 		break;
 		}
 		case NODE_CoordinateChaser : {

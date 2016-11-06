@@ -244,11 +244,12 @@ on child_humanoid rendering call:
 typedef struct pComponent_HAnim{
 	void *HANimSkinCoord;// = 0;
 	void *HAnimSkinNormal;// = 0;
-	Stack *JT;
-	float *PVI;
-	float *PVW;
-	int NT;
-	int NV;
+	struct X3D_HAnimHumanoid *HH;
+	//Stack *JT;
+	//float *PVI;
+	//float *PVW;
+	//int NT;
+	//int NV;
 	double HHMatrix[16];
 
 }* ppComponent_HAnim;
@@ -265,6 +266,7 @@ void Component_HAnim_init(struct tComponent_HAnim *t){
 		ppComponent_HAnim p = (ppComponent_HAnim)t->prv;
 		p->HANimSkinCoord = 0;
 		p->HAnimSkinNormal = 0;
+		p->HH = NULL;
 
 	}
 }
@@ -515,6 +517,9 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	int i,j;
 	double modelviewMatrix[16], mvmInverse[16];
 	MATRIX4 jointMatrix;
+	Stack *JT;
+	float *PVW, *PVI;
+
 	ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
 	//printf ("rendering HAnimJoint %d\n",node); 
 	
@@ -523,24 +528,26 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	//matinverseAFFINE(bothinverse,viewmatrix);
 	matinverseAFFINE(mvmInverse,modelviewMatrix);
 	matmultiplyAFFINE((double*)&jointMatrix,mvmInverse,p->HHMatrix);
-
+	JT = p->HH->_JT;
 	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
 		//convert to quaternion + position
 		//add to HH transform list
 	}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 		//step 2, add transform to HH transform list, get its index in list
-		stack_push(MATRIX4,p->JT,jointMatrix);
+		stack_push(MATRIX4,JT,jointMatrix);
 	}
-	int jointTransformIndex = vectorSize(p->JT); //indexes start at 1
+	int jointTransformIndex = vectorSize(JT); //indexes start at 1
 	
 	//step 3, add transform index and weight to each skin vertex
+	PVW = (float*)p->HH->_PVW;
+	PVI = (float*)p->HH->_PVI;
 	for(i=0;i<node->skinCoordIndex.n;i++){
 		int idx = node->skinCoordIndex.p[i];
 		float wt = node->skinCoordWeight.p[min(i,node->skinCoordWeight.n -1)];
 		for(j=0;j<4;j++){
-			if(p->PVI[idx*4 + j] == 0){
-				p->PVI[idx*4 +j] = jointTransformIndex;
-				p->PVW[idx*4 +j] = wt;
+			if(PVI[idx*4 + j] == 0.0f){
+				PVI[idx*4 +j] = (float)jointTransformIndex;
+				PVW[idx*4 +j] = wt;
 			}
 		}
 	}
@@ -576,6 +583,7 @@ void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 void child_HAnimHumanoid(struct X3D_HAnimHumanoid *node) {
 	int nc;
 	float *originalCoords;
+	Stack *JT;
 	ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
 	COMPILE_IF_REQUIRED
 
@@ -632,21 +640,20 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	//skeleton is the basic thing to render for LOA 0
 	memset(node->_PVI,0,4*node->_NV*sizeof(float));
 	memset(node->_PVW,0,4*node->_NV*sizeof(float));
-	p->NT = node->_NT;
-	p->NV = node->_NV;
-	p->PVI = node->_PVI;
-	p->PVW = node->_PVW;
-	p->JT = node->_JT;
-	p->JT->n = 0; 
+	JT = node->_JT; 
+	JT->n = 0;
+
+	//in theory, HH, HHMatrix could be a stack, so you could have an hanimhumaoid within an hanimhunaniod
+	p->HH = node;
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->HHMatrix);
 
 	if(1) normalChildren(node->skeleton);
 
-	node->_NT = p->NT;
-	node->_NV = p->NV;
-	node->_PVI = p->PVI;
-	node->_PVW = p->PVW;
-	node->_JT = p->JT;
+	//node->_NT = p->NT;
+	//node->_NV = p->NV;
+	//node->_PVI = p->PVI;
+	//node->_PVW = p->PVW;
+	//node->_JT = p->JT;
 
 	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 		//save original coordinates
@@ -663,13 +670,16 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 				float *point = &psc[i*3];
 				float norm[3]; //don't have this
 				float newpoint[3], newnorm[3];
+				float *PVW, *PVI;
+				PVW = node->_PVW;
+				PVI = node->_PVI;
 				if(1) vecscale3f(norm,norm,0.0f); //don't have norm yet, so I'll set to zero for now
 				memset(newpoint,0,3*sizeof(float));
 				memset(newnorm,0,3*sizeof(float));
 				totalWeight = 0.0f;
 				for(j=0;j<4;j++){
-					int jointTransformIndex = (int)p->PVI[i*4 + j];
-					float wt = p->PVW[i*4 + j];
+					int jointTransformIndex = (int)PVI[i*4 + j];
+					float wt = PVW[i*4 + j];
 					if(jointTransformIndex > 0){
 						float tpoint[3], tnorm[3];
 						MATRIX4 jointMatrix;
@@ -691,7 +701,16 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 			}
 			//trigger recompile of shapes when rendering skin
 			//NODE_NEEDS_COMPILING
-			node->skinCoord->_change++;;
+			{
+				int k;
+				node->skinCoord->_change++;
+				Stack *parents = node->skinCoord->_parentVector;
+				for(k=0;i<vectorSize(parents);k++){
+					struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
+					parent->_change++;
+				}
+			}
+
 		}
 	}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
 		//push shader flaga with += SKELETAL
