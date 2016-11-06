@@ -745,7 +745,9 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	{
 		//wireframe lines - prepare in case someone does SHADINGSTYLE_WIRE
 		int i, i3, i6;
-		GLushort *lindex = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3*2);
+		GLushort *lindex;
+		FREE_IF_NZ(r->wire_indices);
+		lindex = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3*2);
 		
 		for(i=0;i<r->ntri;i++){
 			i3 = i*3;
@@ -767,6 +769,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	{
 		//prepare flat normals / face normals for SHADINGSTYLE_FLAT
 		int i9;
+		FREE_IF_NZ(r->flat_normal);
 		r->flat_normal = MALLOC(GLfloat*,r->ntri*sizeof(struct SFColor)*3);
 		for(i=0;i<r->ntri;i++){
 			float a[3],b[3],c[3],d[3], e[3], f[3], g[3];
@@ -808,7 +811,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	#endif
 
 }
-    
+
 static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r) { //, struct SFVec3f *points, int npoints) {
 	ppStreamPoly psp = (ppStreamPoly)gglobal()->StreamPoly.prv;
 
@@ -831,10 +834,7 @@ static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r) { //, 
 
 	UNUSED(Tsize); // compiler warnings mitigation
 
-	if ((p->_nodeType == NODE_IndexedFaceSet) ||(p->_nodeType == NODE_ElevationGrid) 
-        
-        ) {
-
+	if (p->_nodeType == NODE_IndexedFaceSet || p->_nodeType == NODE_ElevationGrid) {
 		/* find the S,T mapping. */
 		Xsize = r->maxVals[0]-psp->minVals[0];
 		Ysize = r->maxVals[1]-psp->minVals[1];
@@ -845,18 +845,27 @@ static void defaultTextureMap(struct X3D_Node *p, struct X3D_PolyRep * r) { //, 
 		if ((Xsize >= Ysize) && (Xsize >= Zsize)) {
 			/* X size largest */
 			psp->Ssize = Xsize; psp->Sindex = 0;
-			if (Ysize >= Zsize) { Tsize = Ysize; psp->Tindex = 1;
-			} else { Tsize = Zsize; psp->Tindex = 2; }
+			if (Ysize >= Zsize) {
+				Tsize = Ysize; psp->Tindex = 1;
+			} else { 
+				Tsize = Zsize; psp->Tindex = 2; 
+			}
 		} else if ((Ysize >= Xsize) && (Ysize >= Zsize)) {
 			/* Y size largest */
 			psp->Ssize = Ysize; psp->Sindex = 1;
-			if (Xsize >= Zsize) { Tsize = Xsize; psp->Tindex = 0;
-			} else { Tsize = Zsize; psp->Tindex = 2; }
+			if (Xsize >= Zsize) { 
+				Tsize = Xsize; psp->Tindex = 0;
+			} else { 
+				Tsize = Zsize; psp->Tindex = 2; 
+			}
 		} else {
 			/* Z is the largest */
 			psp->Ssize = Zsize; psp->Sindex = 2;
-			if (Xsize >= Ysize) { Tsize = Xsize; psp->Tindex = 0;
-			} else { Tsize = Ysize; psp->Tindex = 1; }
+			if (Xsize >= Ysize) { 
+				Tsize = Xsize; psp->Tindex = 0;
+			} else { 
+				Tsize = Ysize; psp->Tindex = 1; 
+			}
 		}
 	}
 }

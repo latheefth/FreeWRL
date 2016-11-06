@@ -703,8 +703,9 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 				printf("\n");
 			}
 			//trigger recompile of skin->shapes when rendering skin
+			//Nov 6, 2016: recompiling a shape / polyrep on each frame eats memory 
 			//NODE_NEEDS_COMPILING
-			{
+			if(1){
 				int k;
 				node->skinCoord->_change++;
 				Stack *parents = node->skinCoord->_parentVector;
