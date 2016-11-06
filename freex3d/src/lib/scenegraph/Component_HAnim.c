@@ -644,95 +644,95 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	}
 	if(1) normalChildren(node->skeleton);
 
+	if(node->skin.n){
+		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
+			//save original coordinates
+			//transform each vertex and its normal using weighted transform
+			int i,j,nsc = 0;
+			float *psc = NULL;
+			if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
+				struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
+				nsc = nc->point.n;
+				psc = (float*)nc->point.p;
+				memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
+				for(i=0;i<nsc;i++){
+					float totalWeight;
+					float *point = &psc[i*3];
+					float norm[3]; //don't have this
+					float newpoint[3], newnorm[3];
+					float *PVW, *PVI;
+					PVW = node->_PVW;
+					PVI = node->_PVI;
+					if(1) vecscale3f(norm,norm,0.0f); //don't have norm yet, so I'll set to zero for now
+					memset(newpoint,0,3*sizeof(float));
+					memset(newnorm,0,3*sizeof(float));
+					totalWeight = 0.0f;
+					for(j=0;j<4;j++){
+						int jointTransformIndex = (int)PVI[i*4 + j];
+						float wt = PVW[i*4 + j];
+						if(jointTransformIndex > 0){
+							float tpoint[3], tnorm[3];
+							MATRIX4 jointMatrix;
+							jointMatrix = vector_get(MATRIX4,node->_JT,jointTransformIndex -1);
+							transformf(tpoint,point,jointMatrix.mat);
+							vecscale3f(tpoint,tpoint,wt);
 
-	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
-		//save original coordinates
-		//transform each vertex and its normal using weighted transform
-		int i,j,nsc = 0;
-		float *psc = NULL;
-		if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
+							vecadd3f(newpoint,newpoint,tpoint);
+							transformf(tnorm,norm,jointMatrix.mat);
+							vecscale3f(tnorm,tnorm,wt);
+							vecadd3f(newnorm,newnorm,tnorm);
+							totalWeight += wt;
+						}
+					}
+					if(totalWeight > 0.0f){
+						vecscale3f(newpoint,newpoint,1.0f/totalWeight);
+						vecscale3f(newnorm,newnorm,1.0f/totalWeight);
+						veccopy3f(point,newpoint);
+					}
+				}
+				if(0){
+					//print out before and after coords
+					float *osc = node->_origCoords;
+					for(i=0;i<nsc;i++){
+						printf("%d ",i);
+						for(j=0;j<3;j++) printf("%f ",psc[i*3 +j]);
+						printf("/ ");
+						for(j=0;j<3;j++) printf("%f ",osc[i*3 +j]);
+						printf("\n");
+					}
+					printf("\n");
+				}
+				//trigger recompile of skin->shapes when rendering skin
+				//Nov 6, 2016: recompiling a shape / polyrep on each frame eats memory 
+				//NODE_NEEDS_COMPILING
+				if(1){
+					int k;
+					node->skinCoord->_change++;
+					Stack *parents = node->skinCoord->_parentVector;
+					for(k=0;k<vectorSize(parents);k++){
+						struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
+						parent->_change++;
+					}
+				}
+
+			}
+		}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
+			//push shader flaga with += SKELETAL
+		}
+
+		if(1) normalChildren(node->skin);
+		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
+			//pop shader flags
+		} else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
+			//restore original coordinates 
+			int nsc;
+			float *psc;
 			struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
 			nsc = nc->point.n;
 			psc = (float*)nc->point.p;
 			memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
-			for(i=0;i<nsc;i++){
-				float totalWeight;
-				float *point = &psc[i*3];
-				float norm[3]; //don't have this
-				float newpoint[3], newnorm[3];
-				float *PVW, *PVI;
-				PVW = node->_PVW;
-				PVI = node->_PVI;
-				if(1) vecscale3f(norm,norm,0.0f); //don't have norm yet, so I'll set to zero for now
-				memset(newpoint,0,3*sizeof(float));
-				memset(newnorm,0,3*sizeof(float));
-				totalWeight = 0.0f;
-				for(j=0;j<4;j++){
-					int jointTransformIndex = (int)PVI[i*4 + j];
-					float wt = PVW[i*4 + j];
-					if(jointTransformIndex > 0){
-						float tpoint[3], tnorm[3];
-						MATRIX4 jointMatrix;
-						jointMatrix = vector_get(MATRIX4,node->_JT,jointTransformIndex -1);
-						transformf(tpoint,point,jointMatrix.mat);
-						vecscale3f(tpoint,tpoint,wt);
-
-						vecadd3f(newpoint,newpoint,tpoint);
-						transformf(tnorm,norm,jointMatrix.mat);
-						vecscale3f(tnorm,tnorm,wt);
-						vecadd3f(newnorm,newnorm,tnorm);
-						totalWeight += wt;
-					}
-				}
-				if(totalWeight > 0.0f){
-					vecscale3f(newpoint,newpoint,1.0f/totalWeight);
-					vecscale3f(newnorm,newnorm,1.0f/totalWeight);
-					veccopy3f(point,newpoint);
-				}
-			}
-			if(0){
-				//print out before and after coords
-				float *osc = node->_origCoords;
-				for(i=0;i<nsc;i++){
-					printf("%d ",i);
-					for(j=0;j<3;j++) printf("%f ",psc[i*3 +j]);
-					printf("/ ");
-					for(j=0;j<3;j++) printf("%f ",osc[i*3 +j]);
-					printf("\n");
-				}
-				printf("\n");
-			}
-			//trigger recompile of skin->shapes when rendering skin
-			//Nov 6, 2016: recompiling a shape / polyrep on each frame eats memory 
-			//NODE_NEEDS_COMPILING
-			if(1){
-				int k;
-				node->skinCoord->_change++;
-				Stack *parents = node->skinCoord->_parentVector;
-				for(k=0;k<vectorSize(parents);k++){
-					struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
-					parent->_change++;
-				}
-			}
-
 		}
-	}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
-		//push shader flaga with += SKELETAL
-	}
-
-	if(1) normalChildren(node->skin);
-	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
-		//pop shader flags
-	} else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
-		//restore original coordinates 
-		int nsc;
-		float *psc;
-		struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
-		nsc = nc->point.n;
-		psc = (float*)nc->point.p;
-		memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
-	}
-
+	} //if skin
 	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 
