@@ -1298,6 +1298,10 @@ static void endProtoInstance_B(void *ud, const char *name) {
 					//from the protoInstance interface
 					struct X3D_Proto *pdeclare;
 					pdeclare = X3D_PROTO(pnode->__prototype);
+					//if you bomb around here, pdeclare == null, then make sure your scene 
+					// doesn't have protoDeclares with the same name as freewrl builtin types
+					// because as of Nov 2016 freewrl doesn't allow over-riding builtins with protos,
+					// and gets confused and bombs
 					deep_copy_broto_body2(&pdeclare,&pnode);
 				}
 			}
