@@ -514,7 +514,7 @@ void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node) {
 }
 
 void render_HAnimJoint (struct X3D_HAnimJoint * node) {
-	int i,j;
+	int i,j, jointTransformIndex;
 	double modelviewMatrix[16], mvmInverse[16];
 	MATRIX4 jointMatrix;
 	Stack *JT;
@@ -525,10 +525,9 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	
 	//step 1, generate transform
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
-	//matinverseAFFINE(bothinverse,viewmatrix);
-	matinverseAFFINE(mvmInverse,modelviewMatrix);
-	matmultiplyAFFINE((double*)&jointMatrix,mvmInverse,p->HHMatrix);
+	matmultiplyAFFINE(jointMatrix.mat,modelviewMatrix,p->HHMatrix);
 	JT = p->HH->_JT;
+
 	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
 		//convert to quaternion + position
 		//add to HH transform list
@@ -536,7 +535,10 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 		//step 2, add transform to HH transform list, get its index in list
 		stack_push(MATRIX4,JT,jointMatrix);
 	}
-	int jointTransformIndex = vectorSize(JT); //indexes start at 1
+	//I'll let this index start at 1, and subtract 1 when retrieving with vector_get, 
+	//so I can use jointTransformIndex==0 as a sentinal value for 'no transform stored'
+	//to save me from having an extra .n transforms variable
+	jointTransformIndex = vectorSize(JT); 
 	
 	//step 3, add transform index and weight to each skin vertex
 	PVW = (float*)p->HH->_PVW;
@@ -645,8 +647,11 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 
 	//in theory, HH, HHMatrix could be a stack, so you could have an hanimhumaoid within an hanimhunaniod
 	p->HH = node;
-	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, p->HHMatrix);
-
+	{
+		double modelviewMatrix[16];
+		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+		matinverseAFFINE(p->HHMatrix,modelviewMatrix);
+	}
 	if(1) normalChildren(node->skeleton);
 
 	//node->_NT = p->NT;
@@ -683,11 +688,12 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 					if(jointTransformIndex > 0){
 						float tpoint[3], tnorm[3];
 						MATRIX4 jointMatrix;
-						jointMatrix = vector_get(MATRIX4,node->_JT,jointTransformIndex);
-						transformf(tpoint,point,(double*)&jointMatrix);
+						jointMatrix = vector_get(MATRIX4,node->_JT,jointTransformIndex -1);
+						transformf(tpoint,point,jointMatrix.mat);
 						vecscale3f(tpoint,tpoint,wt);
+
 						vecadd3f(newpoint,newpoint,tpoint);
-						transformf(tnorm,norm,(double*)&jointMatrix);
+						transformf(tnorm,norm,jointMatrix.mat);
 						vecscale3f(tnorm,tnorm,wt);
 						vecadd3f(newnorm,newnorm,tnorm);
 						totalWeight += wt;
@@ -699,13 +705,25 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 					veccopy3f(point,newpoint);
 				}
 			}
-			//trigger recompile of shapes when rendering skin
+			if(0){
+				//print out before and after coords
+				float *osc = node->_origCoords;
+				for(i=0;i<nsc;i++){
+					printf("%d ",i);
+					for(j=0;j<3;j++) printf("%f ",psc[i*3 +j]);
+					printf("/ ");
+					for(j=0;j<3;j++) printf("%f ",osc[i*3 +j]);
+					printf("\n");
+				}
+				printf("\n");
+			}
+			//trigger recompile of skin->shapes when rendering skin
 			//NODE_NEEDS_COMPILING
 			{
 				int k;
 				node->skinCoord->_change++;
 				Stack *parents = node->skinCoord->_parentVector;
-				for(k=0;i<vectorSize(parents);k++){
+				for(k=0;k<vectorSize(parents);k++){
 					struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
 					parent->_change++;
 				}
