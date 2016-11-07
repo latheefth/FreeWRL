@@ -501,8 +501,10 @@ float* vecmultmat3f(float* r3, float* a3, float *mat3 )
 		for(j=0;j<3;j++)
 			r3[i] += t3[j]*b[j][i];
 	}
+
     return r3;
 }
+
 /*transform point, but ignores translation.*/
 struct point_XYZ* transform3x3(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b)
 {
@@ -1337,6 +1339,34 @@ BOOL matrix3x3_inverse_float(float *inn, float *outt)
         return TRUE;
     }
 }
+float * mat423f(float *out3x3, float *in4x4)
+{
+	int i,j;
+	for(i=0;i<3;i++){
+		for(j=0;j<3;j++)
+			out3x3[i*3 + j] = in4x4[i*4 + j];
+	}
+	return out3x3;
+}
+float * matinverse3f(float *out3x3, float *in3x3)
+{
+	matrix3x3_inverse_float(in3x3,out3x3);
+	return out3x3;
+}
+
+float * transform3x3f(float *out3, float *in3, float *mat3x3){
+	int i,j;
+    float t3[3];
+	memcpy(t3,in3,3*sizeof(float));
+	for(i=0;i<3;i++){
+		out3[i] = 0.0f;
+		for(j=0;j<3;j++)
+			out3[i] += t3[j]*mat3x3[j*3 + i];
+	}
+
+    return out3;
+}
+
 BOOL affine_matrix4x4_inverse_float(float *inn, float *outt)
 {
 	/*FLOPs 49 float: det3 12, 1/det 1, adj3x3 9x3=27, INV*T=9 */

@@ -1989,11 +1989,11 @@ our %Nodes = (
 			bboxSize => ["SFVec3f", [-1, -1, -1], "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			_JT => ["FreeWRLPTR",0,"initializeOnly", 0],
-			_NT => ["SFInt32", 0, "initializeOnly", 0],
 			_PVI => ["FreeWRLPTR",0,"initializeOnly", 0],
 			_PVW => ["FreeWRLPTR",0,"initializeOnly", 0],	
 			_NV => ["SFInt32", 0, "initializeOnly", 0],
 			_origCoords => ["FreeWRLPTR",0,"initializeOnly", 0],
+			_origNorms => ["FreeWRLPTR",0,"initializeOnly", 0],
 	],"X3DChildNode"),
 
 	"HAnimJoint" => new VRML::NodeType("HAnimJoint", [
@@ -2042,6 +2042,7 @@ our %Nodes = (
 			mass => ["SFFloat", 0, "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			momentsOfInertia =>["MFFloat", [0, 0, 0, 0, 0, 0, 0, 0, 0],"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_origCoords => ["FreeWRLPTR",0,"initializeOnly", 0],
 	],"X3DChildNode"),
 
 

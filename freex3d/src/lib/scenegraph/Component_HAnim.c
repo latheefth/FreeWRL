@@ -492,7 +492,10 @@ void fin_HAnimSite (struct X3D_HAnimSite *node) {
 
 } 
 
-typedef  struct {double mat [16]; }  MATRIX4;
+typedef  struct {
+	double mat [16];
+	float normat[9];
+}  JMATRIX;
 enum {
 	VERTEXTRANSFORMMETHOD_CPU = 1,
 	VERTEXTRANSFORMMETHOD_GPU = 2,
@@ -506,24 +509,36 @@ void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node) {
 void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	int i,j, jointTransformIndex;
 	double modelviewMatrix[16], mvmInverse[16];
-	MATRIX4 jointMatrix;
+	JMATRIX jointMatrix;
 	Stack *JT;
 	float *PVW, *PVI;
 
 	ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
 	//printf ("rendering HAnimJoint %d\n",node); 
 	
+
+	JT = p->HH->_JT;
+
 	//step 1, generate transform
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 	matmultiplyAFFINE(jointMatrix.mat,modelviewMatrix,p->HHMatrix);
-	JT = p->HH->_JT;
+	if(p->HH->skinNormal){
+		//want 'inverse-transpose' 3x3 float for transforming normals
+		//(its almost the same as jointMatrix.mat except when shear due to assymetric scales)
+		float fmat4[16], fmat3[9],fmat3i[9],fmat3it[9];
+		matdouble2float4(fmat4,jointMatrix.mat);
+		mat423f(fmat3,fmat4);
+		matinverse3f(fmat3i,fmat3);
+		mattranspose3f(jointMatrix.normat,fmat3i);
+		//printf("jm.normat[1] %f\n",jointMatrix.normat[1]);
+	}
 
 	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
 		//convert to quaternion + position
 		//add to HH transform list
 	}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 		//step 2, add transform to HH transform list, get its index in list
-		stack_push(MATRIX4,JT,jointMatrix);
+		stack_push(JMATRIX,JT,jointMatrix);
 	}
 	//I'll let this index start at 1, and subtract 1 when retrieving with vector_get, 
 	//so I can use jointTransformIndex==0 as a sentinal value for 'no transform stored'
@@ -543,31 +558,98 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 			}
 		}
 	}
+	//step 4: add on any Displacer displacements
+	if(p->HH->skinCoord && node->displacers.n ){
+		int nsc, ndp, ni, i;
+		float *psc, *pdp;
+		int *ci;
+		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)p->HH->skinCoord;
+		psc = (float*)nc->point.p;
+		nsc = nc->point.n;
+		for(i=0;i<node->displacers.n;i++){
+			int index, j;
+			float *point, weight, wdisp[3];
+			struct X3D_HAnimDisplacer *dp = (struct X3D_HAnimDisplacer *)node->displacers.p[i];
+				
+			weight = dp->weight;
+			//printf(" %f ",weight);
+			pdp = (float*)dp->displacements.p;
+			ndp = dp->displacements.n;
 
+			ni = dp->coordIndex.n;
+			ci = dp->coordIndex.p;
+			for(j=0;j<ni;j++){
+				index = ci[j];
+				point = &psc[index*3];
+				vecscale3f(wdisp,&pdp[j*3],weight);
+				vecadd3f(point,point,wdisp);
+			}
+		}
+		if(0){ //this is done in child_HAnimHumanoid for the skinCoord parents
+			//force HAnimSegment.children[] shape nodes using segment->coord to recompile
+			int k;
+			p->HH->skinCoord->_change++;
+			Stack *parents = p->HH->skinCoord->_parentVector;
+			for(k=0;k<vectorSize(parents);k++){
+				struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
+				parent->_change++;
+			}
+		}
+
+	}
+
+}
+int vecsametol3f(float *a, float *b, float tol){
+	int i,isame = TRUE;
+	for(i=0;i<3;i++)
+		if(fabsf(a[i] - b[i]) > tol) isame = FALSE;
+	return isame;
 }
 void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 	//printf("compile_HAnimHumanoid\n");
 	//check if the coordinate count is the same
-	int nsc = 0;
-	float *psc = NULL;
+	int nsc = 0, nsn = 0;
+	float *psc = NULL, *psn = NULL;
 	if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
 		struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
 		nsc = nc->point.n;
 		psc = (float*)nc->point.p;
 		node->_origCoords = realloc(node->_origCoords,nsc*3*sizeof(float));
 		memcpy(node->_origCoords,psc,nsc*3*sizeof(float));
+		if(0){
+			//find a few coordinates in skinCoord I hacked, by xyz, and give me their index, for making a displacer
+			float myfind[9] = {-0.030000, -0.070000, 1.777000 ,  -0.070000, 1.777000, 0.130000 ,  1.777000, 0.130000, 0.070000 };
+			for(int i=0;i<nsc;i++){
+				for(int j=0;j<3;j++)
+					if(vecsametol3f(&psc[i*3],&myfind[j*3],.001f)){
+						printf("%d %f %f %f\n",i,myfind[j*3 + 0],myfind[j*3 +1],myfind[j*3 +2]);
+					}
+			}
+		}
 	}
-		
+	if(node->skinNormal && node->skinNormal->_nodeType == NODE_Normal){
+		struct X3D_Normal * nn = (struct X3D_Normal * )node->skinNormal;
+		//Assuming 1 normal per coord, coord 1:1 normal
+		nsn = nn->vector.n;
+		psn = (float*)nn->vector.p;
+		node->_origNorms = realloc(node->_origNorms,nsn*3*sizeof(float));
+		memcpy(node->_origNorms,psn,nsn*3*sizeof(float));
+	}
+	
+	//allocate the joint-transform_index and joint-weight arrays
+	//Nov 2016: max 4: meaning each skinCoord can have up to 4 joints referencing/influencing it
+	//4 chosen so it's easier to port to GPU method with vec4
 	if(node->_NV == 0 || node->_NV != nsc){
-		node->_PVI = realloc(node->_PVI,nsc*4*sizeof(float)); //indexes, as float vec4
-		node->_PVW = realloc(node->_PVW,nsc*4*sizeof(float)); //weights, as float vec4
+		node->_PVI = realloc(node->_PVI,nsc*4*sizeof(float)); //indexes, up to 4 joints per skinCoord
+		node->_PVW = realloc(node->_PVW,nsc*4*sizeof(float)); //weights, up to 4 joints per skinCoord
 		node->_NV = nsc;
 	}
+	//allocate the transform array
 	if(node->_JT == NULL)
 		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
 			//new stack quat + position
 		}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
-			node->_JT = newStack(MATRIX4); //we don't know how many joints there are - need to count as we go
+			node->_JT = newStack(JMATRIX); //we don't know how many joints there are - need to count as we go
 		}
 	MARK_NODE_COMPILED
 }
@@ -642,97 +724,139 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 		matinverseAFFINE(p->HHMatrix,modelviewMatrix);
 	}
+	if(node->skin.n){
+		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
+			//save original coordinates before rendering skeleton
+			// - HAnimJoint may have displacers that change the Coords
+			//transform each vertex and its normal using weighted transform
+			int i,j,nsc = 0, nsn = 0;
+			float *psc = NULL, *psn = NULL;
+			if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
+				struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
+				struct X3D_Normal *nn = (struct X3D_Normal *)node->skinNormal; //might be NULL 
+				nsc = nc->point.n;
+				psc = (float*)nc->point.p;
+				memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
+				if(nn){
+					nsn = nn->vector.n;
+					psn = (float *)nn->vector.p;
+					memcpy(psn,node->_origNorms,3*nsn*sizeof(float));
+				}
+			}
+		}
+	}
 	if(1) normalChildren(node->skeleton);
 
+	if(node->skin.n){
+		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
+			//save original coordinates
+			//transform each vertex and its normal using weighted transform
+			int i,j,nsc = 0, nsn = 0;
+			float *psc = NULL, *psn = NULL;
+			if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
+				struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
+				struct X3D_Normal *nn = (struct X3D_Normal *)node->skinNormal; //might be NULL 
+				nsc = nc->point.n;
+				psc = (float*)nc->point.p;
+				//memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
+				if(nn){
+					nsn = nn->vector.n;
+					psn = (float *)nn->vector.p;
+					//memcpy(psn,node->_origNorms,3*nsn*sizeof(float));
+				}
 
-	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
-		//save original coordinates
-		//transform each vertex and its normal using weighted transform
-		int i,j,nsc = 0;
-		float *psc = NULL;
-		if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
+				for(i=0;i<nsc;i++){
+					float totalWeight;
+					float *point, *norm; 
+					float newpoint[3], newnorm[3];
+					float *PVW, *PVI;
+
+					point = &psc[i*3];
+					norm = NULL;
+					if(nn) norm = &psn[i*3];
+					PVW = node->_PVW;
+					PVI = node->_PVI;
+
+					memset(newpoint,0,3*sizeof(float));
+					memset(newnorm,0,3*sizeof(float));
+					totalWeight = 0.0f;
+					for(j=0;j<4;j++){
+						int jointTransformIndex = (int)PVI[i*4 + j];
+						float wt = PVW[i*4 + j];
+						if(jointTransformIndex > 0){
+							float tpoint[3], tnorm[3];
+							JMATRIX jointMatrix;
+							jointMatrix = vector_get(JMATRIX,node->_JT,jointTransformIndex -1);
+							transformf(tpoint,point,jointMatrix.mat);
+							vecscale3f(tpoint,tpoint,wt);
+							vecadd3f(newpoint,newpoint,tpoint);
+							if(nn){
+								transform3x3f(tnorm,norm,jointMatrix.normat);
+								vecnormalize3f(tnorm,tnorm); 
+								vecscale3f(tnorm,tnorm,wt);
+								vecadd3f(newnorm,newnorm,tnorm);
+							}
+							totalWeight += wt;
+						}
+					}
+					if(totalWeight > 0.0f){
+						vecscale3f(newpoint,newpoint,1.0f/totalWeight);
+						veccopy3f(point,newpoint);
+						if(nn){
+							vecscale3f(newnorm,newnorm,1.0f/totalWeight);
+							vecnormalize3f(norm,newnorm);
+						}
+					}
+				}
+				if(0){
+					//print out before and after coords
+					float *osc = node->_origCoords;
+					for(i=0;i<nsc;i++){
+						printf("%d ",i);
+						for(j=0;j<3;j++) printf("%f ",psc[i*3 +j]);
+						printf("/ ");
+						for(j=0;j<3;j++) printf("%f ",osc[i*3 +j]);
+						printf("\n");
+					}
+					printf("\n");
+				}
+				//trigger recompile of skin->shapes when rendering skin
+				//Nov 6, 2016: recompiling a shape / polyrep on each frame eats memory 
+				//NODE_NEEDS_COMPILING
+				if(1){
+					int k;
+					node->skinCoord->_change++;
+					Stack *parents = node->skinCoord->_parentVector;
+					for(k=0;k<vectorSize(parents);k++){
+						struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
+						parent->_change++;
+					}
+				}
+
+			}
+		}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
+			//push shader flaga with += SKELETAL
+		}
+
+		if(1) normalChildren(node->skin);
+		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
+			//pop shader flags
+		} else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
+			//restore original coordinates 
+			int nsc, nsn;
+			float *psc, *psn;
 			struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
+			struct X3D_Normal * nn = (struct X3D_Normal * )node->skinNormal;
 			nsc = nc->point.n;
 			psc = (float*)nc->point.p;
 			memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
-			for(i=0;i<nsc;i++){
-				float totalWeight;
-				float *point = &psc[i*3];
-				float norm[3]; //don't have this
-				float newpoint[3], newnorm[3];
-				float *PVW, *PVI;
-				PVW = node->_PVW;
-				PVI = node->_PVI;
-				if(1) vecscale3f(norm,norm,0.0f); //don't have norm yet, so I'll set to zero for now
-				memset(newpoint,0,3*sizeof(float));
-				memset(newnorm,0,3*sizeof(float));
-				totalWeight = 0.0f;
-				for(j=0;j<4;j++){
-					int jointTransformIndex = (int)PVI[i*4 + j];
-					float wt = PVW[i*4 + j];
-					if(jointTransformIndex > 0){
-						float tpoint[3], tnorm[3];
-						MATRIX4 jointMatrix;
-						jointMatrix = vector_get(MATRIX4,node->_JT,jointTransformIndex -1);
-						transformf(tpoint,point,jointMatrix.mat);
-						vecscale3f(tpoint,tpoint,wt);
-
-						vecadd3f(newpoint,newpoint,tpoint);
-						transformf(tnorm,norm,jointMatrix.mat);
-						vecscale3f(tnorm,tnorm,wt);
-						vecadd3f(newnorm,newnorm,tnorm);
-						totalWeight += wt;
-					}
-				}
-				if(totalWeight > 0.0f){
-					vecscale3f(newpoint,newpoint,1.0f/totalWeight);
-					vecscale3f(newnorm,newnorm,1.0f/totalWeight);
-					veccopy3f(point,newpoint);
-				}
+			if(nn){
+				nsn = nn->vector.n;
+				psn = (float*)nn->vector.p;
+				memcpy(psn,node->_origNorms,3*nsn*sizeof(float));
 			}
-			if(0){
-				//print out before and after coords
-				float *osc = node->_origCoords;
-				for(i=0;i<nsc;i++){
-					printf("%d ",i);
-					for(j=0;j<3;j++) printf("%f ",psc[i*3 +j]);
-					printf("/ ");
-					for(j=0;j<3;j++) printf("%f ",osc[i*3 +j]);
-					printf("\n");
-				}
-				printf("\n");
-			}
-			//trigger recompile of skin->shapes when rendering skin
-			//Nov 6, 2016: recompiling a shape / polyrep on each frame eats memory 
-			//NODE_NEEDS_COMPILING
-			if(1){
-				int k;
-				node->skinCoord->_change++;
-				Stack *parents = node->skinCoord->_parentVector;
-				for(k=0;k<vectorSize(parents);k++){
-					struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
-					parent->_change++;
-				}
-			}
-
 		}
-	}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
-		//push shader flaga with += SKELETAL
-	}
-
-	if(1) normalChildren(node->skin);
-	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
-		//pop shader flags
-	} else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
-		//restore original coordinates 
-		int nsc;
-		float *psc;
-		struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
-		nsc = nc->point.n;
-		psc = (float*)nc->point.p;
-		memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
-	}
-
+	} //if skin
 	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
 
 
@@ -757,7 +881,13 @@ void child_HAnimJoint(struct X3D_HAnimJoint *node) {
 
 
 }
-
+float *vecmix3f(float *out3, float* a3, float *b3, float fraction){
+	int i;
+	for(i=0;i<3;i++){
+		out3[i] = (1.0f - fraction)*a3[i] + fraction*b3[i];
+	}
+	return out3;
+}
 void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 
 	//CHILDREN_COUNT
@@ -774,8 +904,73 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
 
 	/* now, just render the non-directionalLight children */
-	normalChildren(node->children);
+	if(node->coord && node->displacers.n){
 
+		int nsc, ndp, ni, i;
+		float *psc, *pdp;
+		int *ci;
+		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)node->coord;
+		psc = (float*)nc->point.p;
+		nsc = nc->point.n;
+		if(!node->_origCoords)
+			node->_origCoords = malloc(3*nsc*sizeof(float));
+		memcpy(node->_origCoords,psc,3*nsc*sizeof(float));
+		for(i=0;i<node->displacers.n;i++){
+			int index, j;
+			float *point, weight, wdisp[3];
+			struct X3D_HAnimDisplacer *dp = (struct X3D_HAnimDisplacer *)node->displacers.p[i];
+				
+			weight = dp->weight;
+			//printf(" %f ",weight);
+			pdp = (float*)dp->displacements.p;
+			ndp = dp->displacements.n;
+
+			ni = dp->coordIndex.n;
+			ci = dp->coordIndex.p;
+			for(j=0;j<ni;j++){
+				index = ci[j];
+				point = &psc[index*3];
+				vecscale3f(wdisp,&pdp[j*3],weight);
+				vecadd3f(point,point,wdisp);
+			}
+		}
+		if(1){
+			//force HAnimSegment.children[] shape nodes using segment->coord to recompile
+			int k;
+			node->coord->_change++;
+			Stack *parents = node->coord->_parentVector;
+			for(k=0;k<vectorSize(parents);k++){
+				struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
+				parent->_change++;
+			}
+		}
+
+		if(0){
+			//find a few coordinates in segment->coord I hacked, by xyz, and give me their index, 
+			// for making a displacer
+			float myfind[9] = {-0.029100, 1.603000, 0.042740,    -0.045570, 1.601000, 0.036520,    -0.018560, 1.600000, 0.043490 };
+			int found = FALSE;
+			printf("\n");
+			for(i=0;i<nsc;i++){
+				for(int j=0;j<3;j++)
+					if(vecsametol3f(&psc[i*3],&myfind[j*3],.0001f)){
+						printf("%d %f %f %f\n",i,myfind[j*3 + 0],myfind[j*3 +1],myfind[j*3 +2]);
+						found = TRUE;
+					}
+			}
+			if(found)
+				printf("\n");
+		}
+	}
+	normalChildren(node->children);
+	if(node->coord && node->displacers.n){
+		int nsc;
+		float *psc;
+		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)node->coord;
+		psc = (float*)nc->point.p;
+		nsc = nc->point.n;
+		memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
+	}
 }
 
 

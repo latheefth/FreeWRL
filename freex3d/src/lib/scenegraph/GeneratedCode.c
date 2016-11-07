@@ -72,7 +72,6 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_CPU_Routes_out",
 	"_GPU_Routes_out",
 	"_JT",
-	"_NT",
 	"_NV",
 	"_PVI",
 	"_PVW",
@@ -250,6 +249,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_oldtranslation",
 	"_origCoords",
 	"_origNormalizedPoint",
+	"_origNorms",
 	"_origPoint",
 	"_p",
 	"_parentResource",
@@ -4642,12 +4642,12 @@ const int OFFSETS_HAnimDisplacer[] = {
 
 const int OFFSETS_HAnimHumanoid[] = {
 	(int) FIELDNAMES__JT, (int) offsetof (struct X3D_HAnimHumanoid, _JT),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__NT, (int) offsetof (struct X3D_HAnimHumanoid, _NT),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__NV, (int) offsetof (struct X3D_HAnimHumanoid, _NV),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__PVI, (int) offsetof (struct X3D_HAnimHumanoid, _PVI),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__PVW, (int) offsetof (struct X3D_HAnimHumanoid, _PVW),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_HAnimHumanoid, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__origCoords, (int) offsetof (struct X3D_HAnimHumanoid, _origCoords),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__origNorms, (int) offsetof (struct X3D_HAnimHumanoid, _origNorms),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_HAnimHumanoid, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_HAnimHumanoid, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_center, (int) offsetof (struct X3D_HAnimHumanoid, center),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4700,6 +4700,7 @@ const int OFFSETS_HAnimJoint[] = {
 
 const int OFFSETS_HAnimSegment[] = {
 	(int) FIELDNAMES___sibAffectors, (int) offsetof (struct X3D_HAnimSegment, __sibAffectors),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__origCoords, (int) offsetof (struct X3D_HAnimSegment, _origCoords),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_addChildren, (int) offsetof (struct X3D_HAnimSegment, addChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_HAnimSegment, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_HAnimSegment, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -9491,19 +9492,19 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->name = newASCIIString("");
 			tmp2->weight = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_displacers;
 		break;
 		}
 		case NODE_HAnimHumanoid : {
 			struct X3D_HAnimHumanoid * tmp2;
 			tmp2 = (struct X3D_HAnimHumanoid *) tmp;
 			tmp2->_JT = 0;
-			tmp2->_NT = 0;
 			tmp2->_NV = 0;
 			tmp2->_PVI = 0;
 			tmp2->_PVW = 0;
 			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
 			tmp2->_origCoords = 0;
+			tmp2->_origNorms = 0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->center.c[0] = 0.0f;tmp2->center.c[1] = 0.0f;tmp2->center.c[2] = 0.0f;
@@ -9566,6 +9567,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_HAnimSegment * tmp2;
 			tmp2 = (struct X3D_HAnimSegment *) tmp;
 			tmp2->__sibAffectors.n=0; tmp2->__sibAffectors.p=0;
+			tmp2->_origCoords = 0;
 			tmp2->addChildren.n=0; tmp2->addChildren.p=0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
