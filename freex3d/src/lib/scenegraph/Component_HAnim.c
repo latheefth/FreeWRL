@@ -558,6 +558,48 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 			}
 		}
 	}
+	//step 4: add on any Displacer displacements
+	if(p->HH->skinCoord && node->displacers.n ){
+		int nsc, ndp, ni, i;
+		float *psc, *pdp;
+		int *ci;
+		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)p->HH->skinCoord;
+		psc = (float*)nc->point.p;
+		nsc = nc->point.n;
+		//if(!node->_origCoords)
+		//	node->_origCoords = malloc(3*nsc*sizeof(float));
+		//memcpy(node->_origCoords,psc,3*nsc*sizeof(float));
+		for(i=0;i<node->displacers.n;i++){
+			int index, j;
+			float *point, weight, wdisp[3];
+			struct X3D_HAnimDisplacer *dp = (struct X3D_HAnimDisplacer *)node->displacers.p[i];
+				
+			weight = dp->weight;
+			//printf(" %f ",weight);
+			pdp = (float*)dp->displacements.p;
+			ndp = dp->displacements.n;
+
+			ni = dp->coordIndex.n;
+			ci = dp->coordIndex.p;
+			for(j=0;j<ni;j++){
+				index = ci[j];
+				point = &psc[index*3];
+				vecscale3f(wdisp,&pdp[j*3],weight);
+				vecadd3f(point,point,wdisp);
+			}
+		}
+		if(1){
+			//force HAnimSegment.children[] shape nodes using segment->coord to recompile
+			int k;
+			p->HH->skinCoord->_change++;
+			Stack *parents = p->HH->skinCoord->_parentVector;
+			for(k=0;k<vectorSize(parents);k++){
+				struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
+				parent->_change++;
+			}
+		}
+
+	}
 
 }
 int vecsametol3f(float *a, float *b, float tol){
@@ -577,13 +619,15 @@ void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 		psc = (float*)nc->point.p;
 		node->_origCoords = realloc(node->_origCoords,nsc*3*sizeof(float));
 		memcpy(node->_origCoords,psc,nsc*3*sizeof(float));
-		//find a few coordinates in skinCoord I hacked, by xyz, and give me their index, for making a displacer
-		float myfind[9] = {0.028220,-0.029100,1.603000,  0.025790,-0.045570,1.601000,  0.037480,-0.018560,1.600000, };
-		for(int i=0;i<nsc;i++){
-			for(int j=0;j<3;j++)
-				if(vecsametol3f(&psc[i*3],&myfind[j*3],.001f)){
-					printf("%d %f %f %f\n",i,myfind[j*3 + 0],myfind[j*3 +1],myfind[j*3 +2]);
-				}
+		if(0){
+			//find a few coordinates in skinCoord I hacked, by xyz, and give me their index, for making a displacer
+			float myfind[9] = {-0.030000, -0.070000, 1.777000 ,  -0.070000, 1.777000, 0.130000 ,  1.777000, 0.130000, 0.070000 };
+			for(int i=0;i<nsc;i++){
+				for(int j=0;j<3;j++)
+					if(vecsametol3f(&psc[i*3],&myfind[j*3],.001f)){
+						printf("%d %f %f %f\n",i,myfind[j*3 + 0],myfind[j*3 +1],myfind[j*3 +2]);
+					}
+			}
 		}
 	}
 	if(node->skinNormal && node->skinNormal->_nodeType == NODE_Normal){
@@ -683,8 +727,6 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 		FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 		matinverseAFFINE(p->HHMatrix,modelviewMatrix);
 	}
-	if(1) normalChildren(node->skeleton);
-
 	if(node->skin.n){
 		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 			//save original coordinates
@@ -702,6 +744,29 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 					psn = (float *)nn->vector.p;
 					memcpy(psn,node->_origNorms,3*nsn*sizeof(float));
 				}
+			}
+		}
+	}
+	if(1) normalChildren(node->skeleton);
+
+	if(node->skin.n){
+		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
+			//save original coordinates
+			//transform each vertex and its normal using weighted transform
+			int i,j,nsc = 0, nsn = 0;
+			float *psc = NULL, *psn = NULL;
+			if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
+				struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
+				struct X3D_Normal *nn = (struct X3D_Normal *)node->skinNormal; //might be NULL 
+				nsc = nc->point.n;
+				psc = (float*)nc->point.p;
+				//memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
+				if(nn){
+					nsn = nn->vector.n;
+					psn = (float *)nn->vector.p;
+					//memcpy(psn,node->_origNorms,3*nsn*sizeof(float));
+				}
+
 				for(i=0;i<nsc;i++){
 					float totalWeight;
 					float *point, *norm; 
@@ -907,7 +972,6 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 		psc = (float*)nc->point.p;
 		nsc = nc->point.n;
 		memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
-		
 	}
 }
 
