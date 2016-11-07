@@ -492,7 +492,10 @@ void fin_HAnimSite (struct X3D_HAnimSite *node) {
 
 } 
 
-typedef  struct {double mat [16]; }  MATRIX4;
+typedef  struct {
+	double mat [16];
+	float normat[9];
+}  JMATRIX;
 enum {
 	VERTEXTRANSFORMMETHOD_CPU = 1,
 	VERTEXTRANSFORMMETHOD_GPU = 2,
@@ -506,24 +509,36 @@ void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node) {
 void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	int i,j, jointTransformIndex;
 	double modelviewMatrix[16], mvmInverse[16];
-	MATRIX4 jointMatrix;
+	JMATRIX jointMatrix;
 	Stack *JT;
 	float *PVW, *PVI;
 
 	ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
 	//printf ("rendering HAnimJoint %d\n",node); 
 	
+
+	JT = p->HH->_JT;
+
 	//step 1, generate transform
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 	matmultiplyAFFINE(jointMatrix.mat,modelviewMatrix,p->HHMatrix);
-	JT = p->HH->_JT;
+	if(p->HH->skinNormal){
+		//want 'inverse-transpose' 3x3 float for transforming normals
+		//(its almost the same as jointMatrix.mat except when shear due to assymetric scales)
+		float fmat4[16], fmat3[9],fmat3i[9],fmat3it[9];
+		matdouble2float4(fmat4,jointMatrix.mat);
+		mat423f(fmat3,fmat4);
+		matinverse3f(fmat3i,fmat3);
+		mattranspose3f(jointMatrix.normat,fmat3i);
+		//printf("jm.normat[1] %f\n",jointMatrix.normat[1]);
+	}
 
 	if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
 		//convert to quaternion + position
 		//add to HH transform list
 	}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 		//step 2, add transform to HH transform list, get its index in list
-		stack_push(MATRIX4,JT,jointMatrix);
+		stack_push(JMATRIX,JT,jointMatrix);
 	}
 	//I'll let this index start at 1, and subtract 1 when retrieving with vector_get, 
 	//so I can use jointTransformIndex==0 as a sentinal value for 'no transform stored'
@@ -548,8 +563,8 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 	//printf("compile_HAnimHumanoid\n");
 	//check if the coordinate count is the same
-	int nsc = 0;
-	float *psc = NULL;
+	int nsc = 0, nsn = 0;
+	float *psc = NULL, *psn = NULL;
 	if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
 		struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
 		nsc = nc->point.n;
@@ -557,17 +572,29 @@ void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 		node->_origCoords = realloc(node->_origCoords,nsc*3*sizeof(float));
 		memcpy(node->_origCoords,psc,nsc*3*sizeof(float));
 	}
-		
+	if(node->skinNormal && node->skinNormal->_nodeType == NODE_Normal){
+		struct X3D_Normal * nn = (struct X3D_Normal * )node->skinNormal;
+		//Assuming 1 normal per coord, coord 1:1 normal
+		nsn = nn->vector.n;
+		psn = (float*)nn->vector.p;
+		node->_origNorms = realloc(node->_origNorms,nsn*3*sizeof(float));
+		memcpy(node->_origNorms,psn,nsn*3*sizeof(float));
+	}
+	
+	//allocate the joint-transform_index and joint-weight arrays
+	//Nov 2016: max 4: meaning each skinCoord can have up to 4 joints referencing/influencing it
+	//4 chosen so it's easier to port to GPU method with vec4
 	if(node->_NV == 0 || node->_NV != nsc){
-		node->_PVI = realloc(node->_PVI,nsc*4*sizeof(float)); //indexes, as float vec4
-		node->_PVW = realloc(node->_PVW,nsc*4*sizeof(float)); //weights, as float vec4
+		node->_PVI = realloc(node->_PVI,nsc*4*sizeof(float)); //indexes, up to 4 joints per skinCoord
+		node->_PVW = realloc(node->_PVW,nsc*4*sizeof(float)); //weights, up to 4 joints per skinCoord
 		node->_NV = nsc;
 	}
+	//allocate the transform array
 	if(node->_JT == NULL)
 		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
 			//new stack quat + position
 		}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
-			node->_JT = newStack(MATRIX4); //we don't know how many joints there are - need to count as we go
+			node->_JT = newStack(JMATRIX); //we don't know how many joints there are - need to count as we go
 		}
 	MARK_NODE_COMPILED
 }
@@ -648,22 +675,31 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 			//save original coordinates
 			//transform each vertex and its normal using weighted transform
-			int i,j,nsc = 0;
-			float *psc = NULL;
+			int i,j,nsc = 0, nsn = 0;
+			float *psc = NULL, *psn = NULL;
 			if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
 				struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
+				struct X3D_Normal *nn = (struct X3D_Normal *)node->skinNormal; //might be NULL 
 				nsc = nc->point.n;
 				psc = (float*)nc->point.p;
 				memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
+				if(nn){
+					nsn = nn->vector.n;
+					psn = (float *)nn->vector.p;
+					memcpy(psn,node->_origNorms,3*nsn*sizeof(float));
+				}
 				for(i=0;i<nsc;i++){
 					float totalWeight;
-					float *point = &psc[i*3];
-					float norm[3]; //don't have this
+					float *point, *norm; 
 					float newpoint[3], newnorm[3];
 					float *PVW, *PVI;
+
+					point = &psc[i*3];
+					norm = NULL;
+					if(nn) norm = &psn[i*3];
 					PVW = node->_PVW;
 					PVI = node->_PVI;
-					if(1) vecscale3f(norm,norm,0.0f); //don't have norm yet, so I'll set to zero for now
+
 					memset(newpoint,0,3*sizeof(float));
 					memset(newnorm,0,3*sizeof(float));
 					totalWeight = 0.0f;
@@ -672,22 +708,27 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 						float wt = PVW[i*4 + j];
 						if(jointTransformIndex > 0){
 							float tpoint[3], tnorm[3];
-							MATRIX4 jointMatrix;
-							jointMatrix = vector_get(MATRIX4,node->_JT,jointTransformIndex -1);
+							JMATRIX jointMatrix;
+							jointMatrix = vector_get(JMATRIX,node->_JT,jointTransformIndex -1);
 							transformf(tpoint,point,jointMatrix.mat);
 							vecscale3f(tpoint,tpoint,wt);
-
 							vecadd3f(newpoint,newpoint,tpoint);
-							transformf(tnorm,norm,jointMatrix.mat);
-							vecscale3f(tnorm,tnorm,wt);
-							vecadd3f(newnorm,newnorm,tnorm);
+							if(nn){
+								transform3x3f(tnorm,norm,jointMatrix.normat);
+								vecnormalize3f(tnorm,tnorm); 
+								vecscale3f(tnorm,tnorm,wt);
+								vecadd3f(newnorm,newnorm,tnorm);
+							}
 							totalWeight += wt;
 						}
 					}
 					if(totalWeight > 0.0f){
 						vecscale3f(newpoint,newpoint,1.0f/totalWeight);
-						vecscale3f(newnorm,newnorm,1.0f/totalWeight);
 						veccopy3f(point,newpoint);
+						if(nn){
+							vecscale3f(newnorm,newnorm,1.0f/totalWeight);
+							vecnormalize3f(norm,newnorm);
+						}
 					}
 				}
 				if(0){
@@ -725,12 +766,18 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 			//pop shader flags
 		} else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 			//restore original coordinates 
-			int nsc;
-			float *psc;
+			int nsc, nsn;
+			float *psc, *psn;
 			struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
+			struct X3D_Normal * nn = (struct X3D_Normal * )node->skinNormal;
 			nsc = nc->point.n;
 			psc = (float*)nc->point.p;
 			memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
+			if(nn){
+				nsn = nn->vector.n;
+				psn = (float*)nn->vector.p;
+				memcpy(psn,node->_origNorms,3*nsn*sizeof(float));
+			}
 		}
 	} //if skin
 	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);

@@ -229,6 +229,10 @@ float* vecmultmat4f(float* r4, float *a4, float *mat4);
 float* matmultvec4f(float* r4, float *mat4, float* a4 );
 
 
+float* mat423f(float *out3x3, float *in4x4);
+float* matinverse3f(float *out3x3, float *in3x3);
+float* transform3x3f(float *out3, float *in3, float *mat3x3);
+
 struct point_XYZ* transformAFFINE(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b);
 GLDOUBLE* pointxyz2double(double* r, struct point_XYZ *p); /* instead of casting struct to array, this is more rigorous */
 struct point_XYZ* double2pointxyz(struct point_XYZ* r, double* p); /* ditto */
