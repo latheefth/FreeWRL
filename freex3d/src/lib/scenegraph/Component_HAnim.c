@@ -566,9 +566,6 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)p->HH->skinCoord;
 		psc = (float*)nc->point.p;
 		nsc = nc->point.n;
-		//if(!node->_origCoords)
-		//	node->_origCoords = malloc(3*nsc*sizeof(float));
-		//memcpy(node->_origCoords,psc,3*nsc*sizeof(float));
 		for(i=0;i<node->displacers.n;i++){
 			int index, j;
 			float *point, weight, wdisp[3];
@@ -588,7 +585,7 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 				vecadd3f(point,point,wdisp);
 			}
 		}
-		if(1){
+		if(0){ //this is done in child_HAnimHumanoid for the skinCoord parents
 			//force HAnimSegment.children[] shape nodes using segment->coord to recompile
 			int k;
 			p->HH->skinCoord->_change++;
@@ -729,7 +726,8 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 	}
 	if(node->skin.n){
 		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
-			//save original coordinates
+			//save original coordinates before rendering skeleton
+			// - HAnimJoint may have displacers that change the Coords
 			//transform each vertex and its normal using weighted transform
 			int i,j,nsc = 0, nsn = 0;
 			float *psc = NULL, *psn = NULL;
