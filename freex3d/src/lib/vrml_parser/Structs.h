@@ -5161,6 +5161,7 @@ struct X3D_HAnimSegment {
 	float mass;
 	struct Multi_Float momentsOfInertia;
 	struct X3D_Node *metadata;
+	void * _origCoords;
 };
 extern struct X3D_Virt virt_HAnimSegment;
 /***********************/

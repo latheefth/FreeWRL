@@ -560,6 +560,12 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	}
 
 }
+int vecsametol3f(float *a, float *b, float tol){
+	int i,isame = TRUE;
+	for(i=0;i<3;i++)
+		if(fabsf(a[i] - b[i]) > tol) isame = FALSE;
+	return isame;
+}
 void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 	//printf("compile_HAnimHumanoid\n");
 	//check if the coordinate count is the same
@@ -571,6 +577,14 @@ void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 		psc = (float*)nc->point.p;
 		node->_origCoords = realloc(node->_origCoords,nsc*3*sizeof(float));
 		memcpy(node->_origCoords,psc,nsc*3*sizeof(float));
+		//find a few coordinates in skinCoord I hacked, by xyz, and give me their index, for making a displacer
+		float myfind[9] = {0.028220,-0.029100,1.603000,  0.025790,-0.045570,1.601000,  0.037480,-0.018560,1.600000, };
+		for(int i=0;i<nsc;i++){
+			for(int j=0;j<3;j++)
+				if(vecsametol3f(&psc[i*3],&myfind[j*3],.001f)){
+					printf("%d %f %f %f\n",i,myfind[j*3 + 0],myfind[j*3 +1],myfind[j*3 +2]);
+				}
+		}
 	}
 	if(node->skinNormal && node->skinNormal->_nodeType == NODE_Normal){
 		struct X3D_Normal * nn = (struct X3D_Normal * )node->skinNormal;
@@ -804,7 +818,13 @@ void child_HAnimJoint(struct X3D_HAnimJoint *node) {
 
 
 }
-
+float *vecmix3f(float *out3, float* a3, float *b3, float fraction){
+	int i;
+	for(i=0;i<3;i++){
+		out3[i] = (1.0f - fraction)*a3[i] + fraction*b3[i];
+	}
+	return out3;
+}
 void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 
 	//CHILDREN_COUNT
@@ -821,8 +841,74 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 	/* do we have to sort this node? Only if not a proto - only first node has visible children. */
 
 	/* now, just render the non-directionalLight children */
-	normalChildren(node->children);
+	if(node->coord && node->displacers.n){
 
+		int nsc, ndp, ni, i;
+		float *psc, *pdp;
+		int *ci;
+		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)node->coord;
+		psc = (float*)nc->point.p;
+		nsc = nc->point.n;
+		if(!node->_origCoords)
+			node->_origCoords = malloc(3*nsc*sizeof(float));
+		memcpy(node->_origCoords,psc,3*nsc*sizeof(float));
+		for(i=0;i<node->displacers.n;i++){
+			int index, j;
+			float *point, weight, wdisp[3];
+			struct X3D_HAnimDisplacer *dp = (struct X3D_HAnimDisplacer *)node->displacers.p[i];
+				
+			weight = dp->weight;
+			//printf(" %f ",weight);
+			pdp = (float*)dp->displacements.p;
+			ndp = dp->displacements.n;
+
+			ni = dp->coordIndex.n;
+			ci = dp->coordIndex.p;
+			for(j=0;j<ni;j++){
+				index = ci[j];
+				point = &psc[index*3];
+				vecscale3f(wdisp,&pdp[j*3],weight);
+				vecadd3f(point,point,wdisp);
+			}
+		}
+		if(1){
+			//force HAnimSegment.children[] shape nodes using segment->coord to recompile
+			int k;
+			node->coord->_change++;
+			Stack *parents = node->coord->_parentVector;
+			for(k=0;k<vectorSize(parents);k++){
+				struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
+				parent->_change++;
+			}
+		}
+
+		if(0){
+			//find a few coordinates in segment->coord I hacked, by xyz, and give me their index, 
+			// for making a displacer
+			float myfind[9] = {-0.029100, 1.603000, 0.042740,    -0.045570, 1.601000, 0.036520,    -0.018560, 1.600000, 0.043490 };
+			int found = FALSE;
+			printf("\n");
+			for(i=0;i<nsc;i++){
+				for(int j=0;j<3;j++)
+					if(vecsametol3f(&psc[i*3],&myfind[j*3],.0001f)){
+						printf("%d %f %f %f\n",i,myfind[j*3 + 0],myfind[j*3 +1],myfind[j*3 +2]);
+						found = TRUE;
+					}
+			}
+			if(found)
+				printf("\n");
+		}
+	}
+	normalChildren(node->children);
+	if(node->coord && node->displacers.n){
+		int nsc;
+		float *psc;
+		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)node->coord;
+		psc = (float*)nc->point.p;
+		nsc = nc->point.n;
+		memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
+		
+	}
 }
 
 
