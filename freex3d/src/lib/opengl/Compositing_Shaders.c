@@ -2004,7 +2004,7 @@ void main(void) \n\
 	int numSamples = 128; \n\
 	float fnumSamples = float(numSamples); \n\
 	float stepSize = maxDist/fnumSamples; \n\
-	float densityFactor = .88; // 1.0=normal H3D, .5 see deeper  \n\
+	float densityFactor = 5.0/fnumSamples; //.88; // 1.0=normal H3D, .5 see deeper  \n\
 	 \n\
     vec4 fragment_color; \n\
 	vec4 raysum; \n\
@@ -2080,7 +2080,8 @@ void main(void) \n\
 			// and computed gradient and put in .rgb : \n\
 			float density = fragment_color.a; //recover the scalar value \n\
 			vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
-			vec4 voxel = vec4(density,density,density,density); //this is where the black visual voxels come from\n\
+			//vec4 voxel = vec4(density,density,density,density); //this is where the black visual voxels come from\n\
+			vec4 voxel = vec4(1.0,1.0,1.0,density); //this is where the black visual voxels come from\n\
 			\n\
 			#ifdef ISO \n\
 			if(i==0){ \n\
@@ -2180,11 +2181,15 @@ void main(void) \n\
 				//modulate T, lighter \n\
 				T *= 1.0-density; \n\
 				raysum.a = 1.0 - T; \n\
+				raysum.rgb += voxel.rgb * density; \n\
 			} else { \n\
 				//sum opacity, closer to H3D \n\
-				raysum.a += density; \n\
+				//raysum.a += density; \n\
+				T = (1.0 - raysum.a); \n\
+				raysum.a += density * T; // * stepSize * densityFactor; \n\
+				raysum.rgb += voxel.rgb  * T * density; //densityFactor; // * stepSize * densityFactor; // white with gray moire \n\
 			} \n\
-			raysum.rgb += voxel.rgb * density; \n\
+			//raysum.rgb += voxel.rgb * density; \n\
 			if(raysum.a > .99) { \n\
 				break; \n\
 			} \n\
@@ -2213,7 +2218,7 @@ void main(void) \n\
 static const GLchar *plug_voxel_DEFAULT =	"\
 void voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
 	float alpha = voxel.a; \n\
-	voxel.a = voxel.r; \n\
+	//voxel.a = voxel.r; \n\
 	voxel.rgb = vec3(alpha); \n\
 } \n\
 void PLUG_voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
