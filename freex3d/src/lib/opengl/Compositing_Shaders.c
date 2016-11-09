@@ -1876,6 +1876,32 @@ precision mediump float; \n\
 	return ret; \n\
 } \n\
 vec4 debug_color; \n\
+float hash( float n ) \n\
+{ \n\
+    return fract(sin(n)*43758.5453); \n\
+} \n\
+float noise( vec3 xyz ) \n\
+{ \n\
+    // The noise function returns a value in the range -1.0f -> 1.0f \n\
+    vec3 p = floor(xyz); \n\
+    vec3 f = fract(xyz); \n\
+	\n\
+    f = f*f*(3.0-2.0*f); \n\
+    float n = p.x + p.y*57.0 + 113.0*p.z; \n\
+	\n\
+    return mix(mix(mix( hash(n+0.0), hash(n+1.0),f.x), \n\
+                   mix( hash(n+57.0), hash(n+58.0),f.x),f.y), \n\
+               mix(mix( hash(n+113.0), hash(n+114.0),f.x), \n\
+                   mix( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z); \n\
+} \n\
+vec3 noise3( in vec3 xyz, in float range ){ \n\
+	vec3 rxyz = vec3(xyz); \n\
+	rxyz.x += noise(xyz)*range; \n\
+	rxyz.y += noise(xyz)*range; \n\
+	rxyz.z += noise(xyz)*range; \n\
+	return rxyz; \n\
+} \n\
+ \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
 uniform mat4 fw_ModelViewProjInverse; \n\

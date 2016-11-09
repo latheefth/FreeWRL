@@ -1188,10 +1188,13 @@ void render_GENERIC_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *
 			GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
 			glUniform1iv(repeatSTR,3,tti->repeatSTR);
 			GLint magFilter = GET_UNIFORM(myProg,"magFilter");
-			glUniform1i(magFilter,tti->magFilter);
+			glUniform1i(magFilter,1); //need LINEAR //tti->magFilter);
 
 			glActiveTexture(GL_TEXTURE0); 
 			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+			//FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 		}
 	}
 	if(nstyle){
