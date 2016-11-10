@@ -1997,6 +1997,7 @@ bool clip (in vec3 vertex_object){ \n\
 #endif //CLIP \n\
 vec3 vertex_eye; \n\
 vec3 normal_eye; \n\
+vec4 raysum; \n\
 void main(void) \n\
 { \n\
 	debug_color = vec4(0.0); \n\
@@ -2007,7 +2008,7 @@ void main(void) \n\
 	float densityFactor = 5.0/fnumSamples; //.88; // 1.0=normal H3D, .5 see deeper  \n\
 	 \n\
     vec4 fragment_color; \n\
-	vec4 raysum; \n\
+	//vec4 raysum; \n\
     vec3 rayDirection; \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
@@ -2277,12 +2278,19 @@ uniform vec4 fw_orthoColor; \n\
 uniform vec4 fw_paraColor; \n\
 void voxel_apply_CARTOON (inout vec4 voxel, inout vec3 gradient) { \n\
 	float len = length(gradient); \n\
-	if(len > 0.0) { \n\
+	if(len > 0.01) { \n\
 		vec3 ng = normalize(gradient); \n\
-		float ndotv = abs(dot(normal_eye,ng)); \n\
-		ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
-		vec4 color = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
-		voxel.rgb = color.rgb*voxel.a; \n\
+		float ndotv = dot(normal_eye,ng); \n\
+		if(ndotv > 0.01 && voxel.a > 0.0) { \n\
+			ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
+			vec4 color = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
+			//voxel.rgb = color.rgb*voxel.a; \n\
+			voxel.rgb = color.rgb; \n\
+		} else { \n\
+			voxel = vec4(0.0); //similar to discard \n\
+		} \n\
+	} else { \n\
+		voxel = vec4(0.0); //similar to discard \n\
 	} \n\
 } \n\
 void PLUG_voxel_apply_CARTOON (inout vec4 voxel, inout vec3 gradient) { \n\
