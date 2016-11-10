@@ -1220,7 +1220,7 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 //  4  8
 //  
 static const GLchar *plug_fragment_texture3D_apply_volume =	"\n\
-vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3){ \n\
+vec4 texture3Demu0( sampler2D sampler, in vec3 texcoord3, in int magfilter){ \n\
   vec4 sample = vec4(0.0); \n\
   #ifdef TEX3D \n\
   //TILED method (vs Y strip method) \n\
@@ -1266,13 +1266,17 @@ vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3){ \n\
   ftexel = texture2D(sampler,ftexcoord.st); \n\
   ctexel = texture2D(sampler,ctexcoord.st); \n\
   float fraction = mod(texcoord.z*depth,1.0); \n\
-  if(magFilter == 1) \n\
+  if(magfilter == 1) \n\
 	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
   else \n\
 	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
   sample = texel; \n\
   #endif //TEX3D \n\
   return sample; \n\
+} \n\
+vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3){ \n\
+	//use uniform magfilter \n\
+	return texture3Demu0( sampler, texcoord3, magFilter); \n\
 } \n\
 void PLUG_texture3D( inout vec4 sample, in vec3 texcoord3 ){ \n\
 	sample = texture3Demu(fw_Texture_unit0,texcoord3); \n\
@@ -1924,27 +1928,25 @@ uniform int fw_enableIDs[10]; \n\
 uniform int fw_surfaceStyles[2]; \n\
 uniform int fw_nStyles; \n\
 vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3); \n\
+vec4 texture3Demu0( sampler2D sampler, in vec3 texcoord3, int magfilter); \n\
 bool inEnabledSegment(in vec3 texcoords, inout int jstyle){ \n\
 	bool inside = true; \n\
 	jstyle = 1; //DEFAULT \n\
-	vec4 segel = texture3Demu(fw_Texture_unit1,texcoords); \n\
+	vec4 segel = texture3Demu0(fw_Texture_unit1,texcoords,0); \n\
 	//convert from GL_FLOAT 0-1 to int 0-255 \n\
 	//Q. is there a way to do int images in GLES2? \n\
 	int ID = int(floor(segel.a * 255.0 + .1)); \n\
-	debug_color = HeatMapColor(float(ID),0.0,255.0); \n\
-	debug_color.a = .2; \n\
+	//debug_color = HeatMapColor(float(ID),0.0,5.0); \n\
+	//debug_color.a = .2; \n\
 	if(ID < fw_nIDs){ \n\
 		//specs: The indices of this array corresponds to the segment identifier. \n\
 		inside = fw_enableIDs[ID] == 0 ? false : true; \n\
 	} \n\
 	if(inside){ \n\
-		if(ID < 100) jstyle = 1; \n\
-		if(ID > 99){ \n\
-			int kstyle = fw_nStyles-1; \n\
-			kstyle = ID < fw_nStyles ? ID : kstyle; \n\
-			jstyle = fw_surfaceStyles[kstyle]; \n\
-			jstyle = jstyle == 1 ? 0 : jstyle; \n\
-		} \n\
+		int kstyle = fw_nStyles-1; \n\
+		kstyle = ID < fw_nStyles ? ID : kstyle; \n\
+		jstyle = fw_surfaceStyles[kstyle]; \n\
+		jstyle = jstyle == 1 ? 0 : jstyle; \n\
 	} \n\
 	return inside; \n\
 } \n\
@@ -2468,23 +2470,25 @@ uniform int fw_phase; \n\
 uniform int fw_lighting; \n\
 uniform int fw_shadows; \n\
 void voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
-  float len = length(gradient); \n\
-  if(len > 0.0){ \n\
-	  vec3 ng = normalize(gradient); \n\
-	  vec4 color = vec4(1.0); \n\
-	  #ifdef LIT \n\
-	  vec3 castle_ColorES = fw_FrontMaterial.specular.rgb; \n\
-	  color.rgb = fw_FrontMaterial.diffuse.rgb; \n\
-	  #else //LIT \n\
-	  color.rgb = vec3(0,0,0.0,0.0); \n\
-	  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
-	  #endif //LIT	\n\
-	  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
-	  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
-	  /* PLUG: add_light_contribution2 (color, castle_ColorES, vertex_eye4, ng, fw_FrontMaterial.shininess) */ \n\
-	 // voxel.rgb = color.rgb; \n\
-	  voxel.rgb = mix(color.rgb,castle_ColorES,dot(ng,normal_eye)); \n\
-  } \n\
+	float len = length(gradient); \n\
+	vec3 ng = vec3(0.0); \n\
+	if(len > 0.0) \n\
+	  ng = normalize(gradient); \n\
+	vec4 color = vec4(1.0); \n\
+	#ifdef LIT \n\
+	vec3 castle_ColorES = fw_FrontMaterial.specular.rgb; \n\
+	color.rgb = fw_FrontMaterial.diffuse.rgb; \n\
+	#else //LIT \n\
+	color.rgb = vec3(0,0,0.0,0.0); \n\
+	vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
+	#endif //LIT	\n\
+	// void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
+	vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
+	/* PLUG: add_light_contribution2 (color, castle_ColorES, vertex_eye4, ng, fw_FrontMaterial.shininess) */ \n\
+	// voxel.rgb = color.rgb; \n\
+	color.rgb = mix(color.rgb,castle_ColorES,dot(ng,normal_eye)); \n\
+	voxel.rgb = color.rgb; \n\
+	//voxel.rgb = voxel.rgb * color.rgb; \n\
 } \n\
 void PLUG_voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_SHADED(voxel, gradient); \n\
@@ -2524,7 +2528,7 @@ uniform vec4 fw_coolColor; \n\
 uniform vec4 fw_warmColor; \n\
 void voxel_apply_TONE (inout vec4 voxel, inout vec3 gradient) { \n\
 	float len = length(gradient); \n\
-	if(len > 0.01) { \n\
+	if(len > 0.0) { \n\
 		vec3 color; \n\
 		vec3 ng = normalize(gradient); \n\
 		//vec3 L = normalize(vec3(-.707,-.707,.707)); \n\
@@ -2717,7 +2721,6 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	}
 	//now volflag[] is in the order declared with no 0s/nulls 
 	for(int k=0;k<kflags;k++){
-
 		switch(volflag[k]){
 		case SHADERFLAGS_VOLUME_STYLE_DEFAULT:
 			AddDefine(SHADERPART_FRAGMENT,"DEFAULT",CompleteCode); 

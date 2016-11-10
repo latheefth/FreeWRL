@@ -1106,7 +1106,8 @@ void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node
 		textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
 		if(tti && tti->status >= TEX_LOADED){
 			if(0){
-				//in theory these will be set by the main voxel texture and should match
+				//in theory these will be set by the main voxel texture but don't match
+				//here we want NEAREST not LINEAR
 				GLint ttiles = GET_UNIFORM(myProg,"tex3dTiles");
 				GLUNIFORM1IV(ttiles,3,tti->tiles);
 
@@ -1116,10 +1117,13 @@ void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node
 				GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
 				glUniform1iv(repeatSTR,3,tti->repeatSTR);
 				GLint magFilter = GET_UNIFORM(myProg,"magFilter");
-				glUniform1i(magFilter,tti->magFilter);
+				glUniform1i(magFilter,0); //tti->magFilter); //NEAREST
 			}
+			GLint TextureUnit= GET_UNIFORM(myProg,"fw_Texture_unit1");
+			glUniform1i(TextureUnit,itexture);
 			glActiveTexture(GL_TEXTURE0+itexture); 
 			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  //don't interpolate integer segment IDs
 		}
 	}
 	GLint inids = GET_UNIFORM(myProg,"fw_nIDs");
@@ -1192,7 +1196,6 @@ void render_GENERIC_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *
 
 			glActiveTexture(GL_TEXTURE0); 
 			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
-			//FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		}
