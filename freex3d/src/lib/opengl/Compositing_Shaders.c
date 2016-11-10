@@ -2172,24 +2172,11 @@ void main(void) \n\
 			//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) \n\
 			/* PLUG: voxel_apply (voxel, gradient) */ \n\
 			#endif //ISO \n\
-			//density *= densityFactor; \n\
-			//density = voxel.a * density; //* densityFactor; \n\
 			density = voxel.a; \n\
 			//debug_color = HeatMapColor(densityFactor,0.134,.135); \n\
-			bool modulate_transparency = false; \n\
-			if(modulate_transparency) { \n\
-				//modulate T, lighter \n\
-				T *= 1.0-density; \n\
-				raysum.a = 1.0 - T; \n\
-				raysum.rgb += voxel.rgb * density; \n\
-			} else { \n\
-				//sum opacity, closer to H3D \n\
-				//raysum.a += density; \n\
-				T = (1.0 - raysum.a); \n\
-				raysum.a += density * T; // * stepSize * densityFactor; \n\
-				raysum.rgb += voxel.rgb  * T * density; //densityFactor; // * stepSize * densityFactor; // white with gray moire \n\
-			} \n\
-			//raysum.rgb += voxel.rgb * density; \n\
+			T = (1.0 - raysum.a); \n\
+			raysum.a += density * T; \n\
+			raysum.rgb += voxel.rgb  * T * density; \n\
 			if(raysum.a > .99) { \n\
 				break; \n\
 			} \n\
