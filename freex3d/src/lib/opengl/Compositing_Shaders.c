@@ -2081,7 +2081,7 @@ void main(void) \n\
 			float density = fragment_color.a; //recover the scalar value \n\
 			vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
 			//vec4 voxel = vec4(density,density,density,density); //this is where the black visual voxels come from\n\
-			vec4 voxel = vec4(1.0,1.0,1.0,density); //this is where the black visual voxels come from\n\
+			vec4 voxel = vec4(density,density,density,density); //this is where the black visual voxels come from\n\
 			\n\
 			#ifdef ISO \n\
 			if(i==0){ \n\
@@ -2206,7 +2206,7 @@ static const GLchar *plug_voxel_DEFAULT =	"\
 void voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
 	float alpha = voxel.a; \n\
 	//voxel.a = voxel.r; \n\
-	voxel.rgb = vec3(alpha); \n\
+	//voxel.rgb = vec3(alpha); \n\
 } \n\
 void PLUG_voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_DEFAULT(voxel,gradient); \n\
@@ -2392,8 +2392,9 @@ void PLUG_ray_apply (inout vec4 raysum) { \n\
 	} \n\
 	//raysum.rgb = color.rgb * color.a; \n\
 	//raysum.a = color.a; \n\
+	\n\
 	raysum.rgb = vec3(value,value,value); \n\
-	raysum.a = 1.0 - value; \n\
+//	raysum.a = 1.0 - value; \n\
 	//raysum.a = value;\n\
 	//raysum.a = color.a; \n\
 	//raysum = color; \n\
