@@ -2098,6 +2098,7 @@ void main(void) \n\
 				for(int i=0;i<fw_nVals;i++){ \n\
 					float iso = fw_surfaceVals[i]; \n\
 					if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+						voxel.a = 1.0; \n\
 						int jstyle = min(i,fw_nStyles-1); \n\
 						jstyle = fw_surfaceStyles[jstyle]; \n\
 						if(jstyle == 1){ \n\
@@ -2123,6 +2124,8 @@ void main(void) \n\
 						} else if(jstyle == 11) { \n\
 							/* PLUG: voxel_apply_TONE (voxel, gradient) */ \n\
 						} \n\
+					} else { \n\
+						voxel = vec4(0.0); //similar to discard \n\
 					} \n\
 				} \n\
 				lastdensity = density; \n\
@@ -2131,14 +2134,21 @@ void main(void) \n\
 			if(MODE == 1){ \n\
 				float iso = fw_surfaceVals[0]; \n\
 				if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+					//debug_color = HeatMapColor(iso,0.0,.3); \n\
+					voxel.a = 1.0; \n\
 					/* PLUG: voxel_apply (voxel, gradient) */ \n\
+				} else { \n\
+					voxel = vec4(0.0); //similar to discard \n\
 				} \n\
 				lastdensity = density; \n\
 			} else if(MODE == 2){ \n\
 				float iso = fw_surfaceVals[0]; \n\
 				float density_iso = density / fw_stepSize; \n\
 				if( sign( density_iso - iso) != sign( lastdensity_iso - iso) && length(gradient) > fw_tolerance ){ \n\
+					voxel.a = 1.0; \n\
 					/* PLUG: voxel_apply (voxel, gradient) */ \n\
+				} else { \n\
+					voxel = vec4(0.0); //similar to discard \n\
 				} \n\
 				lastdensity = density; \n\
 				lastdensity_iso = density_iso; \n\

@@ -1399,7 +1399,6 @@ void child_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
 			voldataflags |= SHADERFLAGS_VOLUME_DATA_ISO_MODE3;
 		caps = getVolumeProgram(node->renderStyle.p,node->renderStyle.n, voldataflags);
 		//get and set ISO-specific uniforms
-		int itexture = 1; //voxels=0,segmentIDs=1
 		render_ISO_volume_data(caps,node);
 		//render generic volume 
 		render_GENERIC_volume_data(caps,node->renderStyle.p,node->renderStyle.n,node->voxels,(struct X3D_VolumeData*)node );
