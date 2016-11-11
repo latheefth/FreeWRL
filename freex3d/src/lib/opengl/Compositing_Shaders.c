@@ -2645,7 +2645,10 @@ void main(void) \n\
 	vec4 frag1 = texture2D(fw_Texture_unit1,fc); \n\
 	//debug_color = HeatMapColor(gl_FragCoord.x,0.0,500.0); \n\
 	//debug_color = HeatMapColor(fc.y,-1.0,1.0); \n\
-	debug_color = vec4(frag0.rgb,1.0); \n\
+	if(fc.x < 0.5) \n\
+		debug_color = vec4(frag0.rgb,1.0); \n\
+	else \n\
+		debug_color = vec4(frag1.rgb,1.0); \n\
 	vec3 cv = frag0.rgb; \n\
 	float ov = frag0.a; \n\
 	vec3 cblend = frag1.rgb; \n\
@@ -2659,7 +2662,7 @@ void main(void) \n\
 	vec3 cg = clamp( cvw + cbw, 0.0, 1.0); \n\
 	float og = clamp(ovw + obw, 0.0, 1.0); \n\
 	\n\
-	if(false) \n\
+	if(true) \n\
 		gl_FragColor = vec4(cg,og); \n\
 	else \n\
 		gl_FragColor = debug_color; \n\

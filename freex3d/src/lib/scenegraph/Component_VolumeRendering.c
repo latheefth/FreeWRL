@@ -454,19 +454,20 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, fbohandles[2], 0);
+						//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, fbohandles[2], 0);
 						//--dont assign the second texture till after the parent VolumeData has drawn itself
-						glDrawBuffers(1,&fbohandles[1]);
+						//glDrawBuffers(1,&fbohandles[1]);
 						if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 							printf("ouch framebuffer not complete\n");
 						//popnset_framebuffer(); //pop after drawing
 					}else{
 						pushnset_framebuffer(fbohandles[0]);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
 					}
 					float vp[4] = {0.0f,1.0f,0.0f,1.0f}; //arbitrary
 					pushnset_viewport(vp); //something to push so we can pop-and-set below, so any mainloop GL_BACK viewport is restored
 					glViewport(0,0,iviewport[2],iviewport[3]); //viewport we want 
-					glClearColor(1.0f,0.0f,0.0f,0.0f); //red, for diagnostics during debugging
+					glClearColor(0.0f,0.0f,0.0f,0.0f); //red, for diagnostics during debugging
 					FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 					#endif //BLENDED
@@ -809,10 +810,10 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 							FREE_IF_NZ(ttip->texdata);
 						}
 
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, fbohandles[2], 0);
-						glDrawBuffers(1,&fbohandles[2]);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[2], 0);
+						//glDrawBuffers(1,&fbohandles[2]);
 
-						glClearColor(0.0f,0.0f,1.0f,0.0f); //red, for diagnostics during debugging
+						glClearColor(0.0f,0.0f,0.0f,0.0f); //red, for diagnostics during debugging
 						FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 						//render blended as volumedata to fbo
