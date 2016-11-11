@@ -2573,7 +2573,30 @@ static const GLchar *volumeBlendedFragmentGLES2 = " \n\
 //precision highp float; \n\
 precision mediump float; \n\
 #endif //MOBILE \n\
+ vec4 HeatMapColor(float value, float minValue, float maxValue) \n\
+{ \n\
+	//used for debugging. If min=0,max=1 then magenta is 0, blue,green,yellow, red is 1 \n\
+	vec4 ret; \n\
+    int HEATMAP_COLORS_COUNT; \n\
+    vec4 colors[6]; \n\
+	HEATMAP_COLORS_COUNT = 6; \n\
+	colors[0] = vec4(0.32, 0.00, 0.32, 1.0); \n\
+    colors[1] = vec4( 0.00, 0.00, 1.00, 1.00); \n\
+    colors[2] = vec4(0.00, 1.00, 0.00, 1.00); \n\
+    colors[3] = vec4(1.00, 1.00, 0.00, 1.00); \n\
+    colors[4] = vec4(1.00, 0.60, 0.00, 1.00); \n\
+    colors[5] = vec4(1.00, 0.00, 0.00, 1.00); \n\
+    float ratio=(float(HEATMAP_COLORS_COUNT)-1.0)*clamp((value-minValue)/(maxValue-minValue),0.0,1.0); \n\
+    int indexMin=int(floor(ratio)); \n\
+    int indexMax= indexMin+1 < HEATMAP_COLORS_COUNT-1 ? indexMin+1 : HEATMAP_COLORS_COUNT-1; \n\
+    ret = mix(colors[indexMin], colors[indexMax], ratio-float(indexMin)); \n\
+	if(value < minValue) ret = vec4(0.0,0.0,0.0,1.0); \n\
+	if(value > maxValue) ret = vec4(1.0,1.0,1.0,1.0); \n\
+	return ret; \n\
+} \n\
+vec4 debug_color; \n\
  \n\
+uniform vec4 fw_viewport; \n\
 uniform sampler2D fw_Texture_unit0; \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
@@ -2617,8 +2640,12 @@ float weightalpha( in float alpha, in int func, in float wt, in float ov, in flo
 } \n\
 void main(void) \n\
 { \n\
-	vec4 frag0 = texture2D(fw_Texture_unit0,gl_FragCoord.xy); \n\
-	vec4 frag1 = texture2D(fw_Texture_unit1,gl_FragCoord.xy); \n\
+    vec2 fc = (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw; \n\
+	vec4 frag0 = texture2D(fw_Texture_unit0,fc); \n\
+	vec4 frag1 = texture2D(fw_Texture_unit1,fc); \n\
+	//debug_color = HeatMapColor(gl_FragCoord.x,0.0,500.0); \n\
+	//debug_color = HeatMapColor(fc.y,-1.0,1.0); \n\
+	debug_color = vec4(frag0.rgb,1.0); \n\
 	vec3 cv = frag0.rgb; \n\
 	float ov = frag0.a; \n\
 	vec3 cblend = frag1.rgb; \n\
@@ -2632,8 +2659,11 @@ void main(void) \n\
 	vec3 cg = clamp( cvw + cbw, 0.0, 1.0); \n\
 	float og = clamp(ovw + obw, 0.0, 1.0); \n\
 	\n\
-	//gl_FragColor = vec4(cg,og); \n\
-	gl_FragColor = frag1; \n\
+	if(false) \n\
+		gl_FragColor = vec4(cg,og); \n\
+	else \n\
+		gl_FragColor = debug_color; \n\
+	//gl_FragColor = frag1; \n\
 } \n\
 ";
 
