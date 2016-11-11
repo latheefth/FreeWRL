@@ -782,7 +782,7 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 						static int iframe = 0;
 						iframe++;
 						//FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
-						if(1) if(iframe==500){
+						if(0) if(iframe==500){
 							//write out whats in the framebuffer, and use as texture in test scene, to see fbo rendered OK
 							textureTableIndexStruct_s ttipp, *ttip;
 							ttip = &ttipp;
@@ -818,16 +818,18 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 
 						//render blended as volumedata to fbo
 						//render_volume_data(style->renderStyle,style->voxels,dataParent);
-						s_shader_capabilities_t *caps = getVolumeProgram(NULL,0, SHADERFLAGS_VOLUME_DATA_BASIC);
+						s_shader_capabilities_t *caps;
+						int nsubstyle = style->renderStyle ? 1 : 0;
+						caps = getVolumeProgram(&style->renderStyle,nsubstyle, SHADERFLAGS_VOLUME_DATA_BASIC);
 						//render generic volume 
-						render_GENERIC_volume_data(caps,NULL,0,style->voxels,(struct X3D_VolumeData*)dataParent );
+						render_GENERIC_volume_data(caps,&style->renderStyle,nsubstyle,style->voxels,(struct X3D_VolumeData*)dataParent );
 						//render_GENERIC_volume_data(caps,style->renderStyle,1,style->voxels,(struct X3D_VolumeData*)dataParent );
 
 						//glDrawBuffers(0,NULL);
 
 						//read blended from fbo
 						//FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
-						if(1) if(iframe==500){
+						if(0) if(iframe==500){
 							//write out whats in the framebuffer, and use as texture in test scene, to see fbo rendered OK
 							textureTableIndexStruct_s ttipp, *ttip;
 							ttip = &ttipp;
