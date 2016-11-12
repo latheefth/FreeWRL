@@ -584,11 +584,12 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		if (!r->GeneratedTexCoords[0]) {
 			for(k=0;k<(max(1,nmtexcoord));k++){ //always do the first one
 				if (textureCoordPoint[k] != NULL) {
-					int ndim;
+					int ndim, jj;
 					int j = newtcindex[i];
 					//struct SFVec2f me;
 					float *me;
-            
+					
+					jj = 0;
 					// bounds checking
 					if (j>=(textureCoordPoint[k]->n)) {
 						//this warning eats frame rate in HAnim
@@ -597,8 +598,10 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 							ConsoleMessage ("stream_polyrep, have tcindex %d, tex coords %d, overflow",j,textureCoordPoint[k]->n);
 							once = 1;
 						}
-						j= 0;
-						//j= j % textureCoordPoint[k]->n;
+						//j= 0;
+						//jj = (j / textureCoordPoint[k]->n) +1;
+						jj = textureCoordPoint[k]->n / max(1,nmtexcoord);
+						j= j % textureCoordPoint[k]->n;
 					}
 
 					// textureCoordPoint is a pointer to struct Multi_Vec2f;
@@ -609,8 +612,14 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 					ndim = ntexdim[k];
 					me = (float*)textureCoordPoint[k]->p; //[j]; //lets hope struct SFVec2f is same layout as float[2]
 					me = &me[j*ndim];
-					newTexCoords[k][i*ndim] = me[0]; //me.c[0];
-					newTexCoords[k][i*ndim+1] = me[1]; //me.c[1];
+					if(jj){
+						//experiment for when not enough texture coordinates
+						newTexCoords[k][i*ndim] = me[0]/(float)(jj); 
+						newTexCoords[k][i*ndim+1] = me[1]/(float)(jj); 
+					}else{
+						newTexCoords[k][i*ndim] = me[0];
+						newTexCoords[k][i*ndim+1] = me[1];
+					}
 					if(ndim>2)
 						newTexCoords[k][i*ndim+2] = me[2]; //me.c[1];
 					if(ndim>3)

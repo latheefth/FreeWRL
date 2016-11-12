@@ -1697,17 +1697,16 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 		}else{
 			AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
-			AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
-			Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
-			if(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER))
-				AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
+			//lines and points 
+			if( DESIRE(whichOne.base,HAVE_LINEPOINTS_COLOR) ) {
+				AddDefine(SHADERPART_VERTEX,"LINE",CompleteCode);
+			}else{
+				AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
+				Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
+				if(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER))
+					AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
+			}
 		}
-	}
-	//lines and points 
-	if( DESIRE(whichOne.base,HAVE_LINEPOINTS_APPEARANCE) ) {
-		AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
-		AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
-		AddDefine(SHADERPART_VERTEX,"LINE",CompleteCode);
 	}
 	//textureCoordinategen
 	//cubemap texure
