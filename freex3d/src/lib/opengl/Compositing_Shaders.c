@@ -1683,11 +1683,12 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 			AddDefine(SHADERPART_VERTEX,"MATFIR",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"MATFIR",CompleteCode);
 		}
-		if(DESIRE(whichOne.base,SHADINGSTYLE_PHONG)){
+		if(DESIRE(whichOne.base,SHADINGSTYLE_PHONG) && !DESIRE(whichOne.base,HAVE_LINEPOINTS_COLOR)){
 			//when we say phong in freewrl, we really mean per-fragment lighting
 			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"LITE",CompleteCode);  //add some lights
 			Plug(SHADERPART_FRAGMENT,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
+
 			if(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER))
 				AddDefine(SHADERPART_FRAGMENT,"TWO",CompleteCode);
 			//but even if we mean per-fragment, for another dot product per fragment we can upgrade
