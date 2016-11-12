@@ -249,6 +249,12 @@ static void myScaleImage3D(int srcX,int srcY,int srcZ, int destX,int destY,int d
 		}
 	}
 }
+int iclamp(int ival, int istart, int iend) { 
+	int iret = ival;
+	iret = ival > iend? iend : ival;
+	iret = iret < istart ? istart : iret;
+	return iret;
+}
 void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
 	//assumes we have a scalar image with info only in alpha, but (unused) RGB channels
 	//we compute 3D alpha/scalar gradient using one of sobel, roberts ...
@@ -256,39 +262,94 @@ void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
 	//here we do an axis-aligned roberts ie gradient_x = x1 - x0
 	int iz,iy,ix, jz,jy,jx,jzz,jyy,jxx, k;
 	char *rgba0, *rgba1;
-	int gradient[3]; 
+	int gradient[3], maxgradient[3], mingradient[3];
 	unsigned char *urgba, a;
 	uint32 *pixels = (uint32 *)dest;
+
+	for(k=0;k<3;k++) {
+		maxgradient[k] = -1;
+		mingradient[k] = 1;
+	}
+
 
 	for(iz=0;iz<z;iz++){
 		for(iy=0;iy<y;iy++){
 			for(ix=0;ix<x;ix++){
 				//initialize gradient
 				for(k=0;k<3;k++) gradient[k] = 0;
-				//sum onto gradient
 				rgba0 = (char *) &pixels[(iz*y +iy)*x + ix];
 				urgba = (unsigned char *)rgba0;
-				jxx = jyy = jzz = 0;
-				//what if we are on the edge? for roberts, just duplicate next-to-edge by backing up one
-				if(iz == z-1) jzz = -1;
-				if(iy == y-1) jyy = -1;
-				if(ix == x-1) jxx = -1;
-				jx = jxx; jy = jyy; jz = jzz;
-				jx = jxx + 1;
-				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
-				gradient[0] = (int)rgba1[3] - (int)rgba0[3];
-				jx = jxx;
-				jy = jyy+1;
-				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
-				gradient[1] = (int)rgba1[3] - (int)rgba0[3];
-				jy = jyy;
-				jz = jzz+1;
-				rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
-				gradient[2] = (int)rgba1[3] - (int)rgba0[3];
+				if(1){
+					//sum onto gradient
+					jxx = jyy = jzz = 0;
+					//what if we are on the edge? for roberts, just duplicate next-to-edge by backing up one
+					if(iz == z-1) jzz = -1;
+					if(iy == y-1) jyy = -1;
+					if(ix == x-1) jxx = -1;
+					jx = jxx; jy = jyy; jz = jzz;
+					jx = jxx + 1;
+					rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+					gradient[0] = (int)rgba1[3] - (int)rgba0[3];
+					jx = jxx;
+					jy = jyy+1;
+					rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+					gradient[1] = (int)rgba1[3] - (int)rgba0[3];
+					jy = jyy;
+					jz = jzz+1;
+					rgba1 = (char *) &pixels[((iz+jz)*y +(iy+jy))*x + (ix+jx)];
+					gradient[2] = (int)rgba1[3] - (int)rgba0[3];
+				}else {
+					//extract edge-clamped 3x3x3
+					//       X  Y  Z with [1] in center
+					int cube[3][3][3], i,j,ii,jj,kk;
+					for(i=-1;i<2;i++){
+						ii = iclamp(ix+i,0,x-1);
+						for(j=-1;j<2;j++){
+							jj= iclamp(iy+j,0,y-1);
+							for(k=-1;k<2;k++){
+								kk = iclamp(iz+k,0,z-1);
+								cube[i+1][j+1][k+1] = ((unsigned char *)&pixels[(kk*y +jj)*x + ii])[3];
+							}
+						}
+					}
+					if(1){
+						//roberts cross
+						//gradient[0] = (cube[2][2][2] - cube[1][1][1]) + (cube[2][0][0] - cube[1][1][1];
+					}
+					if(1){
+						//sobel gradient
+						gradient[0] = 0;
+						gradient[0] += cube[0][0][1] + 2*cube[0][1][1] + cube[0][2][1];
+						gradient[0] -= cube[2][0][1] + 2*cube[2][1][1] + cube[2][2][1];
+						gradient[0] += cube[0][1][0] + 2*cube[0][1][1] + cube[0][1][2];
+						gradient[0] -= cube[2][1][0] + 2*cube[2][1][1] + cube[2][1][2];
+
+						gradient[1] = 0;
+						gradient[1] += cube[1][0][0] + 2*cube[1][0][1] + cube[1][0][2];
+						gradient[1] -= cube[1][2][0] + 2*cube[1][2][1] + cube[1][2][2];
+						gradient[1] += cube[0][0][1] + 2*cube[1][0][1] + cube[2][0][1];
+						gradient[1] -= cube[9][2][1] + 2*cube[1][2][1] + cube[2][2][1];
+
+						gradient[2] = 0;
+						gradient[2] += cube[0][1][0] + 2*cube[1][1][0] + cube[2][1][0];
+						gradient[2] -= cube[0][1][2] + 2*cube[1][1][2] + cube[2][1][2];
+						gradient[2] += cube[1][0][0] + 2*cube[1][1][0] + cube[1][2][0];
+						gradient[2] -= cube[1][9][2] + 2*cube[1][1][2] + cube[1][2][2];
+						for(k=0;k<3;k++) 
+							gradient[k] /= 2;
+
+					}
+				}
+
 				//scale gradient to -127 to +127 in each dimension
 				//roberts: a1 - a0 could be in range (255 - 0) to (0 -255) or -255 to 255, 
 				// we need -127 to 127 signed char on each dim
 				for(k=0;k<3;k++) gradient[k] /= 2;  
+				for(k=0;k<3;k++) {
+					maxgradient[k] = max(maxgradient[k],gradient[k]);
+					mingradient[k] = min(mingradient[k],gradient[k]);
+				}
+
 				//but when texture2D / sampler2D convert from image pixel to float, 
 				//the expect the pixels to be unsigned char.
 				//so we add 127 here, and subtract .5 in the shader, once they are float
@@ -302,6 +363,10 @@ void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
 				//}
 			}
 		}
+	}
+	if(0){
+	printf("mingradient %d %d %d\n",mingradient[0],mingradient[1],mingradient[2]);
+	printf("maxgradient %d %d %d\n",maxgradient[0],maxgradient[1],maxgradient[2]);
 	}
 	if(0){
 		//save gradient image for testing
