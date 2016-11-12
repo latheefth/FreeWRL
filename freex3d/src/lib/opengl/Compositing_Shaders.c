@@ -537,9 +537,8 @@ struct fw_LightSourceParameters { \n\
   vec4 position;   \n\
   vec4 halfVector;  \n\
   vec4 spotDirection; \n\
-  float spotExponent; \n\
+  float spotBeamWidth; \n\
   float spotCutoff; \n\
-  float spotCosCutoff; \n\
   vec3 Attenuations; \n\
   float lightRadius; \n\
 }; \n\
@@ -811,9 +810,8 @@ struct fw_LightSourceParameters { \n\
   vec4 position;   \n\
   vec4 halfVector;  \n\
   vec4 spotDirection; \n\
-  float spotExponent; \n\
+  float spotBeamWidth; \n\
   float spotCutoff; \n\
-  float spotCosCutoff; \n\
   vec3 Attenuations; \n\
   float lightRadius; \n\
 }; \n\
@@ -1512,18 +1510,25 @@ void PLUG_add_light_contribution2 (inout vec4 vertexcolor, inout vec3 specularco
       \n\
       if (myLightType==1) { \n\
         /* SpotLight */ \n\
-        float spotDot; \n\
+        float spotDot, multiplier; \n\
         float spotAttenuation = 0.0; \n\
         float attenuation; /* computed attenuation factor */ \n\
         float D; /* distance to vertex */ \n\
         D = length(VP); \n\
         attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * D) + (fw_LightSource[i].Attenuations.z *D*D)); \n\
+		multiplier = 0.0; \n\
         spotDot = dot (-L,myLightDir); \n\
         /* check against spotCosCutoff */ \n\
         if (spotDot > fw_LightSource[i].spotCutoff) { \n\
-          spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent); \n\
+          //?? what was this: spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent); \n\
+		  if(spotDot > fw_LightSource[i].spotBeamWidth) { \n\
+			multiplier = 1.0; \n\
+		  } else { \n\
+		    multiplier = (spotDot - fw_LightSource[i].spotCutoff)/(fw_LightSource[i].spotBeamWidth - fw_LightSource[i].spotCutoff); \n\
+		  } \n\
         } \n\
-        attenuation *= spotAttenuation; \n\
+        //attenuation *= spotAttenuation; \n\
+		attenuation *= multiplier; \n\
         /* diffuse light computation */ \n\
         diffuse += NdotL* matdiffuse*myLightDiffuse * attenuation; \n\
         /* ambient light computation */ \n\
@@ -2435,9 +2440,8 @@ struct fw_LightSourceParameters { \n\
   vec4 position;   \n\
   vec4 halfVector;  \n\
   vec4 spotDirection; \n\
-  float spotExponent; \n\
+  float spotBeamWidth; \n\
   float spotCutoff; \n\
-  float spotCosCutoff; \n\
   vec3 Attenuations; \n\
   float lightRadius; \n\
 }; \n\

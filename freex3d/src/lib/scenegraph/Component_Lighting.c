@@ -294,12 +294,14 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 			FW_GL_LIGHTFV(light, GL_SPECULAR, node->_col.c);
 			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
             
-			ft =(float)cos((node->beamWidth)/2.0); /*  / (PI/4.0); */
+			//ft =(float)cos((node->beamWidth)/2.0); /*  / (PI/4.0); */
+			ft = cosf(node->beamWidth);
 			FW_GL_LIGHTF(light, GL_SPOT_BEAMWIDTH,ft);
             //ConsoleMessage ("spotLight, bw %f, cuta %f, PI/4 %f", node->beamWidth,node->cutOffAngle, PI/4.0);
             
             /* create a ratio of light in relation to PI/4.0 */
-            ft = (float)cos(node->cutOffAngle/2.0); /* / (PI/4.0); */ 
+            //ft = (float)cos(node->cutOffAngle/2.0); /* / (PI/4.0); */ 
+            ft = cosf(node->cutOffAngle); 
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
             setLightChangedFlag(light);
             //not used in spotlight calculation FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);

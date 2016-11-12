@@ -1631,9 +1631,8 @@ struct fw_LightSourceParameters { \n\
   vec4 position;   \n\
   vec4 halfVector;  \n\
   vec4 spotDirection; \n\
-  float spotExponent; \n\
+  float spotBeamWidth; \n\
   float spotCutoff; \n\
-  float spotCosCutoff; \n\
   vec3 Attenuations; \n\
   //float constantAttenuation; \n\
   //float linearAttenuation;  \n\
@@ -1728,7 +1727,7 @@ if (backFacing) { \n \
         spotDot = dot (-L,myLightDir);\n\
         /* check against spotCosCutoff */\n\
         if (spotDot > fw_LightSource[i].spotCutoff) {\n\
-          spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent);\n\
+          spotAttenuation = pow(spotDot,fw_LightSource[i].spotCutoff);\n\
         }\n\
         attenuation *= spotAttenuation;\n\
         /* diffuse light computation */\n\
@@ -1802,9 +1801,8 @@ uniform vec4 lightspecular[MAX_LIGHTS]; \n\
 uniform vec4 lightposition[MAX_LIGHTS];   \n\
 uniform vec4 lighthalfVector[MAX_LIGHTS];  \n\
 uniform vec4 lightspotDirection[MAX_LIGHTS]; \n\
-uniform float lightspotExponent[MAX_LIGHTS]; \n\
+uniform float lightspotBeamWidth[MAX_LIGHTS]; \n\
 uniform float lightspotCutoff[MAX_LIGHTS]; \n\
-uniform float lightspotCosCutoff[MAX_LIGHTS]; \n\
 uniform float lightRadius[MAX_LIGHTS]; \n\
 uniform vec3 lightAttenuations[MAX_LIGHTS]; \n\
 ";
@@ -1877,7 +1875,7 @@ if (backFacing) { \n \
         spotDot = dot (-L,myLightDir);\n\
         /* check against spotCosCutoff */\n\
         if (spotDot > lightspotCutoff[i]) {\n\
-          spotAttenuation = pow(spotDot,lightspotExponent[i]);\n\
+          spotAttenuation = pow(spotDot,lightspotBeamWidth[i]);\n\
         }\n\
         attenuation *= spotAttenuation;\n\
         /* diffuse light computation */\n\
@@ -2861,7 +2859,8 @@ static void getShaderCommonInterfaces (s_shader_capabilities_t *me) {
 			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotDir[i]);
 
 
-			strcpy(&uniformName[18],"spotExponent");
+			//strcpy(&uniformName[18],"spotExponent");
+			strcpy(&uniformName[18],"spotBeamWidth");
 			me->lightSpotBeamWidth[i] = GET_UNIFORM(myProg,uniformName);
 			//ConsoleMessage ("light Uniform test for %d is %s, %d",i,uniformName,me->lightSpotBeamWidth[i]);
 
