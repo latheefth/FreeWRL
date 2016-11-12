@@ -425,31 +425,50 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					#define BLENDED 1
 					#ifdef BLENDED
 					int *fbohandles = style->_fbohandles.p;
+					GLint iviewport[4];
+					glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
 					if(fbohandles[0] == 0){
 						// https://www.opengl.org/wiki/Framebuffer_Object
 						glGenFramebuffers(1, &fbohandles[0]);
 						pushnset_framebuffer(fbohandles[0]); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
 
+						// The depth buffer - optional
+						GLuint depthrenderbuffer;
+						glGenRenderbuffers(1, &depthrenderbuffer);
+						glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+						glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, iviewport[2],iviewport[3]);
+						glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+
+
 						glGenTextures(1,&fbohandles[1]);
 						glBindTexture(GL_TEXTURE_2D, fbohandles[1]);
-
-						GLint iviewport[4];
-						glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
-
 						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
 
 						glGenTextures(1,&fbohandles[2]);
 						glBindTexture(GL_TEXTURE_2D, fbohandles[2]);
-
 						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 						//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, fbohandles[2], 0);
 						//--dont assign the second texture till after the parent VolumeData has drawn itself
-
+						//glDrawBuffers(1,&fbohandles[1]);
+						if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+							printf("ouch framebuffer not complete\n");
 						//popnset_framebuffer(); //pop after drawing
 					}else{
 						pushnset_framebuffer(fbohandles[0]);
+						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
 					}
+					float vp[4] = {0.0f,1.0f,0.0f,1.0f}; //arbitrary
+					pushnset_viewport(vp); //something to push so we can pop-and-set below, so any mainloop GL_BACK viewport is restored
+					glViewport(0,0,iviewport[2],iviewport[3]); //viewport we want 
+					glClearColor(0.0f,0.0f,0.0f,0.0f); //red, for diagnostics during debugging
+					FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 					#endif //BLENDED
 				}
@@ -726,6 +745,7 @@ int lookup_blendfunc(const char *funcname){
 	}while(blendfuncs[i].ctype);
 	return iret;
 }
+void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
 void render_GENERIC_volume_data(s_shader_capabilities_t *caps, struct X3D_Node **renderStyle, int nstyle, struct X3D_Node *voxels, struct X3D_VolumeData *node );
 s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int nstyle, int VOLUME_DATA_FLAG);
 void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent){
@@ -762,7 +782,7 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 						static int iframe = 0;
 						iframe++;
 						//FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
-						if(1) if(iframe==1000){
+						if(0) if(iframe==500){
 							//write out whats in the framebuffer, and use as texture in test scene, to see fbo rendered OK
 							textureTableIndexStruct_s ttipp, *ttip;
 							ttip = &ttipp;
@@ -789,17 +809,27 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 							saveImage_web3dit(ttip, namebuf);
 							FREE_IF_NZ(ttip->texdata);
 						}
+
 						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[2], 0);
+						//glDrawBuffers(1,&fbohandles[2]);
+
+						glClearColor(0.0f,0.0f,0.0f,0.0f); //red, for diagnostics during debugging
+						FW_GL_CLEAR(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 						//render blended as volumedata to fbo
 						//render_volume_data(style->renderStyle,style->voxels,dataParent);
-						s_shader_capabilities_t *caps = getVolumeProgram(NULL,0, SHADERFLAGS_VOLUME_DATA_BASIC);
+						s_shader_capabilities_t *caps;
+						int nsubstyle = style->renderStyle ? 1 : 0;
+						caps = getVolumeProgram(&style->renderStyle,nsubstyle, SHADERFLAGS_VOLUME_DATA_BASIC);
 						//render generic volume 
-						render_GENERIC_volume_data(caps,NULL,0,style->voxels,(struct X3D_VolumeData*)dataParent );
+						render_GENERIC_volume_data(caps,&style->renderStyle,nsubstyle,style->voxels,(struct X3D_VolumeData*)dataParent );
 						//render_GENERIC_volume_data(caps,style->renderStyle,1,style->voxels,(struct X3D_VolumeData*)dataParent );
+
+						//glDrawBuffers(0,NULL);
 
 						//read blended from fbo
 						//FW_GL_READPIXELS (0,0,isize,isize,pixelType,GL_UNSIGNED_BYTE, ttip->texdata);
-						if(1) if(iframe==1000){
+						if(0) if(iframe==500){
 							//write out whats in the framebuffer, and use as texture in test scene, to see fbo rendered OK
 							textureTableIndexStruct_s ttipp, *ttip;
 							ttip = &ttipp;
@@ -824,8 +854,12 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 							sprintf(namebuf,"%s%d.web3dit","blended_fbo_",1);
 							saveImage_web3dit(ttip, namebuf);
 							FREE_IF_NZ(ttip->texdata);
+							printf("wrote blended_fbo_.web3dit \n");
 						}
 						popnset_framebuffer();
+						popnset_viewport();
+						//we're now back to rendering to the screen
+						//we should have 2 textures
 
 						//render 2 textures as blended multitexture, or in special shader for blending, 
 						//2 textures are fbohandles[0] (parent voldata), fbohandles[1] (blend voldata)
@@ -881,8 +915,16 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 							//set the 2 textures from the fbo rendering
 							glActiveTexture ( GL_TEXTURE0 );
 							glBindTexture(GL_TEXTURE_2D,style->_fbohandles.p[1]);
+							FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  //don't interpolate integer segment IDs
+
 							glActiveTexture ( GL_TEXTURE0+1 );
 							glBindTexture(GL_TEXTURE_2D,style->_fbohandles.p[2]);
+							FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  //don't interpolate integer segment IDs
+
+							GLint TextureUnit= GET_UNIFORM(myProg,"fw_Texture_unit0");
+							glUniform1i(TextureUnit,0);
+							TextureUnit= GET_UNIFORM(myProg,"fw_Texture_unit1");
+							glUniform1i(TextureUnit,1);
 
 							//set the 2 transfer function textures
 							int havetextures;
@@ -930,12 +972,37 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 							glUniform1i(iopactex,havetextures);
 
 
+							GLint iviewport[4];
+							float viewport[4];
+							glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
+
+							GLint vp = GET_UNIFORM(myProg,"fw_viewport");
+							viewport[0] = iviewport[0]; //xmin
+							viewport[1] = iviewport[1]; //ymin
+							viewport[2] = iviewport[2]; //width
+							viewport[3] = iviewport[3]; //height
+							GLUNIFORM4F(vp,viewport[0],viewport[1],viewport[2],viewport[3]);
+
 							//draw the box
+
 							GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
+							GLint mvm = GET_UNIFORM(myProg,"fw_ModelViewMatrix"); //fw_ModelViewMatrix
+							GLint proj = GET_UNIFORM(myProg,"fw_ProjectionMatrix"); //fw_ProjectionMatrix
+							sendExplicitMatriciesToShader(mvm,proj,-1,NULL,-1);
+							double modelviewMatrix[16], mvmInverse[16], projMatrix[16], mvp[16], mvpinverse[16];
+							FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+							FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projMatrix);
+
 							glEnableVertexAttribArray(Vertices);
+
 							glVertexAttribPointer(Vertices, 3, GL_FLOAT, GL_FALSE, 0, dataParent->_boxtris);
-							glDrawArrays(GL_TRIANGLES,0,36); //36 vertices for box
-							
+
+
+							glEnable(GL_CULL_FACE);
+							glFrontFace(GL_CW); 
+							glDrawArrays(GL_TRIANGLES,0,36);
+							glDisable(GL_CULL_FACE);
+
 						}else if(method_draw_quad){
 							////we need a shader that doesn't bother with matrices - just draws quad like ortho
 							//GLint Vertices = GET_ATTRIB(myProg,"fw_Vertex");
@@ -1007,7 +1074,6 @@ int volstyle_needs_normal(struct X3D_Node *vstyle){
 	}
 	return need_normal;
 }
-void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatrix, GLint NormalMatrix, GLint *TextureMatrix, GLint ModelViewInverseMatrix);
 
 void compile_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#IsoSurfaceVolumeData
@@ -1106,7 +1172,8 @@ void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node
 		textureTableIndexStruct_s *tti = getTableTableFromTextureNode(tmpN);
 		if(tti && tti->status >= TEX_LOADED){
 			if(0){
-				//in theory these will be set by the main voxel texture and should match
+				//in theory these will be set by the main voxel texture but don't match
+				//here we want NEAREST not LINEAR
 				GLint ttiles = GET_UNIFORM(myProg,"tex3dTiles");
 				GLUNIFORM1IV(ttiles,3,tti->tiles);
 
@@ -1116,10 +1183,13 @@ void render_SEGMENTED_volume_data(s_shader_capabilities_t *caps, struct X3D_Node
 				GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
 				glUniform1iv(repeatSTR,3,tti->repeatSTR);
 				GLint magFilter = GET_UNIFORM(myProg,"magFilter");
-				glUniform1i(magFilter,tti->magFilter);
+				glUniform1i(magFilter,0); //tti->magFilter); //NEAREST
 			}
+			GLint TextureUnit= GET_UNIFORM(myProg,"fw_Texture_unit1");
+			glUniform1i(TextureUnit,itexture);
 			glActiveTexture(GL_TEXTURE0+itexture); 
 			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  //don't interpolate integer segment IDs
 		}
 	}
 	GLint inids = GET_UNIFORM(myProg,"fw_nIDs");
@@ -1188,10 +1258,12 @@ void render_GENERIC_volume_data(s_shader_capabilities_t *caps, struct X3D_Node *
 			GLint repeatSTR = GET_UNIFORM(myProg,"repeatSTR");
 			glUniform1iv(repeatSTR,3,tti->repeatSTR);
 			GLint magFilter = GET_UNIFORM(myProg,"magFilter");
-			glUniform1i(magFilter,tti->magFilter);
+			glUniform1i(magFilter,1); //need LINEAR //tti->magFilter);
 
 			glActiveTexture(GL_TEXTURE0); 
 			glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture); 
+			FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 		}
 	}
 	if(nstyle){
@@ -1393,7 +1465,6 @@ void child_IsoSurfaceVolumeData(struct X3D_IsoSurfaceVolumeData *node){
 			voldataflags |= SHADERFLAGS_VOLUME_DATA_ISO_MODE3;
 		caps = getVolumeProgram(node->renderStyle.p,node->renderStyle.n, voldataflags);
 		//get and set ISO-specific uniforms
-		int itexture = 1; //voxels=0,segmentIDs=1
 		render_ISO_volume_data(caps,node);
 		//render generic volume 
 		render_GENERIC_volume_data(caps,node->renderStyle.p,node->renderStyle.n,node->voxels,(struct X3D_VolumeData*)node );

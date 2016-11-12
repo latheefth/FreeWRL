@@ -1220,7 +1220,7 @@ void PLUG_fragment_end (inout vec4 finalFrag){ \n\
 //  4  8
 //  
 static const GLchar *plug_fragment_texture3D_apply_volume =	"\n\
-vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3){ \n\
+vec4 texture3Demu0( sampler2D sampler, in vec3 texcoord3, in int magfilter){ \n\
   vec4 sample = vec4(0.0); \n\
   #ifdef TEX3D \n\
   //TILED method (vs Y strip method) \n\
@@ -1266,13 +1266,17 @@ vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3){ \n\
   ftexel = texture2D(sampler,ftexcoord.st); \n\
   ctexel = texture2D(sampler,ctexcoord.st); \n\
   float fraction = mod(texcoord.z*depth,1.0); \n\
-  if(magFilter == 1) \n\
+  if(magfilter == 1) \n\
 	texel = mix(ctexel,ftexel,1.0-fraction); //lerp GL_LINEAR \n\
   else \n\
 	texel = ftexel; //fraction > .5 ? ctexel : ftexel; //GL_NEAREST \n\
   sample = texel; \n\
   #endif //TEX3D \n\
   return sample; \n\
+} \n\
+vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3){ \n\
+	//use uniform magfilter \n\
+	return texture3Demu0( sampler, texcoord3, magFilter); \n\
 } \n\
 void PLUG_texture3D( inout vec4 sample, in vec3 texcoord3 ){ \n\
 	sample = texture3Demu(fw_Texture_unit0,texcoord3); \n\
@@ -1876,6 +1880,32 @@ precision mediump float; \n\
 	return ret; \n\
 } \n\
 vec4 debug_color; \n\
+float hash( float n ) \n\
+{ \n\
+    return fract(sin(n)*43758.5453); \n\
+} \n\
+float noise( vec3 xyz ) \n\
+{ \n\
+    // The noise function returns a value in the range -1.0f -> 1.0f \n\
+    vec3 p = floor(xyz); \n\
+    vec3 f = fract(xyz); \n\
+	\n\
+    f = f*f*(3.0-2.0*f); \n\
+    float n = p.x + p.y*57.0 + 113.0*p.z; \n\
+	\n\
+    return mix(mix(mix( hash(n+0.0), hash(n+1.0),f.x), \n\
+                   mix( hash(n+57.0), hash(n+58.0),f.x),f.y), \n\
+               mix(mix( hash(n+113.0), hash(n+114.0),f.x), \n\
+                   mix( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z); \n\
+} \n\
+vec3 noise3( in vec3 xyz, in float range ){ \n\
+	vec3 rxyz = vec3(xyz); \n\
+	rxyz.x += noise(xyz)*range; \n\
+	rxyz.y += noise(xyz)*range; \n\
+	rxyz.z += noise(xyz)*range; \n\
+	return rxyz; \n\
+} \n\
+ \n\
 varying vec4 castle_vertex_eye; \n\
 varying vec4 castle_Color; \n\
 uniform mat4 fw_ModelViewProjInverse; \n\
@@ -1898,27 +1928,25 @@ uniform int fw_enableIDs[10]; \n\
 uniform int fw_surfaceStyles[2]; \n\
 uniform int fw_nStyles; \n\
 vec4 texture3Demu( sampler2D sampler, in vec3 texcoord3); \n\
+vec4 texture3Demu0( sampler2D sampler, in vec3 texcoord3, int magfilter); \n\
 bool inEnabledSegment(in vec3 texcoords, inout int jstyle){ \n\
 	bool inside = true; \n\
 	jstyle = 1; //DEFAULT \n\
-	vec4 segel = texture3Demu(fw_Texture_unit1,texcoords); \n\
+	vec4 segel = texture3Demu0(fw_Texture_unit1,texcoords,0); \n\
 	//convert from GL_FLOAT 0-1 to int 0-255 \n\
 	//Q. is there a way to do int images in GLES2? \n\
 	int ID = int(floor(segel.a * 255.0 + .1)); \n\
-	debug_color = HeatMapColor(float(ID),0.0,255.0); \n\
-	debug_color.a = .2; \n\
+	//debug_color = HeatMapColor(float(ID),0.0,5.0); \n\
+	//debug_color.a = .2; \n\
 	if(ID < fw_nIDs){ \n\
 		//specs: The indices of this array corresponds to the segment identifier. \n\
 		inside = fw_enableIDs[ID] == 0 ? false : true; \n\
 	} \n\
 	if(inside){ \n\
-		if(ID < 100) jstyle = 1; \n\
-		if(ID > 99){ \n\
-			int kstyle = fw_nStyles-1; \n\
-			kstyle = ID < fw_nStyles ? ID : kstyle; \n\
-			jstyle = fw_surfaceStyles[kstyle]; \n\
-			jstyle = jstyle == 1 ? 0 : jstyle; \n\
-		} \n\
+		int kstyle = fw_nStyles-1; \n\
+		kstyle = ID < fw_nStyles ? ID : kstyle; \n\
+		jstyle = fw_surfaceStyles[kstyle]; \n\
+		jstyle = jstyle == 1 ? 0 : jstyle; \n\
 	} \n\
 	return inside; \n\
 } \n\
@@ -1971,6 +1999,7 @@ bool clip (in vec3 vertex_object){ \n\
 #endif //CLIP \n\
 vec3 vertex_eye; \n\
 vec3 normal_eye; \n\
+vec4 raysum; \n\
 void main(void) \n\
 { \n\
 	debug_color = vec4(0.0); \n\
@@ -1978,10 +2007,10 @@ void main(void) \n\
 	int numSamples = 128; \n\
 	float fnumSamples = float(numSamples); \n\
 	float stepSize = maxDist/fnumSamples; \n\
-	float densityFactor = .88; // 1.0=normal H3D, .5 see deeper  \n\
+	float densityFactor = 5.0/fnumSamples; //.88; // 1.0=normal H3D, .5 see deeper  \n\
 	 \n\
     vec4 fragment_color; \n\
-	vec4 raysum; \n\
+	//vec4 raysum; \n\
     vec3 rayDirection; \n\
 	//convert window to frustum \n\
     rayDirection.xy = 2.0 * (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw - vec2(1.0); \n\
@@ -2054,6 +2083,7 @@ void main(void) \n\
 			// and computed gradient and put in .rgb : \n\
 			float density = fragment_color.a; //recover the scalar value \n\
 			vec3 gradient = fragment_color.rgb - vec3(.5,.5,.5); //we added 127 to (-127 to 127) in CPU gradient computation\n\
+			//vec4 voxel = vec4(density,density,density,density); //this is where the black visual voxels come from\n\
 			vec4 voxel = vec4(density,density,density,density); //this is where the black visual voxels come from\n\
 			\n\
 			#ifdef ISO \n\
@@ -2068,6 +2098,7 @@ void main(void) \n\
 				for(int i=0;i<fw_nVals;i++){ \n\
 					float iso = fw_surfaceVals[i]; \n\
 					if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+						voxel.a = 1.0; \n\
 						int jstyle = min(i,fw_nStyles-1); \n\
 						jstyle = fw_surfaceStyles[jstyle]; \n\
 						if(jstyle == 1){ \n\
@@ -2093,6 +2124,8 @@ void main(void) \n\
 						} else if(jstyle == 11) { \n\
 							/* PLUG: voxel_apply_TONE (voxel, gradient) */ \n\
 						} \n\
+					} else { \n\
+						voxel = vec4(0.0); //similar to discard \n\
 					} \n\
 				} \n\
 				lastdensity = density; \n\
@@ -2101,14 +2134,21 @@ void main(void) \n\
 			if(MODE == 1){ \n\
 				float iso = fw_surfaceVals[0]; \n\
 				if( sign( density - iso) != sign( lastdensity - iso) && length(gradient) > fw_tolerance ){ \n\
+					//debug_color = HeatMapColor(iso,0.0,.3); \n\
+					voxel.a = 1.0; \n\
 					/* PLUG: voxel_apply (voxel, gradient) */ \n\
+				} else { \n\
+					voxel = vec4(0.0); //similar to discard \n\
 				} \n\
 				lastdensity = density; \n\
 			} else if(MODE == 2){ \n\
 				float iso = fw_surfaceVals[0]; \n\
 				float density_iso = density / fw_stepSize; \n\
 				if( sign( density_iso - iso) != sign( lastdensity_iso - iso) && length(gradient) > fw_tolerance ){ \n\
+					voxel.a = 1.0; \n\
 					/* PLUG: voxel_apply (voxel, gradient) */ \n\
+				} else { \n\
+					voxel = vec4(0.0); //similar to discard \n\
 				} \n\
 				lastdensity = density; \n\
 				lastdensity_iso = density_iso; \n\
@@ -2145,20 +2185,11 @@ void main(void) \n\
 			//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) \n\
 			/* PLUG: voxel_apply (voxel, gradient) */ \n\
 			#endif //ISO \n\
-			//density *= densityFactor; \n\
-			//density = voxel.a * density; //* densityFactor; \n\
 			density = voxel.a; \n\
 			//debug_color = HeatMapColor(densityFactor,0.134,.135); \n\
-			bool modulate_transparency = false; \n\
-			if(modulate_transparency) { \n\
-				//modulate T, lighter \n\
-				T *= 1.0-density; \n\
-				raysum.a = 1.0 - T; \n\
-			} else { \n\
-				//sum opacity, closer to H3D \n\
-				raysum.a += density; \n\
-			} \n\
-			raysum.rgb += voxel.rgb * density; \n\
+			T = (1.0 - raysum.a); \n\
+			raysum.a += density * T; \n\
+			raysum.rgb += voxel.rgb  * T * density; \n\
 			if(raysum.a > .99) { \n\
 				break; \n\
 			} \n\
@@ -2187,8 +2218,8 @@ void main(void) \n\
 static const GLchar *plug_voxel_DEFAULT =	"\
 void voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
 	float alpha = voxel.a; \n\
-	voxel.a = voxel.r; \n\
-	voxel.rgb = vec3(alpha); \n\
+	//voxel.a = voxel.r; \n\
+	//voxel.rgb = vec3(alpha); \n\
 } \n\
 void PLUG_voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_DEFAULT(voxel,gradient); \n\
@@ -2259,12 +2290,19 @@ uniform vec4 fw_orthoColor; \n\
 uniform vec4 fw_paraColor; \n\
 void voxel_apply_CARTOON (inout vec4 voxel, inout vec3 gradient) { \n\
 	float len = length(gradient); \n\
-	if(len > 0.0) { \n\
+	if(len > 0.01) { \n\
 		vec3 ng = normalize(gradient); \n\
-		float ndotv = abs(dot(normal_eye,ng)); \n\
-		ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
-		vec4 color = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
-		voxel.rgb = color.rgb*voxel.a; \n\
+		float ndotv = dot(normal_eye,ng); \n\
+		if(ndotv > 0.01 && voxel.a > 0.0) { \n\
+			ndotv = floor(ndotv/float(fw_colorSteps))*float(fw_colorSteps); \n\
+			vec4 color = mix(fw_orthoColor,fw_paraColor,ndotv); \n\
+			//voxel.rgb = color.rgb*voxel.a; \n\
+			voxel.rgb = color.rgb; \n\
+		} else { \n\
+			voxel = vec4(0.0); //similar to discard \n\
+		} \n\
+	} else { \n\
+		voxel = vec4(0.0); //similar to discard \n\
 	} \n\
 } \n\
 void PLUG_voxel_apply_CARTOON (inout vec4 voxel, inout vec3 gradient) { \n\
@@ -2374,8 +2412,9 @@ void PLUG_ray_apply (inout vec4 raysum) { \n\
 	} \n\
 	//raysum.rgb = color.rgb * color.a; \n\
 	//raysum.a = color.a; \n\
+	\n\
 	raysum.rgb = vec3(value,value,value); \n\
-	raysum.a = 1.0 - value; \n\
+//	raysum.a = 1.0 - value; \n\
 	//raysum.a = value;\n\
 	//raysum.a = color.a; \n\
 	//raysum = color; \n\
@@ -2441,23 +2480,25 @@ uniform int fw_phase; \n\
 uniform int fw_lighting; \n\
 uniform int fw_shadows; \n\
 void voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
-  float len = length(gradient); \n\
-  if(len > 0.0){ \n\
-	  vec3 ng = normalize(gradient); \n\
-	  vec4 color = vec4(1.0); \n\
-	  #ifdef LIT \n\
-	  vec3 castle_ColorES = fw_FrontMaterial.specular.rgb; \n\
-	  color.rgb = fw_FrontMaterial.diffuse.rgb; \n\
-	  #else //LIT \n\
-	  color.rgb = vec3(0,0,0.0,0.0); \n\
-	  vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
-	  #endif //LIT	\n\
-	  // void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
-	  vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
-	  /* PLUG: add_light_contribution2 (color, castle_ColorES, vertex_eye4, ng, fw_FrontMaterial.shininess) */ \n\
-	 // voxel.rgb = color.rgb; \n\
-	  voxel.rgb = mix(color.rgb,castle_ColorES,dot(ng,normal_eye)); \n\
-  } \n\
+	float len = length(gradient); \n\
+	vec3 ng = vec3(0.0); \n\
+	if(len > 0.0) \n\
+	  ng = normalize(gradient); \n\
+	vec4 color = vec4(1.0); \n\
+	#ifdef LIT \n\
+	vec3 castle_ColorES = fw_FrontMaterial.specular.rgb; \n\
+	color.rgb = fw_FrontMaterial.diffuse.rgb; \n\
+	#else //LIT \n\
+	color.rgb = vec3(0,0,0.0,0.0); \n\
+	vec3 castle_ColorES = vec3(0.0,0.0,0.0); \n\
+	#endif //LIT	\n\
+	// void add_light_contribution2(inout vec4 vertexcolor, inout vec3 specularcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ); \n\
+	vec4 vertex_eye4 = vec4(vertex_eye,1.0); \n\
+	/* PLUG: add_light_contribution2 (color, castle_ColorES, vertex_eye4, ng, fw_FrontMaterial.shininess) */ \n\
+	// voxel.rgb = color.rgb; \n\
+	color.rgb = mix(color.rgb,castle_ColorES,dot(ng,normal_eye)); \n\
+	voxel.rgb = color.rgb; \n\
+	//voxel.rgb = voxel.rgb * color.rgb; \n\
 } \n\
 void PLUG_voxel_apply_SHADED (inout vec4 voxel, inout vec3 gradient) { \n\
 	voxel_apply_SHADED(voxel, gradient); \n\
@@ -2497,7 +2538,7 @@ uniform vec4 fw_coolColor; \n\
 uniform vec4 fw_warmColor; \n\
 void voxel_apply_TONE (inout vec4 voxel, inout vec3 gradient) { \n\
 	float len = length(gradient); \n\
-	if(len > 0.01) { \n\
+	if(len > 0.0) { \n\
 		vec3 color; \n\
 		vec3 ng = normalize(gradient); \n\
 		//vec3 L = normalize(vec3(-.707,-.707,.707)); \n\
@@ -2532,7 +2573,30 @@ static const GLchar *volumeBlendedFragmentGLES2 = " \n\
 //precision highp float; \n\
 precision mediump float; \n\
 #endif //MOBILE \n\
+ vec4 HeatMapColor(float value, float minValue, float maxValue) \n\
+{ \n\
+	//used for debugging. If min=0,max=1 then magenta is 0, blue,green,yellow, red is 1 \n\
+	vec4 ret; \n\
+    int HEATMAP_COLORS_COUNT; \n\
+    vec4 colors[6]; \n\
+	HEATMAP_COLORS_COUNT = 6; \n\
+	colors[0] = vec4(0.32, 0.00, 0.32, 1.0); \n\
+    colors[1] = vec4( 0.00, 0.00, 1.00, 1.00); \n\
+    colors[2] = vec4(0.00, 1.00, 0.00, 1.00); \n\
+    colors[3] = vec4(1.00, 1.00, 0.00, 1.00); \n\
+    colors[4] = vec4(1.00, 0.60, 0.00, 1.00); \n\
+    colors[5] = vec4(1.00, 0.00, 0.00, 1.00); \n\
+    float ratio=(float(HEATMAP_COLORS_COUNT)-1.0)*clamp((value-minValue)/(maxValue-minValue),0.0,1.0); \n\
+    int indexMin=int(floor(ratio)); \n\
+    int indexMax= indexMin+1 < HEATMAP_COLORS_COUNT-1 ? indexMin+1 : HEATMAP_COLORS_COUNT-1; \n\
+    ret = mix(colors[indexMin], colors[indexMax], ratio-float(indexMin)); \n\
+	if(value < minValue) ret = vec4(0.0,0.0,0.0,1.0); \n\
+	if(value > maxValue) ret = vec4(1.0,1.0,1.0,1.0); \n\
+	return ret; \n\
+} \n\
+vec4 debug_color; \n\
  \n\
+uniform vec4 fw_viewport; \n\
 uniform sampler2D fw_Texture_unit0; \n\
 uniform sampler2D fw_Texture_unit1; \n\
 uniform sampler2D fw_Texture_unit2; \n\
@@ -2576,8 +2640,9 @@ float weightalpha( in float alpha, in int func, in float wt, in float ov, in flo
 } \n\
 void main(void) \n\
 { \n\
-	vec4 frag0 = texture2D(fw_Texture_unit0,gl_FragCoord.xy); \n\
-	vec4 frag1 = texture2D(fw_Texture_unit1,gl_FragCoord.xy); \n\
+    vec2 fc = (gl_FragCoord.xy - fw_viewport.xy) / fw_viewport.zw; \n\
+	vec4 frag0 = texture2D(fw_Texture_unit0,fc); \n\
+	vec4 frag1 = texture2D(fw_Texture_unit1,fc); \n\
 	vec3 cv = frag0.rgb; \n\
 	float ov = frag0.a; \n\
 	vec3 cblend = frag1.rgb; \n\
@@ -2591,8 +2656,7 @@ void main(void) \n\
 	vec3 cg = clamp( cvw + cbw, 0.0, 1.0); \n\
 	float og = clamp(ovw + obw, 0.0, 1.0); \n\
 	\n\
-	//gl_FragColor = vec4(cg,og); \n\
-	gl_FragColor = frag1; \n\
+	gl_FragColor = vec4(cg,og); \n\
 } \n\
 ";
 
@@ -2690,7 +2754,6 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	}
 	//now volflag[] is in the order declared with no 0s/nulls 
 	for(int k=0;k<kflags;k++){
-
 		switch(volflag[k]){
 		case SHADERFLAGS_VOLUME_STYLE_DEFAULT:
 			AddDefine(SHADERPART_FRAGMENT,"DEFAULT",CompleteCode); 

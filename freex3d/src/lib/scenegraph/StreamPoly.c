@@ -591,8 +591,14 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
             
 					// bounds checking
 					if (j>=(textureCoordPoint[k]->n)) {
-						ConsoleMessage ("stream_polyrep, have tcindex %d, tex coords %d, overflow",j,textureCoordPoint[k]->n);
-						j=0;
+						//this warning eats frame rate in HAnim
+						static int once = 0;
+						if(!once){
+							ConsoleMessage ("stream_polyrep, have tcindex %d, tex coords %d, overflow",j,textureCoordPoint[k]->n);
+							once = 1;
+						}
+						j= 0;
+						//j= j % textureCoordPoint[k]->n;
 					}
 
 					// textureCoordPoint is a pointer to struct Multi_Vec2f;

@@ -1457,7 +1457,7 @@ encoding: raw
 			unsigned char *rgba = &tti->texdata[i*4];
 			//LUM-ALPHA with RGB=1, A= voxel scalar
 			voxel = &data[i*bsize];
-			if(0){
+			if(1){
 				//no range-scale method - might be needed for experiments
 				switch(idatatype){
 					case CDATATYPE_char: 
