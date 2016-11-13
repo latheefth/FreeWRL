@@ -235,15 +235,19 @@ void prep_PointLight (struct X3D_PointLight *node) {
 
 void compile_SpotLight (struct X3D_SpotLight *node) {
     struct point_XYZ vec;
+	float dlen;
     int i;
     
     for (i=0; i<3; i++) node->_loc.c[i] = node->location.c[i];
     node->_loc.c[3] = 1.0f;/* 1 == this is a position, not a vector */
 
-
     vec.x = (double) node->direction.c[0];
     vec.y = (double) node->direction.c[1];
     vec.z = (double) node->direction.c[2];
+	dlen = veclength(vec);
+	if(dlen < .1f) {
+		vec.x = 0.0; vec.y = 0.0, vec.z = -1.0;
+	}
     normalize_vector(&vec);
     node->_dir.c[0] = (float) vec.x;
     node->_dir.c[1] = (float) vec.y;
