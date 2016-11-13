@@ -537,9 +537,8 @@ struct fw_LightSourceParameters { \n\
   vec4 position;   \n\
   vec4 halfVector;  \n\
   vec4 spotDirection; \n\
-  float spotExponent; \n\
+  float spotBeamWidth; \n\
   float spotCutoff; \n\
-  float spotCosCutoff; \n\
   vec3 Attenuations; \n\
   float lightRadius; \n\
 }; \n\
@@ -811,9 +810,8 @@ struct fw_LightSourceParameters { \n\
   vec4 position;   \n\
   vec4 halfVector;  \n\
   vec4 spotDirection; \n\
-  float spotExponent; \n\
+  float spotBeamWidth; \n\
   float spotCutoff; \n\
-  float spotCosCutoff; \n\
   vec3 Attenuations; \n\
   float lightRadius; \n\
 }; \n\
@@ -1512,18 +1510,25 @@ void PLUG_add_light_contribution2 (inout vec4 vertexcolor, inout vec3 specularco
       \n\
       if (myLightType==1) { \n\
         /* SpotLight */ \n\
-        float spotDot; \n\
+        float spotDot, multiplier; \n\
         float spotAttenuation = 0.0; \n\
         float attenuation; /* computed attenuation factor */ \n\
         float D; /* distance to vertex */ \n\
         D = length(VP); \n\
         attenuation = 1.0/(fw_LightSource[i].Attenuations.x + (fw_LightSource[i].Attenuations.y * D) + (fw_LightSource[i].Attenuations.z *D*D)); \n\
+		multiplier = 0.0; \n\
         spotDot = dot (-L,myLightDir); \n\
         /* check against spotCosCutoff */ \n\
         if (spotDot > fw_LightSource[i].spotCutoff) { \n\
-          spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent); \n\
+          //?? what was this: spotAttenuation = pow(spotDot,fw_LightSource[i].spotExponent); \n\
+		  if(spotDot > fw_LightSource[i].spotBeamWidth) { \n\
+			multiplier = 1.0; \n\
+		  } else { \n\
+		    multiplier = (spotDot - fw_LightSource[i].spotCutoff)/(fw_LightSource[i].spotBeamWidth - fw_LightSource[i].spotCutoff); \n\
+		  } \n\
         } \n\
-        attenuation *= spotAttenuation; \n\
+        //attenuation *= spotAttenuation; \n\
+		attenuation *= multiplier; \n\
         /* diffuse light computation */ \n\
         diffuse += NdotL* matdiffuse*myLightDiffuse * attenuation; \n\
         /* ambient light computation */ \n\
@@ -1683,11 +1688,12 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 			AddDefine(SHADERPART_VERTEX,"MATFIR",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"MATFIR",CompleteCode);
 		}
-		if(DESIRE(whichOne.base,SHADINGSTYLE_PHONG)){
+		if(DESIRE(whichOne.base,SHADINGSTYLE_PHONG) && !DESIRE(whichOne.base,HAVE_LINEPOINTS_COLOR)){
 			//when we say phong in freewrl, we really mean per-fragment lighting
 			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"LITE",CompleteCode);  //add some lights
 			Plug(SHADERPART_FRAGMENT,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
+
 			if(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER))
 				AddDefine(SHADERPART_FRAGMENT,"TWO",CompleteCode);
 			//but even if we mean per-fragment, for another dot product per fragment we can upgrade
@@ -1697,17 +1703,16 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 		}else{
 			AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
 			AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
-			AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
-			Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
-			if(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER))
-				AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
+			//lines and points 
+			if( DESIRE(whichOne.base,HAVE_LINEPOINTS_COLOR) ) {
+				AddDefine(SHADERPART_VERTEX,"LINE",CompleteCode);
+			}else{
+				AddDefine(SHADERPART_VERTEX,"LITE",CompleteCode);  //add some lights
+				Plug(SHADERPART_VERTEX,plug_vertex_lighting_ADSLightModel,CompleteCode,&unique_int); //use lights
+				if(DESIRE(whichOne.base,TWO_MATERIAL_APPEARANCE_SHADER))
+					AddDefine(SHADERPART_VERTEX,"TWO",CompleteCode);
+			}
 		}
-	}
-	//lines and points 
-	if( DESIRE(whichOne.base,HAVE_LINEPOINTS_APPEARANCE) ) {
-		AddDefine(SHADERPART_VERTEX,"LIT",CompleteCode);
-		AddDefine(SHADERPART_FRAGMENT,"LIT",CompleteCode);
-		AddDefine(SHADERPART_VERTEX,"LINE",CompleteCode);
 	}
 	//textureCoordinategen
 	//cubemap texure
@@ -2435,9 +2440,8 @@ struct fw_LightSourceParameters { \n\
   vec4 position;   \n\
   vec4 halfVector;  \n\
   vec4 spotDirection; \n\
-  float spotExponent; \n\
+  float spotBeamWidth; \n\
   float spotCutoff; \n\
-  float spotCosCutoff; \n\
   vec3 Attenuations; \n\
   float lightRadius; \n\
 }; \n\

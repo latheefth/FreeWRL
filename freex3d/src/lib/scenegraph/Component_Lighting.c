@@ -235,15 +235,19 @@ void prep_PointLight (struct X3D_PointLight *node) {
 
 void compile_SpotLight (struct X3D_SpotLight *node) {
     struct point_XYZ vec;
+	float dlen;
     int i;
     
     for (i=0; i<3; i++) node->_loc.c[i] = node->location.c[i];
     node->_loc.c[3] = 1.0f;/* 1 == this is a position, not a vector */
 
-
     vec.x = (double) node->direction.c[0];
     vec.y = (double) node->direction.c[1];
     vec.z = (double) node->direction.c[2];
+	dlen = veclength(vec);
+	if(dlen < .1f) {
+		vec.x = 0.0; vec.y = 0.0, vec.z = -1.0;
+	}
     normalize_vector(&vec);
     node->_dir.c[0] = (float) vec.x;
     node->_dir.c[1] = (float) vec.y;
@@ -294,12 +298,14 @@ void render_SpotLight(struct X3D_SpotLight *node) {
 			FW_GL_LIGHTFV(light, GL_SPECULAR, node->_col.c);
 			FW_GL_LIGHTFV(light, GL_AMBIENT, node->_amb.c);
             
-			ft =(float)cos((node->beamWidth)/2.0); /*  / (PI/4.0); */
+			//ft =(float)cos((node->beamWidth)/2.0); /*  / (PI/4.0); */
+			ft = cosf(node->beamWidth);
 			FW_GL_LIGHTF(light, GL_SPOT_BEAMWIDTH,ft);
             //ConsoleMessage ("spotLight, bw %f, cuta %f, PI/4 %f", node->beamWidth,node->cutOffAngle, PI/4.0);
             
             /* create a ratio of light in relation to PI/4.0 */
-            ft = (float)cos(node->cutOffAngle/2.0); /* / (PI/4.0); */ 
+            //ft = (float)cos(node->cutOffAngle/2.0); /* / (PI/4.0); */ 
+            ft = cosf(node->cutOffAngle); 
 			FW_GL_LIGHTF(light, GL_SPOT_CUTOFF, ft);
             setLightChangedFlag(light);
             //not used in spotlight calculation FW_GL_LIGHTF(light,GL_LIGHT_RADIUS,node->radius);
