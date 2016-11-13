@@ -1639,9 +1639,25 @@ int SFColorRGBA_setHSV(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 	return 0;
 }
 
+int SFColorRGBA_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
+	struct SFColor *ptr = (struct SFColor *)fwn;
+	char buff[STRING], *str;
+	int len;
+	memset(buff, 0, STRING);
+	sprintf(buff, "%.3g %.3g %.3g %.3g",
+			ptr->c[0], ptr->c[1], ptr->c[2], ptr->c[3]);
+	len = strlen(buff);
+	str = malloc(len+1);  //leak
+	strcpy(str,buff);
+	fwretval->_string = str;
+	fwretval->itype = 'S';
+	return 1;
+}
+
 FWFunctionSpec (SFColorRGBA_Functions)[] = {
 	{"getHSV", SFColor_getHSV, 'W',{0,0,0,NULL}},
 	{"setHSV", SFColor_setHSV, 0,{3,-1,'T',"DDD"}},
+	{"toString", SFColorRGBA_toString, 'S',{0,-1,0,NULL}},
 	{0}
 };
 
@@ -2242,10 +2258,16 @@ void * SFImage_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int width, height, comp;
 	struct Multi_Int32 *ptr = malloc(fwtype->size_of); //garbage collector please
 
-	width = fwpars[0]._integer;
-	height = fwpars[1]._integer;
-	comp = fwpars[2]._integer;
-	ptr->n = 3 * width * height;
+	if(ic > 2){
+		width = fwpars[0]._integer;
+		height = fwpars[1]._integer;
+		comp = fwpars[2]._integer;
+	}else{
+		width = 1;
+		height = 1;
+		comp = 3;
+	}
+	ptr->n = comp * width * height;
 	ptr->p = malloc(ptr->n * sizeof(int)); //garbage collector please
 	if(fwpars[3].itype == 'W' && fwpars[3]._web3dval.fieldType == FIELDTYPE_MFInt32){
 		//the incoming MFInt32 pixel values are one pixel per Int32, so we need to expand to 3 ints
@@ -3476,6 +3498,7 @@ int SFVec2d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFVec2d_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec2d *ptr = malloc(fwtype->size_of); //garbage collector please
+	memset(ptr,0,fwtype->size_of);
 	if(ic == 2){
 		for(i=0;i<2;i++)
 			ptr->c[i] =  fwpars[i]._numeric; 
@@ -3706,6 +3729,7 @@ int SFVec4d_Setter(FWType fwt, int index, void *ec, void *fwn, FWval fwval){
 void * SFVec4d_Constructor(FWType fwtype, int ic, FWval fwpars){
 	int i;
 	struct SFVec3d *ptr = malloc(fwtype->size_of); //garbage collector please
+	memset(ptr,0,fwtype->size_of);
 	if(ic == 4){
 		for(i=0;i<4;i++)
 			ptr->c[i] =  fwpars[i]._numeric; 
