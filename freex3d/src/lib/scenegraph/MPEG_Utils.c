@@ -131,9 +131,10 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 	- then when you play, you play both USEs at the same time so audio and video are synced
 	Sound is handled per-node.
 	Textures have an intermediary texturetableindexstruct
+	
 	2003 - 2009 freewrl movietexture:
 		- on load: decoded and created an opengl texture for each movie frame
-		- used berkley mpeg
+		- used berkley mpeg aka berkley-brown
 
 
 	Proposed freewrl plumbing:
@@ -148,12 +149,15 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 	4. perl > make AudioClip and MovieTexture fields in same order, so MovieTexture can be up-caste to AudioClip DONE
 
 	top level interface:
+	X3DMovieTexture._movie; an opaque pointer that will hold a malloced struct representing 
+		the movie container and streams; different implementations will be different
 	movie_load() - like loadTextures.c image loaders - takes local path and gets things started
+		puts intial load into ._movie of the requesting node ie res->(wheretoplacedata,offset) = (MovieTexture,_movie)
 	do_MovieTextureTick() 
 		in senseInterp.c, once per frame (so stereo uses same movie frame for left/right)
 		could ask for closest frame based on movie time
 		node->tti->texdata = getClosestMovieFrame(movietime)
-			a) decode-on-load would have the frame ready in a list
+			a) decode-on-load would have the frame ready in a list 
 			b) multi-thread anticipatory decode would have a private queue/list of decoded frames,
 				and get the closest one, and discard stale frames, and restart decode queue to fill up
 				queue again
@@ -171,7 +175,7 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 #include <system_threads.h>
 #include <display.h>
 #include <internal.h>
-
+#include "vrml_parser/CRoutes.h"
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
 #include "../opengl/OpenGL_Utils.h"
@@ -191,6 +195,7 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 #define MOVIETEXTURE_BERKLEYBROWN 1
 //#define MOVIETEXTURE_FFMPEG 1
 //#define MOVIETEXTURE_LIBMPEG2 1
+
 //Option A.
 //	movie_load - load as BLOB using standard FILE2BLOB in io_files.c retval = resource_load(res);  //FILE2BLOB
 //	parse_movie - converts BLOB to sound and video parts, returns parts
@@ -201,6 +206,7 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 #ifdef MOVIETEXTURE_BERKLEYBROWN
 #include "MPEG_Utils_berkley.c"
 #elif MOVIETEXTURE_FFMPEG
+#elif MOVIETEXTURE_LIBMPEG2
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 
@@ -232,7 +238,24 @@ bool movie_load(resource_item_t *res){
 	res->status = ress_loaded;
 	retval = TRUE;
 #elif MOVIETEXTURE_BERKLEYBROWN
+	 {
+        int x,y,depth,frameCount;
+        char *ptr;
+        ptr=NULL;
+		//H: this returns something like a volume image, with slices packed into ptr, and z=frameCount, nchannels = depth.
+		//Q: what's the 'normal' frame rate? should that be returned too, or is there a standard/default?
+        mpg_main(res->actual_file, &x,&y,&depth,&frameCount,&ptr);
+		#ifdef TEXVERBOSE
+		printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
+		#endif
+		// store_tex_info(loadThisTexture, depth, x, y, ptr,depth==4); 
+
+		// and, manually put the frameCount in. 
+		//res->frames = frameCount;
+	}
+
 #elif MOVIETEXTURE_FFMPEG
+#elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return retval;
 }
@@ -260,10 +283,11 @@ int parse_movie(node,buffer,len){
 	audio_sourcenumber = -1;
 #elif MOVIETEXTURE_BERKLEYBROWN
 #elif MOVIETEXTURE_FFMPEG
+#elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return audio_sourcenumber;
 }
-
+double compute_duration(int ibuffer);
 bool  process_res_movie(resource_item_t *res){
 	//s_list_t *l;
 	openned_file_t *of;
@@ -306,28 +330,6 @@ bool  process_res_movie(resource_item_t *res){
 	return FALSE;
 }
 
-/* FIXME: removed old "really load functions" ... needs to implement loading
-          of movie textures.
-
-static void __reallyloadMovieTexture () {
-
-        int x,y,depth,frameCount;
-        void *ptr;
-
-        ptr=NULL;
-
-        mpg_main(loadThisTexture->filename, &x,&y,&depth,&frameCount,&ptr);
-
-	#ifdef TEXVERBOSE
-	printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
-	#endif
-
-	// store_tex_info(loadThisTexture, depth, x, y, ptr,depth==4); 
-
-	// and, manually put the frameCount in. 
-	loadThisTexture->frames = frameCount;
-}
-*/
 
 // - still needed ? don't know depends on implementation
 void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {

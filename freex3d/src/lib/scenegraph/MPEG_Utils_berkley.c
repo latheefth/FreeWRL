@@ -70,7 +70,8 @@
 //#else
 //#include <netinet/in.h>
 //#endif
-
+// hand-coded network byte order functions - UNTESTED AS OF NOV 14, 2016
+int isMachineLittleEndian(); //see LoadTextures.c
 unsigned long int fw_ntohl(unsigned long int networklong){
 	unsigned long int hostlong = 0;
 
@@ -78,6 +79,7 @@ unsigned long int fw_ntohl(unsigned long int networklong){
 	hostlong |= (networklong & 0x00FF0000) >> 8;
 	hostlong |= (networklong & 0x0000FF00) << 8;
 	hostlong |= (networklong & 0x000000FF) << 24;
+	//if(hostlong != ntohl(networklong)) printf("fw_ntohl is wrong\n");
 	return hostlong;
 }
 unsigned short int fw_ntohs(unsigned short int networkshort){
@@ -85,27 +87,46 @@ unsigned short int fw_ntohs(unsigned short int networkshort){
 
 	hostshort |= (networkshort & 0xFF00) >> 8;
 	hostshort |= (networkshort & 0x00FF) << 8;
+	//if(hostshort != ntohs(networkshort)) printf("fw_ntohs is wrong\n");
 	return hostshort;
 }
 unsigned short int fw_htons(unsigned short  hostshort)
 {
 	unsigned short int networkshort = 0;
-	networkshort |= (hostshort & 0x00ff) << 8;
-	networkshort |= (hostshort & 0xff00) >> 8;
+	if(isMachineLittleEndian()){
+		networkshort |= (hostshort & 0x00ff) << 8;
+		networkshort |= (hostshort & 0xff00) >> 8;
+	}else{
+		networkshort = hostshort;
+	}
+	//if(networkshort != htonl(hostshort)) printf("fw_htons is wrong \n");
+	return networkshort;
 }
 unsigned long int fw_htonl(unsigned long  hostlong)
 {
 	unsigned long int networklong = 0;
-	networklong |= (hostlong & 0x000000ff) << 24;
-	networklong |= (hostlong & 0x0000ff00) << 8;
-	networklong |= (hostlong & 0x00ff0000) >> 8;
-	networklong |= (hostlong & 0xff000000) >> 24;
+	if(isMachineLittleEndian()){
+		if(1){
+			unsigned char *s = (unsigned char *)&hostlong;
+			networklong = ((unsigned long)s[0]) << 24 | ((unsigned long)s[1]) << 16 | ((unsigned long)s[2]) << 8 | s[3];
+		}else{
+			networklong |= (hostlong & 0x000000ff) << 24;
+			networklong |= (hostlong & 0x0000ff00) << 8;
+			networklong |= (hostlong & 0x00ff0000) >> 8;
+			networklong |= (hostlong & 0xff000000) >> 24;
+		}
+	}else{
+		//no-op on bigendian machines
+		networklong = hostlong;
+	}
+	//if(networklong != htonl(hostlong)) printf("fw_htonl is wrong \n");
+	return networklong;
 }
 
 #define NO_SANITY_CHECKS
 extern const int zigzag_direct[];
 
-/* global return values */
+/* global static return values */
 int *frameCount;
 int *ySize;
 int *xSize;
@@ -127,7 +148,7 @@ motion_vectors_entry  motion_vectors[2048];
 /* Decoding table for coded_block_pattern */
 
 coded_block_pattern_entry coded_block_pattern[512] = 
-{ {(unsigned int)ERROR, 0}, {(unsigned int)ERROR, 0}, {39, 9}, {27, 9}, {59, 9}, {55, 9}, {47, 9}, {31, 9},
+{ {(unsigned int)MPGERROR, 0}, {(unsigned int)MPGERROR, 0}, {39, 9}, {27, 9}, {59, 9}, {55, 9}, {47, 9}, {31, 9},
     {58, 8}, {58, 8}, {54, 8}, {54, 8}, {46, 8}, {46, 8}, {30, 8}, {30, 8},
     {57, 8}, {57, 8}, {53, 8}, {53, 8}, {45, 8}, {45, 8}, {29, 8}, {29, 8},
     {38, 8}, {38, 8}, {26, 8}, {26, 8}, {37, 8}, {37, 8}, {25, 8}, {25, 8},
@@ -198,7 +219,7 @@ dct_dc_size_entry dct_dc_size_luminance[32] =
 {   {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, 
     {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, 
     {0, 3}, {0, 3}, {0, 3}, {0, 3}, {3, 3}, {3, 3}, {3, 3}, {3, 3}, 
-    {4, 3}, {4, 3}, {4, 3}, {4, 3}, {5, 4}, {5, 4}, {6, 5}, {(unsigned int)ERROR, 0}
+    {4, 3}, {4, 3}, {4, 3}, {4, 3}, {5, 4}, {5, 4}, {6, 5}, {(unsigned int)MPGERROR, 0}
 };
 
 dct_dc_size_entry dct_dc_size_luminance1[16] =
@@ -211,7 +232,7 @@ dct_dc_size_entry dct_dc_size_chrominance[32] =
 {   {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, 
     {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, {1, 2}, 
     {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, {2, 2}, 
-    {3, 3}, {3, 3}, {3, 3}, {3, 3}, {4, 4}, {4, 4}, {5, 5}, {(unsigned int)ERROR, 0}
+    {3, 3}, {3, 3}, {3, 3}, {3, 3}, {4, 4}, {4, 4}, {5, 5}, {(unsigned int)MPGERROR, 0}
 };
 
 dct_dc_size_entry dct_dc_size_chrominance1[32] =
@@ -480,7 +501,7 @@ init_mb_addr_inc()
   int i, j, val;
 
   for (i = 0; i < 8; i++) {
-    mb_addr_inc[i].value = ERROR;
+    mb_addr_inc[i].value = MPGERROR;
     mb_addr_inc[i].num_bits = 0;
   }
 
@@ -488,7 +509,7 @@ init_mb_addr_inc()
   mb_addr_inc[8].num_bits = 11;
 
   for (i = 9; i < 15; i++) {
-    mb_addr_inc[i].value = ERROR;
+    mb_addr_inc[i].value = MPGERROR;
     mb_addr_inc[i].num_bits = 0;
   }
 
@@ -496,7 +517,7 @@ init_mb_addr_inc()
   mb_addr_inc[15].num_bits = 11;
 
   for (i = 16; i < 24; i++) {
-    mb_addr_inc[i].value = ERROR;
+    mb_addr_inc[i].value = MPGERROR;
     mb_addr_inc[i].num_bits = 0;
   }
 
@@ -550,7 +571,7 @@ init_mb_type_P()
 
   mb_type_P[0].mb_quant = mb_type_P[0].mb_motion_forward 
     = mb_type_P[0].mb_motion_backward = mb_type_P[0].mb_pattern 
-      = mb_type_P[0].mb_intra = (unsigned int) ERROR;
+      = mb_type_P[0].mb_intra = (unsigned int) MPGERROR;
   mb_type_P[0].num_bits = 0;
 
   ASSIGN2(1, 2, 1, 0, 0, 0, 1, 6, mb_type_P)
@@ -589,7 +610,7 @@ init_mb_type_B()
 
   mb_type_B[0].mb_quant = mb_type_B[0].mb_motion_forward 
     = mb_type_B[0].mb_motion_backward = mb_type_B[0].mb_pattern 
-      = mb_type_B[0].mb_intra = (unsigned int) ERROR;
+      = mb_type_B[0].mb_intra = (unsigned int) MPGERROR;
   mb_type_B[0].num_bits = 0;
 
   ASSIGN2(1, 2, 1, 0, 0, 0, 1, 6, mb_type_B);
@@ -647,7 +668,7 @@ init_motion_vectors()
   int i, j, val = 16;
 
   for (i = 0; i < 24; i++) {
-    motion_vectors[i].code = ERROR;
+    motion_vectors[i].code = MPGERROR;
     motion_vectors[i].num_bits = 0;
   }
 
@@ -6788,7 +6809,7 @@ pure_get_more_data(buf_start, max_length, length_ptr, buf_ptr, vid_stream)
   if (length > 0) {
 	  //  a known problem - can overwrite - JAS
 	  //
-	  if (buf_start != buffer) {
+	  if (((unsigned char *)buf_start) != buffer) {
     		memcpy((unsigned char *) buf_start, buffer, (unsigned int) (length*4));
 	  }
     mark = ((unsigned char *) (buf_start + length));
@@ -7305,8 +7326,8 @@ int ReadPacket(packetID, vid_stream)
     pos += 1;
   }
   /* Read all the headers, now make room for packet */
-printf ("buf_ptr %x\n",*buf_ptr);
-printf ("length_ptr %x\n",length_ptr);
+printf ("buf_ptr %p\n",*buf_ptr);
+printf ("length_ptr %p\n",length_ptr);
   if (*bs_ptr + *max_length < *buf_ptr+ packetLength/4 + *length_ptr) {
      /* Brown - get rid of Ansi C complaints */
     if (*max_length - *length_ptr < (int) packetLength/4) {
@@ -7459,7 +7480,7 @@ FILE *mpegfile;
  */
 
 
-void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,int *ptr) {
+void mpg_main(char *fname, int *x,int *y,int *depth,int *fc,char **ptr) {
 
   mpeg_VidStream *theStream;
   int ppm_width = -1,  ppm_height = -1, ppm_modulus = -1;

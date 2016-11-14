@@ -732,7 +732,7 @@ extern int *cb_values;
 
 
 /* Code for unbound values in decoding tables */
-#define ERROR (-1)
+#define MPGERROR (-1)
 #define DCT_ERROR 63
 
 #define MACRO_BLOCK_STUFFING 34
@@ -988,7 +988,7 @@ typedef struct {
 #define DecodeMBTypeI(quant, motion_fwd, motion_bwd, pat, intra)	\
 {									\
   unsigned int index;							\
-  static int quantTbl[4] = {ERROR, 1, 0, 0};				\
+  static int quantTbl[4] = {MPGERROR, 1, 0, 0};				\
 									\
   show_bits2(index);							\
 									\
