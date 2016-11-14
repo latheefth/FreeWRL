@@ -2159,7 +2159,8 @@ void main(void) \n\
 				lastdensity_iso = density_iso; \n\
 			}  \n\
 			#endif //ISO_MODE3 \n\
-			#elif SEGMENT \n\
+			#else //ISO \n\
+			#ifdef SEGMENT \n\
 			//debug_color = HeatMapColor(float(jstyle),1.0,12.0); \n\
 			//debug_color.a = .2; \n\
 			if(jstyle == 1){ \n\
@@ -2185,10 +2186,11 @@ void main(void) \n\
 			} else if(jstyle == 11) { \n\
 				/* PLUG: voxel_apply_TONE (voxel, gradient) */ \n\
 			} \n\
-			#else //ISO SEGMENT \n\
+			#else //SEGMENT \n\
 			//non-iso rendering styles \n\
 			//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) \n\
 			/* PLUG: voxel_apply (voxel, gradient) */ \n\
+			#endif //SEGMENT \n\
 			#endif //ISO \n\
 			density = voxel.a; \n\
 			//debug_color = HeatMapColor(densityFactor,0.134,.135); \n\

@@ -131,22 +131,39 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 	- then when you play, you play both USEs at the same time so audio and video are synced
 	Sound is handled per-node.
 	Textures have an intermediary texturetableindexstruct
-	
+	2003 - 2009 freewrl movietexture:
+		- on load: decoded and created an opengl texture for each movie frame
+		- used berkley mpeg
+
+
 	Proposed freewrl plumbing:
 
-	1. for texture rendering, MovieTexture works like ImageTexture on each render_hier frame, with a single opengl texture number
-	2. a separate thread throttles frame interpolation, pauses, stops, rewinds, and plays. 
-		As it plays or changes position, it interpolates a frame, and upadates the texture 
-		as seen by the rendering thread: mipmaps and replaces opengl texture
+	1. for texture rendering, MovieTexture works like ImageTexture on each render_hier frame, 
+		with a single opengl texture number
+	2. leave it to the library-specifics to decide if
+		a) decode-on-load
+		b) decode in a separate thread, anticipatory/queue
+		c) decode-on-demand
 	3. the pause, stop, play, rewind interface is usable as SoundSource like Audioclip, analogous to AudioClip
 	4. perl > make AudioClip and MovieTexture fields in same order, so MovieTexture can be up-caste to AudioClip DONE
 
 	top level interface:
-	movie_load()
-	parse_movie()
-	do_MovieTextureTick()
+	movie_load() - like loadTextures.c image loaders - takes local path and gets things started
+	do_MovieTextureTick() 
+		in senseInterp.c, once per frame (so stereo uses same movie frame for left/right)
+		could ask for closest frame based on movie time
+		node->tti->texdata = getClosestMovieFrame(movietime)
+			a) decode-on-load would have the frame ready in a list
+			b) multi-thread anticipatory decode would have a private queue/list of decoded frames,
+				and get the closest one, and discard stale frames, and restart decode queue to fill up
+				queue again
+			c) decode-on-demand would decode on demand
+		Texture2D(,,,node->tti->opeglTexture,,,node->tti->texdata) //reset texture data
+
+	loadstatus_MovieTexture(struct X3D_MovieTexture *node) - loadsensor can check if file loaded
 	loadstatus_AudioClip(struct X3D_AudioClip *node) - loadsensor can check if file loaded
 	locateAudioSource (struct X3D_AudioClip *node) - will work for MovieTexture
+	
 	search code for MovieTexture, resm_movie to see all hits
 */
 #include <config.h>
@@ -173,6 +190,7 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 //#define MOVIETEXTURE_STUB 1
 #define MOVIETEXTURE_BERKLEYBROWN 1
 //#define MOVIETEXTURE_FFMPEG 1
+//#define MOVIETEXTURE_LIBMPEG2 1
 //Option A.
 //	movie_load - load as BLOB using standard FILE2BLOB in io_files.c retval = resource_load(res);  //FILE2BLOB
 //	parse_movie - converts BLOB to sound and video parts, returns parts
@@ -180,6 +198,11 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 //  movie_load - parse movie as loading
 //  parse_movie - return movie parts 
 
+#ifdef MOVIETEXTURE_BERKLEYBROWN
+#include "MPEG_Utils_berkley.c"
+#elif MOVIETEXTURE_FFMPEG
+#elif MOVIETEXTURE_LIBMPEG2
+#endif
 
 bool movie_load(resource_item_t *res){
 	bool retval;
