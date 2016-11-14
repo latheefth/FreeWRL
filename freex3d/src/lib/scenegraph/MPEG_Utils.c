@@ -170,7 +170,9 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 
 #include <libFreeWRL.h>
 
-#define MOVIETEXTURE_STUB 1
+//#define MOVIETEXTURE_STUB 1
+#define MOVIETEXTURE_BERKLEYBROWN 1
+//#define MOVIETEXTURE_FFMPEG 1
 //Option A.
 //	movie_load - load as BLOB using standard FILE2BLOB in io_files.c retval = resource_load(res);  //FILE2BLOB
 //	parse_movie - converts BLOB to sound and video parts, returns parts

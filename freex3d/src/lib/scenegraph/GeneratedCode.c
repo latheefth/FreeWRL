@@ -5519,7 +5519,7 @@ const int OFFSETS_MovieTexture[] = {
 	(int) FIELDNAMES_duration_changed, (int) offsetof (struct X3D_MovieTexture, duration_changed),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_elapsedTime, (int) offsetof (struct X3D_MovieTexture, elapsedTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_MovieTexture, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_isPaused, (int) offsetof (struct X3D_MovieTexture, isPaused),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isPaused, (int) offsetof (struct X3D_MovieTexture, isPaused),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_loop, (int) offsetof (struct X3D_MovieTexture, loop),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_MovieTexture, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_pauseTime, (int) offsetof (struct X3D_MovieTexture, pauseTime),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10677,7 +10677,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->duration_changed = -1;
 			tmp2->elapsedTime = 0;
 			tmp2->isActive = FALSE;
-			tmp2->isPaused = 0;
+			tmp2->isPaused = FALSE;
 			tmp2->loop = FALSE;
 			tmp2->metadata = NULL;
 			tmp2->pauseTime = 0;

@@ -7167,7 +7167,7 @@ struct X3D_MovieTexture {
 	double duration_changed;
 	double elapsedTime;
 	int isActive;
-	double isPaused;
+	int isPaused;
 	void * _parentResource;
 	int __loadstatus;
 	void * __loadResource;
