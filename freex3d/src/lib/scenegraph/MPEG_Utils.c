@@ -169,6 +169,16 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 	locateAudioSource (struct X3D_AudioClip *node) - will work for MovieTexture
 	
 	search code for MovieTexture, resm_movie to see all hits
+
+
+	MPEG_Utils_berkley.c Nov 15, 2016: compiled but bombs on loading even simple vts.mpg
+	MPEG_Utils_libmpeg2.c Nove 15, 2016:  not attempted to implement
+		x undocumented code
+		x GPL
+		x uses callback for frames
+		x no audio channel
+		- but small test program mpeg2dec does run on windows
+		- code seems lite / compact
 */
 #include <config.h>
 #include <system.h>
@@ -192,8 +202,8 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 #include <libFreeWRL.h>
 
 //#define MOVIETEXTURE_STUB 1
-#define MOVIETEXTURE_BERKLEYBROWN 1
-//#define MOVIETEXTURE_FFMPEG 1
+//#define MOVIETEXTURE_BERKLEYBROWN 1
+#define MOVIETEXTURE_FFMPEG 1
 //#define MOVIETEXTURE_LIBMPEG2 1
 
 //Option A.
@@ -206,6 +216,9 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 #ifdef MOVIETEXTURE_BERKLEYBROWN
 #include "MPEG_Utils_berkley.c"
 #elif MOVIETEXTURE_FFMPEG
+//#include "MPEG_Utils_ffmpeg.c"
+int movie_load_from_file(char *fname, void **opaque);
+
 #elif MOVIETEXTURE_LIBMPEG2
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
@@ -255,6 +268,9 @@ bool movie_load(resource_item_t *res){
 	}
 
 #elif MOVIETEXTURE_FFMPEG
+	void *opaque;
+	movie_load_from_file(res->actual_file,&opaque);
+	printf("opqaue = %p \n",opaque);
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return retval;

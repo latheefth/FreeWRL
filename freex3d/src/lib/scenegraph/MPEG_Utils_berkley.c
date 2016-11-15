@@ -2015,8 +2015,11 @@ ParseReconBlock(n, vid_stream)
           coeffCount++;
 
         }
-
+		static int jcount = 0;
+		jcount ++;
+		printf(" %d ",jcount);
         flush_bits(2);
+
 		goto end;
       }
     } else { /* non-intra-coded macroblock */
@@ -3318,241 +3321,229 @@ ParseSlice(vid_stream)
  *--------------------------------------------------------------
  */
 
-static int
-ParseMacroBlock(vid_stream)
-  mpeg_VidStream *vid_stream;
+static int ParseMacroBlock(mpeg_VidStream *vid_stream)
 {
-  int addr_incr;
-  unsigned int data;
-  int mask, i, recon_right_for, recon_down_for, recon_right_back,
-      recon_down_back;
-  int zero_block_flag;
-  int mb_quant = 0, mb_motion_forw = 0, mb_motion_back = 0, 
-      mb_pattern = 0;
+	int addr_incr;
+	unsigned int data;
+	int mask, i, recon_right_for, recon_down_for, recon_right_back,
+		recon_down_back;
+	int zero_block_flag;
+	int mb_quant = 0, mb_motion_forw = 0, mb_motion_back = 0, 
+		mb_pattern = 0;
 
-  /*
-   * Parse off macroblock address increment and add to macroblock address.
-   */
-  do {
-    unsigned int ind;				       
-    show_bits11(ind);				       
-    DecodeMBAddrInc(addr_incr);
-    if (mb_addr_inc[ind].num_bits==0) {
-      addr_incr = 1;
-    }
-    if (addr_incr == MB_ESCAPE) {
-      vid_stream->mblock.mb_address += 33;
-      addr_incr = MB_STUFFING;
-    }
-  } while (addr_incr == MB_STUFFING);
-  vid_stream->mblock.mb_address += addr_incr;
+	/*
+	* Parse off macroblock address increment and add to macroblock address.
+	*/
+	do {
+		unsigned int ind;
+		show_bits11(ind);
+		DecodeMBAddrInc(addr_incr);
+		if (mb_addr_inc[ind].num_bits==0) {
+			addr_incr = 1;
+		}
+		if (addr_incr == MB_ESCAPE) {
+			vid_stream->mblock.mb_address += 33;
+			addr_incr = MB_STUFFING;
+		}
+	} while (addr_incr == MB_STUFFING);
+	vid_stream->mblock.mb_address += addr_incr;
 
-  if (vid_stream->mblock.mb_address > (vid_stream->mb_height *
-				       vid_stream->mb_width - 1))
-    return SKIP_TO_START_CODE;
+	if (vid_stream->mblock.mb_address > (vid_stream->mb_height *vid_stream->mb_width - 1))
+		return SKIP_TO_START_CODE;
 
-  /*
-   * If macroblocks have been skipped, process skipped macroblocks.
-   */
+	/*
+	* If macroblocks have been skipped, process skipped macroblocks.
+	*/
 
-  if (vid_stream->mblock.mb_address - vid_stream->mblock.past_mb_addr > 1) {
-    if (vid_stream->picture.code_type == P_TYPE)
-      ProcessSkippedPFrameMBlocks(vid_stream);
-    else if (vid_stream->picture.code_type == B_TYPE)
-      ProcessSkippedBFrameMBlocks(vid_stream);
-  }
-  /* Set past macroblock address to current macroblock address. */
-  vid_stream->mblock.past_mb_addr = vid_stream->mblock.mb_address;
+	if (vid_stream->mblock.mb_address - vid_stream->mblock.past_mb_addr > 1) {
+		if (vid_stream->picture.code_type == P_TYPE)
+			ProcessSkippedPFrameMBlocks(vid_stream);
+		else if (vid_stream->picture.code_type == B_TYPE)
+			ProcessSkippedBFrameMBlocks(vid_stream);
+	}
+	/* Set past macroblock address to current macroblock address. */
+	vid_stream->mblock.past_mb_addr = vid_stream->mblock.mb_address;
 
-  /* Based on picture type decode macroblock type. */
-  switch (vid_stream->picture.code_type) {
-  case I_TYPE:
-    DecodeMBTypeI(mb_quant, mb_motion_forw, mb_motion_back, mb_pattern,
-		  vid_stream->mblock.mb_intra);
-    break;
+	/* Based on picture type decode macroblock type. */
+	switch (vid_stream->picture.code_type) {
+		case I_TYPE:
+		DecodeMBTypeI(mb_quant, mb_motion_forw, mb_motion_back, mb_pattern,
+				vid_stream->mblock.mb_intra);
+		break;
 
-  case P_TYPE:
-    DecodeMBTypeP(mb_quant, mb_motion_forw, mb_motion_back, mb_pattern,
-		  vid_stream->mblock.mb_intra);
-    break;
+		case P_TYPE:
+		DecodeMBTypeP(mb_quant, mb_motion_forw, mb_motion_back, mb_pattern,
+				vid_stream->mblock.mb_intra);
+		break;
 
-  case B_TYPE:
-    DecodeMBTypeB(mb_quant, mb_motion_forw, mb_motion_back, mb_pattern,
-		  vid_stream->mblock.mb_intra);
-    break;
-  case D_TYPE:
-    printf("ERROR:  MPEG-1 Streams with D-frames are not supported\n");
-    exit(1);
-  }
+		case B_TYPE:
+		DecodeMBTypeB(mb_quant, mb_motion_forw, mb_motion_back, mb_pattern,
+				vid_stream->mblock.mb_intra);
+		break;
+		case D_TYPE:
+		printf("ERROR:  MPEG-1 Streams with D-frames are not supported\n");
+		exit(1);
+	}
 
-  /* If quantization flag set, parse off new quantization scale. */
+	/* If quantization flag set, parse off new quantization scale. */
 
-  if (mb_quant == TRUE) {
-    get_bits5(data);
-    vid_stream->slice.quant_scale = data;
-  }
-  /* If forward motion vectors exist... */
-  if (mb_motion_forw == TRUE) {
+	if (mb_quant == TRUE) {
+		get_bits5(data);
+		vid_stream->slice.quant_scale = data;
+	}
+	/* If forward motion vectors exist... */
+	if (mb_motion_forw == TRUE) {
 
-    /* Parse off and decode horizontal forward motion vector. */
-    DecodeMotionVectors(vid_stream->mblock.motion_h_forw_code);
+		/* Parse off and decode horizontal forward motion vector. */
+		DecodeMotionVectors(vid_stream->mblock.motion_h_forw_code);
 
-    /* If horiz. forward r data exists, parse off. */
+		/* If horiz. forward r data exists, parse off. */
 
-    if ((vid_stream->picture.forw_f != 1) &&
-	(vid_stream->mblock.motion_h_forw_code != 0)) {
-      get_bitsn(vid_stream->picture.forw_r_size, data);
-      vid_stream->mblock.motion_h_forw_r = data;
-    }
-    /* Parse off and decode vertical forward motion vector. */
-    DecodeMotionVectors(vid_stream->mblock.motion_v_forw_code);
+		if ((vid_stream->picture.forw_f != 1) &&
+		(vid_stream->mblock.motion_h_forw_code != 0)) {
+			get_bitsn(vid_stream->picture.forw_r_size, data);
+			vid_stream->mblock.motion_h_forw_r = data;
+		}
+		/* Parse off and decode vertical forward motion vector. */
+		DecodeMotionVectors(vid_stream->mblock.motion_v_forw_code);
 
-    /* If vert. forw. r data exists, parse off. */
+		/* If vert. forw. r data exists, parse off. */
 
-    if ((vid_stream->picture.forw_f != 1) &&
-	(vid_stream->mblock.motion_v_forw_code != 0)) {
-      get_bitsn(vid_stream->picture.forw_r_size, data);
-      vid_stream->mblock.motion_v_forw_r = data;
-    }
-  }
-  /* If back motion vectors exist... */
-  if (mb_motion_back == TRUE) {
+		if ((vid_stream->picture.forw_f != 1) &&
+		(vid_stream->mblock.motion_v_forw_code != 0)) {
+			get_bitsn(vid_stream->picture.forw_r_size, data);
+			vid_stream->mblock.motion_v_forw_r = data;
+		}
+	}
+	/* If back motion vectors exist... */
+	if (mb_motion_back == TRUE) {
 
-    /* Parse off and decode horiz. back motion vector. */
-    DecodeMotionVectors(vid_stream->mblock.motion_h_back_code);
+		/* Parse off and decode horiz. back motion vector. */
+		DecodeMotionVectors(vid_stream->mblock.motion_h_back_code);
 
-    /* If horiz. back r data exists, parse off. */
+		/* If horiz. back r data exists, parse off. */
 
-    if ((vid_stream->picture.back_f != 1) &&
-	(vid_stream->mblock.motion_h_back_code != 0)) {
-      get_bitsn(vid_stream->picture.back_r_size, data);
-      vid_stream->mblock.motion_h_back_r = data;
-    }
-    /* Parse off and decode vert. back motion vector. */
-    DecodeMotionVectors(vid_stream->mblock.motion_v_back_code);
+		if ((vid_stream->picture.back_f != 1) &&
+		(vid_stream->mblock.motion_h_back_code != 0)) {
+			get_bitsn(vid_stream->picture.back_r_size, data);
+			vid_stream->mblock.motion_h_back_r = data;
+		}
+		/* Parse off and decode vert. back motion vector. */
+		DecodeMotionVectors(vid_stream->mblock.motion_v_back_code);
 
-    /* If vert. back r data exists, parse off. */
+		/* If vert. back r data exists, parse off. */
 
-    if ((vid_stream->picture.back_f != 1) &&
-	(vid_stream->mblock.motion_v_back_code != 0)) {
-      get_bitsn(vid_stream->picture.back_r_size, data);
-      vid_stream->mblock.motion_v_back_r = data;
-    }
-  }
+		if ((vid_stream->picture.back_f != 1) &&
+		(vid_stream->mblock.motion_v_back_code != 0)) {
+			get_bitsn(vid_stream->picture.back_r_size, data);
+			vid_stream->mblock.motion_v_back_r = data;
+		}
+	}
 
-  /* If mblock pattern flag set, parse and decode CBP (code block pattern). */
-  if (mb_pattern == TRUE) {
-    DecodeCBP(vid_stream->mblock.cbp);
-  }
-  /* Otherwise, set CBP to zero. */
-  else
-    vid_stream->mblock.cbp = 0;
-
-
-  /* Reconstruct motion vectors depending on picture type. */
-  if (vid_stream->picture.code_type == P_TYPE) {
-
-    /*
-     * If no forw motion vectors, reset previous and current vectors to 0.
-     */
-
-    if (!mb_motion_forw) {
-      recon_right_for = 0;
-      recon_down_for = 0;
-      vid_stream->mblock.recon_right_for_prev = 0;
-      vid_stream->mblock.recon_down_for_prev = 0;
-    }
-    /*
-     * Otherwise, compute new forw motion vectors. Reset previous vectors to
-     * current vectors.
-     */
-
-    else {
-      ComputeForwVector(&recon_right_for, &recon_down_for, vid_stream);
-    }
-  }
-  if (vid_stream->picture.code_type == B_TYPE) {
-
-    /* Reset prev. and current vectors to zero if mblock is intracoded. */
-
-    if (vid_stream->mblock.mb_intra) {
-      vid_stream->mblock.recon_right_for_prev = 0;
-      vid_stream->mblock.recon_down_for_prev = 0;
-      vid_stream->mblock.recon_right_back_prev = 0;
-      vid_stream->mblock.recon_down_back_prev = 0;
-    } else {
-      
-      /* If no forw vectors, current vectors equal prev. vectors. */
-      
-      if (!mb_motion_forw) {
-	recon_right_for = vid_stream->mblock.recon_right_for_prev;
-	recon_down_for = vid_stream->mblock.recon_down_for_prev;
-      }
-      /*
-       * Otherwise compute forw. vectors. Reset prev vectors to new values.
-       */
-      
-      else {
-	ComputeForwVector(&recon_right_for, &recon_down_for, vid_stream);
-      }
-      
-      /* If no back vectors, set back vectors to prev back vectors. */
-      
-      if (!mb_motion_back) {
-        recon_right_back = vid_stream->mblock.recon_right_back_prev;
-        recon_down_back = vid_stream->mblock.recon_down_back_prev;
-      }
-      /* Otherwise compute new vectors and reset prev. back vectors. */
-
-      else {
-        ComputeBackVector(&recon_right_back, &recon_down_back, vid_stream);
-      }
-
-      /*
-       * Store vector existence flags in structure for possible skipped
-       * macroblocks to follow.
-       */
-
-      vid_stream->mblock.bpict_past_forw = mb_motion_forw;
-      vid_stream->mblock.bpict_past_back = mb_motion_back;
-    }
-  }
-
-      for (mask = 32, i = 0; i < 6; mask >>= 1, i++) {
-	
-	/* If block exists... */
-	if ((vid_stream->mblock.mb_intra) || (vid_stream->mblock.cbp & mask)) {
-	  zero_block_flag = 0;
-	  ParseReconBlock(i, vid_stream);
+	/* If mblock pattern flag set, parse and decode CBP (code block pattern). */
+	if (mb_pattern == TRUE) {
+		DecodeCBP(vid_stream->mblock.cbp);
 	} else {
-	  zero_block_flag = 1;
+		/* Otherwise, set CBP to zero. */
+		vid_stream->mblock.cbp = 0;
 	}
+
+	/* Reconstruct motion vectors depending on picture type. */
+	if (vid_stream->picture.code_type == P_TYPE) {
+
+		/*
+			* If no forw motion vectors, reset previous and current vectors to 0.
+		*/
+
+		if (!mb_motion_forw) {
+			recon_right_for = 0;
+			recon_down_for = 0;
+			vid_stream->mblock.recon_right_for_prev = 0;
+			vid_stream->mblock.recon_down_for_prev = 0;
+		} else {
+			/*
+				* Otherwise, compute new forw motion vectors. Reset previous vectors to
+				* current vectors.
+			*/
+			ComputeForwVector(&recon_right_for, &recon_down_for, vid_stream);
+		}
+	}
+	if (vid_stream->picture.code_type == B_TYPE) {
+
+		/* Reset prev. and current vectors to zero if mblock is intracoded. */
+
+		if (vid_stream->mblock.mb_intra) {
+			vid_stream->mblock.recon_right_for_prev = 0;
+			vid_stream->mblock.recon_down_for_prev = 0;
+			vid_stream->mblock.recon_right_back_prev = 0;
+			vid_stream->mblock.recon_down_back_prev = 0;
+		} else {
+
+			/* If no forw vectors, current vectors equal prev. vectors. */
+
+			if (!mb_motion_forw) {
+				recon_right_for = vid_stream->mblock.recon_right_for_prev;
+				recon_down_for = vid_stream->mblock.recon_down_for_prev;
+			} else {
+				/*
+				* Otherwise compute forw. vectors. Reset prev vectors to new values.
+				*/
+				ComputeForwVector(&recon_right_for, &recon_down_for, vid_stream);
+			}
+
+			/* If no back vectors, set back vectors to prev back vectors. */
+
+			if (!mb_motion_back) {
+				recon_right_back = vid_stream->mblock.recon_right_back_prev;
+				recon_down_back = vid_stream->mblock.recon_down_back_prev;
+			} else {
+				/* Otherwise compute new vectors and reset prev. back vectors. */
+				ComputeBackVector(&recon_right_back, &recon_down_back, vid_stream);
+			}
+			/*
+			* Store vector existence flags in structure for possible skipped
+			* macroblocks to follow.
+			*/
+
+			vid_stream->mblock.bpict_past_forw = mb_motion_forw;
+			vid_stream->mblock.bpict_past_back = mb_motion_back;
+		}
+	}
+
+	for (mask = 32, i = 0; i < 6; mask >>= 1, i++) {
 	
-	/* If macroblock is intra coded... */
-	if (vid_stream->mblock.mb_intra) {
-	  ReconIMBlock(vid_stream, i);
-	} else if (mb_motion_forw && mb_motion_back) {
-	  ReconBiMBlock(vid_stream, i, recon_right_for, recon_down_for,
-			recon_right_back, recon_down_back, zero_block_flag);
-	} else if (mb_motion_forw || (vid_stream->picture.code_type == P_TYPE)) {
-	  ReconPMBlock(vid_stream, i, recon_right_for, recon_down_for,
-		       zero_block_flag);
-	} else if (mb_motion_back) {
-	  ReconBMBlock(vid_stream, i, recon_right_back, recon_down_back,
-		       zero_block_flag);
+		/* If block exists... */
+		if ((vid_stream->mblock.mb_intra) || (vid_stream->mblock.cbp & mask)) {
+			zero_block_flag = 0;
+			ParseReconBlock(i, vid_stream);
+		} else {
+			zero_block_flag = 1;
+		}
+	
+		/* If macroblock is intra coded... */
+		if (vid_stream->mblock.mb_intra) {
+			ReconIMBlock(vid_stream, i);
+		} else if (mb_motion_forw && mb_motion_back) {
+			ReconBiMBlock(vid_stream, i, recon_right_for, recon_down_for,
+				recon_right_back, recon_down_back, zero_block_flag);
+		} else if (mb_motion_forw || (vid_stream->picture.code_type == P_TYPE)) {
+			ReconPMBlock(vid_stream, i, recon_right_for, recon_down_for,
+					zero_block_flag);
+		} else if (mb_motion_back) {
+			ReconBMBlock(vid_stream, i, recon_right_back, recon_down_back,
+					zero_block_flag);
+		}
 	}
-      }
 
-  /* If D Type picture, flush marker bit. */
-  if (vid_stream->picture.code_type == 4)
-    flush_bits(1);
+	/* If D Type picture, flush marker bit. */
+	if (vid_stream->picture.code_type == 4)
+		flush_bits(1);
 
-  /* If macroblock was intracoded, set macroblock past intra address. */
-  if (vid_stream->mblock.mb_intra)
-    vid_stream->mblock.past_intra_addr =
-      vid_stream->mblock.mb_address;
+	/* If macroblock was intracoded, set macroblock past intra address. */
+	if (vid_stream->mblock.mb_intra)
+		vid_stream->mblock.past_intra_addr =vid_stream->mblock.mb_address;
 
-  return PARSE_OK;
+	return PARSE_OK;
 }
 
 
@@ -3584,122 +3575,116 @@ ParseMacroBlock(vid_stream)
 #define assertCrop(x)
 #endif
 
-static void
-ReconIMBlock(vid_stream, bnum)
-  mpeg_VidStream *vid_stream;
-  int bnum;
+static void ReconIMBlock(mpeg_VidStream *vid_stream, int bnum)
 {
-  int mb_row, mb_col, row, col, row_size, rr;
-  unsigned char *dest;
+	int mb_row, mb_col, row, col, row_size, rr;
+	unsigned char *dest;
 
-  /* Calculate macroblock row and column from address. */
+	/* Calculate macroblock row and column from address. */
 
-  mb_row = vid_stream->mblock.mb_address / vid_stream->mb_width;
-  mb_col = vid_stream->mblock.mb_address % vid_stream->mb_width;
+	mb_row = vid_stream->mblock.mb_address / vid_stream->mb_width;
+	mb_col = vid_stream->mblock.mb_address % vid_stream->mb_width;
 
 
-  /* If block is luminance block... */
+	/* If block is luminance block... */
 
-  if (bnum < 4) {
+	if (bnum < 4) {
 
-    /* Calculate row and col values for upper left pixel of block. */
+		/* Calculate row and col values for upper left pixel of block. */
 
-    row = mb_row * 16;
-    col = mb_col * 16;
-    if (bnum > 1)
-      row += 8;
-    if (bnum % 2)
-      col += 8;
+		row = mb_row * 16;
+		col = mb_col * 16;
+		if (bnum > 1)
+			row += 8;
+		if (bnum % 2)
+			col += 8;
 
-    /* Set dest to luminance plane of current pict image. */
+		/* Set dest to luminance plane of current pict image. */
 
-    dest = vid_stream->current->luminance;
+		dest = vid_stream->current->luminance;
 
-    /* Establish row size. */
+		/* Establish row size. */
 
-    row_size = vid_stream->mb_width * 16;
-  }
-  /* Otherwise if block is Cr block... */
-  /* Cr first because of the earlier mixup */
+		row_size = vid_stream->mb_width * 16;
+	} else if (bnum == 5) {
+		/* Otherwise if block is Cr block... */
+		/* Cr first because of the earlier mixup */
 
-  else if (bnum == 5) {
+		/* Set dest to Cr plane of current pict image. */
 
-    /* Set dest to Cr plane of current pict image. */
+		dest = vid_stream->current->Cr;
 
-    dest = vid_stream->current->Cr;
+		/* Establish row size. */
 
-    /* Establish row size. */
+		row_size = vid_stream->mb_width * 8;
 
-    row_size = vid_stream->mb_width * 8;
+		/* Calculate row,col for upper left pixel of block. */
 
-    /* Calculate row,col for upper left pixel of block. */
+		row = mb_row * 8;
+		col = mb_col * 8;
+	} else {
+		/* Otherwise block is Cb block, and ... */
 
-    row = mb_row * 8;
-    col = mb_col * 8;
-  }
-  /* Otherwise block is Cb block, and ... */
 
-  else {
+		/* Set dest to Cb plane of current pict image. */
 
-    /* Set dest to Cb plane of current pict image. */
+		dest = vid_stream->current->Cb;
 
-    dest = vid_stream->current->Cb;
+		/* Establish row size. */
 
-    /* Establish row size. */
+		row_size = vid_stream->mb_width * 8;
 
-    row_size = vid_stream->mb_width * 8;
+		/* Calculate row,col for upper left pixel value of block. */
 
-    /* Calculate row,col for upper left pixel value of block. */
+		row = mb_row * 8;
+		col = mb_col * 8;
+	}
 
-    row = mb_row * 8;
-    col = mb_col * 8;
-  }
+	/*
+	* For each pixel in block, set to cropped reconstructed value from inverse
+	* dct.
+	*/
+	{
+		short *sp = &vid_stream->block.dct_recon[0][0];
+		unsigned char *cm = cropTbl + MAX_NEG_CROP;
+		dest += row * row_size + col;
+		for (rr = 0; rr < 4; rr++, sp += 16, dest += row_size) {
+			dest[0] = cm[sp[0]];
+			assertCrop(sp[0]);
+			dest[1] = cm[sp[1]];
+			assertCrop(sp[1]);
+			dest[2] = cm[sp[2]];
+			assertCrop(sp[2]);
+			dest[3] = cm[sp[3]];
+			assertCrop(sp[3]);
+			dest[4] = cm[sp[4]];
+			assertCrop(sp[4]);
+			dest[5] = cm[sp[5]];
+			assertCrop(sp[5]);
+			dest[6] = cm[sp[6]];
+			assertCrop(sp[6]);
+			dest[7] = cm[sp[7]];
+			assertCrop(sp[7]);
 
-  /*
-   * For each pixel in block, set to cropped reconstructed value from inverse
-   * dct.
-   */
-  {
-    short *sp = &vid_stream->block.dct_recon[0][0];
-    unsigned char *cm = cropTbl + MAX_NEG_CROP;
-    dest += row * row_size + col;
-    for (rr = 0; rr < 4; rr++, sp += 16, dest += row_size) {
-      dest[0] = cm[sp[0]];
-	  assertCrop(sp[0]);
-      dest[1] = cm[sp[1]];
-      assertCrop(sp[1]);
-      dest[2] = cm[sp[2]];
-      assertCrop(sp[2]);
-      dest[3] = cm[sp[3]];
-      assertCrop(sp[3]);
-      dest[4] = cm[sp[4]];
-      assertCrop(sp[4]);
-      dest[5] = cm[sp[5]];
-      assertCrop(sp[5]);
-      dest[6] = cm[sp[6]];
-      assertCrop(sp[6]);
-      dest[7] = cm[sp[7]];
-      assertCrop(sp[7]);
-
-      dest += row_size;
-      dest[0] = cm[sp[8]];
-      assertCrop(sp[8]);
-      dest[1] = cm[sp[9]];
-      assertCrop(sp[9]);
-      dest[2] = cm[sp[10]];
-      assertCrop(sp[10]);
-      dest[3] = cm[sp[11]];
-      assertCrop(sp[11]);
-      dest[4] = cm[sp[12]];
-      assertCrop(sp[12]);
-      dest[5] = cm[sp[13]];
-      assertCrop(sp[13]);
-      dest[6] = cm[sp[14]];
-      assertCrop(sp[14]);
-      dest[7] = cm[sp[15]];
-      assertCrop(sp[15]);
-    }
-  }
+			dest += row_size;
+			dest[0] = cm[sp[8]];
+			assertCrop(sp[8]);
+			dest[1] = cm[sp[9]];
+			assertCrop(sp[9]);
+			dest[2] = cm[sp[10]];
+			assertCrop(sp[10]);
+			dest[3] = cm[sp[11]];
+			assertCrop(sp[11]);
+			dest[4] = cm[sp[12]];
+			assertCrop(sp[12]);
+			dest[5] = cm[sp[13]];
+			assertCrop(sp[13]);
+			dest[6] = cm[sp[14]];
+			assertCrop(sp[14]);
+			dest[7] = cm[sp[15]];
+			assertCrop(sp[15]);
+		}
+	}
 }
 
 
@@ -3720,271 +3705,263 @@ ReconIMBlock(vid_stream, bnum)
  *--------------------------------------------------------------
  */
 
-static void
-ReconPMBlock(vid_stream, bnum, recon_right_for, recon_down_for, zflag)
-  mpeg_VidStream *vid_stream;
-  int bnum, recon_right_for, recon_down_for, zflag;
+static void ReconPMBlock(mpeg_VidStream *vid_stream, int bnum, int recon_right_for, int recon_down_for, int zflag)
 {
-  int mb_row, mb_col, row, col, row_size, rr;
-  unsigned char *dest = NULL, *past = NULL;
-  unsigned char *rindex1, *rindex2;
-  unsigned char *index;
-  short int *blockvals;
+	int mb_row, mb_col, row, col, row_size, rr;
+	unsigned char *dest = NULL, *past = NULL;
+	unsigned char *rindex1, *rindex2;
+	unsigned char *index;
+	short int *blockvals;
 
-  /* Calculate macroblock row and column from address. */
+	/* Calculate macroblock row and column from address. */
 
-  mb_row = vid_stream->mblock.mb_address / vid_stream->mb_width;
-  mb_col = vid_stream->mblock.mb_address % vid_stream->mb_width;
+	mb_row = vid_stream->mblock.mb_address / vid_stream->mb_width;
+	mb_col = vid_stream->mblock.mb_address % vid_stream->mb_width;
 
-  if (bnum < 4) {
+	if (bnum < 4) {
 
-    /* Calculate right_for, down_for motion vectors. */
+		/* Calculate right_for, down_for motion vectors. */
 
-    vid_stream->right_for = recon_right_for >> 1;
-    vid_stream->down_for = recon_down_for >> 1;
-    vid_stream->right_half_for = recon_right_for & 0x1;
-    vid_stream->down_half_for = recon_down_for & 0x1;
+		vid_stream->right_for = recon_right_for >> 1;
+		vid_stream->down_for = recon_down_for >> 1;
+		vid_stream->right_half_for = recon_right_for & 0x1;
+		vid_stream->down_half_for = recon_down_for & 0x1;
 
-    /* Set dest to luminance plane of current pict image. */
+		/* Set dest to luminance plane of current pict image. */
 
-    dest = vid_stream->current->luminance;
+		dest = vid_stream->current->luminance;
 
-    if (vid_stream->picture.code_type == B_TYPE) {
-      if (vid_stream->past != NULL)
-       past = vid_stream->past->luminance;
-    } else {
+		if (vid_stream->picture.code_type == B_TYPE) {
+			if (vid_stream->past != NULL)
+			past = vid_stream->past->luminance;
+		} else {
 
-      /* Set predictive frame to current future frame. */
+			/* Set predictive frame to current future frame. */
 
-      if (vid_stream->future != NULL)
-        past = vid_stream->future->luminance;
-    }
+			if (vid_stream->future != NULL)
+				past = vid_stream->future->luminance;
+		}
 
-    /* Establish row size. */
+		/* Establish row size. */
 
-    row_size = vid_stream->mb_width << 4;
+		row_size = vid_stream->mb_width << 4;
 
-    /* Calculate row,col of upper left pixel in block. */
+		/* Calculate row,col of upper left pixel in block. */
 
-    row = mb_row << 4;
-    col = mb_col << 4;
-    if (bnum > 1)
-      row += 8;
-    if (bnum % 2)
-      col += 8;
-  }
-  /* Otherwise, block is NOT luminance block, ... */
+		row = mb_row << 4;
+		col = mb_col << 4;
+		if (bnum > 1)
+			row += 8;
+		if (bnum % 2)
+			col += 8;
+	} else {
+		/* Otherwise, block is NOT luminance block, ... */
 
-  else {
+		/* Construct motion vectors. */
 
-    /* Construct motion vectors. */
+		recon_right_for /= 2;
+		recon_down_for /= 2;
+		vid_stream->right_for = recon_right_for >> 1;
+		vid_stream->down_for = recon_down_for >> 1;
+		vid_stream->right_half_for = recon_right_for & 0x1;
+		vid_stream->down_half_for = recon_down_for & 0x1;
 
-    recon_right_for /= 2;
-    recon_down_for /= 2;
-    vid_stream->right_for = recon_right_for >> 1;
-    vid_stream->down_for = recon_down_for >> 1;
-    vid_stream->right_half_for = recon_right_for & 0x1;
-    vid_stream->down_half_for = recon_down_for & 0x1;
+		/* Establish row size. */
 
-    /* Establish row size. */
+		row_size = vid_stream->mb_width << 3;
 
-    row_size = vid_stream->mb_width << 3;
+		/* Calculate row,col of upper left pixel in block. */
 
-    /* Calculate row,col of upper left pixel in block. */
+		row = mb_row << 3;
+		col = mb_col << 3;
 
-    row = mb_row << 3;
-    col = mb_col << 3;
+		/* If block is Cr block... */
+		/* 5 first because order was mixed up in earlier versions */
 
-    /* If block is Cr block... */
-    /* 5 first because order was mixed up in earlier versions */
+		if (bnum == 5) {
 
-    if (bnum == 5) {
+			/* Set dest to Cr plane of current pict image. */
 
-      /* Set dest to Cr plane of current pict image. */
+			dest = vid_stream->current->Cr;
 
-      dest = vid_stream->current->Cr;
+			if (vid_stream->picture.code_type == B_TYPE) {
 
-      if (vid_stream->picture.code_type == B_TYPE) {
+				if (vid_stream->past != NULL)
+					past = vid_stream->past->Cr;
+					} else {
+				if (vid_stream->future != NULL)
+					past = vid_stream->future->Cr;
+			}
+		} else {
+			/* Otherwise, block is Cb block... */
+			/* Set dest to Cb plane of current pict image. */
 
-    if (vid_stream->past != NULL)
-      past = vid_stream->past->Cr;
-      } else {
-    if (vid_stream->future != NULL)
-      past = vid_stream->future->Cr;
-      }
-    }
-    /* Otherwise, block is Cb block... */
+			dest = vid_stream->current->Cb;
 
-    else {
+			if (vid_stream->picture.code_type == B_TYPE) {
+				if (vid_stream->past != NULL)
+					past = vid_stream->past->Cb;
+			} else {
+				if (vid_stream->future != NULL)
+					past = vid_stream->future->Cb;
+			}
+		}
+	}
 
-      /* Set dest to Cb plane of current pict image. */
-
-      dest = vid_stream->current->Cb;
-
-      if (vid_stream->picture.code_type == B_TYPE) {
-        if (vid_stream->past != NULL)
-          past = vid_stream->past->Cb;
-      } else {
-        if (vid_stream->future != NULL)
-          past = vid_stream->future->Cb;
-      }
-    }
-  }
-
-  /* For each pixel in block... */
-    index = dest + (row * row_size) + col;
-    rindex1 = past + (row + vid_stream->down_for) * row_size 
-	      + col + vid_stream->right_for;
+	/* For each pixel in block... */
+	index = dest + (row * row_size) + col;
+	rindex1 = past + (row + vid_stream->down_for) * row_size 
+			+ col + vid_stream->right_for;
     
-    blockvals = &(vid_stream->block.dct_recon[0][0]);
+	blockvals = &(vid_stream->block.dct_recon[0][0]);
     
-    /*
-     * Calculate predictive pixel value based on motion vectors and copy to
-     * dest plane.
-     */
-    
-    if ((!vid_stream->down_half_for) && (!vid_stream->right_half_for)) {
-      unsigned char *cm = cropTbl + MAX_NEG_CROP;
-      if (!zflag)
-        for (rr = 0; rr < 4; rr++) {
-          index[0] = cm[(int) rindex1[0] + (int) blockvals[0]];
-          index[1] = cm[(int) rindex1[1] + (int) blockvals[1]];
-          index[2] = cm[(int) rindex1[2] + (int) blockvals[2]];
-          index[3] = cm[(int) rindex1[3] + (int) blockvals[3]];
-          index[4] = cm[(int) rindex1[4] + (int) blockvals[4]];
-          index[5] = cm[(int) rindex1[5] + (int) blockvals[5]];
-          index[6] = cm[(int) rindex1[6] + (int) blockvals[6]];
-          index[7] = cm[(int) rindex1[7] + (int) blockvals[7]];
-          index += row_size;
-          rindex1 += row_size;
+	/*
+		* Calculate predictive pixel value based on motion vectors and copy to
+		* dest plane.
+	*/
+
+	if ((!vid_stream->down_half_for) && (!vid_stream->right_half_for)) {
+		unsigned char *cm = cropTbl + MAX_NEG_CROP;
+		if (!zflag) {
+			for (rr = 0; rr < 4; rr++) {
+				index[0] = cm[(int) rindex1[0] + (int) blockvals[0]];
+				index[1] = cm[(int) rindex1[1] + (int) blockvals[1]];
+				index[2] = cm[(int) rindex1[2] + (int) blockvals[2]];
+				index[3] = cm[(int) rindex1[3] + (int) blockvals[3]];
+				index[4] = cm[(int) rindex1[4] + (int) blockvals[4]];
+				index[5] = cm[(int) rindex1[5] + (int) blockvals[5]];
+				index[6] = cm[(int) rindex1[6] + (int) blockvals[6]];
+				index[7] = cm[(int) rindex1[7] + (int) blockvals[7]];
+				index += row_size;
+				rindex1 += row_size;
       
-          index[0] = cm[(int) rindex1[0] + (int) blockvals[8]];
-          index[1] = cm[(int) rindex1[1] + (int) blockvals[9]];
-          index[2] = cm[(int) rindex1[2] + (int) blockvals[10]];
-          index[3] = cm[(int) rindex1[3] + (int) blockvals[11]];
-          index[4] = cm[(int) rindex1[4] + (int) blockvals[12]];
-          index[5] = cm[(int) rindex1[5] + (int) blockvals[13]];
-          index[6] = cm[(int) rindex1[6] + (int) blockvals[14]];
-          index[7] = cm[(int) rindex1[7] + (int) blockvals[15]];
-          blockvals += 16;
-          index += row_size;
-          rindex1 += row_size;
-        }
-      else {
-        if (vid_stream->right_for & 0x1) {
-          /* No alignment, use bye copy */
-          for (rr = 0; rr < 4; rr++) {
-            index[0] = rindex1[0];
-            index[1] = rindex1[1];
-            index[2] = rindex1[2];
-            index[3] = rindex1[3];
-            index[4] = rindex1[4];
-            index[5] = rindex1[5];
-            index[6] = rindex1[6];
-            index[7] = rindex1[7];
-            index += row_size;
-            rindex1 += row_size;
-            
-            index[0] = rindex1[0];
-            index[1] = rindex1[1];
-            index[2] = rindex1[2];
-            index[3] = rindex1[3];
-            index[4] = rindex1[4];
-            index[5] = rindex1[5];
-            index[6] = rindex1[6];
-            index[7] = rindex1[7];
-            index += row_size;
-            rindex1 += row_size;
-          }
-        } else if (vid_stream->right_for & 0x2) {
-          /* Half-word bit aligned, use 16 bit copy */
-          short *src = (short *)rindex1;
-          short *dest = (short *)index;
-          row_size >>= 1;
-          for (rr = 0; rr < 4; rr++) {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = src[3];
-            dest += row_size;
-            src += row_size;
-            
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest[2] = src[2];
-            dest[3] = src[3];
-            dest += row_size;
-            src += row_size;
-          }
-        } else {
-          /* Word aligned, use 32 bit copy */
-          int *src = (int *)rindex1;
-          int *dest = (int *)index;
-          row_size >>= 2;
-          for (rr = 0; rr < 4; rr++) {
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest += row_size;
-            src += row_size;
-            
-            dest[0] = src[0];
-            dest[1] = src[1];
-            dest += row_size;
-            src += row_size;
-          }
-        }
-      }
-    } else {
-      unsigned char *cm = cropTbl + MAX_NEG_CROP;
-      rindex2 = rindex1 + vid_stream->right_half_for 
-		+ (vid_stream->down_half_for * row_size);
+				index[0] = cm[(int) rindex1[0] + (int) blockvals[8]];
+				index[1] = cm[(int) rindex1[1] + (int) blockvals[9]];
+				index[2] = cm[(int) rindex1[2] + (int) blockvals[10]];
+				index[3] = cm[(int) rindex1[3] + (int) blockvals[11]];
+				index[4] = cm[(int) rindex1[4] + (int) blockvals[12]];
+				index[5] = cm[(int) rindex1[5] + (int) blockvals[13]];
+				index[6] = cm[(int) rindex1[6] + (int) blockvals[14]];
+				index[7] = cm[(int) rindex1[7] + (int) blockvals[15]];
+				blockvals += 16;
+				index += row_size;
+				rindex1 += row_size;
+			}
+		} else {
+			if (vid_stream->right_for & 0x1) {
+				/* No alignment, use bye copy */
+				for (rr = 0; rr < 4; rr++) {
+					index[0] = rindex1[0];
+					index[1] = rindex1[1];
+					index[2] = rindex1[2];
+					index[3] = rindex1[3];
+					index[4] = rindex1[4];
+					index[5] = rindex1[5];
+					index[6] = rindex1[6];
+					index[7] = rindex1[7];
+					index += row_size;
+					rindex1 += row_size;
 
-      /* if one of the two is zero, then quality makes no difference */
-        
-        if (!zflag) {
-          for (rr = 0; rr < 4; rr++) {
-            index[0] = cm[((int) (rindex1[0] + rindex2[0] + 1) >> 1) + blockvals[0]];
-            index[1] = cm[((int) (rindex1[1] + rindex2[1] + 1) >> 1) + blockvals[1]];
-            index[2] = cm[((int) (rindex1[2] + rindex2[2] + 1) >> 1) + blockvals[2]];
-            index[3] = cm[((int) (rindex1[3] + rindex2[3] + 1) >> 1) + blockvals[3]];
-            index[4] = cm[((int) (rindex1[4] + rindex2[4] + 1) >> 1) + blockvals[4]];
-            index[5] = cm[((int) (rindex1[5] + rindex2[5] + 1) >> 1) + blockvals[5]];
-            index[6] = cm[((int) (rindex1[6] + rindex2[6] + 1) >> 1) + blockvals[6]];
-            index[7] = cm[((int) (rindex1[7] + rindex2[7] + 1) >> 1) + blockvals[7]];
-            index += row_size;
-            rindex1 += row_size;
-            rindex2 += row_size;
-        
-            index[0] = cm[((int) (rindex1[0] + rindex2[0] + 1) >> 1) + blockvals[8]];
-            index[1] = cm[((int) (rindex1[1] + rindex2[1] + 1) >> 1) + blockvals[9]];
-            index[2] = cm[((int) (rindex1[2] + rindex2[2] + 1) >> 1) + blockvals[10]];
-            index[3] = cm[((int) (rindex1[3] + rindex2[3] + 1) >> 1) + blockvals[11]];
-            index[4] = cm[((int) (rindex1[4] + rindex2[4] + 1) >> 1) + blockvals[12]];
-            index[5] = cm[((int) (rindex1[5] + rindex2[5] + 1) >> 1) + blockvals[13]];
-            index[6] = cm[((int) (rindex1[6] + rindex2[6] + 1) >> 1) + blockvals[14]];
-            index[7] = cm[((int) (rindex1[7] + rindex2[7] + 1) >> 1) + blockvals[15]];
-            blockvals += 16;
-            index += row_size;
-            rindex1 += row_size;
-            rindex2 += row_size;
-          }
-        } else { /* zflag */
-          for (rr = 0; rr < 8; rr++) {
-            index[0] = (int) (rindex1[0] + rindex2[0] + 1) >> 1;
-            index[1] = (int) (rindex1[1] + rindex2[1] + 1) >> 1;
-            index[2] = (int) (rindex1[2] + rindex2[2] + 1) >> 1;
-            index[3] = (int) (rindex1[3] + rindex2[3] + 1) >> 1;
-            index[4] = (int) (rindex1[4] + rindex2[4] + 1) >> 1;
-            index[5] = (int) (rindex1[5] + rindex2[5] + 1) >> 1;
-            index[6] = (int) (rindex1[6] + rindex2[6] + 1) >> 1;
-            index[7] = (int) (rindex1[7] + rindex2[7] + 1) >> 1;
-            index += row_size;
-            rindex1 += row_size;
-            rindex2 += row_size;
-          }
-        } /* zflag */
+					index[0] = rindex1[0];
+					index[1] = rindex1[1];
+					index[2] = rindex1[2];
+					index[3] = rindex1[3];
+					index[4] = rindex1[4];
+					index[5] = rindex1[5];
+					index[6] = rindex1[6];
+					index[7] = rindex1[7];
+					index += row_size;
+					rindex1 += row_size;
+				}
+			} else if (vid_stream->right_for & 0x2) {
+				/* Half-word bit aligned, use 16 bit copy */
+				short *src = (short *)rindex1;
+				short *dest = (short *)index;
+				row_size >>= 1;
+				for (rr = 0; rr < 4; rr++) {
+					dest[0] = src[0];
+					dest[1] = src[1];
+					dest[2] = src[2];
+					dest[3] = src[3];
+					dest += row_size;
+					src += row_size;
 
-    }
+					dest[0] = src[0];
+					dest[1] = src[1];
+					dest[2] = src[2];
+					dest[3] = src[3];
+					dest += row_size;
+					src += row_size;
+				}
+			} else {
+				/* Word aligned, use 32 bit copy */
+				int *src = (int *)rindex1;
+				int *dest = (int *)index;
+				row_size >>= 2;
+				for (rr = 0; rr < 4; rr++) {
+					dest[0] = src[0];
+					dest[1] = src[1];
+					dest += row_size;
+					src += row_size;
+
+					dest[0] = src[0];
+					dest[1] = src[1];
+					dest += row_size;
+					src += row_size;
+				}
+			}
+		}
+	} else {
+		unsigned char *cm = cropTbl + MAX_NEG_CROP;
+		rindex2 = rindex1 + vid_stream->right_half_for 
+			+ (vid_stream->down_half_for * row_size);
+
+		/* if one of the two is zero, then quality makes no difference */
+        
+		if (!zflag) {
+			for (rr = 0; rr < 4; rr++) {
+				index[0] = cm[((int) (rindex1[0] + rindex2[0] + 1) >> 1) + blockvals[0]];
+				index[1] = cm[((int) (rindex1[1] + rindex2[1] + 1) >> 1) + blockvals[1]];
+				index[2] = cm[((int) (rindex1[2] + rindex2[2] + 1) >> 1) + blockvals[2]];
+				index[3] = cm[((int) (rindex1[3] + rindex2[3] + 1) >> 1) + blockvals[3]];
+				index[4] = cm[((int) (rindex1[4] + rindex2[4] + 1) >> 1) + blockvals[4]];
+				index[5] = cm[((int) (rindex1[5] + rindex2[5] + 1) >> 1) + blockvals[5]];
+				index[6] = cm[((int) (rindex1[6] + rindex2[6] + 1) >> 1) + blockvals[6]];
+				index[7] = cm[((int) (rindex1[7] + rindex2[7] + 1) >> 1) + blockvals[7]];
+				index += row_size;
+				rindex1 += row_size;
+				rindex2 += row_size;
+        
+				index[0] = cm[((int) (rindex1[0] + rindex2[0] + 1) >> 1) + blockvals[8]];
+				index[1] = cm[((int) (rindex1[1] + rindex2[1] + 1) >> 1) + blockvals[9]];
+				index[2] = cm[((int) (rindex1[2] + rindex2[2] + 1) >> 1) + blockvals[10]];
+				index[3] = cm[((int) (rindex1[3] + rindex2[3] + 1) >> 1) + blockvals[11]];
+				index[4] = cm[((int) (rindex1[4] + rindex2[4] + 1) >> 1) + blockvals[12]];
+				index[5] = cm[((int) (rindex1[5] + rindex2[5] + 1) >> 1) + blockvals[13]];
+				index[6] = cm[((int) (rindex1[6] + rindex2[6] + 1) >> 1) + blockvals[14]];
+				index[7] = cm[((int) (rindex1[7] + rindex2[7] + 1) >> 1) + blockvals[15]];
+				blockvals += 16;
+				index += row_size;
+				rindex1 += row_size;
+				rindex2 += row_size;
+			}
+		} else { /* zflag */
+			for (rr = 0; rr < 8; rr++) {
+				index[0] = (int) (rindex1[0] + rindex2[0] + 1) >> 1;
+				index[1] = (int) (rindex1[1] + rindex2[1] + 1) >> 1;
+				index[2] = (int) (rindex1[2] + rindex2[2] + 1) >> 1;
+				index[3] = (int) (rindex1[3] + rindex2[3] + 1) >> 1;
+				index[4] = (int) (rindex1[4] + rindex2[4] + 1) >> 1;
+				index[5] = (int) (rindex1[5] + rindex2[5] + 1) >> 1;
+				index[6] = (int) (rindex1[6] + rindex2[6] + 1) >> 1;
+				index[7] = (int) (rindex1[7] + rindex2[7] + 1) >> 1;
+				index += row_size;
+				rindex1 += row_size;
+				rindex2 += row_size;
+			}
+		} /* zflag */
+
+	}
 }
 
 
@@ -4004,7 +3981,7 @@ ReconPMBlock(vid_stream, bnum, recon_right_for, recon_down_for, zflag)
  *--------------------------------------------------------------
  */
 
-static void
+static void 
 ReconBMBlock(vid_stream, bnum, recon_right_back, recon_down_back, zflag)
   mpeg_VidStream *vid_stream;
   int bnum, recon_right_back, recon_down_back, zflag;
