@@ -1136,10 +1136,8 @@ void do_MovieTextureTick( void *ptr) {
 		textureTableIndexStruct_s *tti;
 		texdata = movietexture_get_frame_by_fraction(node, frac, &width, &height, &nchan);
 		if(texdata){
-			//printf("[%f %p]",frac,texdata);
 			int thisTexture = node->__textureTableIndex;
 			tti = getTableIndex(thisTexture);
-			//printf("[ %d %p ]",thisTexture,tti);
 			if(tti){
 				tti->x = width;
 				tti->y = height;
@@ -1160,14 +1158,14 @@ void do_MovieTextureTick( void *ptr) {
 					FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 					FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 					//replace the texture data every frame when we are isActive and not paused
+					//we do this once per frame in startofloopnodeupdates call stack
+					//(not per render call: we want the same texture to show in left/right or quad display viewports)
 					if(nchan == 4)
 						glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,texdata);
 					if(nchan == 3)
 						glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,texdata);
 					glBindTexture(GL_TEXTURE_2D,0);
 				}
-			}else{
-				printf("movietexture has no tti\n");
 			}
 		}
 
