@@ -113,6 +113,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__fogScale",
 	"__fogType",
 	"__frontTexture",
+	"__fw_movie",
 	"__geoSystem",
 	"__highest",
 	"__hit",
@@ -5507,6 +5508,7 @@ const int OFFSETS_MotorJoint[] = {
 
 const int OFFSETS_MovieTexture[] = {
 	(int) FIELDNAMES___ctex, (int) offsetof (struct X3D_MovieTexture, __ctex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___fw_movie, (int) offsetof (struct X3D_MovieTexture, __fw_movie),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___highest, (int) offsetof (struct X3D_MovieTexture, __highest),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___inittime, (int) offsetof (struct X3D_MovieTexture, __inittime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_MovieTexture, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
@@ -10665,6 +10667,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_MovieTexture * tmp2;
 			tmp2 = (struct X3D_MovieTexture *) tmp;
 			tmp2->__ctex = 0;
+			tmp2->__fw_movie = 0;
 			tmp2->__highest = 0;
 			tmp2->__inittime = 0;
 			tmp2->__loadResource = 0;

@@ -1059,6 +1059,7 @@ void do_AudioTick(void *ptr) {
 
 /* Similar to AudioClip, this is the Play, Pause, Stop, Resume code
 */
+unsigned char *movietexture_get_frame_by_fraction(struct X3D_Node* node, float fraction, int *width, int *height, int *nchan);
 void do_MovieTextureTick( void *ptr) {
 	struct X3D_MovieTexture *node = (struct X3D_MovieTexture *)ptr;
 	struct X3D_AudioClip *anode;
@@ -1070,8 +1071,8 @@ void do_MovieTextureTick( void *ptr) {
 	double	duration;
 	int tmpTrunc; 		/* used for timing for textures */
 
-	anode = (struct X3D_AudioClip *)node;
-	do_AudioTick(ptr);  //does play, pause, active, inactive part
+	//anode = (struct X3D_AudioClip *)node;
+	//do_AudioTick(ptr);  //does play, pause, active, inactive part
 
 	/* can we possibly have started yet? */
 	if (!node) return;
@@ -1082,17 +1083,38 @@ void do_MovieTextureTick( void *ptr) {
 //	duration = (highest - lowest)/30.0;
 	//highest = node->__highest;
 	//lowest = node->__lowest;
-	duration = return_Duration(anode);
+	duration = return_Duration(node);
 	speed = node->speed;
 
+	oldstatus = node->isActive;
+	do_active_inactive (
+		&node->isActive, &node->__inittime, &node->startTime,
+		&node->stopTime,node->loop,duration,
+		speed);
 
-	if(node->isActive) {
-		frac = node->__ctex;
+	if (oldstatus != node->isActive) {
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, isActive));
+	}
 
-		/* sanity check - avoids divide by zero problems below */
-		if (node->__lowest >= node->__highest) {
-			node->__lowest = node->__highest-1;
+	if(node->isActive){
+		if(node->pauseTime > node->startTime){
+			if( node->resumeTime < node->pauseTime && !node->isPaused){
+				node->isPaused = TRUE;
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, isPaused));
+			}else if(node->resumeTime > node->pauseTime && node->isPaused){
+				node->isPaused = FALSE;
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, isPaused));
+			}
 		}
+	}
+
+	if(node->isActive && node->isPaused == FALSE) {
+		//frac = node->__ctex;
+
+		///* sanity check - avoids divide by zero problems below */
+		//if (node->__lowest >= node->__highest) {
+		//	node->__lowest = node->__highest-1;
+		//}
 		/* calculate what fraction we should be */
  		myTime = (TickTime() - node->startTime) * speed/duration;
 		tmpTrunc = (int) myTime;
@@ -1100,39 +1122,53 @@ void do_MovieTextureTick( void *ptr) {
 
 		/* negative speed? */
 		if (speed < 0) {
-			frac = 1+frac; /* frac will be *negative* */
+			frac = 1.0f + frac; /* frac will be *negative* */
 		/* else if (speed == 0) */
-		} else if (APPROX(speed, 0)) {
-			frac = 0;
+		} else if (APPROX(speed, 0.0f)) {
+			frac = 0.0f;
 		}
 
 
-		/* frac will tell us what texture frame we should apply... */
-		/* code changed by Alberto Dubuc to compile on Solaris 8 */
-		tmpTrunc = (int) (frac*(node->__highest - node->__lowest+1)+node->__lowest);
-		frac = (float) tmpTrunc;
+		//Nov 16, 2016 the following works with MPEG_Utils_ffmpeg.c on non-audio mpeg (vts.mpg)
+		// x not tested with audio
+		unsigned char* texdata;
+		int width,height,nchan;
+		textureTableIndexStruct_s *tti;
+		texdata = movietexture_get_frame_by_fraction(node, frac, &width, &height, &nchan);
+		if(texdata){
+			//printf("[%f %p]",frac,texdata);
+			int thisTexture = node->__textureTableIndex;
+			tti = getTableIndex(thisTexture);
+			if(tti){
+				tti->x = width;
+				tti->y = height;
+				tti->z = 1;
+				tti->channels = nchan;
+				static int once = 0;
+				if(!once){
+					//send it through textures.c once to get things like wrap set
+					// textures.c likes to free texdata, so we'll deep copy
+					tti->texdata = malloc(tti->x*tti->y*tti->channels);
+					memcpy(tti->texdata,texdata,tti->x*tti->y*tti->channels);
+					tti->status = TEX_NEEDSBINDING;
+					once = 1;
+				}else{
+					tti->status = TEX_LOADED;
+					glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture);
+					//disable the mipmapping done on the once pass through textures.c above
+					FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					//replace the texture data every frame when we are isActive and not paused
+					if(nchan == 4)
+						glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,texdata);
+					if(nchan == 3)
+						glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,texdata);
+				}
+			}else{
+				printf("movietexture has no tti\n");
+			}
+		}
 
-		/* verify parameters */
-		if (frac < node->__lowest){
-			frac = node->__lowest;
-		}
-		if (frac > node->__highest){
-			frac = node->__highest;
-		}
-
-		/* if (node->__ctex != frac) */
-		if (! APPROX(node->__ctex, frac)) {
-			node->__ctex = (int)frac;
-			/* force a change to re-render this node */
-			//update_node(X3D_NODE(node));
-			//dug9 july 2016: 
-			//  perhaps a function that will take the raw frame and 
-			//  just update the mipmap and opengl texture here, or tell separate mpeg thread to do it,
-			//  without making a new opengl texture
-			//  so that the rendering pass just sees it as a stable texture
-			//  If worried about mpeg thread racing with rendering thread when replacing texture,
-			//  perhaps can use 2 textures and mpeg thread can toggle texture number with atomic op after update
-		}
 	}
 }
 

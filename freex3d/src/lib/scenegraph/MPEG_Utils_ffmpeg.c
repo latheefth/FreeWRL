@@ -1,4 +1,5 @@
 
+#ifdef MOVIETEXTURE_FFMPEG
 // http://dranger.com/ffmpeg/tutorial01.html
 
 #include <inttypes.h>
@@ -7,7 +8,7 @@
 #include <signal.h>
 #include <stdint.h>
 
-#define inline
+#define inline   //someone in ffmpeg put a bit of cpp in their headers, this seemed to fix it
 //#include "libavutil/avstring.h"
 //#include "libavutil/colorspace.h"
 //#include "libavutil/mathematics.h"
@@ -26,15 +27,49 @@
 //#include "libavcodec/avfft.h"
 //#include "libswresample/swresample.h"
 
+#include "internal.h"
+#include "Vector.h"
+#include "../opengl/textures.h"
+void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
 // compatibility with newer API
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
 #define av_frame_alloc avcodec_alloc_frame
 #define av_frame_free avcodec_free_frame
 #endif
 
+
+void SaveFrame(AVFrame *pFrame, int width, int height, int nchan, int iFrame) {
+  FILE *pFile;
+  char szFilename[32];
+  int  y;
+  
+  // Open file
+  sprintf(szFilename, "frame%d.ppm", iFrame);
+  pFile=fopen(szFilename, "wb");
+  if(pFile==NULL)
+    return;
+  
+  // Write header
+  fprintf(pFile, "P6\n%d %d\n255\n", width, height);
+  
+  // Write pixel data
+  for(y=0; y<height; y++)
+    fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*nchan, pFile);
+  
+  // Close file
+  fclose(pFile);
+}
+
+struct fw_movietexture {
+	AVFormatContext *pFormatCtx;
+	AVCodecContext *pVideoCodecCtx;
+	int width,height,nchan,nframes,fps;
+	double duration;
+	unsigned char **frames;
+};
 int movie_load_from_file(char *fname, void **opaque){
 	static int once = 0;
-
+	struct fw_movietexture fw_movie;
 	*opaque = NULL;
 
 	//initialize ffmpeg libs once per process
@@ -54,7 +89,8 @@ int movie_load_from_file(char *fname, void **opaque){
 
 	// Dump information about file onto standard error
 	av_dump_format(pFormatCtx, 0, fname, 0);
-	
+	fw_movie.pFormatCtx = pFormatCtx;
+
 	int i, videoStream;
 	AVCodecContext *pCodecCtxOrig = NULL;
 	AVCodecContext *pCodecCtx = NULL;
@@ -89,6 +125,7 @@ int movie_load_from_file(char *fname, void **opaque){
 	// Open codec
 	if(avcodec_open2(pCodecCtx, pCodec, NULL)<0)
 		return -1; // Could not open codec
+	fw_movie.pVideoCodecCtx = pCodecCtx;
 
 	AVFrame *pFrame = NULL;
 
@@ -104,7 +141,20 @@ int movie_load_from_file(char *fname, void **opaque){
 	uint8_t *buffer = NULL;
 	int numBytes;
 	// Determine required buffer size and allocate buffer
-	numBytes=avpicture_get_size(AV_PIX_FMT_RGBA, pCodecCtx->width,  //AV_PIX_FMT_RGB24,
+	int nchan, av_pix_fmt;
+	if(0){
+		nchan = 3;
+		av_pix_fmt = AV_PIX_FMT_RGB24;
+	}else{
+		nchan = 4;
+		av_pix_fmt = AV_PIX_FMT_RGBA;
+	}
+
+	fw_movie.nchan = nchan; //RGB24 == 3, RGBA == 4
+	fw_movie.width = pCodecCtx->width;
+	fw_movie.height = pCodecCtx->height;
+
+	numBytes=avpicture_get_size(av_pix_fmt, pCodecCtx->width,  //AV_PIX_FMT_RGB24, AV_PIX_FMT_RGBA
 								pCodecCtx->height);
 	buffer=(uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
 
@@ -112,7 +162,7 @@ int movie_load_from_file(char *fname, void **opaque){
 	// Assign appropriate parts of buffer to image planes in pFrameRGB
 	// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
 	// of AVPicture
-	avpicture_fill((AVPicture *)pFrameRGB, buffer, AV_PIX_FMT_RGBA, //AV_PIX_FMT_RGB24,
+	avpicture_fill((AVPicture *)pFrameRGB, buffer,av_pix_fmt, //AV_PIX_FMT_RGBA, //AV_PIX_FMT_RGB24,
 		pCodecCtx->width, pCodecCtx->height);
 
 
@@ -125,13 +175,14 @@ int movie_load_from_file(char *fname, void **opaque){
 		pCodecCtx->pix_fmt,
 		pCodecCtx->width,
 		pCodecCtx->height,
-		AV_PIX_FMT_RGBA, //AV_PIX_FMT_RGB24,
+		av_pix_fmt, //AV_PIX_FMT_RGBA, //AV_PIX_FMT_RGB24,
 		SWS_BILINEAR,
 		NULL,
 		NULL,
 		NULL
 		);
 
+	Stack *fw_framequeue = newStack(unsigned char *); //I like stack because stack_push will realloc
 	i=0;
 	while(av_read_frame(pFormatCtx, &packet)>=0) {
 		// Is this a packet from the video stream?
@@ -149,22 +200,74 @@ int movie_load_from_file(char *fname, void **opaque){
 				// Save the frame to disk
 				++i;
 				//if(++i<=5)
-				//	SaveFrame(pFrameRGB, pCodecCtx->width, 
-				//			pCodecCtx->height, i);
-				printf("saving frame %d %d %d\n",pCodecCtx->width,pCodecCtx->height, i);
+				if(0) if(i<=5){
+					SaveFrame(pFrameRGB, pCodecCtx->width, 
+							pCodecCtx->height, nchan, i);
+				}
+				//printf("saving frame %d %d %d\n",pCodecCtx->width,pCodecCtx->height, i);
+				//printf("linesize = %d \n",pFrameRGB->linesize[0]);
+
+				unsigned char * fw_frame = malloc(fw_movie.height * fw_movie.width *  nchan); //assumes width == linesize[0]
+				
+				for(int k=0;k<pCodecCtx->height;k++){
+					int kd,ks,kk;
+					unsigned char *src;
+					kk = pCodecCtx->height - k - 1;
+					ks = k*pFrame->linesize[0]*nchan;
+					kd = kk * fw_movie.width * nchan;
+					src = ((unsigned char *)pFrameRGB->data[0]) + ks;
+					memcpy(&fw_frame[kd],src,fw_movie.width * nchan);
+				}
+				stack_push(unsigned char *,fw_framequeue,fw_frame);
 			}
 		}
-    
+		
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
 	}
+	fw_movie.frames = fw_framequeue->data;
+	fw_movie.nframes = fw_framequeue->n;
+	fw_movie.duration = (double)(fw_movie.nframes) / 30.0; //s = frames / fps 
 
-	*opaque = pFormatCtx;
-	return 0;
+	*opaque = malloc(sizeof(struct fw_movietexture));
+	memcpy(*opaque,&fw_movie,sizeof(struct fw_movietexture));
+	if(0){
+		//write out frames in .web3dit image format for testing
+		textureTableIndexStruct_s ttipp, *ttip;
+		ttip = &ttipp;
+		ttip->x = fw_movie.width;
+		ttip->y = fw_movie.height;
+		ttip->z = 1;
+		ttip->hasAlpha = 1;
+		ttip->channels = nchan;
+
+		for(int k=0;k<fw_movie.nframes;k++){
+			ttip->texdata = fw_movie.frames[k];
+			char namebuf[100];
+			sprintf(namebuf,"%s%d.web3dit","ffmpeg_frame_",k);
+			saveImage_web3dit(ttip, namebuf);
+		}
+	}
+	return 1;
 }
+double movie_get_duration(void *opaque){
+	struct fw_movietexture *fw_movie = (struct fw_movietexture *)opaque;
+	return fw_movie->duration;
+}
+//int movie_get_nearest_frame_by_movie_time(void *opaque, int *x, int *y, int *nchan, unsigned char *frame){
+//	return 0;
+//}
+unsigned char *movie_get_frame_by_fraction(void *opaque, float fraction, int *width, int *height, int *nchan){
+	struct fw_movietexture *fw_movie = (struct fw_movietexture *)opaque;
+	if(!fw_movie) return NULL;
 
-int movie_get_nearest_frame_by_movie_time(void *opaque, int *x, int *y, int *nchan, unsigned char *frame){
-	return 0;
+	int iframe = (int)(fraction * ((float)(fw_movie->nframes -1) + .5f));
+	iframe = max(0,iframe);
+	iframe = min(fw_movie->nframes -1,iframe);
+	*width = fw_movie->width;
+	*height = fw_movie->height;
+	*nchan = fw_movie->nchan;
+	return fw_movie->frames[iframe];
 }
 int movie_get_audio_channel(void *opaque, unsigned char *audiobuf){
 	return 0;
@@ -172,3 +275,5 @@ int movie_get_audio_channel(void *opaque, unsigned char *audiobuf){
 void movie_free(void *opaque){
 	if(opaque) free(opaque);
 }
+
+#endif //MOVIETEXTURE_FFMPEG

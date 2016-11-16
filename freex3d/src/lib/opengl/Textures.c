@@ -1037,19 +1037,6 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 
 		case NODE_MovieTexture: {
 	    	releaseTexture(node); 
-//#ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES
-//			{
-//				
-//	    		struct X3D_MovieTexture *mym = (struct X3D_MovieTexture *)node;
-//	    		// did the URL's change? we can't test for _change here, because
-//				// movie running will change it, so we look at the urls. 
-//				//if ((mym->url.p) != (mym->__oldurl.p)) {
-//				//	releaseTexture(node); 
-//				//	mym->__oldurl.p = mym->url.p;
-//				//}
-//				
-//			}
-//#endif
 		}
 		break;
 

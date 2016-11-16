@@ -1019,6 +1019,7 @@ our %Nodes = (
 		 __lowest => ["SFInt32", 0, "initializeOnly", 0],
 		 # highest frame
 		 __highest => ["SFInt32", 0, "initializeOnly", 0],
+		 __fw_movie  => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	],"X3DTextureNode"),
 
 

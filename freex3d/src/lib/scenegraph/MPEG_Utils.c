@@ -201,9 +201,10 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 
 #include <libFreeWRL.h>
 
-//#define MOVIETEXTURE_STUB 1
+//put your choice in your config.h (or windows preprocessor directives):
+//#define MOVIETEXTURE_STUB 1   //default
 //#define MOVIETEXTURE_BERKLEYBROWN 1
-#define MOVIETEXTURE_FFMPEG 1
+//#define MOVIETEXTURE_FFMPEG 1
 //#define MOVIETEXTURE_LIBMPEG2 1
 
 //Option A.
@@ -218,8 +219,8 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 #elif MOVIETEXTURE_FFMPEG
 //#include "MPEG_Utils_ffmpeg.c"
 int movie_load_from_file(char *fname, void **opaque);
-
-#elif MOVIETEXTURE_LIBMPEG2
+double movie_get_duration(void *opaque);
+unsigned char *movie_get_frame_by_fraction(void *opaque, float fraction, int *width, int *height, int *nchan);
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 
@@ -257,6 +258,7 @@ bool movie_load(resource_item_t *res){
         ptr=NULL;
 		//H: this returns something like a volume image, with slices packed into ptr, and z=frameCount, nchannels = depth.
 		//Q: what's the 'normal' frame rate? should that be returned too, or is there a standard/default?
+		//Nov 15, 2016: bombs on small test file vts.mpg
         mpg_main(res->actual_file, &x,&y,&depth,&frameCount,&ptr);
 		#ifdef TEXVERBOSE
 		printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
@@ -269,8 +271,29 @@ bool movie_load(resource_item_t *res){
 
 #elif MOVIETEXTURE_FFMPEG
 	void *opaque;
-	movie_load_from_file(res->actual_file,&opaque);
-	printf("opqaue = %p \n",opaque);
+	int loaded;
+	loaded = movie_load_from_file(res->actual_file,&opaque);
+	retval = loaded > -1 ? TRUE : FALSE;
+	if(loaded){
+		struct X3D_MovieTexture *node;
+		res->status = ress_loaded;
+		res->complete = TRUE;
+		res->status = ress_parsed; //we'll skip the parse_movie/load_from_blob handler 
+		node = (struct X3D_MovieTexture *) res->whereToPlaceData;
+		//node->__FILEBLOB = buffer;
+		//node->__sourceNumber = parse_movie(node,buffer,len); //__sourceNumber will be openAL buffer number
+		//if(node->__sourceNumber > -1) {
+		//	node->duration_changed = compute_duration(node->__sourceNumber);
+		node->duration_changed = movie_get_duration(opaque);
+		node->__fw_movie = opaque;
+		double totalframes = node->duration_changed * 30.0; 
+		node->speed = 30.0 / totalframes; //in fractions per second = speed in frames/second / totalframes
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, duration_changed));
+		//	return TRUE;
+		//} 
+	}
+
+	printf("opqaue = %p, loaded=%d \n",opaque,res->status);
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return retval;
@@ -299,12 +322,16 @@ int parse_movie(node,buffer,len){
 	audio_sourcenumber = -1;
 #elif MOVIETEXTURE_BERKLEYBROWN
 #elif MOVIETEXTURE_FFMPEG
+	//loaded directly from file (above, in movie_load), not from pre-loaded blob (binary large object)
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return audio_sourcenumber;
 }
 double compute_duration(int ibuffer);
+
 bool  process_res_movie(resource_item_t *res){
+	//you'll get in here if you didn't (completely) handle movie_load from file
+	//
 	//s_list_t *l;
 	openned_file_t *of;
 	const char *buffer;
@@ -371,4 +398,13 @@ void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
 /* 			*highest = ti->OpenGLTexture[(ti->frames) -1]; */
 		}
 /* 	} */
+}
+
+unsigned char *movietexture_get_frame_by_fraction(struct X3D_Node* node, float fraction, int *width, int *height, int *nchan){
+	unsigned char* retval = NULL;
+	if(node && node->_nodeType == NODE_MovieTexture){
+		struct X3D_MovieTexture *movietexture = (struct X3D_MovieTexture *)node;
+		retval = movie_get_frame_by_fraction(movietexture->__fw_movie,fraction,width,height,nchan);
+	}
+	return retval;
 }
