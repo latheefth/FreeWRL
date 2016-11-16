@@ -375,30 +375,30 @@ bool  process_res_movie(resource_item_t *res){
 
 
 // - still needed ? don't know depends on implementation
-void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
-        textureTableIndexStruct_s *ti;
-
-/*        if (myIndex  == 0) {
-		printf ("getMovieTextureOpenGLFrames, myIndex is ZERL\n");
-		*highest=0; *lowest=0;
-	} else {
-*/
-	*highest=0; *lowest=0;
-	
-	#ifdef TEXVERBOSE
-	printf ("in getMovieTextureOpenGLFrames, calling getTableIndex\n");
-	#endif
-
-       	ti = getTableIndex(myIndex);
-
-/* 	if (ti->frames>0) { */
-		if (ti->OpenGLTexture != TEXTURE_INVALID) {
-			*lowest = ti->OpenGLTexture;
-			*highest = 0;
-/* 			*highest = ti->OpenGLTexture[(ti->frames) -1]; */
-		}
-/* 	} */
-}
+//void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
+//        textureTableIndexStruct_s *ti;
+//
+///*        if (myIndex  == 0) {
+//		printf ("getMovieTextureOpenGLFrames, myIndex is ZERL\n");
+//		*highest=0; *lowest=0;
+//	} else {
+//*/
+//	*highest=0; *lowest=0;
+//	
+//	#ifdef TEXVERBOSE
+//	printf ("in getMovieTextureOpenGLFrames, calling getTableIndex\n");
+//	#endif
+//
+//       	ti = getTableIndex(myIndex);
+//
+///* 	if (ti->frames>0) { */
+//		if (ti->OpenGLTexture != TEXTURE_INVALID) {
+//			*lowest = ti->OpenGLTexture;
+//			*highest = 0;
+///* 			*highest = ti->OpenGLTexture[(ti->frames) -1]; */
+//		}
+///* 	} */
+//}
 
 unsigned char *movietexture_get_frame_by_fraction(struct X3D_Node* node, float fraction, int *width, int *height, int *nchan){
 	unsigned char* retval = NULL;

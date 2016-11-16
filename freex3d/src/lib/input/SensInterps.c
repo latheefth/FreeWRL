@@ -1139,6 +1139,7 @@ void do_MovieTextureTick( void *ptr) {
 			//printf("[%f %p]",frac,texdata);
 			int thisTexture = node->__textureTableIndex;
 			tti = getTableIndex(thisTexture);
+			//printf("[ %d %p ]",thisTexture,tti);
 			if(tti){
 				tti->x = width;
 				tti->y = height;
@@ -1163,6 +1164,7 @@ void do_MovieTextureTick( void *ptr) {
 						glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,texdata);
 					if(nchan == 3)
 						glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,texdata);
+					glBindTexture(GL_TEXTURE_2D,0);
 				}
 			}else{
 				printf("movietexture has no tti\n");

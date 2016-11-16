@@ -1036,7 +1036,7 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	switch (node->_nodeType) {
 
 		case NODE_MovieTexture: {
-	    	releaseTexture(node); 
+	    	//releaseTexture(node); 
 		}
 		break;
 

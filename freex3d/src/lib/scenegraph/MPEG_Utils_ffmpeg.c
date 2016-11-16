@@ -248,6 +248,22 @@ int movie_load_from_file(char *fname, void **opaque){
 			saveImage_web3dit(ttip, namebuf);
 		}
 	}
+	//IF(DECODE-ON-LOAD)
+	//   GARBAGE COLLECT FFMPEG STUFF
+	// Free the RGB image
+	av_free(buffer);
+	av_frame_free(&pFrameRGB);
+  
+	// Free the YUV frame
+	av_frame_free(&pFrame);
+  
+	// Close the codecs
+	avcodec_close(pCodecCtx);
+	avcodec_close(pCodecCtxOrig);
+
+	// Close the video file
+	avformat_close_input(&pFormatCtx);
+
 	return 1;
 }
 double movie_get_duration(void *opaque){
@@ -273,7 +289,13 @@ int movie_get_audio_channel(void *opaque, unsigned char *audiobuf){
 	return 0;
 }
 void movie_free(void *opaque){
-	if(opaque) free(opaque);
+	struct fw_movietexture *fw_movie = (struct fw_movietexture *)opaque;
+	if(fw_movie) {
+		for(int k=0;k<fw_movie->nframes;k++){
+			FREE_IF_NZ(fw_movie->frames[k]);
+		}
+		free(opaque);
+	}
 }
 
 #endif //MOVIETEXTURE_FFMPEG
