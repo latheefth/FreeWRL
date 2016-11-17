@@ -38,6 +38,8 @@ void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
 #endif
 
 
+//from ffmpeg tutorial01.c
+//save to .ppm imge format for debugging, which gimp will read but only if RGB24 / nchan==3
 void SaveFrame(AVFrame *pFrame, int width, int height, int nchan, int iFrame) {
   FILE *pFile;
   char szFilename[32];
@@ -60,12 +62,16 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int nchan, int iFrame) {
   fclose(pFile);
 }
 
+//our opaque pointer is a struct:
 struct fw_movietexture {
-	AVFormatContext *pFormatCtx;
-	AVCodecContext *pVideoCodecCtx;
-	int width,height,nchan,nframes,fps;
+	//AVFormatContext *pFormatCtx; //don't need to save for decode-on-load
+	//AVCodecContext *pVideoCodecCtx; //don't need to save for decode-on-load
+	//video and audio section:
 	double duration;
+	//video section:
+	int width,height,nchan,nframes,fps;
 	unsigned char **frames;
+	//audio section:
 };
 int movie_load_from_file(char *fname, void **opaque){
 	static int once = 0;
@@ -89,7 +95,7 @@ int movie_load_from_file(char *fname, void **opaque){
 
 	// Dump information about file onto standard error
 	av_dump_format(pFormatCtx, 0, fname, 0);
-	fw_movie.pFormatCtx = pFormatCtx;
+	//fw_movie.pFormatCtx = pFormatCtx;
 
 	int i, videoStream;
 	AVCodecContext *pCodecCtxOrig = NULL;
@@ -125,7 +131,7 @@ int movie_load_from_file(char *fname, void **opaque){
 	// Open codec
 	if(avcodec_open2(pCodecCtx, pCodec, NULL)<0)
 		return -1; // Could not open codec
-	fw_movie.pVideoCodecCtx = pCodecCtx;
+	//fw_movie.pVideoCodecCtx = pCodecCtx;
 
 	AVFrame *pFrame = NULL;
 
@@ -182,6 +188,7 @@ int movie_load_from_file(char *fname, void **opaque){
 		NULL
 		);
 
+	//if( METHOD_DECODE_ON_LOAD ) - decodes all frames in resource thread when loading the file
 	Stack *fw_framequeue = newStack(unsigned char *); //I like stack because stack_push will realloc
 	i=0;
 	while(av_read_frame(pFormatCtx, &packet)>=0) {
@@ -212,7 +219,7 @@ int movie_load_from_file(char *fname, void **opaque){
 				for(int k=0;k<pCodecCtx->height;k++){
 					int kd,ks,kk;
 					unsigned char *src;
-					kk = pCodecCtx->height - k - 1;
+					kk = pCodecCtx->height - k - 1; //flip y-down to y-up for opengl
 					ks = k*pFrame->linesize[0]*nchan;
 					kd = kk * fw_movie.width * nchan;
 					src = ((unsigned char *)pFrameRGB->data[0]) + ks;
@@ -248,7 +255,7 @@ int movie_load_from_file(char *fname, void **opaque){
 			saveImage_web3dit(ttip, namebuf);
 		}
 	}
-	//IF(DECODE-ON-LOAD)
+	//IF(METHOD_DECODE_ON_LOAD)
 	//   GARBAGE COLLECT FFMPEG STUFF
 	// Free the RGB image
 	av_free(buffer);
