@@ -221,6 +221,8 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 int movie_load_from_file(char *fname, void **opaque);
 double movie_get_duration(void *opaque);
 unsigned char *movie_get_frame_by_fraction(void *opaque, float fraction, int *width, int *height, int *nchan);
+unsigned char * movie_get_audio_PCM_buffer(void *opaque,int *freq, int *channels, int *size, int *bits);
+#include "sounds.h"
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 
@@ -270,6 +272,7 @@ bool movie_load(resource_item_t *res){
 	}
 
 #elif MOVIETEXTURE_FFMPEG
+
 	void *opaque;
 	int loaded;
 	loaded = movie_load_from_file(res->actual_file,&opaque);
@@ -280,18 +283,38 @@ bool movie_load(resource_item_t *res){
 		res->complete = TRUE;
 		res->status = ress_parsed; //we'll skip the parse_movie/load_from_blob handler 
 		node = (struct X3D_MovieTexture *) res->whereToPlaceData;
-		//node->__FILEBLOB = buffer;
-		//node->__sourceNumber = parse_movie(node,buffer,len); //__sourceNumber will be openAL buffer number
-		//if(node->__sourceNumber > -1) {
-		//	node->duration_changed = compute_duration(node->__sourceNumber);
+		//AUDIO AND/OR VIDEO CHANNELS?
 		node->duration_changed = movie_get_duration(opaque);
 		node->__fw_movie = opaque;
-		double totalframes = node->duration_changed * 30.0; 
-		node->speed = 30.0 / totalframes; //in fractions per second = speed in frames/second / totalframes
+		//VIDEO CHANNEL?
+		//double totalframes = node->duration_changed * 30.0; 
+		node->speed = 1.0; //1 means normal speed 30.0 / totalframes; //in fractions per second = speed in frames/second / totalframes
 		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, duration_changed));
-		//	return TRUE;
-		//} 
-	}
+		//AUDIO CHANNEL?
+		//node->__sourceNumber = parse_movie(node,buffer,len); //__sourceNumber will be openAL buffer number
+		int freq,channels,size,bits;
+		unsigned char * pcmbuf = movie_get_audio_PCM_buffer(opaque,&freq,&channels,&size,&bits);
+		if(pcmbuf){
+			printf("audio freq %d channels %d size %d bits per channel %d\n",freq,channels,size,bits);
+			// http://open-activewrl.sourceforge.net/data/OpenAL_PGuide.pdf
+			// page 6
+			int format;
+			ALuint albuffer; 
+			alGenBuffers(1, &albuffer); 
+			//al.h
+			//#define AL_FORMAT_MONO8                          0x1100
+			//#define AL_FORMAT_MONO16                         0x1101
+			//#define AL_FORMAT_STEREO8                        0x1102
+			//#define AL_FORMAT_STEREO16                       0x1103
+			if(bits == 8)
+				format = AL_FORMAT_MONO8;
+			else
+				format = AL_FORMAT_MONO16;
+			if(channels == 2) format += 2;
+			alBufferData(albuffer,format,pcmbuf,size,freq); 
+			node->__sourceNumber = albuffer;
+		}
+	} 
 
 	printf("opqaue = %p, loaded=%d \n",opaque,res->status);
 #elif MOVIETEXTURE_LIBMPEG2
@@ -330,6 +353,7 @@ int parse_movie(node,buffer,len){
 double compute_duration(int ibuffer);
 
 bool  process_res_movie(resource_item_t *res){
+	// METHOD_LOAD_ON_DEMAND
 	//you'll get in here if you didn't (completely) handle movie_load from file
 	//
 	//s_list_t *l;

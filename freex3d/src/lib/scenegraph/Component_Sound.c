@@ -570,7 +570,8 @@ void render_Sound (struct X3D_Sound *node) {
 	//ppComponent_Sound p = (ppComponent_Sound)gglobal()->Component_Sound.prv;
 
 	/* why bother doing this if there is no source? */
-	if (node->source == NULL) return;
+	if (node->source == NULL) 
+		return;
 
 	/* ok, is the source a valid node?? */
 

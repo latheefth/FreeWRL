@@ -10693,7 +10693,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->stopTime = 0;
 			tmp2->textureProperties = 0;
 			tmp2->url.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->url.p[0] = newASCIIString("");tmp2->url.n=1; ;
-			tmp2->_defaultContainer = FIELDNAMES_texture;
+			tmp2->_defaultContainer = FIELDNAMES_texture + (FIELDNAMES_source << 16);
 		break;
 		}
 		case NODE_MultiTexture : {
