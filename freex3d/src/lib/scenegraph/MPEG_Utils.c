@@ -404,7 +404,12 @@ unsigned char *movietexture_get_frame_by_fraction(struct X3D_Node* node, float f
 	unsigned char* retval = NULL;
 	if(node && node->_nodeType == NODE_MovieTexture){
 		struct X3D_MovieTexture *movietexture = (struct X3D_MovieTexture *)node;
+#ifdef MOVIETEXTURE_STUB
+#elif MOVIETEXTURE_BERKLEYBROWN
+#elif MOVIETEXTURE_FFMPEG
 		retval = movie_get_frame_by_fraction(movietexture->__fw_movie,fraction,width,height,nchan);
+#elif MOVIETEXTURE_LIBMPEG2
+#endif
 	}
 	return retval;
 }
