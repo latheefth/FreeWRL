@@ -78,15 +78,18 @@ void do_TimeSensorTick ( void *ptr) {
 		in calling doubles/floats in here is not causing us
 		problems again...
 
-
-		printf ("calling ");
-		printf ("act %d ",node->isActive);
-		printf ("initt %lf ",node->__inittime);
-		printf ("startt %lf ",node->startTime);
-		printf ("stopt %lf ",node->stopTime);
-		printf ("loop %d ",node->loop);
-		printf ("myDuration %f ",(float) myDuration);
-		printf ("speed %f\n",(float) 1.0);
+		static int count = 0;
+		if(count == 0){
+			printf ("calling ");
+			printf ("act %d ",node->isActive);
+			printf ("initt %lf ",node->__inittime);
+			printf ("startt %lf ",node->startTime);
+			printf ("stopt %lf ",node->stopTime);
+			printf ("loop %d ",node->loop);
+			printf ("myDuration %f ",(float) myDuration);
+			printf ("speed %f\n",(float) 1.0);
+		}
+		count++;
 	*/
 
 	do_active_inactive (
