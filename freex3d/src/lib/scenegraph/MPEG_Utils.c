@@ -295,7 +295,12 @@ bool movie_load(resource_item_t *res){
 		int freq,channels,size,bits;
 		unsigned char * pcmbuf = movie_get_audio_PCM_buffer(opaque,&freq,&channels,&size,&bits);
 		if(pcmbuf){
+			//MPEG1 level1,2 are compressed audio
+			//decoders generally deliver so called PCM pulse code modulated buffers
+			//and that's what audio drivers on computers normally take
+			//and same with the APIs that wrap the hardware drivers ie openAL API
 			printf("audio freq %d channels %d size %d bits per channel %d\n",freq,channels,size,bits);
+			#ifdef HAVE_OPENAL
 			// http://open-activewrl.sourceforge.net/data/OpenAL_PGuide.pdf
 			// page 6
 			int format;
@@ -313,6 +318,7 @@ bool movie_load(resource_item_t *res){
 			if(channels == 2) format += 2;
 			alBufferData(albuffer,format,pcmbuf,size,freq); 
 			node->__sourceNumber = albuffer;
+			#endif //HAVE_OPENAL
 		}
 	} 
 
@@ -328,24 +334,14 @@ int parse_movie(node,buffer,len){
 	//convert BLOB (binary large object) into video and audio structures
 	//Option A and B - return audio and video parts
 	int audio_sourcenumber;
-	char *bbuffer;
-	struct X3D_AudioClip *anode;
-	struct X3D_MovieTexture *mnode;
-	mnode = (struct X3D_MovieTexture *)node;
-	anode = (struct X3D_AudioClip *)node;
 	audio_sourcenumber = -1; //BADAUDIOSOURCE
-	//parse audio and video
-	//extract audio buffer if exists
 	//MPEG1 level1,2 are compressed audio
 	//decoders generally deliver so called PCM pulse code modulated buffers
 	//and that's what audio drivers on computers normally take
 	//and same with the APIs that wrap the hardware drivers ie openAL API
-	//iret = parse_audioclip(anode,bbuffer, len);
 #ifdef MOVIETEXTURE_STUB
-	audio_sourcenumber = -1;
 #elif MOVIETEXTURE_BERKLEYBROWN
 #elif MOVIETEXTURE_FFMPEG
-	//loaded directly from file (above, in movie_load), not from pre-loaded blob (binary large object)
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return audio_sourcenumber;

@@ -1083,7 +1083,7 @@ void do_MovieTextureTick( void *ptr) {
 //	duration = (highest - lowest)/30.0;
 	//highest = node->__highest;
 	//lowest = node->__lowest;
-	duration = return_Duration(node);
+	duration = node->duration_changed; //return_Duration(node);
 	speed = node->speed;
 
 	oldstatus = node->isActive;
@@ -1116,6 +1116,7 @@ void do_MovieTextureTick( void *ptr) {
 		//	node->__lowest = node->__highest-1;
 		//}
 		/* calculate what fraction we should be */
+		// t = (now - startTime) modulo (duration/speed)
  		myTime = (TickTime() - node->startTime) * speed/duration;
 		tmpTrunc = (int) myTime;
 		frac = myTime - (float)tmpTrunc;
@@ -1128,6 +1129,9 @@ void do_MovieTextureTick( void *ptr) {
 			frac = 0.0f;
 		}
 
+		node->elapsedTime = TickTime() - node->startTime;
+		//printf("/ et %lf /",node->elapsedTime);
+		MARK_EVENT (ptr, offsetof(struct X3D_MovieTexture, elapsedTime));
 
 		//Nov 16, 2016 the following works with MPEG_Utils_ffmpeg.c on non-audio mpeg (vts.mpg)
 		// x not tested with audio
