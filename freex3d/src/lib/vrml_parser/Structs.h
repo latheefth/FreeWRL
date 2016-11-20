@@ -2690,6 +2690,7 @@ struct X3D_AudioClip {
 	void * __loadResource;
 	int __sourceNumber;
 	double __inittime;
+	double __lasttime;
 };
 extern struct X3D_Virt virt_AudioClip;
 /***********************/
@@ -7174,6 +7175,7 @@ struct X3D_MovieTexture {
 	void * __loadResource;
 	int __sourceNumber;
 	double __inittime;
+	double __lasttime;
 	int repeatS;
 	int repeatT;
 	struct X3D_Node *textureProperties;

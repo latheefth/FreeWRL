@@ -79,7 +79,7 @@ void do_active_inactive_0 (
 /* void do_TimeSensorTick (struct X3D_TimeSensor *node) {*/
 void do_TimeSensorTick ( void *ptr) {
 	struct X3D_TimeSensor *node = (struct X3D_TimeSensor *)ptr;
-	double myDuration;
+	double duration;
 	int oldstatus;
 	double myFrac;
 	double frac;
@@ -108,7 +108,7 @@ void do_TimeSensorTick ( void *ptr) {
 	}
 
 	oldstatus = node->isActive;
-	myDuration = node->cycleInterval;
+	duration = node->cycleInterval;
 
 	/* call common time sensor routine */
 	/*
@@ -126,7 +126,7 @@ void do_TimeSensorTick ( void *ptr) {
 			printf ("startt %lf ",node->startTime);
 			printf ("stopt %lf ",node->stopTime);
 			printf ("loop %d ",node->loop);
-			printf ("myDuration %f ",(float) myDuration);
+			printf ("duration %f ",(float) duration);
 			printf ("speed %f\n",(float) 1.0);
 		}
 		count++;
@@ -135,11 +135,11 @@ void do_TimeSensorTick ( void *ptr) {
 	//	printf("TimeSensor.__inittime = %lf",node->__inittime);
 	//if(0) do_active_inactive (
 	//	&node->isActive, &node->__inittime, &node->startTime,
-	//	&node->stopTime,node->loop,myDuration, 1.0);
+	//	&node->stopTime,node->loop,duration, 1.0);
 
 	do_active_inactive_0 (
 		&node->isActive, &node->__inittime, &node->startTime,
-		&node->stopTime,node->loop,myDuration, 1.0,node->elapsedTime);
+		&node->stopTime,node->loop,duration, 1.0,node->elapsedTime);
 
 	/* MARK_SFNODE_INOUT_EVENT(node->metadata, node->__oldmetadata, offsetof (struct X3D_TimeSensor, metadata)) */
 
@@ -160,11 +160,11 @@ void do_TimeSensorTick ( void *ptr) {
 		if(node->pauseTime > node->startTime){
 			if( node->resumeTime < node->pauseTime && !node->isPaused){
 				node->isPaused = TRUE;
-				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, isPaused));
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_TimeSensor, isPaused));
 			}else if(node->resumeTime > node->pauseTime && node->isPaused){
 				node->isPaused = FALSE;
 				node->__lasttime = TickTime();
-				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, isPaused));
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_TimeSensor, isPaused));
 			}
 		}
 	}
@@ -176,8 +176,8 @@ void do_TimeSensorTick ( void *ptr) {
 		node->elapsedTime += node->time - node->__lasttime;
 		node->__lasttime = node->time; 
 		/* calculate what fraction we should be */
- 		//myTime = (TickTime() - node->startTime) / myDuration;
-		myFrac = node->elapsedTime / myDuration;
+ 		//myTime = (TickTime() - node->startTime) / duration;
+		myFrac = node->elapsedTime / duration;
 		if (node->loop) {
 			frac = myFrac - (int) myFrac;
 		} else {
@@ -185,7 +185,7 @@ void do_TimeSensorTick ( void *ptr) {
 		}
 
 		#ifdef SEVERBOSE
-		printf ("TimeSensor myFrac %f frac %f dur %f\n", myFrac,frac,myDuration);
+		printf ("TimeSensor myFrac %f frac %f dur %f\n", myFrac,frac,duration);
 		#endif
 
 		/* cycleTime events once at start, and once every loop. */

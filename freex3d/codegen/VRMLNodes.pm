@@ -894,6 +894,7 @@ our %Nodes = (
 		__sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
 		# time that we were initialized at
 		__inittime => ["SFTime", 0, "initializeOnly", 0],
+		__lasttime => ["SFTime", 0, "initializeOnly", 0],
 		# local name, as received on system
 		# old audio __localFileName => ["FreeWRLPTR", 0,"initializeOnly", 0],
 	],"X3DSoundSourceNode"),
@@ -1004,10 +1005,11 @@ our %Nodes = (
 		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__loadstatus =>["SFInt32",0,"initializeOnly", 0],
 		__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
-		 # internal sequence number
-		 __sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
-		 # time that we were initialized at
-		 __inittime => ["SFTime", 0, "initializeOnly", 0],
+		# internal sequence number
+		__sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
+		# time that we were initialized at
+		__inittime => ["SFTime", 0, "initializeOnly", 0],
+		__lasttime => ["SFTime", 0, "initializeOnly", 0],
 		#Texture2D and Movie section
 		repeatS => ["SFBool", "TRUE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatT => ["SFBool", "TRUE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
