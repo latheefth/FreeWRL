@@ -85,14 +85,15 @@ void SensInterps_init(struct tSensInterps *t)
 
 
 /* time dependent sensor nodes- check/change activity state */
-void do_active_inactive (
+void do_active_inactive_0 (
 	int *act, 		/* pointer to are we active or not?	*/
 	double *inittime,	/* pointer to nodes inittime		*/
 	double *startt,		/* pointer to nodes startTime		*/
 	double *stopt,		/* pointer to nodes stop time		*/
 	int loop,		/* nodes loop field			*/
 	double myDuration,	/* duration of cycle			*/
-	double speed		/* speed field				*/
+	double speed,		/* speed field				*/
+	double elapsedTime   /* cumulative non-paused time */
 ) {
 
 	/* what we do now depends on whether we are active or not */
@@ -108,7 +109,7 @@ void do_active_inactive (
 		printf ("myDuration %lf ",myDuration);
 		printf ("speed %f\n",speed);
 	*/
-
+	double ticktime = TickTime(); //changes once per frame, not in here
 
 	if (*act == 1) {   /* active - should we stop? */
 		#ifdef SEVERBOSE
@@ -116,7 +117,7 @@ void do_active_inactive (
 				TickTime(), *startt, *stopt);
 		#endif
 
-		if (TickTime() > *stopt) {
+		if (ticktime > *stopt) {
 			if (*startt >= *stopt) {
 				/* cases 1 and 2 */
 				if (!(loop)) {
@@ -126,18 +127,18 @@ void do_active_inactive (
 					
 					/* if (speed != 0) */
 					if (! APPROX(speed, 0)) {
-					    if (TickTime() >= (*startt +
-							fabs(myDuration/speed))) {
-						#ifdef SEVERBOSE
-						printf ("stopping case x\n");
-						printf ("TickTime() %f\n",TickTime());
-						printf ("startt %f\n",*startt);
-						printf ("myDuration %f\n",myDuration);
-						printf ("speed %f\n",speed);
-						#endif
+					    //if (ticktime >= (*startt + fabs(myDuration/speed))) {
+					    if (elapsedTime >= fabs(myDuration/speed) ) {
+							#ifdef SEVERBOSE
+							printf ("stopping case x\n");
+							printf ("TickTime() %f\n",ticktime);
+							printf ("startt %f\n",*startt);
+							printf ("myDuration %f\n",myDuration);
+							printf ("speed %f\n",speed);
+							#endif
 
-						*act = 0;
-						*stopt = TickTime();
+							*act = 0;
+							*stopt = ticktime;
 					    }
 					}
 				}
@@ -147,7 +148,7 @@ void do_active_inactive (
 				#endif
 
 				*act = 0;
-				*stopt = TickTime();
+				*stopt = ticktime;
 			}
 		}
 	}
@@ -156,10 +157,10 @@ void do_active_inactive (
 	if (*act == 0) {   /* active - should we start? */
 		/* printf ("is not active TickTime %f startt %f\n",TickTime(),*startt); */
 
-		if (TickTime() >= *startt) {
+		if (ticktime >= *startt) {
 			/* We just might need to start running */
 
-			if (TickTime() >= *stopt) {
+			if (ticktime >= *stopt) {
 				/* lets look at the initial conditions; have not had a stoptime
 				event (yet) */
 
@@ -168,7 +169,7 @@ void do_active_inactive (
 						/* VRML standards, table 4.2 case 2 */
 						/* printf ("CASE 2\n"); */
 						/* Umut Sezen's code: */
-						if (!(*startt > 0)) *startt = TickTime();
+						if (!(*startt > 0)) *startt = ticktime;
 						*act = 1;
 					}
 				} else if (*startt >= *stopt) {
@@ -177,7 +178,8 @@ void do_active_inactive (
 						 /* printf ("case 1 here\n"); */
 						/* we should be running VRML standards, table 4.2 case 1 */
 						/* Umut Sezen's code: */
-						if (!(*startt > 0)) *startt = TickTime();
+						if (!(*startt > 0)) 
+							*startt = ticktime;
 						*act = 1;
 					}
 				}
@@ -186,13 +188,24 @@ void do_active_inactive (
 				/* we should be running -
 				VRML standards, table 4.2 cases 1 and 2 and 3 */
 				/* Umut Sezen's code: */
-				if (!(*startt > 0)) *startt = TickTime();
+				if (!(*startt > 0)) *startt = ticktime;
 				*act = 1;
 			}
 		}
 	}
 }
-
+void do_active_inactive (
+	int *act, 		/* pointer to are we active or not?	*/
+	double *inittime,	/* pointer to nodes inittime		*/
+	double *startt,		/* pointer to nodes startTime		*/
+	double *stopt,		/* pointer to nodes stop time		*/
+	int loop,		/* nodes loop field			*/
+	double myDuration,	/* duration of cycle			*/
+	double speed		/* speed field				*/
+) 
+{
+	do_active_inactive_0(act,inittime,startt,stopt,loop,myDuration,speed,TickTime()-*startt);
+}
 
 /* Interpolators - local routine, look for the appropriate key */
 int find_key (int kin, float frac, float *keys) {

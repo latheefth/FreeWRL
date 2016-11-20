@@ -194,6 +194,7 @@ our %Nodes = (
 		# cycleTimer flag.
 		__ctflag =>["SFTime", 10, "inputOutput", 0],
 		__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
+		__lasttime => ["SFTime", 0, "initializeOnly", 0],
 	],"X3DSensorNode"),
 
 	###################################################################################

@@ -9843,6 +9843,7 @@ struct X3D_TimeSensor {
 	double __inittime;
 	double __ctflag;
 	int __oldEnabled;
+	double __lasttime;
 };
 extern struct X3D_Virt virt_TimeSensor;
 /***********************/

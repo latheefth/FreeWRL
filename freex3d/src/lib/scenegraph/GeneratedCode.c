@@ -6784,6 +6784,7 @@ const int OFFSETS_TextureTransformMatrix3D[] = {
 const int OFFSETS_TimeSensor[] = {
 	(int) FIELDNAMES___ctflag, (int) offsetof (struct X3D_TimeSensor, __ctflag),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___inittime, (int) offsetof (struct X3D_TimeSensor, __inittime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___lasttime, (int) offsetof (struct X3D_TimeSensor, __lasttime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_TimeSensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_cycleInterval, (int) offsetof (struct X3D_TimeSensor, cycleInterval),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_cycleTime, (int) offsetof (struct X3D_TimeSensor, cycleTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -12260,6 +12261,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_TimeSensor *) tmp;
 			tmp2->__ctflag = 10;
 			tmp2->__inittime = 0;
+			tmp2->__lasttime = 0;
 			tmp2->__oldEnabled = TRUE;
 			tmp2->cycleInterval = 1;
 			tmp2->cycleTime = -1;
