@@ -1152,8 +1152,9 @@ void do_MovieTextureTick( void *ptr) {
 			frac = 0.0f;
 		}
 		node->__frac = frac;
+		//clamp to last frame when not looping, so at end of show last frame sticks as per specs
 		if(node->loop == FALSE && tmpTrunc > 0)
-			node->__frac = 1.0f;
+			node->__frac = 1.0f; 
 		//printf("tmptnk=%d frac=%f ",tmpTrunc,node->__frac);
 		//node->elapsedTime = TickTime() - node->startTime;
 		//printf("/ et %lf /",node->elapsedTime);
