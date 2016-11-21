@@ -85,7 +85,7 @@ void SensInterps_init(struct tSensInterps *t)
 
 
 /* time dependent sensor nodes- check/change activity state */
-void do_active_inactive_0 (
+void do_active_inactive (
 	int *act, 		/* pointer to are we active or not?	*/
 	double *inittime,	/* pointer to nodes inittime		*/
 	double *startt,		/* pointer to nodes startTime		*/
@@ -194,18 +194,7 @@ void do_active_inactive_0 (
 		}
 	}
 }
-void do_active_inactive (
-	int *act, 		/* pointer to are we active or not?	*/
-	double *inittime,	/* pointer to nodes inittime		*/
-	double *startt,		/* pointer to nodes startTime		*/
-	double *stopt,		/* pointer to nodes stop time		*/
-	int loop,		/* nodes loop field			*/
-	double myDuration,	/* duration of cycle			*/
-	double speed		/* speed field				*/
-) 
-{
-	do_active_inactive_0(act,inittime,startt,stopt,loop,myDuration,speed,TickTime()-*startt);
-}
+
 
 /* Interpolators - local routine, look for the appropriate key */
 int find_key (int kin, float frac, float *keys) {
@@ -1037,7 +1026,7 @@ void do_AudioTick(void *ptr) {
 	/* call common time sensor routine */
 	//duration = return_Duration(node->__sourceNumber);
 	duration = return_Duration(node);
-	do_active_inactive_0 (
+	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,duration,
 		pitch,node->elapsedTime);
@@ -1110,7 +1099,7 @@ void do_MovieTextureTick( void *ptr) {
 	speed = node->speed;
 
 	oldstatus = node->isActive;
-	do_active_inactive_0 (
+	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,duration,
 		speed,node->elapsedTime);

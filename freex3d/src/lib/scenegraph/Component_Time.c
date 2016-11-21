@@ -40,16 +40,16 @@ X3D Time Component
 #include "../input/SensInterps.h"
 
 
-void do_active_inactive_0 (
-	int *act, 		/* pointer to are we active or not?	*/
-	double *inittime,	/* pointer to nodes inittime		*/
-	double *startt,		/* pointer to nodes startTime		*/
-	double *stopt,		/* pointer to nodes stop time		*/
-	int loop,		/* nodes loop field			*/
-	double myDuration,	/* duration of cycle			*/
-	double speed,		/* speed field				*/
-	double elapsedTime   /* cumulative non-paused time */
-);
+//void do_active_inactive (
+//	int *act, 		/* pointer to are we active or not?	*/
+//	double *inittime,	/* pointer to nodes inittime		*/
+//	double *startt,		/* pointer to nodes startTime		*/
+//	double *stopt,		/* pointer to nodes stop time		*/
+//	int loop,		/* nodes loop field			*/
+//	double myDuration,	/* duration of cycle			*/
+//	double speed,		/* speed field				*/
+//	double elapsedTime   /* cumulative non-paused time */
+//);
 
 /*
 	Nov 2016 before:
@@ -131,13 +131,9 @@ void do_TimeSensorTick ( void *ptr) {
 		}
 		count++;
 	*/
-	//if(node->__inittime != 0.0)
-	//	printf("TimeSensor.__inittime = %lf",node->__inittime);
-	//if(0) do_active_inactive (
-	//	&node->isActive, &node->__inittime, &node->startTime,
-	//	&node->stopTime,node->loop,duration, 1.0);
 
-	do_active_inactive_0 (
+
+	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,duration, 1.0,node->elapsedTime);
 

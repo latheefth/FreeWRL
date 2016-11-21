@@ -41,7 +41,8 @@ do_active_inactive(int *act,
 				   double *stopt,
 				   int loop,
 				   double myDuration,
-				   double speed);
+				   double speed,
+				   double elapsedTime);
 
 int
 find_key(int kin, float frac, float *keys);
