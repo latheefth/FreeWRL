@@ -223,6 +223,10 @@ double movie_get_duration(void *opaque);
 unsigned char *movie_get_frame_by_fraction(void *opaque, float fraction, int *width, int *height, int *nchan);
 unsigned char * movie_get_audio_PCM_buffer(void *opaque,int *freq, int *channels, int *size, int *bits);
 #include "sounds.h"
+//BufferData * alutBufferDataConstruct (ALvoid *data, size_t length, ALint numChannels,
+//                          ALint bitsPerSample, ALfloat sampleFrequency);
+
+#define LOAD_STABLE 10 //from Component_Sound.c
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 
@@ -282,10 +286,12 @@ bool movie_load(resource_item_t *res){
 		res->status = ress_loaded;
 		res->complete = TRUE;
 		res->status = ress_parsed; //we'll skip the parse_movie/load_from_blob handler 
+
 		node = (struct X3D_MovieTexture *) res->whereToPlaceData;
 		//AUDIO AND/OR VIDEO CHANNELS?
 		node->duration_changed = movie_get_duration(opaque);
 		node->__fw_movie = opaque;
+		node->__loadstatus = LOAD_STABLE;
 		//VIDEO CHANNEL?
 		//double totalframes = node->duration_changed * 30.0; 
 		node->speed = 1.0; //1 means normal speed 30.0 / totalframes; //in fractions per second = speed in frames/second / totalframes
@@ -305,6 +311,14 @@ bool movie_load(resource_item_t *res){
 			// page 6
 			int format;
 			ALuint albuffer; 
+			static int once = 0;
+			if(!once){
+				alutInit(0, NULL); // Initialize OpenAL 
+				alGetError(); // Clear Error Code
+				//SoundEngineInit();
+				once = 1;
+			}
+
 			alGenBuffers(1, &albuffer); 
 			//al.h
 			//#define AL_FORMAT_MONO8                          0x1100
@@ -315,8 +329,16 @@ bool movie_load(resource_item_t *res){
 				format = AL_FORMAT_MONO8;
 			else
 				format = AL_FORMAT_MONO16;
-			if(channels == 2) format += 2;
+			if(channels == 2) 
+				if(bits == 8)
+					format = AL_FORMAT_STEREO8;
+				else
+					format = AL_FORMAT_STEREO16;
+
+			//this is a complex function that tries to figure out if its float, int PCM etc
 			alBufferData(albuffer,format,pcmbuf,size,freq); 
+			//BufferData * bdata = _alutBufferDataConstruct( pcmbuf,size,channels,bits, freq);
+
 			node->__sourceNumber = albuffer;
 			#endif //HAVE_OPENAL
 		}

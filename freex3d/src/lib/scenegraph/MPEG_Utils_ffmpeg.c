@@ -156,33 +156,26 @@ int movie_load_from_file(char *fname, void **opaque){
 			return -1; // Error copying codec context
 		}
 
-		//// Set audio settings from codec info
-		//wanted_spec.freq = aCodecCtx->sample_rate;
-		//wanted_spec.format = AUDIO_S16SYS;
-		//wanted_spec.channels = aCodecCtx->channels;
+		// Set audio settings from codec info
 		fw_movie.channels = aCodecCtx->channels;
 		fw_movie.freq = aCodecCtx->sample_rate;
-		aCodecCtx->bits_per_coded_sample = 16;
-		fw_movie.bits_per_channel = 16; //aCodecCtx->bits_per_raw_sample; //or should it be per_coded_sample?
-		//wanted_spec.silence = 0;
-		//wanted_spec.samples = SDL_AUDIO_BUFFER_SIZE;
-		//wanted_spec.callback = audio_callback;
-		//wanted_spec.userdata = aCodecCtx;
-  //
-		//if(SDL_OpenAudio(&wanted_spec, &spec) < 0) {
-		//fprintf(stderr, "SDL_OpenAudio: %s\n", SDL_GetError());
-		//return -1;
-		//}
+		//printf("audio sample format %d\n",aCodecCtx->sample_fmt);
+		//aCodecCtx->request_sample_fmt = AV_SAMPLE_FMT_FLTP; //AV_SAMPLE_FMT_S16P; //AV_SAMPLE_FMT_S16;
+		fw_movie.bits_per_channel = aCodecCtx->bits_per_coded_sample; // 16; //aCodecCtx->bits_per_raw_sample; //or should it be per_coded_sample?
+		printf("bits per coded channel=%d\n",aCodecCtx->bits_per_coded_sample);
 
-		avcodec_open2(aCodecCtx, aCodec, NULL);
 
-		//// audio_st = pFormatCtx->streams[index]
-		//packet_queue_init(&audioq);
-		//SDL_PauseAudio(0);
+		if(avcodec_open2(aCodecCtx, aCodec, NULL) < 0){
+			fprintf(stderr, "Could not open codec\n");
+			return -1;
+		}
+	
 
 		audio_buf = malloc(audio_buf_size);
 		aFrame=av_frame_alloc();
-
+		//aFrame->nb_samples     = aCodecCtx->frame_size;
+		//aFrame->format         = aCodecCtx->sample_fmt;
+		//aFrame->channel_layout = aCodecCtx->channel_layout;
 	}
 
 	//video function-scope variables
@@ -335,6 +328,7 @@ int movie_load_from_file(char *fname, void **opaque){
 										aFrame->nb_samples,
 										aCodecCtx->sample_fmt,
 										1);
+				printf("aCodecCtx->sample_fmt= %d channels=%d samples=%d",aCodecCtx->sample_fmt,aCodecCtx->channels,aFrame->nb_samples);
 				if(data_size > buf_size){
 					audio_buf = realloc(audio_buf,audio_buf_size *2);
 					audio_buf_size *= 2;
