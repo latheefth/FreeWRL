@@ -189,7 +189,7 @@ int movie_load_from_file(char *fname, void **opaque){
 		av_opt_set_int(swr, "out_channel_layout", aCodecCtx->channel_layout,  0);
 		av_opt_set_int(swr, "in_sample_rate",     aCodecCtx->sample_rate, 0);
 		av_opt_set_int(swr, "out_sample_rate",    aCodecCtx->sample_rate, 0);
-		av_opt_set_sample_fmt(swr, "in_sample_fmt",  AV_SAMPLE_FMT_FLTP, 0);
+		av_opt_set_sample_fmt(swr, "in_sample_fmt",  aCodecCtx->sample_fmt, 0);
 		av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
 		swr_init(swr);
 
@@ -391,7 +391,11 @@ int movie_load_from_file(char *fname, void **opaque){
 							}
 							audio_buf_index += outputBufferLen;
 						}else if(1){
-							//swresample module > 
+							//swresample module > swr_convert - doesn't work, no sound comes out
+							uint8_t *channelbufs[16];
+							channelbufs[0] = &audio_buf[audio_buf_index];
+							swr_convert(swr,channelbufs, aFrameOut->nb_samples, aFrameOut->extended_data, aFrame->nb_samples);  
+							audio_buf_index =  aFrameOut->nb_samples * aFrameOut->channels * 2;
 						}
 
 					}else{
