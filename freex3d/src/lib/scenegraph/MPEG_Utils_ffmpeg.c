@@ -23,7 +23,7 @@
 #include "libavformat/avformat.h"
 #include "libavdevice/avdevice.h"
 #include "libswscale/swscale.h"
-#include "libswresample/swresample.h"
+//#include "libswresample/swresample.h"
 //#include "libavutil/opt.h"
 //#include "libavcodec/avfft.h"
 //#include "libswresample/swresample.h"
@@ -142,7 +142,7 @@ int movie_load_from_file(char *fname, void **opaque){
 	unsigned int audio_buf_size = 1000000;
 	unsigned int audio_buf_index = 0;
 	uint8_t * audio_buf = NULL;
-	SwrContext *swr; 
+	//SwrContext *swr; 
 
 	//audio prep
 	if(audioStream > -1){
@@ -181,17 +181,18 @@ int movie_load_from_file(char *fname, void **opaque){
 		aFrameB=av_frame_alloc();
 
 		// win32 openAL has problems with FLTP (float) audio format that 
-		// recent versions of libavcodec convert mp4 audio to
+		// recent versions of libavcodec convert mp4 audio to 
 		// so we will convert to an older S16 or S16P format
-		// Set up SWR context once you've got codec information
-		swr = swr_alloc();
-		av_opt_set_int(swr, "in_channel_layout",  aCodecCtx->channel_layout, 0);
-		av_opt_set_int(swr, "out_channel_layout", aCodecCtx->channel_layout,  0);
-		av_opt_set_int(swr, "in_sample_rate",     aCodecCtx->sample_rate, 0);
-		av_opt_set_int(swr, "out_sample_rate",    aCodecCtx->sample_rate, 0);
-		av_opt_set_sample_fmt(swr, "in_sample_fmt",  aCodecCtx->sample_fmt, 0);
-		av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
-		swr_init(swr);
+		//swresample didn't work for me, hand-coded did
+		//// Set up SWR context once you've got codec information
+		//swr = swr_alloc();
+		//av_opt_set_int(swr, "in_channel_layout",  aCodecCtx->channel_layout, 0);
+		//av_opt_set_int(swr, "out_channel_layout", aCodecCtx->channel_layout,  0);
+		//av_opt_set_int(swr, "in_sample_rate",     aCodecCtx->sample_rate, 0);
+		//av_opt_set_int(swr, "out_sample_rate",    aCodecCtx->sample_rate, 0);
+		//av_opt_set_sample_fmt(swr, "in_sample_fmt",  aCodecCtx->sample_fmt, 0);
+		//av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
+		//swr_init(swr);
 
 	}
 
@@ -340,19 +341,20 @@ int movie_load_from_file(char *fname, void **opaque){
 			int data_size = 0;
 			int buf_size = audio_buf_size - audio_buf_index;
 			if(got_frame) {
-				if(0){
-					//swresample module > swr_convert_frame() DOESN'T WORK - output frames are nullish
-					// Input and output AVFrames must have channel_layout, sample_rate and format set.
-					aFrame->channel_layout = aCodecCtx->channel_layout;
-					aFrame->sample_rate = aCodecCtx->sample_rate;
-					aFrame->format = aCodecCtx->sample_fmt;
-					//put into a format openAL likes
-					aFrameB->channel_layout = aCodecCtx->channel_layout; //AV_CH_LAYOUT_STEREO;
-					aFrameB->sample_rate = aCodecCtx->sample_rate; //41000;
-					aFrameB->format = AV_SAMPLE_FMT_S16P;
-					swr_convert_frame(swr,aFrameB, aFrame); 
-					aFrameOut = aFrameB;
-				} else {
+				//if(0){
+				//	//swresample module > swr_convert_frame() DOESN'T WORK - output frames are nullish
+				//	// Input and output AVFrames must have channel_layout, sample_rate and format set.
+				//	aFrame->channel_layout = aCodecCtx->channel_layout;
+				//	aFrame->sample_rate = aCodecCtx->sample_rate;
+				//	aFrame->format = aCodecCtx->sample_fmt;
+				//	//put into a format openAL likes
+				//	aFrameB->channel_layout = aCodecCtx->channel_layout; //AV_CH_LAYOUT_STEREO;
+				//	aFrameB->sample_rate = aCodecCtx->sample_rate; //41000;
+				//	aFrameB->format = AV_SAMPLE_FMT_S16P;
+				//	swr_convert_frame(swr,aFrameB, aFrame); 
+				//	aFrameOut = aFrameB;
+				//} else 
+				{
 					aFrameOut = aFrame;
 					aFrameOut->format = aCodecCtx->sample_fmt;
 				}
@@ -390,13 +392,14 @@ int movie_load_from_file(char *fname, void **opaque){
 								 }
 							}
 							audio_buf_index += outputBufferLen;
-						}else if(1){
-							//swresample module > swr_convert - doesn't work, no sound comes out
-							uint8_t *channelbufs[16];
-							channelbufs[0] = &audio_buf[audio_buf_index];
-							swr_convert(swr,channelbufs, aFrameOut->nb_samples, aFrameOut->extended_data, aFrame->nb_samples);  
-							audio_buf_index =  aFrameOut->nb_samples * aFrameOut->channels * 2;
 						}
+						//else if(1){
+						//	//swresample module > swr_convert - doesn't work, no sound comes out
+						//	uint8_t *channelbufs[16];
+						//	channelbufs[0] = &audio_buf[audio_buf_index];
+						//	swr_convert(swr,channelbufs, aFrameOut->nb_samples, aFrameOut->extended_data, aFrame->nb_samples);  
+						//	audio_buf_index =  aFrameOut->nb_samples * aFrameOut->channels * 2;
+						//}
 
 					}else{
 						//works when incoming audio is already in s16 format and decoder doesn't change it
