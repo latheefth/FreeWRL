@@ -364,7 +364,7 @@ int movie_load_from_file(char *fname, void **opaque){
 											aFrameOut->nb_samples,
 											aFrameOut->format, //AV_SAMPLE_FMT_S16P, //aCodecCtx->sample_fmt,
 											1);
-					printf("aCodecCtx->sample_fmt= %d channels=%d samples=%d",aCodecCtx->sample_fmt,aCodecCtx->channels,aFrame->nb_samples);
+					//printf("aCodecCtx->sample_fmt= %d channels=%d samples=%d",aCodecCtx->sample_fmt,aCodecCtx->channels,aFrame->nb_samples);
 					if(data_size > buf_size){
 						audio_buf = realloc(audio_buf,audio_buf_size *2);
 						audio_buf_size *= 2;

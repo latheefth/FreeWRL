@@ -1067,6 +1067,7 @@ void do_AudioTick(void *ptr) {
 
 /* Similar to AudioClip, this is the Play, Pause, Stop, Resume code
 */
+#define LOAD_STABLE 10 //from component_sound.c
 unsigned char *movietexture_get_frame_by_fraction(struct X3D_Node* node, float fraction, int *width, int *height, int *nchan);
 void do_MovieTextureTick( void *ptr) {
 	struct X3D_MovieTexture *node = (struct X3D_MovieTexture *)ptr;
@@ -1126,7 +1127,6 @@ void do_MovieTextureTick( void *ptr) {
 			}
 		}
 	}
-
 	if(node->isActive && node->isPaused == FALSE) {
 		double dtime = TickTime();
 		node->elapsedTime += dtime - node->__lasttime;
@@ -1144,7 +1144,6 @@ void do_MovieTextureTick( void *ptr) {
  		//myTime = (TickTime() - node->startTime) * speed/duration;
 		tmpTrunc = (int) myFrac;
 		frac = myFrac - (float)tmpTrunc;
-
 		/* negative speed? */
 		if (speed < 0) {
 			frac = 1.0f + frac; /* frac will be *negative* */
@@ -1152,17 +1151,21 @@ void do_MovieTextureTick( void *ptr) {
 		} else if (APPROX(speed, 0.0f)) {
 			frac = 0.0f;
 		}
-
+		node->__frac = frac;
+		if(node->loop == FALSE && tmpTrunc > 0)
+			node->__frac = 1.0f;
+		//printf("tmptnk=%d frac=%f ",tmpTrunc,node->__frac);
 		//node->elapsedTime = TickTime() - node->startTime;
 		//printf("/ et %lf /",node->elapsedTime);
 		MARK_EVENT (ptr, offsetof(struct X3D_MovieTexture, elapsedTime));
-
+	}
+	if(node->__loadstatus == LOAD_STABLE){
 		//Nov 16, 2016 the following works with MPEG_Utils_ffmpeg.c on non-audio mpeg (vts.mpg)
 		// x not tested with audio
 		unsigned char* texdata;
 		int width,height,nchan;
 		textureTableIndexStruct_s *tti;
-		texdata = movietexture_get_frame_by_fraction(node, frac, &width, &height, &nchan);
+		texdata = movietexture_get_frame_by_fraction(node, node->__frac, &width, &height, &nchan);
 		if(texdata){
 			int thisTexture = node->__textureTableIndex;
 			tti = getTableIndex(thisTexture);

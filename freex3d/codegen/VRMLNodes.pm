@@ -1016,6 +1016,7 @@ our %Nodes = (
 		textureProperties => ["SFNode", 0, "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__textureTableIndex => ["SFInt32", 0, "initializeOnly", 0],
 		speed => ["SFFloat", 1.0, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		 __frac => ["SFFloat", 0.0, "initializeOnly", 0],		
 		 # which texture number is used
 		 __ctex => ["SFInt32", 0, "initializeOnly", 0],
 		 # lowest frame
