@@ -327,6 +327,7 @@ typedef struct {
 } FWBITMAPINFO;
 //#endif
 
+//is this like htonl ?
 static void fromLong(unsigned long  myword, char *buffer)
 {
   buffer[0] = (unsigned char)((myword & 0x000000ff) >> 0);
@@ -335,6 +336,7 @@ static void fromLong(unsigned long  myword, char *buffer)
   buffer[3] = (unsigned char)((myword & 0xff000000) >> 24);
 }
 
+//is this like htons ?
 static void fromShort(unsigned short  myword, char *buffer)
 {
   buffer[0] = (myword & 0x00ff) >> 0;

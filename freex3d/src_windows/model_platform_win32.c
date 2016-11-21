@@ -1,6 +1,12 @@
 #include <windows.h>
 
-#include <windows.h>
+#include <time.h>  
+#include <stdio.h>  
+#include <stdlib.h>  
+#include <sys/types.h>  
+#include <sys/timeb.h>  
+#include <string.h>  
+
 void usleep(int us){
 	Sleep((us) / 1000);
 }
@@ -53,8 +59,24 @@ double Time1970sec()
 		//	//lets have some fun
 		//	if(dtime < 30.0) dtime += 100000.0; //this will cause dtime to go from 1000003.0 to 3.0, causing dtime - lastime to be negative in libfreewrl, causing trouble in FPS and viewer tick navigation
 		//}
-		return dtime;
+		//by subtracting mytimeu above, dtime is relative to program/process startup time
+		//but web3d specs say 'since 1970'. Unfortunately there doesn't seem to be one
+		//simple function to get the resolution we want, _and_ give is the 1970 offset
+		//so we get 1970 seconds below and add on.
+		static double offset1970sec = 0.0;
+		static once = 0;
+		if(!once){
+			//https://msdn.microsoft.com/en-us/library/1f4c8f33.aspx	
+			time_t ltime;
+			time( &ltime );  
+			//printf( "Time in seconds since UTC 1/1/70:\t%lld\n", (long long)ltime );  
+			once = 1;
+			offset1970sec = (double)(long long)(ltime);
+			//printf("Time in seconds since UTC 1970 \t%lf\n",offset1970sec);
+		}
+		return dtime + offset1970sec;
 	}
+
 #endif
 	//this wraps around at midnight
 	 GetLocalTime(&mytimet);

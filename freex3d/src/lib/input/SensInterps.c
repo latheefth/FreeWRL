@@ -92,7 +92,8 @@ void do_active_inactive (
 	double *stopt,		/* pointer to nodes stop time		*/
 	int loop,		/* nodes loop field			*/
 	double myDuration,	/* duration of cycle			*/
-	double speed		/* speed field				*/
+	double speed,		/* speed field				*/
+	double elapsedTime   /* cumulative non-paused time */
 ) {
 
 	/* what we do now depends on whether we are active or not */
@@ -108,7 +109,7 @@ void do_active_inactive (
 		printf ("myDuration %lf ",myDuration);
 		printf ("speed %f\n",speed);
 	*/
-
+	double ticktime = TickTime(); //changes once per frame, not in here
 
 	if (*act == 1) {   /* active - should we stop? */
 		#ifdef SEVERBOSE
@@ -116,7 +117,7 @@ void do_active_inactive (
 				TickTime(), *startt, *stopt);
 		#endif
 
-		if (TickTime() > *stopt) {
+		if (ticktime > *stopt) {
 			if (*startt >= *stopt) {
 				/* cases 1 and 2 */
 				if (!(loop)) {
@@ -126,18 +127,18 @@ void do_active_inactive (
 					
 					/* if (speed != 0) */
 					if (! APPROX(speed, 0)) {
-					    if (TickTime() >= (*startt +
-							fabs(myDuration/speed))) {
-						#ifdef SEVERBOSE
-						printf ("stopping case x\n");
-						printf ("TickTime() %f\n",TickTime());
-						printf ("startt %f\n",*startt);
-						printf ("myDuration %f\n",myDuration);
-						printf ("speed %f\n",speed);
-						#endif
+					    //if (ticktime >= (*startt + fabs(myDuration/speed))) {
+					    if (elapsedTime >= fabs(myDuration/speed) ) {
+							#ifdef SEVERBOSE
+							printf ("stopping case x\n");
+							printf ("TickTime() %f\n",ticktime);
+							printf ("startt %f\n",*startt);
+							printf ("myDuration %f\n",myDuration);
+							printf ("speed %f\n",speed);
+							#endif
 
-						*act = 0;
-						*stopt = TickTime();
+							*act = 0;
+							*stopt = ticktime;
 					    }
 					}
 				}
@@ -147,7 +148,7 @@ void do_active_inactive (
 				#endif
 
 				*act = 0;
-				*stopt = TickTime();
+				*stopt = ticktime;
 			}
 		}
 	}
@@ -156,10 +157,10 @@ void do_active_inactive (
 	if (*act == 0) {   /* active - should we start? */
 		/* printf ("is not active TickTime %f startt %f\n",TickTime(),*startt); */
 
-		if (TickTime() >= *startt) {
+		if (ticktime >= *startt) {
 			/* We just might need to start running */
 
-			if (TickTime() >= *stopt) {
+			if (ticktime >= *stopt) {
 				/* lets look at the initial conditions; have not had a stoptime
 				event (yet) */
 
@@ -168,7 +169,7 @@ void do_active_inactive (
 						/* VRML standards, table 4.2 case 2 */
 						/* printf ("CASE 2\n"); */
 						/* Umut Sezen's code: */
-						if (!(*startt > 0)) *startt = TickTime();
+						if (!(*startt > 0)) *startt = ticktime;
 						*act = 1;
 					}
 				} else if (*startt >= *stopt) {
@@ -177,7 +178,8 @@ void do_active_inactive (
 						 /* printf ("case 1 here\n"); */
 						/* we should be running VRML standards, table 4.2 case 1 */
 						/* Umut Sezen's code: */
-						if (!(*startt > 0)) *startt = TickTime();
+						if (!(*startt > 0)) 
+							*startt = ticktime;
 						*act = 1;
 					}
 				}
@@ -186,7 +188,7 @@ void do_active_inactive (
 				/* we should be running -
 				VRML standards, table 4.2 cases 1 and 2 and 3 */
 				/* Umut Sezen's code: */
-				if (!(*startt > 0)) *startt = TickTime();
+				if (!(*startt > 0)) *startt = ticktime;
 				*act = 1;
 			}
 		}
@@ -999,6 +1001,9 @@ void do_AudioTick(void *ptr) {
 	/* can we possibly have started yet? */
 	if (!node) return;
 
+	if(node->__inittime == 0.0)
+		node->__inittime = TickTime();
+
 	if(TickTime() < node->startTime) {
 		return;
 	}
@@ -1024,21 +1029,17 @@ void do_AudioTick(void *ptr) {
 	do_active_inactive (
 		&node->isActive, &node->__inittime, &node->startTime,
 		&node->stopTime,node->loop,duration,
-		pitch);
+		pitch,node->elapsedTime);
 
 	if (oldstatus != node->isActive) {
 		/* push @e, [$t, "isActive", node->{isActive}]; */
+		if (node->isActive == 1) {
+			/* force code below to generate event */
+			//node->__ctflag = 10.0;
+			node->__lasttime = TickTime();
+			node->elapsedTime = 0.0;
+		}
 		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isActive));
-		/* tell SoundEngine that this source has changed.  */
-		//if (!SoundEngineStarted) {
-		//	#ifdef SEVERBOSE
-		//	printf ("SetAudioActive: initializing SoundEngine\n");
-		//	#endif
-		//	SoundEngineStarted = TRUE;
-		//	SoundEngineInit();
-		//}
-		//if(haveSoundEngine())
-		//	SetAudioActive (node->__sourceNumber,node->isActive);
 	}
 	
 	if(node->isActive){
@@ -1048,33 +1049,46 @@ void do_AudioTick(void *ptr) {
 				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isPaused));
 			}else if(node->resumeTime > node->pauseTime && node->isPaused){
 				node->isPaused = FALSE;
+				node->__lasttime = TickTime();
 				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_AudioClip, isPaused));
 			}
 		}
 	}
-
+	if(node->isActive == 1 && node->isPaused == FALSE) {
+		double dtime = TickTime();
+		node->elapsedTime += dtime - node->__lasttime;
+		node->__lasttime = dtime; 
+		//double myFrac = node->elapsedTime / duration;
+		MARK_EVENT (ptr, offsetof(struct X3D_AudioClip, elapsedTime));
+	}
 }
 
 
 
 /* Similar to AudioClip, this is the Play, Pause, Stop, Resume code
 */
+#define LOAD_STABLE 10 //from component_sound.c
+unsigned char *movietexture_get_frame_by_fraction(struct X3D_Node* node, float fraction, int *width, int *height, int *nchan);
 void do_MovieTextureTick( void *ptr) {
 	struct X3D_MovieTexture *node = (struct X3D_MovieTexture *)ptr;
 	struct X3D_AudioClip *anode;
 	int 	oldstatus;
 	float 	frac;		/* which texture to display */
 	//int 	highest,lowest;	/* selector variables		*/
-	double myTime;
+	double myFrac;
 	double 	speed;
 	double	duration;
 	int tmpTrunc; 		/* used for timing for textures */
 
-	anode = (struct X3D_AudioClip *)node;
-	do_AudioTick(ptr);  //does play, pause, active, inactive part
+	//anode = (struct X3D_AudioClip *)node;
+	//do_AudioTick(ptr);  //does play, pause, active, inactive part
 
 	/* can we possibly have started yet? */
 	if (!node) return;
+
+	if(node->__inittime == 0.0)
+		node->__inittime = TickTime();
+
 	if(TickTime() < node->startTime) {
 		return;
 	}
@@ -1082,57 +1096,111 @@ void do_MovieTextureTick( void *ptr) {
 //	duration = (highest - lowest)/30.0;
 	//highest = node->__highest;
 	//lowest = node->__lowest;
-	duration = return_Duration(anode);
+	duration = node->duration_changed; //return_Duration(node);
 	speed = node->speed;
 
+	oldstatus = node->isActive;
+	do_active_inactive (
+		&node->isActive, &node->__inittime, &node->startTime,
+		&node->stopTime,node->loop,duration,
+		speed,node->elapsedTime);
 
-	if(node->isActive) {
-		frac = node->__ctex;
-
-		/* sanity check - avoids divide by zero problems below */
-		if (node->__lowest >= node->__highest) {
-			node->__lowest = node->__highest-1;
+	if (oldstatus != node->isActive) {
+		if (node->isActive == 1) {
+			/* force code below to generate event */
+			//node->__ctflag = 10.0;
+			node->__lasttime = TickTime();
+			node->elapsedTime = 0.0;
 		}
-		/* calculate what fraction we should be */
- 		myTime = (TickTime() - node->startTime) * speed/duration;
-		tmpTrunc = (int) myTime;
-		frac = myTime - (float)tmpTrunc;
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, isActive));
+	}
 
+	if(node->isActive){
+		if(node->pauseTime > node->startTime){
+			if( node->resumeTime < node->pauseTime && !node->isPaused){
+				node->isPaused = TRUE;
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, isPaused));
+			}else if(node->resumeTime > node->pauseTime && node->isPaused){
+				node->isPaused = FALSE;
+				node->__lasttime = TickTime();
+				MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, isPaused));
+			}
+		}
+	}
+	if(node->isActive && node->isPaused == FALSE) {
+		double dtime = TickTime();
+		node->elapsedTime += dtime - node->__lasttime;
+		node->__lasttime = dtime; 
+		
+		//frac = node->__ctex;
+
+		///* sanity check - avoids divide by zero problems below */
+		//if (node->__lowest >= node->__highest) {
+		//	node->__lowest = node->__highest-1;
+		//}
+		/* calculate what fraction we should be */
+		// t = (now - startTime) modulo (duration/speed)
+		myFrac = node->elapsedTime / duration;
+ 		//myTime = (TickTime() - node->startTime) * speed/duration;
+		tmpTrunc = (int) myFrac;
+		frac = myFrac - (float)tmpTrunc;
 		/* negative speed? */
 		if (speed < 0) {
-			frac = 1+frac; /* frac will be *negative* */
+			frac = 1.0f + frac; /* frac will be *negative* */
 		/* else if (speed == 0) */
-		} else if (APPROX(speed, 0)) {
-			frac = 0;
+		} else if (APPROX(speed, 0.0f)) {
+			frac = 0.0f;
+		}
+		node->__frac = frac;
+		//clamp to last frame when not looping, so at end of show last frame sticks as per specs
+		if(node->loop == FALSE && tmpTrunc > 0)
+			node->__frac = 1.0f; 
+		//printf("tmptnk=%d frac=%f ",tmpTrunc,node->__frac);
+		//node->elapsedTime = TickTime() - node->startTime;
+		//printf("/ et %lf /",node->elapsedTime);
+		MARK_EVENT (ptr, offsetof(struct X3D_MovieTexture, elapsedTime));
+	}
+	if(node->__loadstatus == LOAD_STABLE){
+		//Nov 16, 2016 the following works with MPEG_Utils_ffmpeg.c on non-audio mpeg (vts.mpg)
+		// x not tested with audio
+		unsigned char* texdata;
+		int width,height,nchan;
+		textureTableIndexStruct_s *tti;
+		texdata = movietexture_get_frame_by_fraction(node, node->__frac, &width, &height, &nchan);
+		if(texdata){
+			int thisTexture = node->__textureTableIndex;
+			tti = getTableIndex(thisTexture);
+			if(tti){
+				tti->x = width;
+				tti->y = height;
+				tti->z = 1;
+				tti->channels = nchan;
+				static int once = 0;
+				if(!once){
+					//send it through textures.c once to get things like wrap set
+					// textures.c likes to free texdata, so we'll deep copy
+					tti->texdata = malloc(tti->x*tti->y*tti->channels);
+					memcpy(tti->texdata,texdata,tti->x*tti->y*tti->channels);
+					tti->status = TEX_NEEDSBINDING;
+					once = 1;
+				}else{
+					tti->status = TEX_LOADED;
+					glBindTexture(GL_TEXTURE_2D,tti->OpenGLTexture);
+					//disable the mipmapping done on the once pass through textures.c above
+					FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					FW_GL_TEXPARAMETERI( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					//replace the texture data every frame when we are isActive and not paused
+					//we do this once per frame in startofloopnodeupdates call stack
+					//(not per render call: we want the same texture to show in left/right or quad display viewports)
+					if(nchan == 4)
+						glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_BYTE,texdata);
+					if(nchan == 3)
+						glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,texdata);
+					glBindTexture(GL_TEXTURE_2D,0);
+				}
+			}
 		}
 
-
-		/* frac will tell us what texture frame we should apply... */
-		/* code changed by Alberto Dubuc to compile on Solaris 8 */
-		tmpTrunc = (int) (frac*(node->__highest - node->__lowest+1)+node->__lowest);
-		frac = (float) tmpTrunc;
-
-		/* verify parameters */
-		if (frac < node->__lowest){
-			frac = node->__lowest;
-		}
-		if (frac > node->__highest){
-			frac = node->__highest;
-		}
-
-		/* if (node->__ctex != frac) */
-		if (! APPROX(node->__ctex, frac)) {
-			node->__ctex = (int)frac;
-			/* force a change to re-render this node */
-			//update_node(X3D_NODE(node));
-			//dug9 july 2016: 
-			//  perhaps a function that will take the raw frame and 
-			//  just update the mipmap and opengl texture here, or tell separate mpeg thread to do it,
-			//  without making a new opengl texture
-			//  so that the rendering pass just sees it as a stable texture
-			//  If worried about mpeg thread racing with rendering thread when replacing texture,
-			//  perhaps can use 2 textures and mpeg thread can toggle texture number with atomic op after update
-		}
 	}
 }
 

@@ -132,29 +132,60 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 	Sound is handled per-node.
 	Textures have an intermediary texturetableindexstruct
 	
+	2003 - 2009 freewrl movietexture:
+		- on load: decoded and created an opengl texture for each movie frame
+		- used berkley mpeg aka berkley-brown
+
+
 	Proposed freewrl plumbing:
 
-	1. for texture rendering, MovieTexture works like ImageTexture on each render_hier frame, with a single opengl texture number
-	2. a separate thread throttles frame interpolation, pauses, stops, rewinds, and plays. 
-		As it plays or changes position, it interpolates a frame, and upadates the texture 
-		as seen by the rendering thread: mipmaps and replaces opengl texture
+	1. for texture rendering, MovieTexture works like ImageTexture on each render_hier frame, 
+		with a single opengl texture number
+	2. leave it to the library-specifics to decide if
+		a) decode-on-load
+		b) decode in a separate thread, anticipatory/queue
+		c) decode-on-demand
 	3. the pause, stop, play, rewind interface is usable as SoundSource like Audioclip, analogous to AudioClip
 	4. perl > make AudioClip and MovieTexture fields in same order, so MovieTexture can be up-caste to AudioClip DONE
 
 	top level interface:
-	movie_load()
-	parse_movie()
-	do_MovieTextureTick()
+	X3DMovieTexture._movie; an opaque pointer that will hold a malloced struct representing 
+		the movie container and streams; different implementations will be different
+	movie_load() - like loadTextures.c image loaders - takes local path and gets things started
+		puts intial load into ._movie of the requesting node ie res->(wheretoplacedata,offset) = (MovieTexture,_movie)
+	do_MovieTextureTick() 
+		in senseInterp.c, once per frame (so stereo uses same movie frame for left/right)
+		could ask for closest frame based on movie time
+		node->tti->texdata = getClosestMovieFrame(movietime)
+			a) decode-on-load would have the frame ready in a list 
+			b) multi-thread anticipatory decode would have a private queue/list of decoded frames,
+				and get the closest one, and discard stale frames, and restart decode queue to fill up
+				queue again
+			c) decode-on-demand would decode on demand
+		Texture2D(,,,node->tti->opeglTexture,,,node->tti->texdata) //reset texture data
+
+	loadstatus_MovieTexture(struct X3D_MovieTexture *node) - loadsensor can check if file loaded
 	loadstatus_AudioClip(struct X3D_AudioClip *node) - loadsensor can check if file loaded
 	locateAudioSource (struct X3D_AudioClip *node) - will work for MovieTexture
+	
 	search code for MovieTexture, resm_movie to see all hits
+
+
+	MPEG_Utils_berkley.c Nov 15, 2016: compiled but bombs on loading even simple vts.mpg
+	MPEG_Utils_libmpeg2.c Nove 15, 2016:  not attempted to implement
+		x undocumented code
+		x GPL
+		x uses callback for frames
+		x no audio channel
+		- but small test program mpeg2dec does run on windows
+		- code seems lite / compact
 */
 #include <config.h>
 #include <system.h>
 #include <system_threads.h>
 #include <display.h>
 #include <internal.h>
-
+#include "vrml_parser/CRoutes.h"
 #include "vrml_parser/Structs.h"
 #include "main/ProdCon.h"
 #include "../opengl/OpenGL_Utils.h"
@@ -170,7 +201,12 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 
 #include <libFreeWRL.h>
 
-#define MOVIETEXTURE_STUB 1
+//put your choice in your config.h (or windows preprocessor directives):
+//#define MOVIETEXTURE_STUB 1   //default
+//#define MOVIETEXTURE_BERKLEYBROWN 1
+//#define MOVIETEXTURE_FFMPEG 1
+//#define MOVIETEXTURE_LIBMPEG2 1
+
 //Option A.
 //	movie_load - load as BLOB using standard FILE2BLOB in io_files.c retval = resource_load(res);  //FILE2BLOB
 //	parse_movie - converts BLOB to sound and video parts, returns parts
@@ -178,6 +214,21 @@ keep up with "the times". Check for ifdef HAVE_TO_REIMPLEMENT_MOVIETEXTURES in t
 //  movie_load - parse movie as loading
 //  parse_movie - return movie parts 
 
+#ifdef MOVIETEXTURE_BERKLEYBROWN
+#include "MPEG_Utils_berkley.c"
+#elif MOVIETEXTURE_FFMPEG
+//#include "MPEG_Utils_ffmpeg.c"
+int movie_load_from_file(char *fname, void **opaque);
+double movie_get_duration(void *opaque);
+unsigned char *movie_get_frame_by_fraction(void *opaque, float fraction, int *width, int *height, int *nchan);
+unsigned char * movie_get_audio_PCM_buffer(void *opaque,int *freq, int *channels, int *size, int *bits);
+#include "sounds.h"
+//BufferData * alutBufferDataConstruct (ALvoid *data, size_t length, ALint numChannels,
+//                          ALint bitsPerSample, ALfloat sampleFrequency);
+
+#define LOAD_STABLE 10 //from Component_Sound.c
+#elif MOVIETEXTURE_LIBMPEG2
+#endif
 
 bool movie_load(resource_item_t *res){
 	bool retval;
@@ -207,7 +258,94 @@ bool movie_load(resource_item_t *res){
 	res->status = ress_loaded;
 	retval = TRUE;
 #elif MOVIETEXTURE_BERKLEYBROWN
+	 {
+        int x,y,depth,frameCount;
+        char *ptr;
+        ptr=NULL;
+		//H: this returns something like a volume image, with slices packed into ptr, and z=frameCount, nchannels = depth.
+		//Q: what's the 'normal' frame rate? should that be returned too, or is there a standard/default?
+		//Nov 15, 2016: bombs on small test file vts.mpg
+        mpg_main(res->actual_file, &x,&y,&depth,&frameCount,&ptr);
+		#ifdef TEXVERBOSE
+		printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
+		#endif
+		// store_tex_info(loadThisTexture, depth, x, y, ptr,depth==4); 
+
+		// and, manually put the frameCount in. 
+		//res->frames = frameCount;
+	}
+
 #elif MOVIETEXTURE_FFMPEG
+
+	void *opaque;
+	int loaded;
+	loaded = movie_load_from_file(res->actual_file,&opaque);
+	retval = loaded > -1 ? TRUE : FALSE;
+	if(loaded){
+		struct X3D_MovieTexture *node;
+		res->status = ress_loaded;
+		res->complete = TRUE;
+		res->status = ress_parsed; //we'll skip the parse_movie/load_from_blob handler 
+
+		node = (struct X3D_MovieTexture *) res->whereToPlaceData;
+		//AUDIO AND/OR VIDEO CHANNELS?
+		node->duration_changed = movie_get_duration(opaque);
+		node->__fw_movie = opaque;
+		node->__loadstatus = LOAD_STABLE;
+		//VIDEO CHANNEL?
+		//double totalframes = node->duration_changed * 30.0; 
+		node->speed = 1.0; //1 means normal speed 30.0 / totalframes; //in fractions per second = speed in frames/second / totalframes
+		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, duration_changed));
+		//AUDIO CHANNEL?
+		//node->__sourceNumber = parse_movie(node,buffer,len); //__sourceNumber will be openAL buffer number
+		int freq,channels,size,bits;
+		unsigned char * pcmbuf = movie_get_audio_PCM_buffer(opaque,&freq,&channels,&size,&bits);
+		if(pcmbuf){
+			//MPEG1 level1,2 are compressed audio
+			//decoders generally deliver so called PCM pulse code modulated buffers
+			//and that's what audio drivers on computers normally take
+			//and same with the APIs that wrap the hardware drivers ie openAL API
+			printf("audio freq %d channels %d size %d bits per channel %d\n",freq,channels,size,bits);
+			#ifdef HAVE_OPENAL
+			// http://open-activewrl.sourceforge.net/data/OpenAL_PGuide.pdf
+			// page 6
+			int format;
+			ALuint albuffer; 
+			static int once = 0;
+			if(!once){
+				alutInit(0, NULL); // Initialize OpenAL 
+				alGetError(); // Clear Error Code
+				//SoundEngineInit();
+				once = 1;
+			}
+
+			alGenBuffers(1, &albuffer); 
+			//al.h
+			//#define AL_FORMAT_MONO8                          0x1100
+			//#define AL_FORMAT_MONO16                         0x1101
+			//#define AL_FORMAT_STEREO8                        0x1102
+			//#define AL_FORMAT_STEREO16                       0x1103
+			if(bits == 8)
+				format = AL_FORMAT_MONO8;
+			else
+				format = AL_FORMAT_MONO16;
+			if(channels == 2) 
+				if(bits == 8)
+					format = AL_FORMAT_STEREO8;
+				else
+					format = AL_FORMAT_STEREO16;
+
+			//this is a complex function that tries to figure out if its float, int PCM etc
+			alBufferData(albuffer,format,pcmbuf,size,freq); 
+			//BufferData * bdata = _alutBufferDataConstruct( pcmbuf,size,channels,bits, freq);
+
+			node->__sourceNumber = albuffer;
+			#endif //HAVE_OPENAL
+		}
+	} 
+
+	printf("opqaue = %p, loaded=%d \n",opaque,res->status);
+#elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return retval;
 }
@@ -218,28 +356,24 @@ int parse_movie(node,buffer,len){
 	//convert BLOB (binary large object) into video and audio structures
 	//Option A and B - return audio and video parts
 	int audio_sourcenumber;
-	char *bbuffer;
-	struct X3D_AudioClip *anode;
-	struct X3D_MovieTexture *mnode;
-	mnode = (struct X3D_MovieTexture *)node;
-	anode = (struct X3D_AudioClip *)node;
 	audio_sourcenumber = -1; //BADAUDIOSOURCE
-	//parse audio and video
-	//extract audio buffer if exists
 	//MPEG1 level1,2 are compressed audio
 	//decoders generally deliver so called PCM pulse code modulated buffers
 	//and that's what audio drivers on computers normally take
 	//and same with the APIs that wrap the hardware drivers ie openAL API
-	//iret = parse_audioclip(anode,bbuffer, len);
 #ifdef MOVIETEXTURE_STUB
-	audio_sourcenumber = -1;
 #elif MOVIETEXTURE_BERKLEYBROWN
 #elif MOVIETEXTURE_FFMPEG
+#elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return audio_sourcenumber;
 }
+double compute_duration(int ibuffer);
 
 bool  process_res_movie(resource_item_t *res){
+	// METHOD_LOAD_ON_DEMAND
+	//you'll get in here if you didn't (completely) handle movie_load from file
+	//
 	//s_list_t *l;
 	openned_file_t *of;
 	const char *buffer;
@@ -281,51 +415,43 @@ bool  process_res_movie(resource_item_t *res){
 	return FALSE;
 }
 
-/* FIXME: removed old "really load functions" ... needs to implement loading
-          of movie textures.
-
-static void __reallyloadMovieTexture () {
-
-        int x,y,depth,frameCount;
-        void *ptr;
-
-        ptr=NULL;
-
-        mpg_main(loadThisTexture->filename, &x,&y,&depth,&frameCount,&ptr);
-
-	#ifdef TEXVERBOSE
-	printf ("have x %d y %d depth %d frameCount %d ptr %d\n",x,y,depth,frameCount,ptr);
-	#endif
-
-	// store_tex_info(loadThisTexture, depth, x, y, ptr,depth==4); 
-
-	// and, manually put the frameCount in. 
-	loadThisTexture->frames = frameCount;
-}
-*/
 
 // - still needed ? don't know depends on implementation
-void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
-        textureTableIndexStruct_s *ti;
+//void getMovieTextureOpenGLFrames(int *highest, int *lowest,int myIndex) {
+//        textureTableIndexStruct_s *ti;
+//
+///*        if (myIndex  == 0) {
+//		printf ("getMovieTextureOpenGLFrames, myIndex is ZERL\n");
+//		*highest=0; *lowest=0;
+//	} else {
+//*/
+//	*highest=0; *lowest=0;
+//	
+//	#ifdef TEXVERBOSE
+//	printf ("in getMovieTextureOpenGLFrames, calling getTableIndex\n");
+//	#endif
+//
+//       	ti = getTableIndex(myIndex);
+//
+///* 	if (ti->frames>0) { */
+//		if (ti->OpenGLTexture != TEXTURE_INVALID) {
+//			*lowest = ti->OpenGLTexture;
+//			*highest = 0;
+///* 			*highest = ti->OpenGLTexture[(ti->frames) -1]; */
+//		}
+///* 	} */
+//}
 
-/*        if (myIndex  == 0) {
-		printf ("getMovieTextureOpenGLFrames, myIndex is ZERL\n");
-		*highest=0; *lowest=0;
-	} else {
-*/
-	*highest=0; *lowest=0;
-	
-	#ifdef TEXVERBOSE
-	printf ("in getMovieTextureOpenGLFrames, calling getTableIndex\n");
-	#endif
-
-       	ti = getTableIndex(myIndex);
-
-/* 	if (ti->frames>0) { */
-		if (ti->OpenGLTexture != TEXTURE_INVALID) {
-			*lowest = ti->OpenGLTexture;
-			*highest = 0;
-/* 			*highest = ti->OpenGLTexture[(ti->frames) -1]; */
-		}
-/* 	} */
+unsigned char *movietexture_get_frame_by_fraction(struct X3D_Node* node, float fraction, int *width, int *height, int *nchan){
+	unsigned char* retval = NULL;
+	if(node && node->_nodeType == NODE_MovieTexture){
+		struct X3D_MovieTexture *movietexture = (struct X3D_MovieTexture *)node;
+#ifdef MOVIETEXTURE_STUB
+#elif MOVIETEXTURE_BERKLEYBROWN
+#elif MOVIETEXTURE_FFMPEG
+		retval = movie_get_frame_by_fraction(movietexture->__fw_movie,fraction,width,height,nchan);
+#elif MOVIETEXTURE_LIBMPEG2
+#endif
+	}
+	return retval;
 }

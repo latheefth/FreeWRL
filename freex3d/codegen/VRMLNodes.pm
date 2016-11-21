@@ -194,6 +194,7 @@ our %Nodes = (
 		# cycleTimer flag.
 		__ctflag =>["SFTime", 10, "inputOutput", 0],
 		__oldEnabled => ["SFBool", "TRUE", "inputOutput", 0],
+		__lasttime => ["SFTime", 0, "initializeOnly", 0],
 	],"X3DSensorNode"),
 
 	###################################################################################
@@ -893,6 +894,7 @@ our %Nodes = (
 		__sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
 		# time that we were initialized at
 		__inittime => ["SFTime", 0, "initializeOnly", 0],
+		__lasttime => ["SFTime", 0, "initializeOnly", 0],
 		# local name, as received on system
 		# old audio __localFileName => ["FreeWRLPTR", 0,"initializeOnly", 0],
 	],"X3DSoundSourceNode"),
@@ -999,26 +1001,29 @@ our %Nodes = (
 		duration_changed => ["SFTime", -1, "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		elapsedTime => ["SFTime",0,"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		isActive => ["SFBool", "FALSE", "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		isPaused => ["SFTime",0,"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		isPaused => ["SFBool","FALSE","outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_parentResource =>["FreeWRLPTR",0,"initializeOnly", 0],
 		__loadstatus =>["SFInt32",0,"initializeOnly", 0],
 		__loadResource => ["FreeWRLPTR", 0, "initializeOnly", 0],
-		 # internal sequence number
-		 __sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
-		 # time that we were initialized at
-		 __inittime => ["SFTime", 0, "initializeOnly", 0],
+		# internal sequence number
+		__sourceNumber => ["SFInt32", -1, "initializeOnly", 0],
+		# time that we were initialized at
+		__inittime => ["SFTime", 0, "initializeOnly", 0],
+		__lasttime => ["SFTime", 0, "initializeOnly", 0],
 		#Texture2D and Movie section
 		repeatS => ["SFBool", "TRUE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		repeatT => ["SFBool", "TRUE", "initializeOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		textureProperties => ["SFNode", 0, "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__textureTableIndex => ["SFInt32", 0, "initializeOnly", 0],
 		speed => ["SFFloat", 1.0, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		 __frac => ["SFFloat", 0.0, "initializeOnly", 0],		
 		 # which texture number is used
 		 __ctex => ["SFInt32", 0, "initializeOnly", 0],
 		 # lowest frame
 		 __lowest => ["SFInt32", 0, "initializeOnly", 0],
 		 # highest frame
 		 __highest => ["SFInt32", 0, "initializeOnly", 0],
+		 __fw_movie  => ["FreeWRLPTR", 0, "initializeOnly", 0],
 	],"X3DTextureNode"),
 
 

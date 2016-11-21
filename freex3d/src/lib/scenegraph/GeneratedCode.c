@@ -112,7 +112,9 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__finishedloading",
 	"__fogScale",
 	"__fogType",
+	"__frac",
 	"__frontTexture",
+	"__fw_movie",
 	"__geoSystem",
 	"__highest",
 	"__hit",
@@ -3498,6 +3500,7 @@ const int OFFSETS_ArcClose2D[] = {
 
 const int OFFSETS_AudioClip[] = {
 	(int) FIELDNAMES___inittime, (int) offsetof (struct X3D_AudioClip, __inittime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___lasttime, (int) offsetof (struct X3D_AudioClip, __lasttime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_AudioClip, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_AudioClip, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___sourceNumber, (int) offsetof (struct X3D_AudioClip, __sourceNumber),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -5507,8 +5510,11 @@ const int OFFSETS_MotorJoint[] = {
 
 const int OFFSETS_MovieTexture[] = {
 	(int) FIELDNAMES___ctex, (int) offsetof (struct X3D_MovieTexture, __ctex),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___frac, (int) offsetof (struct X3D_MovieTexture, __frac),  (int) FIELDTYPE_SFFloat, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___fw_movie, (int) offsetof (struct X3D_MovieTexture, __fw_movie),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___highest, (int) offsetof (struct X3D_MovieTexture, __highest),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___inittime, (int) offsetof (struct X3D_MovieTexture, __inittime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___lasttime, (int) offsetof (struct X3D_MovieTexture, __lasttime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadResource, (int) offsetof (struct X3D_MovieTexture, __loadResource),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___loadstatus, (int) offsetof (struct X3D_MovieTexture, __loadstatus),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___lowest, (int) offsetof (struct X3D_MovieTexture, __lowest),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
@@ -5519,7 +5525,7 @@ const int OFFSETS_MovieTexture[] = {
 	(int) FIELDNAMES_duration_changed, (int) offsetof (struct X3D_MovieTexture, duration_changed),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_elapsedTime, (int) offsetof (struct X3D_MovieTexture, elapsedTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_MovieTexture, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_isPaused, (int) offsetof (struct X3D_MovieTexture, isPaused),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_isPaused, (int) offsetof (struct X3D_MovieTexture, isPaused),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_loop, (int) offsetof (struct X3D_MovieTexture, loop),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_MovieTexture, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_pauseTime, (int) offsetof (struct X3D_MovieTexture, pauseTime),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6782,6 +6788,7 @@ const int OFFSETS_TextureTransformMatrix3D[] = {
 const int OFFSETS_TimeSensor[] = {
 	(int) FIELDNAMES___ctflag, (int) offsetof (struct X3D_TimeSensor, __ctflag),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES___inittime, (int) offsetof (struct X3D_TimeSensor, __inittime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES___lasttime, (int) offsetof (struct X3D_TimeSensor, __lasttime),  (int) FIELDTYPE_SFTime, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___oldEnabled, (int) offsetof (struct X3D_TimeSensor, __oldEnabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_cycleInterval, (int) offsetof (struct X3D_TimeSensor, cycleInterval),  (int) FIELDTYPE_SFTime, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_cycleTime, (int) offsetof (struct X3D_TimeSensor, cycleTime),  (int) FIELDTYPE_SFTime, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8033,6 +8040,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_AudioClip * tmp2;
 			tmp2 = (struct X3D_AudioClip *) tmp;
 			tmp2->__inittime = 0;
+			tmp2->__lasttime = 0;
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;
 			tmp2->__sourceNumber = -1;
@@ -10665,8 +10673,11 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_MovieTexture * tmp2;
 			tmp2 = (struct X3D_MovieTexture *) tmp;
 			tmp2->__ctex = 0;
+			tmp2->__frac = 0.0f;
+			tmp2->__fw_movie = 0;
 			tmp2->__highest = 0;
 			tmp2->__inittime = 0;
+			tmp2->__lasttime = 0;
 			tmp2->__loadResource = 0;
 			tmp2->__loadstatus = 0;
 			tmp2->__lowest = 0;
@@ -10677,7 +10688,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->duration_changed = -1;
 			tmp2->elapsedTime = 0;
 			tmp2->isActive = FALSE;
-			tmp2->isPaused = 0;
+			tmp2->isPaused = FALSE;
 			tmp2->loop = FALSE;
 			tmp2->metadata = NULL;
 			tmp2->pauseTime = 0;
@@ -10690,7 +10701,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->stopTime = 0;
 			tmp2->textureProperties = 0;
 			tmp2->url.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->url.p[0] = newASCIIString("");tmp2->url.n=1; ;
-			tmp2->_defaultContainer = FIELDNAMES_texture;
+			tmp2->_defaultContainer = FIELDNAMES_texture + (FIELDNAMES_source << 16);
 		break;
 		}
 		case NODE_MultiTexture : {
@@ -12257,6 +12268,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_TimeSensor *) tmp;
 			tmp2->__ctflag = 10;
 			tmp2->__inittime = 0;
+			tmp2->__lasttime = 0;
 			tmp2->__oldEnabled = TRUE;
 			tmp2->cycleInterval = 1;
 			tmp2->cycleTime = -1;
