@@ -13,7 +13,7 @@
 //#include "libavutil/colorspace.h"
 //#include "libavutil/mathematics.h"
 //#include "libavutil/pixdesc.h"
-//#include "libavutil/imgutils.h"
+#include "libavutil/imgutils.h"
 //#include "libavutil/pixfmt.h"
 //#include "libavutil/dict.h"
 //#include "libavutil/parseutils.h"
@@ -137,8 +137,8 @@ int movie_load_from_file(char *fname, void **opaque){
 	AVFrame			*aFrame = NULL;
 	AVFrame			*aFrameB = NULL;
 	AVFrame			*aFrameOut = NULL;
-	uint8_t *audio_pkt_data = NULL;
-	int audio_pkt_size = 0;
+	//uint8_t *audio_pkt_data = NULL;
+	//int audio_pkt_size = 0;
 	unsigned int audio_buf_size = 1000000;
 	unsigned int audio_buf_index = 0;
 	uint8_t * audio_buf = NULL;
@@ -155,10 +155,14 @@ int movie_load_from_file(char *fname, void **opaque){
 
 		// Copy context
 		aCodecCtx = avcodec_alloc_context3(aCodec);
-		if(avcodec_copy_context(aCodecCtx, aCodecCtxOrig) != 0) {
-			fprintf(stderr, "Couldn't copy codec context");
-			return -1; // Error copying codec context
-		}
+		AVCodecParameters *aparams = avcodec_parameters_alloc();
+		avcodec_parameters_from_context(aparams, aCodecCtxOrig);
+		avcodec_parameters_to_context(aCodecCtx,aparams);
+		avcodec_parameters_free(&aparams);
+		//if(avcodec_copy_context(aCodecCtx, aCodecCtxOrig) != 0) {
+		//	fprintf(stderr, "Couldn't copy codec context");
+		//	return -1; // Error copying codec context
+		//}
 
 		// Set audio settings from codec info
 		fw_movie.channels = aCodecCtx->channels;
@@ -220,10 +224,14 @@ int movie_load_from_file(char *fname, void **opaque){
 		}
 		// Copy context
 		pCodecCtx = avcodec_alloc_context3(pCodec);
-		if(avcodec_copy_context(pCodecCtx, pCodecCtxOrig) != 0) {
-			fprintf(stderr, "Couldn't copy codec context");
-			return -1; // Error copying codec context
-		}
+		AVCodecParameters *vparams = avcodec_parameters_alloc();
+		avcodec_parameters_from_context(vparams, pCodecCtxOrig);
+		avcodec_parameters_to_context(pCodecCtx, vparams);
+		avcodec_parameters_free(&vparams);
+		//if(avcodec_copy_context(pCodecCtx, pCodecCtxOrig) != 0) {
+		//	fprintf(stderr, "Couldn't copy codec context");
+		//	return -1; // Error copying codec context
+		//}
 		// Open codec
 		if(avcodec_open2(pCodecCtx, pCodec, NULL)<0)
 			return -1; // Could not open codec
@@ -253,17 +261,18 @@ int movie_load_from_file(char *fname, void **opaque){
 		fw_movie.width = pCodecCtx->width;
 		fw_movie.height = pCodecCtx->height;
 
-		numBytes=avpicture_get_size(av_pix_fmt, pCodecCtx->width,  //AV_PIX_FMT_RGB24, AV_PIX_FMT_RGBA
-									pCodecCtx->height);
+		//numBytes=avpicture_get_size(av_pix_fmt, pCodecCtx->width,  //AV_PIX_FMT_RGB24, AV_PIX_FMT_RGBA
+		//							pCodecCtx->height);
+		numBytes = av_image_get_buffer_size(av_pix_fmt, pCodecCtx->width, pCodecCtx->height,1); //in ffmpeg code I see 1, 16, 32 for align
 		buffer=(uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
 
 
 		// Assign appropriate parts of buffer to image planes in pFrameRGB
 		// Note that pFrameRGB is an AVFrame, but AVFrame is a superset
 		// of AVPicture
-		avpicture_fill((AVPicture *)pFrameRGB, buffer,av_pix_fmt, //AV_PIX_FMT_RGBA, //AV_PIX_FMT_RGB24,
-			pCodecCtx->width, pCodecCtx->height);
-
+		//avpicture_fill((AVPicture *)pFrameRGB, buffer,av_pix_fmt, //AV_PIX_FMT_RGBA, //AV_PIX_FMT_RGB24,
+		//	pCodecCtx->width, pCodecCtx->height);
+		av_image_fill_arrays(pFrameRGB->data,pFrameRGB->linesize,buffer,av_pix_fmt,pCodecCtx->width, pCodecCtx->height,1);
 
 		// initialize SWS context for software scaling
 		sws_ctx = sws_getContext(pCodecCtx->width,
@@ -288,8 +297,9 @@ int movie_load_from_file(char *fname, void **opaque){
 		// Is this a packet from the video stream?
 		if(packet.stream_index==videoStream) {
 			// Decode video frame
-			avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
-    
+			//avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
+			avcodec_send_packet(pCodecCtx,&packet);
+			frameFinished = avcodec_receive_frame(pCodecCtx,pFrame) == 0? TRUE : FALSE;
 			// Did we get a video frame?
 			if(frameFinished) {
 				// Convert the image from its native format to RGB
@@ -320,7 +330,7 @@ int movie_load_from_file(char *fname, void **opaque){
 				}
 				stack_push(unsigned char *,fw_framequeue,fw_frame);
 			}
-			av_free_packet(&packet);
+			//av_free_packet(&packet);
 		} else if(packet.stream_index==audioStream) {
 			// http://open-activewrl.sourceforge.net/data/OpenAL_PGuide.pdf
 			// page 5:
@@ -329,15 +339,19 @@ int movie_load_from_file(char *fname, void **opaque){
 			// Goal: PCM data
 			// taking code from decode_audio_frame in ffmpeg tutorial03.c
 			int got_frame = 0;
-			int len1;
-			len1 = avcodec_decode_audio4(aCodecCtx, aFrame, &got_frame, &packet);
-			if(len1 < 0) {
-				/* if error, skip frame */
-				audio_pkt_size = 0;
-				continue;
-			}
-			audio_pkt_data += len1;
-			audio_pkt_size -= len1;
+			//int len1;
+			//len1 = avcodec_decode_audio4(aCodecCtx, aFrame, &got_frame, &packet);
+			avcodec_send_packet(aCodecCtx, &packet);
+			got_frame = avcodec_receive_frame(aCodecCtx, aFrame) == 0 ? TRUE : FALSE;
+			//len1 = 0;
+			//if(got_frame) len1 = aFrame->linesize[0]; //guessing. I have no idea what len is.
+			//if(len1 < 0) {
+			//	/* if error, skip frame */
+			//	audio_pkt_size = 0;
+			//	continue;
+			//}
+			//audio_pkt_data += len1;
+			//audio_pkt_size -= len1;
 			int data_size = 0;
 			int buf_size = audio_buf_size - audio_buf_index;
 			if(got_frame) {
@@ -414,7 +428,7 @@ int movie_load_from_file(char *fname, void **opaque){
 
 		} else {
 			// Free the packet that was allocated by av_read_frame
-			av_free_packet(&packet);
+			//av_free_packet(&packet);
 		}
 	}
 
