@@ -313,7 +313,11 @@ bool movie_load(resource_item_t *res){
 			ALuint albuffer; 
 			static int once = 0;
 			if(!once){
-				alutInit(0, NULL); // Initialize OpenAL 
+				#ifdef HAVE_ALUT
+				//alutInit(0, NULL); // Initialize OpenAL 
+				if (!alutInitWithoutContext(NULL, NULL))
+					ConsoleMessage("ALUT init failed\n");
+				#endif //HAVE_ALUT
 				alGetError(); // Clear Error Code
 				//SoundEngineInit();
 				once = 1;
