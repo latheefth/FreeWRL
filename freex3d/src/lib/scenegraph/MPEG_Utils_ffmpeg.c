@@ -136,13 +136,14 @@ int movie_load_from_file(char *fname, void **opaque){
 	AVCodec         *aCodec = NULL;
 	AVFrame			*aFrame = NULL;
 	AVFrame			*aFrameB = NULL;
-	AVFrame			*aFrameOut = NULL;
 	//uint8_t *audio_pkt_data = NULL;
 	//int audio_pkt_size = 0;
 	unsigned int audio_buf_size = 1000000;
 	unsigned int audio_buf_index = 0;
 	uint8_t * audio_buf = NULL;
 	SwrContext *swr = NULL; 
+	int audio_resample_target_fmt = 0;
+	int do_audio_resample = FALSE;
 
 	//audio prep
 	if(audioStream > -1){
@@ -167,14 +168,12 @@ int movie_load_from_file(char *fname, void **opaque){
 		// Set audio settings from codec info
 		fw_movie.channels = aCodecCtx->channels;
 		fw_movie.freq = aCodecCtx->sample_rate;
+		fw_movie.bits_per_channel = aCodecCtx->bits_per_raw_sample; 
+
 		//printf("audio sample format %d\n",aCodecCtx->sample_fmt);
 		// online I found request_sample_fmt is for older versions 1.1 and down, use swresample now
 		//aCodecCtx->request_sample_fmt = AV_SAMPLE_FMT_FLTP; //AV_SAMPLE_FMT_S16P; //AV_SAMPLE_FMT_S16;
 
-		//assuming we resample to what we want:
-		fw_movie.channels = 2;
-		fw_movie.freq = 44100;
-		fw_movie.bits_per_channel = 16; 
 		printf("bits per coded channel=%d\n",aCodecCtx->bits_per_coded_sample);
 
 
@@ -188,38 +187,41 @@ int movie_load_from_file(char *fname, void **opaque){
 		aFrame=av_frame_alloc();
 		aFrameB=av_frame_alloc();
 
+		//assuming we resample to what we want:
+		audio_resample_target_fmt = aCodecCtx->sample_fmt;
+		if(aCodecCtx->sample_fmt != AV_SAMPLE_FMT_S16) {
+			fw_movie.channels = 2;
+			fw_movie.freq = 44100;
+			fw_movie.bits_per_channel = 16; 
+			audio_resample_target_fmt = AV_SAMPLE_FMT_S16;
+			do_audio_resample = TRUE;
 
-		aFrame->channel_layout = aCodecCtx->channel_layout;
-		aFrame->sample_rate = aCodecCtx->sample_rate;
-		aFrame->format = aCodecCtx->sample_fmt;
-		//put into a format openAL likes
-		aFrameB->channel_layout = AV_CH_LAYOUT_STEREO; // aCodecCtx->channel_layout; //AV_CH_LAYOUT_STEREO;
-		aFrameB->sample_rate = 44100; //aCodecCtx->sample_rate; //41000;
-		aFrameB->format = AV_SAMPLE_FMT_S16P;
+			// win32 openAL has problems with FLTP (float) audio format  
+			// and android openSLES says when queuing chunks can only use PCM
+			// recent versions of libavcodec convert mp4 audio to FLTP
+			// so we will convert to an older S16 or S16P format
+			//swresample didn't work for me, hand-coded did
+			//// Set up SWR context once you've got codec information
+			//swr = swr_alloc();
+			//av_opt_set_int(swr, "in_channel_layout",  aCodecCtx->channel_layout, 0);
+			//av_opt_set_int(swr, "out_channel_layout", aCodecCtx->channel_layout,  0);
+			//av_opt_set_int(swr, "in_sample_rate",     aCodecCtx->sample_rate, 0);
+			//av_opt_set_int(swr, "out_sample_rate",    aCodecCtx->sample_rate, 0);
+			//av_opt_set_sample_fmt(swr, "in_sample_fmt",  aCodecCtx->sample_fmt, 0);
+			//av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
+			// https://www.ffmpeg.org/doxygen/3.2/group__lswr.html#details
 
-		// win32 openAL has problems with FLTP (float) audio format  
-		// recent versions of libavcodec convert mp4 audio to FLTP
-		// so we will convert to an older S16 or S16P format
-		//swresample didn't work for me, hand-coded did
-		//// Set up SWR context once you've got codec information
-		//swr = swr_alloc();
-		//av_opt_set_int(swr, "in_channel_layout",  aCodecCtx->channel_layout, 0);
-		//av_opt_set_int(swr, "out_channel_layout", aCodecCtx->channel_layout,  0);
-		//av_opt_set_int(swr, "in_sample_rate",     aCodecCtx->sample_rate, 0);
-		//av_opt_set_int(swr, "out_sample_rate",    aCodecCtx->sample_rate, 0);
-		//av_opt_set_sample_fmt(swr, "in_sample_fmt",  aCodecCtx->sample_fmt, 0);
-		//av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_S16,  0);
-		// https://www.ffmpeg.org/doxygen/3.2/group__lswr.html#details
-		swr = swr_alloc_set_opts(NULL,  // we're allocating a new context
-			AV_CH_LAYOUT_STEREO,  // out_ch_layout
-			AV_SAMPLE_FMT_S16,    // out_sample_fmt
-			44100,                // out_sample_rate
-			aCodecCtx->channel_layout, // in_ch_layout
-			aCodecCtx->sample_fmt,   // in_sample_fmt
-			aCodecCtx->sample_rate,   // in_sample_rate
-			0,                    // log_offset
-			NULL);                // log_ctx
-		swr_init(swr);
+			swr = swr_alloc_set_opts(NULL,  // we're allocating a new context
+				AV_CH_LAYOUT_STEREO,  // out_ch_layout
+				AV_SAMPLE_FMT_S16,    // out_sample_fmt
+				44100,                // out_sample_rate
+				aCodecCtx->channel_layout, // in_ch_layout
+				aCodecCtx->sample_fmt,   // in_sample_fmt
+				aCodecCtx->sample_rate,   // in_sample_rate
+				0,                    // log_offset
+				NULL);                // log_ctx
+			swr_init(swr);
+		}
 
 	}
 
@@ -366,61 +368,31 @@ int movie_load_from_file(char *fname, void **opaque){
 			//len1 = avcodec_decode_audio4(aCodecCtx, aFrame, &got_frame, &packet);
 			avcodec_send_packet(aCodecCtx, &packet);
 			got_frame = avcodec_receive_frame(aCodecCtx, aFrame) == 0 ? TRUE : FALSE;
-			//len1 = 0;
-			//if(got_frame) len1 = aFrame->linesize[0]; //guessing. I have no idea what len is.
-			//if(len1 < 0) {
-			//	/* if error, skip frame */
-			//	audio_pkt_size = 0;
-			//	continue;
-			//}
-			//audio_pkt_data += len1;
-			//audio_pkt_size -= len1;
 			int data_size = 0;
 			int buf_size = audio_buf_size - audio_buf_index;
 			if(got_frame) {
-				if(0){
-					//swresample module > swr_convert_frame() DOESN'T WORK - output frames are nullish
-					// Input and output AVFrames must have channel_layout, sample_rate and format set.
-					//aFrame->channel_layout = aCodecCtx->channel_layout;
-					//aFrame->sample_rate = aCodecCtx->sample_rate;
-					//aFrame->format = aCodecCtx->sample_fmt;
-					//put into a format openAL likes
-					//aFrameB->channel_layout = AV_CH_LAYOUT_STEREO; // aCodecCtx->channel_layout; //AV_CH_LAYOUT_STEREO;
-					//aFrameB->sample_rate = 44100; //aCodecCtx->sample_rate; //41000;
-					//aFrameB->format = AV_SAMPLE_FMT_S16P;
-					int swerr= swr_convert_frame(swr,aFrameB, aFrame); 
-					if(swerr){
-						if(swerr & AVERROR_OUTPUT_CHANGED) 
-							printf("output changed");
-						if(swerr & AVERROR_INPUT_CHANGED)
-							printf("input changed");
-						ConsoleMessage("%d", swerr);
-					}
-					aFrameOut = aFrameB;
-				} else 
-				{
-					aFrameOut = aFrame;
-					aFrameOut->format = aCodecCtx->sample_fmt;
-				}
-				if(aFrameOut->nb_samples > 0){
+				//aFrameOut->format = aCodecCtx->sample_fmt;
+				if(aFrame->nb_samples > 0){
 					data_size = av_samples_get_buffer_size(NULL, 
-											aFrameOut->channels, //aCodecCtx->channels,
-											aFrameOut->nb_samples,
-											aFrameOut->format, //AV_SAMPLE_FMT_S16P, //aCodecCtx->sample_fmt,
+											aFrame->channels, //aCodecCtx->channels,
+											aFrame->nb_samples,
+											aFrame->format, //AV_SAMPLE_FMT_S16P, //aCodecCtx->sample_fmt,
 											1);
 					//printf("aCodecCtx->sample_fmt= %d channels=%d samples=%d",aCodecCtx->sample_fmt,aCodecCtx->channels,aFrame->nb_samples);
+					//if this chunk's reformatted output will be bigger than the room we have left
+					// in our allocated big audio buffer, then realloc the big audio buffer * 2
 					if(data_size * 2 > buf_size){
 						audio_buf = realloc(audio_buf,audio_buf_size *2);
 						audio_buf_size *= 2;
 					}
-					if (TRUE && aCodecCtx->sample_fmt == AV_SAMPLE_FMT_FLTP)
+					if (do_audio_resample) //TRUE && aCodecCtx->sample_fmt == AV_SAMPLE_FMT_FLTP)
 					{
 						if(0){
 							//hand-coded FLTP to S16 
-							// works with apple1984veryshort.mp4 on win32 openAL
+							// works with apple1984veryshort.mp4 on win32 openAL, but not generally trusted, just as hacker code
 							//http://stackoverflow.com/questions/14989397/how-to-convert-sample-rate-from-av-sample-fmt-fltp-to-av-sample-fmt-s16
-							int nb_samples = aFrameOut->nb_samples;
-							int channels = aFrameOut->channels;
+							int nb_samples = aFrame->nb_samples;
+							int channels = aFrame->channels;
 							int outputBufferLen = nb_samples * channels * 2;
 							short* outputBuffer = (short*)&audio_buf[audio_buf_index];
 
@@ -428,7 +400,7 @@ int movie_load_from_file(char *fname, void **opaque){
 							{
 								 for (int c = 0; c < channels; c++)
 								 {
-									 float* extended_data = (float*)aFrameOut->extended_data[c];
+									 float* extended_data = (float*)aFrame->extended_data[c];
 									 float sample = extended_data[i];
 									 if (sample < -1.0f) sample = -1.0f;
 									 else if (sample > 1.0f) sample = 1.0f;
@@ -438,14 +410,14 @@ int movie_load_from_file(char *fname, void **opaque){
 							audio_buf_index += outputBufferLen;
 						}
 						else if(1){
-							//swresample module > swr_convert - doesn't work, no sound comes out
+							//swresample module > swr_convert - works uwp and win32
+							//should convert non PCM 16 formats to PCM 16bit/channel stereo, 44100Hz
 							uint8_t *output;
-							//channelbufs[0] = &audio_buf[audio_buf_index];
-							int in_samples = aFrameOut->nb_samples;
+							int in_samples = aFrame->nb_samples;
 
 							int out_samples = av_rescale_rnd(swr_get_delay(swr, aCodecCtx->sample_rate) + in_samples, 44100, aCodecCtx->sample_rate, AV_ROUND_UP);
 							av_samples_alloc(&output, NULL, 2, out_samples,	AV_SAMPLE_FMT_S16, 0);
-							out_samples = swr_convert(swr,&output,out_samples, aFrameOut->extended_data, aFrame->nb_samples);  
+							out_samples = swr_convert(swr,&output,out_samples, aFrame->extended_data, aFrame->nb_samples);  
 							memcpy(&audio_buf[audio_buf_index],output, out_samples * 2 * 2);
 							audio_buf_index +=  out_samples * 2 * 2;
 							av_freep(&output);
@@ -455,7 +427,7 @@ int movie_load_from_file(char *fname, void **opaque){
 						//ie mpgsys.mpg
 						//(but for mp4 audio, libav gives FLP/float format, and using this simple
 						// memcpy it comes out junk/noise in openAL H: openal can't handle float, just s16)
-						memcpy(&audio_buf[audio_buf_index], aFrameOut->data[0], data_size);
+						memcpy(&audio_buf[audio_buf_index], aFrame->data[0], data_size);
 						audio_buf_index += data_size;
 					}
 				}
