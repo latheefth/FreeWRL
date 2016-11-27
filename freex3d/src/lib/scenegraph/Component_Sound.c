@@ -638,7 +638,15 @@ void render_Sound (struct X3D_Sound *node) {
 					veccopy3f(node->__lastlocation.c,SourcePos);
 
 					node->__sourceNumber = source;
-					assert(alGetError()==AL_NO_ERROR && "Failed to setup sound source");
+					//assert(alGetError()==AL_NO_ERROR && "Failed to setup sound source");
+					if(alGetError()!=AL_NO_ERROR) {
+						static int once = 0;
+						if(!once){
+							ConsoleMessage("Failed to setup sound source\n");
+							once = 1;
+						}
+						node->__sourceNumber = BADAUDIOSOURCE;
+					}
 				}
 				if( node->__sourceNumber > -1){
 					int istate;

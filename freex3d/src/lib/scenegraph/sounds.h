@@ -31,6 +31,7 @@ Sound engine client code
 #ifdef HAVE_OPENAL
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/alext.h>
 #ifdef HAVE_ALUT
 #include <AL/alut.h>
 #endif
