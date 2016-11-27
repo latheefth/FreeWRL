@@ -329,21 +329,44 @@ bool movie_load(resource_item_t *res){
 			//#define AL_FORMAT_MONO16                         0x1101
 			//#define AL_FORMAT_STEREO8                        0x1102
 			//#define AL_FORMAT_STEREO16                       0x1103
-			if(bits == 8)
-				format = AL_FORMAT_MONO8;
-			else
-				format = AL_FORMAT_MONO16;
-			if(channels == 2) 
-				if(bits == 8)
-					format = AL_FORMAT_STEREO8;
-				else
-					format = AL_FORMAT_STEREO16;
+			//if(bits == 8)
+			//	format = AL_FORMAT_MONO8;
+			//else
+			//	format = AL_FORMAT_MONO16;
+			//if(channels == 2) 
+			//	if(bits == 8)
+			//		format = AL_FORMAT_STEREO8;
+			//	else
+			//		format = AL_FORMAT_STEREO16;
+			format = 0;
+			switch(bits){
+				case 8:
+					format = AL_FORMAT_MONO8;
+					if(channels == 2) 
+						format = AL_FORMAT_STEREO8;
+					break;
+				case 16:
+					format = AL_FORMAT_MONO16;
+					if (channels == 2)
+						format = AL_FORMAT_STEREO16;
+					break;
+				case 32:
+					#ifdef AL_EXT_float32
+					format = AL_FORMAT_MONO_FLOAT32;
+					if (channels == 2) 
+						format = AL_FORMAT_STEREO_FLOAT32;
+					break;
+					#endif
+				default:
+					break;
+			}
+			if(format > 0){
+				//this is a complex function that tries to figure out if its float, int PCM etc
+				alBufferData(albuffer,format,pcmbuf,size,freq); 
+				//BufferData * bdata = _alutBufferDataConstruct( pcmbuf,size,channels,bits, freq);
 
-			//this is a complex function that tries to figure out if its float, int PCM etc
-			alBufferData(albuffer,format,pcmbuf,size,freq); 
-			//BufferData * bdata = _alutBufferDataConstruct( pcmbuf,size,channels,bits, freq);
-
-			node->__sourceNumber = albuffer;
+				node->__sourceNumber = albuffer;
+			}
 			#endif //HAVE_OPENAL
 		}
 	} 
