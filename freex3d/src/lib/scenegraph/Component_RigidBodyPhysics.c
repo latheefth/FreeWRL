@@ -227,6 +227,15 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
   }
 }
 
+int NNC(struct X3D_Node* node){
+	return NODE_NEEDS_COMPILING;
+}
+void MNCP(struct X3D_Node* node){
+	MARK_NODE_COMPILED;
+}
+void MNCH(struct X3D_Node* node){
+	node->_change++;
+}
 static int init_rbp_once = 0;
 static dThreadingImplementationID threading;
 static dThreadingThreadPoolID pool;
@@ -362,13 +371,11 @@ void rbp_run_physics(){
 						struct X3D_Shape *shape = (struct X3D_Shape*)x3dcshape->shape;
 						if(shape && shape->geometry){
 							dReal sides[3];
-							//dMass m;
 							switch(shape->geometry->_nodeType){
 								case NODE_Box:
 									{
 										struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
 										sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
-										//dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
 										gid = dCreateBox(x3dworld->_space,sides[0],sides[1],sides[2]);
 									}
 									break;
@@ -377,7 +384,6 @@ void rbp_run_physics(){
 										struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
 										sides[0] = cyl->radius;
 										sides[1] = cyl->height;
-										//dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
 										gid = dCreateCylinder(x3dworld->_space,sides[0],sides[1]);
 									}
 									break;
@@ -387,29 +393,24 @@ void rbp_run_physics(){
 									{
 										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
 										sides[0] = sphere->radius;
-										//dMassSetSphere (&m,DENSITY,sides[0]);
 										gid = dCreateSphere(x3dworld->_space,sides[0]);
 									}
 									break;
 							}
-							//dMassAdjust(&m,x3dbody->mass);
-							//dBodySetMass (x3dbody->_body, &m);
 							x3dcshape->_geom = gid;
-							//link body to geom
-							//void dGeomSetBody (dGeomID, dBodyID);
 						}
 						//for a fixed body, use the body position to position the geometry
 						translation = x3dbody->position;
 						rotation = x3dbody->orientation;
-						//if(!x3dbody->fixed){
+						//if(FALSE || !x3dbody->fixed){
+						if(x3dbody->_body){
 							dGeomSetBody(x3dcshape->_geom,x3dbody->_body);
-						//}
+						}
 						dGeomSetPosition (x3dcshape->_geom, (dReal)translation.c[0],(dReal)translation.c[1],(dReal)translation.c[2]);
 						if(1){
 							dReal dquat[4];
 							Quaternion quat;
 							vrmlrot_to_quaternion(&quat,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
-							//dquat[0] = quat.x; dquat[1] = quat.y, dquat[2] = quat.z, dquat[3] = quat.w;
 							dquat[0] = quat.w; dquat[1] = quat.x, dquat[2] = quat.y, dquat[3] = quat.z;
 							dGeomSetQuaternion(x3dcshape->_geom,dquat);
 						}else{
