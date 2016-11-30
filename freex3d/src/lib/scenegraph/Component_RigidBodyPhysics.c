@@ -362,13 +362,13 @@ void rbp_run_physics(){
 						struct X3D_Shape *shape = (struct X3D_Shape*)x3dcshape->shape;
 						if(shape && shape->geometry){
 							dReal sides[3];
-							dMass m;
+							//dMass m;
 							switch(shape->geometry->_nodeType){
 								case NODE_Box:
 									{
 										struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
 										sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
-										dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
+										//dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
 										gid = dCreateBox(x3dworld->_space,sides[0],sides[1],sides[2]);
 									}
 									break;
@@ -377,7 +377,7 @@ void rbp_run_physics(){
 										struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
 										sides[0] = cyl->radius;
 										sides[1] = cyl->height;
-										dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
+										//dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
 										gid = dCreateCylinder(x3dworld->_space,sides[0],sides[1]);
 									}
 									break;
@@ -387,16 +387,53 @@ void rbp_run_physics(){
 									{
 										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
 										sides[0] = sphere->radius;
-										dMassSetSphere (&m,DENSITY,sides[0]);
+										//dMassSetSphere (&m,DENSITY,sides[0]);
 										gid = dCreateSphere(x3dworld->_space,sides[0]);
+									}
+									break;
+							}
+							//dMassAdjust(&m,x3dbody->mass);
+							//dBodySetMass (x3dbody->_body, &m);
+							x3dcshape->_geom = gid;
+							//link body to geom
+							//void dGeomSetBody (dGeomID, dBodyID);
+						}
+						if(x3dbody->massDensityModel){
+							dReal sides[3];
+							dMass m;
+							switch(x3dbody->massDensityModel->_nodeType){
+								case NODE_Box:
+									{
+										struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
+										sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
+										dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
+									}
+									break;
+								case NODE_Cylinder:
+									{
+										struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
+										sides[0] = cyl->radius;
+										sides[1] = cyl->height;
+										dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
+									}
+									break;
+								//case convex - not done yet, basically indexedfaceset
+								case NODE_Sphere:
+								default:
+									{
+										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
+										sides[0] = sphere->radius;
+										dMassSetSphere (&m,DENSITY,sides[0]);
 									}
 									break;
 							}
 							dMassAdjust(&m,x3dbody->mass);
 							dBodySetMass (x3dbody->_body, &m);
-							x3dcshape->_geom = gid;
-							//link body to geom
-							//void dGeomSetBody (dGeomID, dBodyID);
+						}else{
+							dMass m;
+							dMassSetSphere (&m,DENSITY,.01);
+							dMassAdjust(&m,x3dbody->mass);
+							dBodySetMass (x3dbody->_body, &m);
 						}
 						//for a fixed body, use the body position to position the geometry
 						translation = x3dbody->position;
@@ -425,6 +462,12 @@ void rbp_run_physics(){
 						}
 					}
 					//add any per-step per-body forces
+					if(x3dbody->autoDamp){
+					}
+					if(x3dbody->forces.n){
+					}
+					if(x3dbody->torques.n){
+					}
 
 				}
 			}
@@ -472,8 +515,9 @@ void rbp_run_physics(){
 			//RUN PHYSICS ENGINE
 			if(1) dSpaceCollide (x3dworld->_space,0,&nearCallback);
 			if (!pause) {
-				for(int kstep=0;kstep<nstep;kstep++)
-					dWorldQuickStep (x3dworld->_world,STEP_SIZE); //0.02);
+				double step_fraction = STEP_SIZE / (double)x3dworld->iterations;
+				for(int kstep=0;kstep<nstep*x3dworld->iterations;kstep++)
+					dWorldQuickStep (x3dworld->_world,step_fraction); //STEP_SIZE); //0.02);
 			}
 
 			//Rigidbody -> Collidable
