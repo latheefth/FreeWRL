@@ -197,10 +197,10 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
   if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) return;
 
   for (i=0; i<MAX_CONTACTS; i++) {
-    contact[i].surface.mode = 0; //dContactBounce | dContactSoftCFM;
+    contact[i].surface.mode = dContactBounce; // | dContactSoftCFM;
     contact[i].surface.mu = .1; //dInfinity;
     contact[i].surface.mu2 = 0;
-    contact[i].surface.bounce = 0.1;
+    contact[i].surface.bounce = .2;
     contact[i].surface.bounce_vel = 0.1;
     contact[i].surface.soft_cfm = 0.01;
   }
