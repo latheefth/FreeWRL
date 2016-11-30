@@ -398,52 +398,12 @@ void rbp_run_physics(){
 							//link body to geom
 							//void dGeomSetBody (dGeomID, dBodyID);
 						}
-						if(x3dbody->massDensityModel){
-							dReal sides[3];
-							dMass m;
-							switch(x3dbody->massDensityModel->_nodeType){
-								case NODE_Box:
-									{
-										struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
-										sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
-										dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
-									}
-									break;
-								case NODE_Cylinder:
-									{
-										struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
-										sides[0] = cyl->radius;
-										sides[1] = cyl->height;
-										dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
-									}
-									break;
-								//case convex - not done yet, basically indexedfaceset
-								case NODE_Sphere:
-								default:
-									{
-										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
-										sides[0] = sphere->radius;
-										dMassSetSphere (&m,DENSITY,sides[0]);
-									}
-									break;
-							}
-							dMassAdjust(&m,x3dbody->mass);
-							dBodySetMass (x3dbody->_body, &m);
-						}else{
-							dMass m;
-							dMassSetSphere (&m,DENSITY,.01);
-							dMassAdjust(&m,x3dbody->mass);
-							dBodySetMass (x3dbody->_body, &m);
-						}
 						//for a fixed body, use the body position to position the geometry
 						translation = x3dbody->position;
 						rotation = x3dbody->orientation;
 						//if(!x3dbody->fixed){
 							dGeomSetBody(x3dcshape->_geom,x3dbody->_body);
 						//}
-						if(!x3dbody->useGlobalGravity){
-							dBodySetGravityMode(x3dbody->_body,0);
-						}
 						dGeomSetPosition (x3dcshape->_geom, (dReal)translation.c[0],(dReal)translation.c[1],(dReal)translation.c[2]);
 						if(1){
 							dReal dquat[4];
@@ -457,10 +417,59 @@ void rbp_run_physics(){
 							dRFromAxisAndAngle (R,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
 							dGeomSetRotation(x3dcshape->_geom,R);
 						}
-						if(x3dbody->useFiniteRotation){
-							dBodySetFiniteRotationAxis (x3dbody->_body, x3dbody->finiteRotationAxis.c[0],x3dbody->finiteRotationAxis.c[1],x3dbody->finiteRotationAxis.c[2]);
+					} //if !geom
+
+				} //geometries
+
+				if(x3dbody->_body){
+					//not fixed
+					if(x3dbody->massDensityModel){
+						dReal sides[3];
+						dMass m;
+						switch(x3dbody->massDensityModel->_nodeType){
+							case NODE_Box:
+								{
+									struct X3D_Box *box = (struct X3D_Box*)x3dbody->massDensityModel;
+									sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
+									dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
+								}
+								break;
+							case NODE_Cylinder:
+								{
+									struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)x3dbody->massDensityModel;
+									sides[0] = cyl->radius;
+									sides[1] = cyl->height;
+									dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
+								}
+								break;
+							//case convex - not done yet, basically indexedfaceset
+							case NODE_Sphere:
+							default:
+								{
+									struct X3D_Sphere *sphere = (struct X3D_Sphere*)x3dbody->massDensityModel;
+									sides[0] = sphere->radius;
+									dMassSetSphere (&m,DENSITY,sides[0]);
+								}
+								break;
 						}
+						dMassAdjust(&m,x3dbody->mass);
+						dBodySetMass (x3dbody->_body, &m);
+					}else{
+						dMass m;
+						dMassSetSphere (&m,DENSITY,.01);
+						dMassAdjust(&m,x3dbody->mass);
+						dBodySetMass (x3dbody->_body, &m);
 					}
+
+					if(x3dbody->useFiniteRotation){
+						dBodySetFiniteRotationAxis (x3dbody->_body, x3dbody->finiteRotationAxis.c[0],x3dbody->finiteRotationAxis.c[1],x3dbody->finiteRotationAxis.c[2]);
+					}
+
+					//gravity?
+					if(!x3dbody->useGlobalGravity){
+						dBodySetGravityMode(x3dbody->_body,0);
+					}
+
 					//add any per-step per-body forces
 					if(x3dbody->autoDamp){
 					}
@@ -468,9 +477,9 @@ void rbp_run_physics(){
 					}
 					if(x3dbody->torques.n){
 					}
+				} // if x3dbody->_body (not fixed)
 
-				}
-			}
+			} //bodies
 			//update joints
 			for(i=0;i<x3dworld->joints.n;i++){
 				struct X3D_Node *joint = (struct X3D_Node*)x3dworld->joints.p[i];
