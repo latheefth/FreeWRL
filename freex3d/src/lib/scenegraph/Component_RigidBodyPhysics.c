@@ -237,14 +237,14 @@ int init_rbp(){
 		dInitODE2(0);
 		memset (obj,0,sizeof(obj));
 
-		if(1){
-		dThreadingImplementationID threading = dThreadingAllocateMultiThreadedImplementation();
-		dThreadingThreadPoolID pool = dThreadingAllocateThreadPool(4, 0, dAllocateFlagBasicData, NULL);
-		dThreadingThreadPoolServeMultiThreadedImplementation(pool, threading);
-		// dWorldSetStepIslandsProcessingMaxThreadCount(world, 1);
-		dWorldSetStepThreadingImplementation(world, dThreadingImplementationGetFunctions(threading), threading);
-		}
-		dAllocateODEDataForThread(dAllocateMaskAll);
+		//if(0){
+		//dThreadingImplementationID threading = dThreadingAllocateMultiThreadedImplementation();
+		//dThreadingThreadPoolID pool = dThreadingAllocateThreadPool(4, 0, dAllocateFlagBasicData, NULL);
+		//dThreadingThreadPoolServeMultiThreadedImplementation(pool, threading);
+		//// dWorldSetStepIslandsProcessingMaxThreadCount(world, 1);
+		//dWorldSetStepThreadingImplementation(world, dThreadingImplementationGetFunctions(threading), threading);
+		//}
+		//if(0) dAllocateODEDataForThread(dAllocateMaskAll);
 
 	}
 	return init_rbp_once;
@@ -252,10 +252,10 @@ int init_rbp(){
 void finish_rbp(){
 	if(init_rbp_once){
 
-		dThreadingImplementationShutdownProcessing(threading);
-		dThreadingFreeThreadPool(pool);
-		dWorldSetStepThreadingImplementation(world, NULL, NULL);
-		dThreadingFreeImplementation(threading);
+		//dThreadingImplementationShutdownProcessing(threading);
+		//dThreadingFreeThreadPool(pool);
+		//dWorldSetStepThreadingImplementation(world, NULL, NULL);
+		//dThreadingFreeImplementation(threading);
 
 
 		dJointGroupDestroy (contactgroup);
@@ -303,7 +303,7 @@ void rbp_run_physics(){
 	
 	int nstep = 1;
 	if(1){
-		//situation: physics simulations need constant size time steps ie STEP_SIZE seconds
+		//situation: physics simulations need constant size time steps ie STEP_SIZE seconds .02
 		//goal: make the simulation speed match wall clock
 		//method: from render thread, skip or add simulation steps as/when needed,
 		// so average wallclock time between steps ~= stepsize (seconds)
@@ -324,7 +324,7 @@ void rbp_run_physics(){
 		lasttime = thistime;
 		done_once = 1;
 	}
-	printf("%d ",nstep);
+	//printf("%d ",nstep);
 	if(nstep < 1) return;
 	//see nstep below when calling dworldquickstep we loop over nstep
 
