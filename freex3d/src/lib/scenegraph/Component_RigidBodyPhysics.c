@@ -231,7 +231,7 @@ static int init_rbp_once = 0;
 static dThreadingImplementationID threading;
 static dThreadingThreadPoolID pool;
 int init_rbp(){
-	if(!init_rbp_once && world && space ) { //&& contactgroup){
+	if(!init_rbp_once && world && space && contactgroup){
 		init_rbp_once = TRUE;
 		//c++: 
 		dInitODE2(0);
@@ -300,14 +300,16 @@ void rbp_run_physics(){
 	*/
 	ppComponent_RigidBodyPhysics p;
 	p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
-
+	
+	int nstep = 1;
 	if(1){
+		//situation: physics simulations need constant size time steps ie STEP_SIZE seconds
 		//goal: make the simulation speed match wall clock
-		//method: from render thread, skip simulation steps as/if needed,
-		// so average time between steps ~= stepsize (seconds)
-		//disadvantage: stepsize has to be >= than render thread 1/FPS (frames per second)
+		//method: from render thread, skip or add simulation steps as/when needed,
+		// so average wallclock time between steps ~= stepsize (seconds)
 		//advantage: no thread marshalling needed
-		//versus: separate thread which could sleep, sim, sleep, sim .. to match STEP_SIZE
+		//versus: separate thread which could sleep, sim, sleep, sim .. to match STEP_SIZE 
+		//   - disadvantage of separate thread: would need to block threads while moving data between the threads
 		double thistime;
 		static double lasttime;
 		static double remainder = 0.0;
@@ -315,19 +317,16 @@ void rbp_run_physics(){
 
 		thistime = TickTime();
 		if(done_once > 0){
-			double deltime = thistime - lasttime;
-			if( deltime + remainder < STEP_SIZE ){
-				//printf(".");
-				return;
-				//Sleep((int)((STEP_SIZE - deltime)*1000.0));
-			}else{
-				//printf("+");
-				remainder = max(0.0,STEP_SIZE - deltime);
-			}
+			double deltime = thistime - lasttime + remainder;
+			nstep = (int) floor( deltime / STEP_SIZE );
+			remainder = deltime - (nstep * STEP_SIZE);
 		}
 		lasttime = thistime;
 		done_once = 1;
 	}
+	printf("%d ",nstep);
+	if(nstep < 1) return;
+	//see nstep below when calling dworldquickstep we loop over nstep
 
 	if(init_rbp()){
 		int i,j,k;
@@ -470,12 +469,11 @@ void rbp_run_physics(){
 			}
 
 
-
-
 			//RUN PHYSICS ENGINE
 			if(1) dSpaceCollide (x3dworld->_space,0,&nearCallback);
 			if (!pause) {
-				dWorldQuickStep (x3dworld->_world,STEP_SIZE); //0.02);
+				for(int kstep=0;kstep<nstep;kstep++)
+					dWorldQuickStep (x3dworld->_world,STEP_SIZE); //0.02);
 			}
 
 			//Rigidbody -> Collidable
@@ -550,7 +548,11 @@ void register_RigidBodyCollection(struct X3D_Node *_node){
 			dWorldSetGravity (world,node->gravity.c[0],node->gravity.c[1],node->gravity.c[2]);
 			dWorldSetCFM (world,1e-5);
 			dWorldSetAutoDisableFlag (world,1);
-			contactgroup = dJointGroupCreate (0); //this is a default group for doing just collisions
+			//this contactgroup is a default group for doing just collisions, cleared every frame:
+			// 1)collide (callback to make temporary joints out of contact points) 
+			// 2)physics step (uses all joints)
+			// 3)clear contactgroup (clean out all the temporary collision joints)
+			contactgroup = dJointGroupCreate (0); 
 
 			#if 1
 
@@ -567,7 +569,7 @@ void register_RigidBodyCollection(struct X3D_Node *_node){
 		} 
 		node->_world = (void*)world;
 		node->_space = (void*)space;
-		dJointGroupID groupID = dJointGroupCreate (0);
+		dJointGroupID groupID = dJointGroupCreate (0); //this is a contact group for joints
 		node->_group = groupID;
 		if(!x3dworlds) x3dworlds = newVector(struct X3D_Node*,5);
 		vector_pushBack(struct X3D_Node*,x3dworlds,_node);
