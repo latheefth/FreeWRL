@@ -78,7 +78,7 @@ void Component_RigidBodyPhysics_clear(struct tComponent_RigidBodyPhysics *t){
 void rbp_run_physics();
 void set_physics();
 
-#undef WITH_RBP
+//#undef WITH_RBP
 #ifdef WITH_RBP
 //#define dSINGLE 1  //Q. do we need to match the physics lib build
 #define dDOUBLE 1
@@ -143,7 +143,7 @@ Contact					CollisionSensor
 // some constants
 
 #define NUM 100			// max number of objects
-#define DENSITY (5.0)		// density of all objects
+#define DENSITY (1.0)		// density of all objects
 #define GPB 3			// maximum number of geometries per body
 #define MAX_CONTACTS 8          // maximum number of contact points per body
 #define MAX_FEEDBACKNUM 20
@@ -159,8 +159,8 @@ typedef struct MyObject {
 
 static int num=0;		// number of objects in simulation
 static int nextobj=0;		// next object to recycle if num==NUM
-static dWorldID world;
-static dSpaceID space;
+static dWorldID world = NULL;
+static dSpaceID space = NULL;;
 static MyObject obj[NUM];
 static dJointGroupID contactgroup;
 static int selected = -1;	// selected object
@@ -179,7 +179,7 @@ static MyFeedback feedbacks[MAX_FEEDBACKNUM];
 static int fbnum=0;
 
 
-//our registered lists (should be in gglobal p->)
+//our registered lists (should be in gglobal p-> or scene->)
 static struct Vector *x3dworlds = NULL;
 static struct Vector *x3dcollisionsensors = NULL;
 
@@ -197,8 +197,8 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
   if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) return;
 
   for (i=0; i<MAX_CONTACTS; i++) {
-    contact[i].surface.mode = dContactBounce | dContactSoftCFM;
-    contact[i].surface.mu = dInfinity;
+    contact[i].surface.mode = 0; //dContactBounce | dContactSoftCFM;
+    contact[i].surface.mu = .1; //dInfinity;
     contact[i].surface.mu2 = 0;
     contact[i].surface.bounce = 0.1;
     contact[i].surface.bounce_vel = 0.1;
@@ -231,7 +231,7 @@ static int init_rbp_once = 0;
 static dThreadingImplementationID threading;
 static dThreadingThreadPoolID pool;
 int init_rbp(){
-	if(!init_rbp_once && world && space && contactgroup){
+	if(!init_rbp_once && world && space ) { //&& contactgroup){
 		init_rbp_once = TRUE;
 		//c++: 
 		dInitODE2(0);
@@ -267,6 +267,7 @@ void finish_rbp(){
 
 }
 static int pause = FALSE;
+static double STEP_SIZE = .02; //seconds
 /* http://www.ode.org/ode-0.039-userguide.html#ref27
 3.10. Typical simulation code
 A typical simulation will proceed like this:
@@ -287,6 +288,7 @@ A typical simulation will proceed like this:
 6.	Remove all joints in the contact joint group.
 10.Destroy the dynamics and collision worlds.
 */
+
 void rbp_run_physics(){
 	/*	called once per frame.
 		assumes we have lists of registered worlds (x3drigidbodycollections) and 
@@ -298,6 +300,35 @@ void rbp_run_physics(){
 	*/
 	ppComponent_RigidBodyPhysics p;
 	p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+
+	if(1){
+		//goal: make the simulation speed match wall clock
+		//method: from render thread, skip simulation steps as/if needed,
+		// so average time between steps ~= stepsize (seconds)
+		//disadvantage: stepsize has to be >= than render thread 1/FPS (frames per second)
+		//advantage: no thread marshalling needed
+		//versus: separate thread which could sleep, sim, sleep, sim .. to match STEP_SIZE
+		double thistime;
+		static double lasttime;
+		static double remainder = 0.0;
+		static int done_once = 0;
+
+		thistime = TickTime();
+		if(done_once > 0){
+			double deltime = thistime - lasttime;
+			if( deltime + remainder < STEP_SIZE ){
+				//printf(".");
+				return;
+				//Sleep((int)((STEP_SIZE - deltime)*1000.0));
+			}else{
+				//printf("+");
+				remainder = max(0.0,STEP_SIZE - deltime);
+			}
+		}
+		lasttime = thistime;
+		done_once = 1;
+	}
+
 	if(init_rbp()){
 		int i,j,k;
 		struct X3D_RigidBodyCollection *x3dworld;
@@ -307,6 +338,8 @@ void rbp_run_physics(){
 			struct X3D_CollidableShape *x3dcshape;
 			x3dworld = (struct X3D_RigidBodyCollection*)vector_get(struct X3D_Node*,x3dworlds,j);
 			//Collidable -> rigidbody 
+
+			//update bodies
 			for(i=0;i<x3dworld->bodies.n;i++){
 				x3dbody = (struct X3D_RigidBody*)x3dworld->bodies.p[i];
 				if(!x3dbody->_body && !x3dbody->fixed){
@@ -340,14 +373,6 @@ void rbp_run_physics(){
 										gid = dCreateBox(x3dworld->_space,sides[0],sides[1],sides[2]);
 									}
 									break;
-								case NODE_Sphere:
-									{
-										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
-										sides[0] = sphere->radius;
-										dMassSetSphere (&m,DENSITY,sides[0]);
-										gid = dCreateSphere(x3dworld->_space,sides[0]);
-									}
-									break;
 								case NODE_Cylinder:
 									{
 										struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
@@ -358,9 +383,18 @@ void rbp_run_physics(){
 									}
 									break;
 								//case convex - not done yet, basically indexedfaceset
+								case NODE_Sphere:
 								default:
+									{
+										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
+										sides[0] = sphere->radius;
+										dMassSetSphere (&m,DENSITY,sides[0]);
+										gid = dCreateSphere(x3dworld->_space,sides[0]);
+									}
 									break;
 							}
+							dMassAdjust(&m,x3dbody->mass);
+							dBodySetMass (x3dbody->_body, &m);
 							x3dcshape->_geom = gid;
 							//link body to geom
 							//void dGeomSetBody (dGeomID, dBodyID);
@@ -368,26 +402,81 @@ void rbp_run_physics(){
 						//for a fixed body, use the body position to position the geometry
 						translation = x3dbody->position;
 						rotation = x3dbody->orientation;
-						if(!x3dbody->fixed)
+						//if(!x3dbody->fixed){
 							dGeomSetBody(x3dcshape->_geom,x3dbody->_body);
-
+						//}
+						if(!x3dbody->useGlobalGravity){
+							dBodySetGravityMode(x3dbody->_body,0);
+						}
 						dGeomSetPosition (x3dcshape->_geom, (dReal)translation.c[0],(dReal)translation.c[1],(dReal)translation.c[2]);
 						if(1){
 							dReal dquat[4];
 							Quaternion quat;
 							vrmlrot_to_quaternion(&quat,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
-							dquat[0] = quat.x; dquat[1] = quat.y, dquat[2] = quat.z, dquat[3] = quat.w;
+							//dquat[0] = quat.x; dquat[1] = quat.y, dquat[2] = quat.z, dquat[3] = quat.w;
+							dquat[0] = quat.w; dquat[1] = quat.x, dquat[2] = quat.y, dquat[3] = quat.z;
 							dGeomSetQuaternion(x3dcshape->_geom,dquat);
 						}else{
 							dMatrix3 R;
 							dRFromAxisAndAngle (R,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
 							dGeomSetRotation(x3dcshape->_geom,R);
 						}
+						if(x3dbody->useFiniteRotation){
+							dBodySetFiniteRotationAxis (x3dbody->_body, x3dbody->finiteRotationAxis.c[0],x3dbody->finiteRotationAxis.c[1],x3dbody->finiteRotationAxis.c[2]);
+						}
 					}
+					//add any per-step per-body forces
+
 				}
 			}
-			dSpaceCollide (x3dworld->_space,0,&nearCallback);
-			if (!pause) dWorldQuickStep (x3dworld->_world,0.02);
+			//update joints
+			for(i=0;i<x3dworld->joints.n;i++){
+				struct X3D_Node *joint = (struct X3D_Node*)x3dworld->joints.p[i];
+				// 	render_node(joint); //could use virt function? I'll start without virt
+				switch(joint->_nodeType){
+					case NODE_BallJoint:
+						//render_BallJoint(joint); 
+						{
+							dJointID jointID;
+							struct X3D_BallJoint *jnt = (struct X3D_BallJoint*)joint;
+							if(!jnt->_joint){
+								dBodyID body1ID, body2ID;
+								struct X3D_RigidBody *xbody1, *xbody2;
+								xbody1 = (struct X3D_RigidBody*)jnt->body1;
+								xbody2 = (struct X3D_RigidBody*)jnt->body2;
+								body1ID = xbody1->_body;
+								body2ID = xbody2->_body;
+								jointID = dJointCreateBall (x3dworld->_world,x3dworld->_group);
+								dJointAttach (jointID,body1ID,body2ID);
+								dJointSetBallAnchor(jointID, jnt->anchorPoint.c[0],jnt->anchorPoint.c[1], jnt->anchorPoint.c[2]);
+								jnt->_joint = jointID;
+							}
+						}
+						break;
+					case NODE_SingleAxisHingeJoint:
+						//render_BallJoint(joint); break;
+					case NODE_DoubleAxisHingeJoint:
+						//render_BallJoint(joint); break;
+					case NODE_SliderJoint:
+						//render_BallJoint(joint); break;
+					case NODE_UniversalJoint:
+						//render_BallJoint(joint); break;
+					case NODE_MotorJoint:
+						//render_BallJoint(joint); break;
+						break;
+					default:
+						break;
+				}
+			}
+
+
+
+
+			//RUN PHYSICS ENGINE
+			if(1) dSpaceCollide (x3dworld->_space,0,&nearCallback);
+			if (!pause) {
+				dWorldQuickStep (x3dworld->_world,STEP_SIZE); //0.02);
+			}
 
 			//Rigidbody -> Collidable
 			for(i=0;i<x3dworld->bodies.n;i++){
@@ -414,11 +503,14 @@ void rbp_run_physics(){
 						rotation = x3doffset->rotation;
 						dpos = dBodyGetPosition (x3dbody->_body);
 						dquat = dBodyGetQuaternion(x3dbody->_body);
-						quat.x = dquat[0], quat.y = dquat[1], quat.z = dquat[2], quat.w = dquat[3];
+						quat.x = dquat[1], quat.y = dquat[2], quat.z = dquat[3], quat.w = dquat[0];
 						quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
 
 						double2float(x3doffset->translation.c,dpos,3);
 						double2float(x3doffset->rotation.c,xyza,4);
+						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,translation));
+						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,rotation));
+
 						x3doffset->_change++;
 
 					}
@@ -451,39 +543,58 @@ void register_RigidBodyCollection(struct X3D_Node *_node){
 		struct X3D_RigidBodyCollection *node = (struct X3D_RigidBodyCollection*)_node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 
-		world = dWorldCreate();
-		space = dHashSpaceCreate (0); //default space
+		if(!world){
+			world = dWorldCreate();
+			space = dHashSpaceCreate (0); //default space
 
-		dWorldSetGravity (world,0,-GRAVITY,0);
-		dWorldSetCFM (world,1e-5);
-		dWorldSetAutoDisableFlag (world,1);
-		contactgroup = dJointGroupCreate (0);
+			dWorldSetGravity (world,node->gravity.c[0],node->gravity.c[1],node->gravity.c[2]);
+			dWorldSetCFM (world,1e-5);
+			dWorldSetAutoDisableFlag (world,1);
+			contactgroup = dJointGroupCreate (0); //this is a default group for doing just collisions
 
-		#if 1
+			#if 1
 
-		dWorldSetAutoDisableAverageSamplesCount( world, 10 );
+			dWorldSetAutoDisableAverageSamplesCount( world, 10 );
 
-		#endif
+			#endif
 
-		dWorldSetLinearDamping(world, 0.00001);
-		dWorldSetAngularDamping(world, 0.005);
-		dWorldSetMaxAngularSpeed(world, 200);
+			dWorldSetLinearDamping(world, 0.00001);
+			dWorldSetAngularDamping(world, 0.005);
+			dWorldSetMaxAngularSpeed(world, 200);
 
-		dWorldSetContactMaxCorrectingVel (world,0.1);
-		dWorldSetContactSurfaceLayer (world,0.001);
-
+			dWorldSetContactMaxCorrectingVel (world,0.1);
+			dWorldSetContactSurfaceLayer (world,0.001);
+		} 
 		node->_world = (void*)world;
 		node->_space = (void*)space;
+		dJointGroupID groupID = dJointGroupCreate (0);
+		node->_group = groupID;
 		if(!x3dworlds) x3dworlds = newVector(struct X3D_Node*,5);
 		vector_pushBack(struct X3D_Node*,x3dworlds,_node);
 		MARK_NODE_COMPILED;
 	}
 }
 
+// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rigid_physics.html#TransformationHierarchy
+// "Nodes .. are not part of the transform hierarchy.."
+// 37.4.3 CollidableShape: "When placed under a part of the transformation hierarchy, 
+// it can be used to visually represent the movement of the object."
+// Interpretation:
+// if/when put outside of the X3DRigidBodyCollection -via DEF / USE- then 
+// the collidableshape (and any wrapper collidableOffset) transforms are pushed onto the 
+// render_hier transform stack and the (collision/physics proxy) Shape is rendered
+// (versus if hidden with Switch -1, or only DEFed inside X3DRigidBodyCollection, Shape is never
+// rendered, but CollidableShape and CollidableOffset should output translation_changed,
+// and rotation_changed events, so can route to transforms containing non-proxy shapes
+
+// option: just expose compile and render virt_ functions for collidableshape and collidableoffset
+//- and handle prep/fin/child privately
+
 
 void prep_CollidableShape(struct X3D_Node *_node){
 	if(_node){
-		//CollidableOffset will come in here too, so in perl, keep the first fields in same order so we can caste to one, and the fields jive
+		//CollidableOffset will come in here too, so in perl, keep the first fields in same order 
+		//so we can caste to one, and the fields jive
 		struct X3D_CollidableShape *node = (struct X3D_CollidableShape*)_node;
 		if(!renderstate()->render_vp) {
 
@@ -572,15 +683,24 @@ void child_CollidableOffset(struct X3D_Node *_node){
 	}
 }
 
-
+//void do_CollisionSensorTick(void * ptr){
+//	struct X3D_CollisionSensor *node = (struct X3D_CollisionSensor *)ptr;
+//	if(!node)return;
+//}
 void add_physics(struct X3D_Node *node){
 	switch(node->_nodeType){
 		case NODE_CollisionSensor:
+			//Nov. 2016: H: this should be in do_first ie do_CollisionSensor
+			//which gets called before routing ie so if there's a Contact it can be routed
+			//its almost the same place as physics, which is just after do_events,routing
+			// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/concepts.html#ExecutionModel
 			register_CollisionSensor(node);
 			break;
 		case NODE_RigidBodyCollection:
+			//OK good.
 			register_RigidBodyCollection(node);
 			break;
+		//Q. what about CollisionSpace, CollisionCollection - should they be registered here?
 		default:
 			break;
 	}

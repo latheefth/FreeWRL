@@ -8,10 +8,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFreeWRL", "lib\libFreeWR
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dllFreeWRL", "dllFreeWRL\dllFreeWRL.vcxproj", "{8B124FE7-4284-46D4-B962-F1EE06911C95}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeWRLEAITest", "freeWRLEAITest\freeWRLEAITest.vcxproj", "{812D374C-9909-4651-9A89-B6324FB7A697}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfreeWRLEAI", "libfreeWRLEAI\libfreeWRLEAI.vcxproj", "{025DC1AD-0C75-4A06-A641-32F2EABD28B6}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFreeWRL_dotNetwrapper", "libFreeWRL_dotNetwrapper\libFreeWRL_dotNetwrapper.vcxproj", "{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_dll", "test_dll\test_dll.vcxproj", "{049F7A37-B2B2-401F-B7A1-5870D0619947}"
@@ -87,29 +83,6 @@ Global
 		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Release|Win32.ActiveCfg = Release|Win32
 		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Release|Win32.Build.0 = Release|Win32
 		{8B124FE7-4284-46D4-B962-F1EE06911C95}.Release|x64.ActiveCfg = Release|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Debug_glew|Win32.ActiveCfg = Debug_glew|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Debug_glew|Win32.Build.0 = Debug_glew|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Debug_glew|x64.ActiveCfg = Debug_glew|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Debug|Win32.ActiveCfg = Debug|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Debug|Win32.Build.0 = Debug|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Debug|x64.ActiveCfg = Debug|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Release_glew|Win32.ActiveCfg = Debug|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Release_glew|x64.ActiveCfg = Debug|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Release|Win32.ActiveCfg = Debug|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Release|Win32.Build.0 = Debug|Win32
-		{812D374C-9909-4651-9A89-B6324FB7A697}.Release|x64.ActiveCfg = Debug|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Debug_glew|Win32.ActiveCfg = Debug_glew|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Debug_glew|Win32.Build.0 = Debug_glew|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Debug_glew|x64.ActiveCfg = Debug_glew|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Debug|Win32.ActiveCfg = Debug|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Debug|Win32.Build.0 = Debug|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Debug|x64.ActiveCfg = Debug|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Release_glew|Win32.ActiveCfg = Release_glew|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Release_glew|Win32.Build.0 = Release_glew|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Release_glew|x64.ActiveCfg = Release|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Release|Win32.ActiveCfg = Release|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Release|Win32.Build.0 = Release|Win32
-		{025DC1AD-0C75-4A06-A641-32F2EABD28B6}.Release|x64.ActiveCfg = Release|Win32
 		{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}.Debug_glew|Win32.ActiveCfg = Debug_glew|Win32
 		{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}.Debug_glew|Win32.Build.0 = Debug_glew|Win32
 		{7A967509-DAAC-432E-8D42-EB9FD4A7C2E5}.Debug_glew|x64.ActiveCfg = Debug_glew|Win32
