@@ -621,7 +621,52 @@ void rbp_run_physics(){
 						}
 						break;
 					case NODE_MotorJoint:
-						//render_BallJoint(joint); break;
+						{
+							// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rigid_physics.html#MotorJoint
+							// x3dmotorjoint only ode Angular AMotor, (no Linear LMotor parameters) 
+							// only ode so-called User mode
+							// http://ode.org/ode-latest-userguide.html#sec_7_5_1
+							// table of joint parameters
+							// dParamVel and dParamFMax relate specifically to AMotor joints
+							dJointID jointID;
+							struct X3D_MotorJoint *jnt = (struct X3D_MotorJoint*)joint;
+							if(!jnt->_joint){
+								dBodyID body1ID, body2ID;
+								struct X3D_RigidBody *xbody1, *xbody2;
+								xbody1 = (struct X3D_RigidBody*)jnt->body1;
+								xbody2 = (struct X3D_RigidBody*)jnt->body2;
+								//allow for MULL body on one side of joint, to fix to static environment
+								body1ID = xbody1 ? xbody1->_body : NULL;
+								body2ID = xbody2 ? xbody2->_body : NULL;
+								jointID = dJointCreateAMotor (x3dworld->_world,x3dworld->_group);
+								dJointAttach (jointID,body1ID,body2ID);
+
+								//dJointSetAMotorMode (jointID,dAMotorEuler);
+								dJointSetAMotorMode (jointID,dAMotorUser); 
+								dJointSetAMotorNumAxes (jointID,jnt->enabledAxes);
+								//rel: relative to: 0-static 1-first body 2-2nd body
+								if(TRUE || jnt->enabledAxes >0 ){
+									dJointSetAMotorAxis (jointID,0,0, jnt->motor1Axis.c[0],jnt->motor1Axis.c[1],jnt->motor1Axis.c[2]);
+									dJointSetAMotorAngle (jointID, 0, jnt->axis1Angle);
+									//dJointSetAMotorParam(jointID,dParamFMax,jnt->axis1Torque);
+								}
+								if(TRUE || jnt->enabledAxes >1 ){
+									dJointSetAMotorAxis (jointID,1,1, jnt->motor2Axis.c[0],jnt->motor2Axis.c[1],jnt->motor2Axis.c[2]);
+									dJointSetAMotorAngle (jointID, 1, jnt->axis2Angle);
+									//dJointSetAMotorParam(jointID,dParamFMax2,jnt->axis2Torque);
+								}
+								if(TRUE || jnt->enabledAxes >2 ){
+									dJointSetAMotorAxis (jointID,2,2, jnt->motor3Axis.c[0],jnt->motor3Axis.c[1],jnt->motor3Axis.c[2]);
+									dJointSetAMotorAngle (jointID, 2, jnt->axis2Angle);
+									//dJointSetAMotorParam(jointID,dParamFMax3,jnt->axis3Torque);
+								}
+								jnt->_joint = jointID;
+							dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
+							}
+							//per-frame torque
+							//dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
+
+						}
 						break;
 					default:
 						break;
@@ -630,7 +675,7 @@ void rbp_run_physics(){
 
 
 			//RUN PHYSICS ENGINE
-			if(1) dSpaceCollide (x3dworld->_space,0,&nearCallback);
+			dSpaceCollide (x3dworld->_space,0,&nearCallback);
 			if (!pause) {
 				double step_fraction = STEP_SIZE / (double)x3dworld->iterations;
 				for(int kstep=0;kstep<nstep*x3dworld->iterations;kstep++)
