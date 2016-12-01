@@ -472,6 +472,10 @@ void rbp_run_physics(){
 					}
 
 					//add any per-step per-body forces
+					float speed = veclength3f(x3dbody->linearVelocity.c);
+					if(speed > .001f){
+						dBodySetLinearVel(x3dbody->_body, x3dbody->linearVelocity.c[0],x3dbody->linearVelocity.c[1],x3dbody->linearVelocity.c[2]);
+					}
 					if(x3dbody->autoDamp){
 					}
 					if(x3dbody->forces.n){
@@ -496,8 +500,9 @@ void rbp_run_physics(){
 								struct X3D_RigidBody *xbody1, *xbody2;
 								xbody1 = (struct X3D_RigidBody*)jnt->body1;
 								xbody2 = (struct X3D_RigidBody*)jnt->body2;
-								body1ID = xbody1->_body;
-								body2ID = xbody2->_body;
+								//allow for MULL body on one side of joint, to fix to static environment
+								body1ID = xbody1 ? xbody1->_body : NULL;
+								body2ID = xbody2 ? xbody2->_body : NULL;
 								jointID = dJointCreateBall (x3dworld->_world,x3dworld->_group);
 								dJointAttach (jointID,body1ID,body2ID);
 								dJointSetBallAnchor(jointID, jnt->anchorPoint.c[0],jnt->anchorPoint.c[1], jnt->anchorPoint.c[2]);
@@ -506,13 +511,115 @@ void rbp_run_physics(){
 						}
 						break;
 					case NODE_SingleAxisHingeJoint:
-						//render_BallJoint(joint); break;
+						{
+							dJointID jointID;
+							struct X3D_SingleAxisHingeJoint *jnt = (struct X3D_SingleAxisHingeJoint*)joint;
+							if(!jnt->_joint){
+								dBodyID body1ID, body2ID;
+								struct X3D_RigidBody *xbody1, *xbody2;
+								xbody1 = (struct X3D_RigidBody*)jnt->body1;
+								xbody2 = (struct X3D_RigidBody*)jnt->body2;
+								//allow for MULL body on one side of joint, to fix to static environment
+								body1ID = xbody1 ? xbody1->_body : NULL;
+								body2ID = xbody2 ? xbody2->_body : NULL;
+								jointID = dJointCreateHinge (x3dworld->_world,x3dworld->_group);
+								dJointAttach (jointID,body1ID,body2ID);
+								dJointSetHingeAnchor (jointID,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+								float axislen = veclength3f(jnt->axis.c);
+								if(axislen < .1){
+									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
+									jnt->axis.c[0] = jnt->axis.c[1] = 0.0f;
+									jnt->axis.c[2] = 1.0f;
+								}
+								dJointSetHingeAxis (jointID,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
+								jnt->_joint = jointID;
+							}
+						}
+						break;
 					case NODE_DoubleAxisHingeJoint:
-						//render_BallJoint(joint); break;
+						{
+							dJointID jointID;
+							struct X3D_DoubleAxisHingeJoint *jnt = (struct X3D_DoubleAxisHingeJoint*)joint;
+							if(!jnt->_joint){
+								dBodyID body1ID, body2ID;
+								struct X3D_RigidBody *xbody1, *xbody2;
+								xbody1 = (struct X3D_RigidBody*)jnt->body1;
+								xbody2 = (struct X3D_RigidBody*)jnt->body2;
+								//allow for MULL body on one side of joint, to fix to static environment
+								body1ID = xbody1 ? xbody1->_body : NULL;
+								body2ID = xbody2 ? xbody2->_body : NULL;
+								jointID = dJointCreateHinge (x3dworld->_world,x3dworld->_group);
+								dJointAttach (jointID,body1ID,body2ID);
+								dJointSetDHingeAnchor1(jointID,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+								float axislen = veclength3f(jnt->axis1.c);
+								if(axislen < .1){
+									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
+									jnt->axis1.c[0] = jnt->axis1.c[1] = 0.0f;
+									jnt->axis1.c[2] = 1.0f;
+								}
+								//dJointSetHingeAxis (jointID,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+								dJointSetDHingeAxis(jointID,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+								//dJointSetDHingeAxis2(jointID, jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
+								float anchor2[3];
+								vecadd3f(anchor2,jnt->anchorPoint.c,jnt->axis2.c);
+								dJointSetDHingeAnchor2(jointID, anchor2[0],anchor2[1],anchor2[2]);
+
+								jnt->_joint = jointID;
+							}
+						}
+						break;
 					case NODE_SliderJoint:
-						//render_BallJoint(joint); break;
+						{
+							dJointID jointID;
+							struct X3D_SliderJoint *jnt = (struct X3D_SliderJoint*)joint;
+							if(!jnt->_joint){
+								dBodyID body1ID, body2ID;
+								struct X3D_RigidBody *xbody1, *xbody2;
+								xbody1 = (struct X3D_RigidBody*)jnt->body1;
+								xbody2 = (struct X3D_RigidBody*)jnt->body2;
+								//allow for MULL body on one side of joint, to fix to static environment
+								body1ID = xbody1 ? xbody1->_body : NULL;
+								body2ID = xbody2 ? xbody2->_body : NULL;
+								jointID = dJointCreateSlider (x3dworld->_world,x3dworld->_group);
+								dJointAttach (jointID,body1ID,body2ID);
+							    dJointSetSliderAxis (jointID,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
+								jnt->_joint = jointID;
+							}
+						}
+						break;
 					case NODE_UniversalJoint:
-						//render_BallJoint(joint); break;
+						{
+							dJointID jointID;
+							struct X3D_UniversalJoint *jnt = (struct X3D_UniversalJoint*)joint;
+							if(!jnt->_joint){
+								dBodyID body1ID, body2ID;
+								struct X3D_RigidBody *xbody1, *xbody2;
+								xbody1 = (struct X3D_RigidBody*)jnt->body1;
+								xbody2 = (struct X3D_RigidBody*)jnt->body2;
+								//allow for MULL body on one side of joint, to fix to static environment
+								body1ID = xbody1 ? xbody1->_body : NULL;
+								body2ID = xbody2 ? xbody2->_body : NULL;
+								jointID = dJointCreateUniversal (x3dworld->_world,x3dworld->_group);
+								dJointAttach (jointID,body1ID,body2ID);
+								dJointSetUniversalAnchor (jointID,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+								float axislen = veclength3f(jnt->axis1.c);
+								if(axislen < .1){
+									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
+									jnt->axis1.c[0] = jnt->axis1.c[1] = 0.0f;
+									jnt->axis1.c[2] = 1.0f;
+								}
+								axislen = veclength3f(jnt->axis2.c);
+								if(axislen < .1){
+									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
+									jnt->axis2.c[0] = jnt->axis2.c[2] = 0.0f;
+									jnt->axis2.c[1] = 1.0f;
+								}
+								dJointSetUniversalAxis1 (jointID,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+								dJointSetUniversalAxis2 (jointID,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
+								jnt->_joint = jointID;
+							}
+						}
+						break;
 					case NODE_MotorJoint:
 						//render_BallJoint(joint); break;
 						break;

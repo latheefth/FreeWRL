@@ -11849,7 +11849,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->anchorPoint.c[0] = 0.0f;tmp2->anchorPoint.c[1] = 0.0f;tmp2->anchorPoint.c[2] = 0.0f;
 			tmp2->angle = 0.0f;
 			tmp2->angleRate = 0.0f;
-			tmp2->axis.c[0] = 0.0f;tmp2->axis.c[1] = 0.0f;tmp2->axis.c[2] = 0.0f;
+			tmp2->axis.c[0] = 0.0f;tmp2->axis.c[1] = 0.0f;tmp2->axis.c[2] = 1.0f;
 			tmp2->body1 = NULL;
 			tmp2->body1AnchorPoint.c[0] = 0.0f;tmp2->body1AnchorPoint.c[1] = 0.0f;tmp2->body1AnchorPoint.c[2] = 0.0f;
 			tmp2->body2 = NULL;
