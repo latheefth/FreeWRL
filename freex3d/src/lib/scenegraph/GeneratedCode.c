@@ -217,6 +217,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_fbohandles",
 	"_floatInpFIFO",
 	"_floatOutFIFO",
+	"_forceout",
 	"_frameSpeed",
 	"_geom",
 	"_geometryType",
@@ -3566,6 +3567,7 @@ const int OFFSETS_Background[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_BallJoint[] = {
+	(int) FIELDNAMES__forceout, (int) offsetof (struct X3D_BallJoint, _forceout),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__joint, (int) offsetof (struct X3D_BallJoint, _joint),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_anchorPoint, (int) offsetof (struct X3D_BallJoint, anchorPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_body1, (int) offsetof (struct X3D_BallJoint, body1),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -4136,6 +4138,7 @@ const int OFFSETS_Disk2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_DoubleAxisHingeJoint[] = {
+	(int) FIELDNAMES__forceout, (int) offsetof (struct X3D_DoubleAxisHingeJoint, _forceout),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__joint, (int) offsetof (struct X3D_DoubleAxisHingeJoint, _joint),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_anchorPoint, (int) offsetof (struct X3D_DoubleAxisHingeJoint, anchorPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_axis1, (int) offsetof (struct X3D_DoubleAxisHingeJoint, axis1),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5483,6 +5486,7 @@ const int OFFSETS_MetadataString[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_MotorJoint[] = {
+	(int) FIELDNAMES__forceout, (int) offsetof (struct X3D_MotorJoint, _forceout),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__joint, (int) offsetof (struct X3D_MotorJoint, _joint),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_autoCalc, (int) offsetof (struct X3D_MotorJoint, autoCalc),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_axis1Angle, (int) offsetof (struct X3D_MotorJoint, axis1Angle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6466,6 +6470,7 @@ const int OFFSETS_SilhouetteEnhancementVolumeStyle[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SingleAxisHingeJoint[] = {
+	(int) FIELDNAMES__forceout, (int) offsetof (struct X3D_SingleAxisHingeJoint, _forceout),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__joint, (int) offsetof (struct X3D_SingleAxisHingeJoint, _joint),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_anchorPoint, (int) offsetof (struct X3D_SingleAxisHingeJoint, anchorPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_angle, (int) offsetof (struct X3D_SingleAxisHingeJoint, angle),  (int) FIELDTYPE_SFFloat, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6484,6 +6489,7 @@ const int OFFSETS_SingleAxisHingeJoint[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SliderJoint[] = {
+	(int) FIELDNAMES__forceout, (int) offsetof (struct X3D_SliderJoint, _forceout),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__joint, (int) offsetof (struct X3D_SliderJoint, _joint),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_axis, (int) offsetof (struct X3D_SliderJoint, axis),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_body1, (int) offsetof (struct X3D_SliderJoint, body1),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7017,6 +7023,7 @@ const int OFFSETS_TwoSidedMaterial[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_UniversalJoint[] = {
+	(int) FIELDNAMES__forceout, (int) offsetof (struct X3D_UniversalJoint, _forceout),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__joint, (int) offsetof (struct X3D_UniversalJoint, _joint),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_anchorPoint, (int) offsetof (struct X3D_UniversalJoint, anchorPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_axis1, (int) offsetof (struct X3D_UniversalJoint, axis1),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8127,6 +8134,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_BallJoint : {
 			struct X3D_BallJoint * tmp2;
 			tmp2 = (struct X3D_BallJoint *) tmp;
+			tmp2->_forceout = 0;
 			tmp2->_joint = 0;
 			tmp2->anchorPoint.c[0] = 0.0f;tmp2->anchorPoint.c[1] = 0.0f;tmp2->anchorPoint.c[2] = 0.0f;
 			tmp2->body1 = NULL;
@@ -8887,6 +8895,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_DoubleAxisHingeJoint : {
 			struct X3D_DoubleAxisHingeJoint * tmp2;
 			tmp2 = (struct X3D_DoubleAxisHingeJoint *) tmp;
+			tmp2->_forceout = 0;
 			tmp2->_joint = 0;
 			tmp2->anchorPoint.c[0] = 0.0f;tmp2->anchorPoint.c[1] = 0.0f;tmp2->anchorPoint.c[2] = 0.0f;
 			tmp2->axis1.c[0] = 0.0f;tmp2->axis1.c[1] = 0.0f;tmp2->axis1.c[2] = 0.0f;
@@ -10650,6 +10659,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MotorJoint : {
 			struct X3D_MotorJoint * tmp2;
 			tmp2 = (struct X3D_MotorJoint *) tmp;
+			tmp2->_forceout = 0;
 			tmp2->_joint = 0;
 			tmp2->autoCalc = FALSE;
 			tmp2->axis1Angle = 0.0f;
@@ -11845,6 +11855,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SingleAxisHingeJoint : {
 			struct X3D_SingleAxisHingeJoint * tmp2;
 			tmp2 = (struct X3D_SingleAxisHingeJoint *) tmp;
+			tmp2->_forceout = 0;
 			tmp2->_joint = 0;
 			tmp2->anchorPoint.c[0] = 0.0f;tmp2->anchorPoint.c[1] = 0.0f;tmp2->anchorPoint.c[2] = 0.0f;
 			tmp2->angle = 0.0f;
@@ -11866,6 +11877,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SliderJoint : {
 			struct X3D_SliderJoint * tmp2;
 			tmp2 = (struct X3D_SliderJoint *) tmp;
+			tmp2->_forceout = 0;
 			tmp2->_joint = 0;
 			tmp2->axis.c[0] = 0.0f;tmp2->axis.c[1] = 0.0f;tmp2->axis.c[2] = 0.0f;
 			tmp2->body1 = NULL;
@@ -12581,6 +12593,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_UniversalJoint : {
 			struct X3D_UniversalJoint * tmp2;
 			tmp2 = (struct X3D_UniversalJoint *) tmp;
+			tmp2->_forceout = 0;
 			tmp2->_joint = 0;
 			tmp2->anchorPoint.c[0] = 0.0f;tmp2->anchorPoint.c[1] = 0.0f;tmp2->anchorPoint.c[2] = 0.0f;
 			tmp2->axis1.c[0] = 0.0f;tmp2->axis1.c[1] = 0.0f;tmp2->axis1.c[2] = 0.0f;

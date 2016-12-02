@@ -275,6 +275,85 @@ void finish_rbp(){
 	}
 
 }
+enum {
+FORCEOUT_ALL = 0xFFFFFFFF,
+FORCEOUT_NONE = 0x00000000,
+//MOTOR
+FORCEOUT_motor1Angle	= 1 << 0,
+FORCEOUT_motor1AngleRate= 1 << 1,
+FORCEOUT_motor2Angle	= 1 << 2,
+FORCEOUT_motor2AngleRate= 1 << 3,
+FORCEOUT_motor3Angle	= 1 << 4,
+FORCEOUT_motor3AngleRate= 1 << 5,
+//DOUBLEAXISHING
+FORCEOUT_body1AnchorPoint=1 << 6,
+FORCEOUT_body1Axis		= 1 << 7,
+FORCEOUT_body2AnchorPoint=1 << 8,
+FORCEOUT_body2Axis		= 1 << 9,
+FORCEOUT_hinge1Angle	= 1 << 10,
+FORCEOUT_hinge1AngleRate= 1 << 11,
+FORCEOUT_hinge2Angle	= 1 << 12,
+FORCEOUT_hinge2AngleRate= 1 << 13,
+//SINGLEAXIS
+FORCEOUT_angle			= 1 << 14,
+FORCEOUT_angleRate		= 1 << 15,
+//SLIDER
+FORCEOUT_separation		= 1 << 16,
+FORCEOUT_separationRate	= 1 << 17,
+
+
+};
+static struct force_output_fieldname {
+char *fieldname;
+unsigned int bitmask;
+} force_output_fieldnames [] = {
+{"ALL",				FORCEOUT_ALL},
+{"NONE",			FORCEOUT_NONE},
+//MOTOR
+{"motor1Angle",		FORCEOUT_motor1Angle},
+{"motor1AngleRate",	FORCEOUT_motor1AngleRate},
+{"motor2Angle",		FORCEOUT_motor2Angle},
+{"motor2AngleRate",	FORCEOUT_motor2AngleRate},
+{"motor3Angle",		FORCEOUT_motor3Angle},
+{"motor3AngleRate",	FORCEOUT_motor3AngleRate},
+//DOUBLEAXISHINGE
+{"body1AnchorPoint"	,FORCEOUT_body1AnchorPoint},
+{"body1Axis"		,FORCEOUT_body1Axis},
+{"body2AnchorPoint"	,FORCEOUT_body2AnchorPoint},
+{"body2Axis"		,FORCEOUT_body2Axis},
+{"hinge1Angle"		,FORCEOUT_hinge1Angle},
+{"hinge1AngleRate"	,FORCEOUT_hinge1AngleRate},
+{"hinge2Angle"		,FORCEOUT_hinge2Angle},
+{"hinge2AngleRate"	,FORCEOUT_hinge2AngleRate},
+//SINGLE
+{"angle"			,FORCEOUT_angle},
+{"angleRate"		,FORCEOUT_angleRate},
+//SLIDER
+{"separation"		,FORCEOUT_separation},
+{"separationRate"	,FORCEOUT_separationRate},
+
+
+
+{NULL,0}
+};
+unsigned int forceout_from_names(int n, struct Uni_String **p){
+	int i,j;
+	unsigned int ret = 0;
+	if(!strcmp(p[0]->strptr,"ALL")) return FORCEOUT_ALL;
+	if(!strcmp(p[0]->strptr,"NONE")) return FORCEOUT_NONE;
+	for(i=0;i<n;i++){
+		struct force_output_fieldname *fname;
+		j=0;
+		do{
+			 if(!strcmp(p[i]->strptr,force_output_fieldnames[j].fieldname)){
+				ret |= force_output_fieldnames[j].bitmask;
+			 }
+			 j++;
+		}while(force_output_fieldnames[j].fieldname != NULL);
+	}
+	return ret;
+}
+
 static int pause = FALSE;
 static double STEP_SIZE = .02; //seconds
 /* http://www.ode.org/ode-0.039-userguide.html#ref27
@@ -507,6 +586,7 @@ void rbp_run_physics(){
 								dJointAttach (jointID,body1ID,body2ID);
 								dJointSetBallAnchor(jointID, jnt->anchorPoint.c[0],jnt->anchorPoint.c[1], jnt->anchorPoint.c[2]);
 								jnt->_joint = jointID;
+								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 							}
 						}
 						break;
@@ -533,6 +613,8 @@ void rbp_run_physics(){
 								}
 								dJointSetHingeAxis (jointID,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
 								jnt->_joint = jointID;
+								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+
 							}
 						}
 						break;
@@ -565,6 +647,8 @@ void rbp_run_physics(){
 								dJointSetDHingeAnchor2(jointID, anchor2[0],anchor2[1],anchor2[2]);
 
 								jnt->_joint = jointID;
+								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+
 							}
 						}
 						break;
@@ -584,6 +668,8 @@ void rbp_run_physics(){
 								dJointAttach (jointID,body1ID,body2ID);
 							    dJointSetSliderAxis (jointID,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
 								jnt->_joint = jointID;
+								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+
 							}
 						}
 						break;
@@ -617,6 +703,8 @@ void rbp_run_physics(){
 								dJointSetUniversalAxis1 (jointID,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
 								dJointSetUniversalAxis2 (jointID,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
 								jnt->_joint = jointID;
+								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+
 							}
 						}
 						break;
@@ -661,10 +749,12 @@ void rbp_run_physics(){
 									//dJointSetAMotorParam(jointID,dParamFMax3,jnt->axis3Torque);
 								}
 								jnt->_joint = jointID;
-							dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
+								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+
+							//dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
 							}
 							//per-frame torque
-							//dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
+							dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
 
 						}
 						break;
@@ -682,6 +772,7 @@ void rbp_run_physics(){
 					dWorldQuickStep (x3dworld->_world,step_fraction); //STEP_SIZE); //0.02);
 			}
 
+			//do eventOuts
 			//Rigidbody -> Collidable
 			for(i=0;i<x3dworld->bodies.n;i++){
 				x3dbody = (struct X3D_RigidBody*)x3dworld->bodies.p[i];
@@ -719,7 +810,173 @@ void rbp_run_physics(){
 
 					}
 				}
-			}
+			} //for bodies
+			for(i=0;i<x3dworld->joints.n;i++){
+				struct X3D_Node *joint = (struct X3D_Node*)x3dworld->joints.p[i];
+				// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rigid_physics.html#X3DRigidJointNode
+				// 	forceOutput = [NONE] ["NONE","ALL", specific output field name ie for MotorJoint "motor1AngleRate"
+				switch(joint->_nodeType){
+					case NODE_BallJoint:
+						{
+							dJointID jointID;
+							struct X3D_BallJoint *jnt = (struct X3D_BallJoint*)joint;
+							if(jnt->_forceout){
+								if(jnt->_forceout & FORCEOUT_body1AnchorPoint){
+							//		jnt->body1AnchorPoint = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_BallJoint,body1AnchorPoint));
+								}
+								if(jnt->_forceout & FORCEOUT_body2AnchorPoint){
+							//		jnt->body2AnchorPoint = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_BallJoint,body2AnchorPoint));
+								}
+
+							}
+						}
+						break;
+					case NODE_SingleAxisHingeJoint:
+						{
+							dJointID jointID;
+							struct X3D_SingleAxisHingeJoint *jnt = (struct X3D_SingleAxisHingeJoint*)joint;
+							if(jnt->_forceout){
+
+  								if(jnt->_forceout & FORCEOUT_angle){
+							//		jnt->angle = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_SingleAxisHingeJoint,angle));
+								}
+								if(jnt->_forceout & FORCEOUT_angleRate){
+							//		jnt->angleRate = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_SingleAxisHingeJoint,angleRate));
+								}
+
+  								if(jnt->_forceout & FORCEOUT_body1AnchorPoint){
+							//		jnt->body1AnchorPoint = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_SingleAxisHingeJoint,body1AnchorPoint));
+								}
+								if(jnt->_forceout & FORCEOUT_body2AnchorPoint){
+							//		jnt->body2AnchorPoint = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_SingleAxisHingeJoint,body2AnchorPoint));
+								}
+							}
+						}
+						break;
+					case NODE_DoubleAxisHingeJoint:
+						{
+							dJointID jointID;
+							struct X3D_DoubleAxisHingeJoint *jnt = (struct X3D_DoubleAxisHingeJoint*)joint;
+							if(jnt->_forceout){
+								if(jnt->_forceout & FORCEOUT_body1AnchorPoint){
+							//		jnt->body1AnchorPoint = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_DoubleAxisHingeJoint,body1AnchorPoint));
+								}
+								if(jnt->_forceout & FORCEOUT_body1Axis){
+							//		jnt->body1Axis = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_DoubleAxisHingeJoint,body1Axis));
+								}
+								if(jnt->_forceout & FORCEOUT_body2AnchorPoint){
+							//		jnt->body2AnchorPoint = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_DoubleAxisHingeJoint,body2AnchorPoint));
+								}
+								if(jnt->_forceout & FORCEOUT_body2Axis){
+							//		jnt->body2Axis = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_DoubleAxisHingeJoint,body2Axis));
+								}
+								if(jnt->_forceout & FORCEOUT_hinge1Angle){
+							//		jnt->hinge1Angle = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_DoubleAxisHingeJoint,hinge1Angle));
+								}
+								if(jnt->_forceout & FORCEOUT_hinge1AngleRate){
+							//		jnt->hinge1AngleRate = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_DoubleAxisHingeJoint,hinge1AngleRate));
+								}
+								if(jnt->_forceout & FORCEOUT_hinge2Angle){
+							//		jnt->hinge2Angle = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_DoubleAxisHingeJoint,hinge2Angle));
+								}
+								if(jnt->_forceout & FORCEOUT_hinge2AngleRate){
+							//		jnt->hinge2AngleRate = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_DoubleAxisHingeJoint,hinge2AngleRate));
+								}
+
+							}
+						}
+						break;
+					case NODE_SliderJoint:
+						{
+							dJointID jointID;
+							struct X3D_SliderJoint *jnt = (struct X3D_SliderJoint*)joint;
+  							if(jnt->_forceout){
+  								if(jnt->_forceout & FORCEOUT_separation){
+							//		jnt->separation = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_SliderJoint,separation));
+								}
+								if(jnt->_forceout & FORCEOUT_separationRate){
+							//		jnt->separationRate = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_SliderJoint,separationRate));
+								}
+							}
+						}
+						break;
+					case NODE_UniversalJoint:
+						{
+							dJointID jointID;
+							struct X3D_UniversalJoint *jnt = (struct X3D_UniversalJoint*)joint;
+  							if(jnt->_forceout){
+								if(jnt->_forceout & FORCEOUT_body1AnchorPoint){
+							//		jnt->body1AnchorPoint = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_UniversalJoint,body1AnchorPoint));
+								}
+								if(jnt->_forceout & FORCEOUT_body1Axis){
+							//		jnt->body1Axis = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_UniversalJoint,body1Axis));
+								}
+								if(jnt->_forceout & FORCEOUT_body2AnchorPoint){
+							//		jnt->body2AnchorPoint = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_UniversalJoint,body2AnchorPoint));
+								}
+								if(jnt->_forceout & FORCEOUT_body2Axis){
+							//		jnt->body2Axis = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_UniversalJoint,body2Axis));
+								}
+							}
+						}
+						break;
+					case NODE_MotorJoint:
+						{
+							dJointID jointID;
+							struct X3D_MotorJoint *jnt = (struct X3D_MotorJoint*)joint;
+							if(jnt->_forceout){
+								if(jnt->_forceout & FORCEOUT_motor1Angle){
+									jnt->motor1Angle = dJointGetAMotorAngle( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor1Angle));
+								}
+								if(jnt->_forceout & FORCEOUT_motor1AngleRate){
+									jnt->motor1AngleRate = dJointGetAMotorAngleRate( jnt->_joint, 0 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor1AngleRate));
+								}
+								if(jnt->_forceout & FORCEOUT_motor2Angle){
+									jnt->motor2Angle = dJointGetAMotorAngle( jnt->_joint, 1 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor2Angle));
+								}
+								if(jnt->_forceout & FORCEOUT_motor2AngleRate){
+									jnt->motor2AngleRate = dJointGetAMotorAngleRate( jnt->_joint, 1 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor2AngleRate));
+								}
+								if(jnt->_forceout & FORCEOUT_motor3Angle){
+									jnt->motor3Angle = dJointGetAMotorAngle( jnt->_joint, 2 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor3Angle));
+								}
+								if(jnt->_forceout & FORCEOUT_motor3AngleRate){
+									jnt->motor3AngleRate = dJointGetAMotorAngleRate( jnt->_joint, 2 );
+									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor3AngleRate));
+								}
+							}
+
+						}
+						break;
+					default:
+						break;
+				} //switch on joint
+			} //for joints
 			//do collisionSensor
 				//not implemented yet
 			// remove all contact joints
