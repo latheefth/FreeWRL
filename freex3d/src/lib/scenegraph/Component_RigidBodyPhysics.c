@@ -228,12 +228,16 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 }
 
 int NNC(struct X3D_Node* node){
+	//NNC Node Needs Compiling
 	return NODE_NEEDS_COMPILING;
+	//return FALSE;
 }
-void MNCP(struct X3D_Node* node){
+void MNC(struct X3D_Node* node){
+	//MNC Mark Node Compiled
 	MARK_NODE_COMPILED;
 }
-void MNCH(struct X3D_Node* node){
+void MNX(struct X3D_Node* node){
+	//MNX Mark Node Changed
 	node->_change++;
 }
 static int init_rbp_once = 0;
@@ -375,6 +379,90 @@ A typical simulation will proceed like this:
 5.	Take a simulation step.
 6.	Remove all joints in the contact joint group.
 10.Destroy the dynamics and collision worlds.
+
+UPDATING NODES when NODE_NEEDS_COMPILING:
+Usually when you want to change a parameter on a running physics simulation, you 
+don't want the simulation to completely start over. You want it to carry on. The
+physics engine holds state for where things are. 
+
+In freewrl > propagate_events_B() > update_node(toNode); we flag the whole target
+node as needing a recompile, even when only one field was changed.
+To tell later, when compile_ recompiling the target node, which fields have changed
+we change the PERL node struct to have __oldfieldvalue and each time we recompile
+we save the current value of the field. So next time we compile_ the node,
+we can see if newfield == __oldfieldvalue, and if not, that field changed - apply the change.
+When we don't check, its because no harm is done by re-setting the field even if not changed.
+
+For RBPhysics nodes, there are lots of fields that can be harmlessly reset in the
+middle of a simulation.
+But there are some fields that should only be reset if the field changed 
+ORIC - Only Reset If Changed
+There's a pattern to them: 
+1. they relate to setting up the initial geometry poses, which are done
+    in global coordinates, not geometry or shape or 'local' coordinates, so once the simm starts
+	a change to these makes a mess
+2. no need to recompile Joint when child Bodies are recompiled - unless the body node (node* pointer) is different 
+   - because we update the physics state sufficiently when compiling the body
+
+I'll list (my guess at) the ORIC (Only Reset If Changed) fields here:
+
+BallJoint
+anchorPoint
+body1,body2
+
+CollidableShape,CollidableOffset
+(recompile like Transform node)
+x but don't flag parent X3DBody as needing to recompile
+
+DoubleAxisHingeJoint
+anchorPoint
+axis1,2
+body1,body2
+
+MotorJoint
+motor1Axis,motor2Axis,motor3Axis
+body1,body2
+
+RigidBody
+centerOfMass
+finiteRotationAxis
+linearVelocity
+orientation
+position
+
+SingleAxisHinge
+anchorPoint
+axis
+body1,body2
+
+SliderJoint
+axis
+body1,body2
+
+UniversalJoint
+anchorPoint
+axis1,2,3
+body1,body2
+
+Total: 31 ORIC fields
+(plus lots of other fields that are wastefully reset on a generic recompile)
+
+There are various options/possibilities/strategies for recording and recovering which fields were changed:
+1. __oldvalue fields for ORIC fields
+2. create a bitflag field, one bit for each field in the node 
+	(struct X3D_EspduTransform has 90 fields, and several are in the 30-40 range, would need 3 int32 =12 bytes)
+3. refactor freewrl code to include a bitflag in each field (like Script and Proto field structs)
+4. as in 2,3 except node would declare a __bitflag field only if it cares, and update_node would
+	check for that field and set the field bit only if it has the __bitflag field.
+	a) in the default part of the node struct, a pointer field called __bitflag which is normally null
+		- and malloced if needed
+	b) in the node-specific part, an MFInt32 field, and n x 32 bits are available
+Issue with 2,3,4: either you need all the bitflags set on startup (to trigger all fields compile)
+	or else you need a way to signal when its a partial recompile vs full recompile
+	- perhaps a special _change value on startup.
+
+DECISION: we'll do the #1 __oldvalue technique.
+
 */
 
 void rbp_run_physics(){
@@ -477,6 +565,7 @@ void rbp_run_physics(){
 									break;
 							}
 							x3dcshape->_geom = gid;
+							MNC(x3dcshape);
 						}
 						//for a fixed body, use the body position to position the geometry
 						translation = x3dbody->position;
@@ -555,6 +644,10 @@ void rbp_run_physics(){
 					if(speed > .001f){
 						dBodySetLinearVel(x3dbody->_body, x3dbody->linearVelocity.c[0],x3dbody->linearVelocity.c[1],x3dbody->linearVelocity.c[2]);
 					}
+					speed = veclength3f(x3dbody->angularVelocity.c);
+					if(speed > .0001f){
+						dBodySetAngularVel(x3dbody->_body, x3dbody->angularVelocity.c[0],x3dbody->angularVelocity.c[1],x3dbody->angularVelocity.c[2]);
+					}
 					if(x3dbody->autoDamp){
 					}
 					if(x3dbody->forces.n){
@@ -587,6 +680,8 @@ void rbp_run_physics(){
 								dJointSetBallAnchor(jointID, jnt->anchorPoint.c[0],jnt->anchorPoint.c[1], jnt->anchorPoint.c[2]);
 								jnt->_joint = jointID;
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								MNC(jnt);
+
 							}
 						}
 						break;
@@ -614,6 +709,7 @@ void rbp_run_physics(){
 								dJointSetHingeAxis (jointID,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
 								jnt->_joint = jointID;
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								MNC(jnt);
 
 							}
 						}
@@ -648,6 +744,7 @@ void rbp_run_physics(){
 
 								jnt->_joint = jointID;
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								MNC(jnt);
 
 							}
 						}
@@ -656,19 +753,22 @@ void rbp_run_physics(){
 						{
 							dJointID jointID;
 							struct X3D_SliderJoint *jnt = (struct X3D_SliderJoint*)joint;
-							if(!jnt->_joint){
-								dBodyID body1ID, body2ID;
-								struct X3D_RigidBody *xbody1, *xbody2;
-								xbody1 = (struct X3D_RigidBody*)jnt->body1;
-								xbody2 = (struct X3D_RigidBody*)jnt->body2;
-								//allow for MULL body on one side of joint, to fix to static environment
-								body1ID = xbody1 ? xbody1->_body : NULL;
-								body2ID = xbody2 ? xbody2->_body : NULL;
-								jointID = dJointCreateSlider (x3dworld->_world,x3dworld->_group);
-								dJointAttach (jointID,body1ID,body2ID);
-							    dJointSetSliderAxis (jointID,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
-								jnt->_joint = jointID;
+							if(NNC(jnt)){
+								if(!jnt->_joint){
+									dBodyID body1ID, body2ID;
+									struct X3D_RigidBody *xbody1, *xbody2;
+									xbody1 = (struct X3D_RigidBody*)jnt->body1;
+									xbody2 = (struct X3D_RigidBody*)jnt->body2;
+									//allow for MULL body on one side of joint, to fix to static environment
+									body1ID = xbody1 ? xbody1->_body : NULL;
+									body2ID = xbody2 ? xbody2->_body : NULL;
+									jointID = dJointCreateSlider (x3dworld->_world,x3dworld->_group);
+									dJointAttach (jointID,body1ID,body2ID);
+									jnt->_joint = jointID;
+								dJointSetSliderAxis (jnt->_joint,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
+								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								MNC(jnt);
 
 							}
 						}
@@ -704,6 +804,7 @@ void rbp_run_physics(){
 								dJointSetUniversalAxis2 (jointID,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
 								jnt->_joint = jointID;
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								MNC(jnt);
 
 							}
 						}
@@ -718,17 +819,19 @@ void rbp_run_physics(){
 							// dParamVel and dParamFMax relate specifically to AMotor joints
 							dJointID jointID;
 							struct X3D_MotorJoint *jnt = (struct X3D_MotorJoint*)joint;
-							if(!jnt->_joint){
-								dBodyID body1ID, body2ID;
-								struct X3D_RigidBody *xbody1, *xbody2;
-								xbody1 = (struct X3D_RigidBody*)jnt->body1;
-								xbody2 = (struct X3D_RigidBody*)jnt->body2;
-								//allow for MULL body on one side of joint, to fix to static environment
-								body1ID = xbody1 ? xbody1->_body : NULL;
-								body2ID = xbody2 ? xbody2->_body : NULL;
-								jointID = dJointCreateAMotor (x3dworld->_world,x3dworld->_group);
-								dJointAttach (jointID,body1ID,body2ID);
-
+							if(NNC(jnt)){
+								if(!jnt->_joint){
+									dBodyID body1ID, body2ID;
+									struct X3D_RigidBody *xbody1, *xbody2;
+									xbody1 = (struct X3D_RigidBody*)jnt->body1;
+									xbody2 = (struct X3D_RigidBody*)jnt->body2;
+									//allow for MULL body on one side of joint, to fix to static environment
+									body1ID = xbody1 ? xbody1->_body : NULL;
+									body2ID = xbody2 ? xbody2->_body : NULL;
+									jointID = dJointCreateAMotor (x3dworld->_world,x3dworld->_group);
+									dJointAttach (jointID,body1ID,body2ID);
+									jnt->_joint = jointID;
+								}
 								//dJointSetAMotorMode (jointID,dAMotorEuler);
 								dJointSetAMotorMode (jointID,dAMotorUser); 
 								dJointSetAMotorNumAxes (jointID,jnt->enabledAxes);
@@ -748,19 +851,18 @@ void rbp_run_physics(){
 									dJointSetAMotorAngle (jointID, 2, jnt->axis2Angle);
 									//dJointSetAMotorParam(jointID,dParamFMax3,jnt->axis3Torque);
 								}
-								jnt->_joint = jointID;
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								MNC(jnt);
 
 							//dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
 							}
 							//per-frame torque
 							dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
-
 						}
 						break;
 					default:
 						break;
-				}
+				} //switch (joint type)
 			}
 
 
