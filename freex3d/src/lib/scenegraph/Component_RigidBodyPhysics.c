@@ -427,6 +427,7 @@ RigidBody
 centerOfMass
 finiteRotationAxis
 linearVelocity
+angularVelocity
 orientation
 position
 
@@ -448,7 +449,7 @@ Total: 31 ORIC fields
 (plus lots of other fields that are wastefully reset on a generic recompile)
 
 There are various options/possibilities/strategies for recording and recovering which fields were changed:
-1. __oldvalue fields for ORIC fields
+1. __oldvalue fields for ORIC fields. Works well for scalars, but not MF/.n,.p fields (like forceOutput)
 2. create a bitflag field, one bit for each field in the node 
 	(struct X3D_EspduTransform has 90 fields, and several are in the 30-40 range, would need 3 int32 =12 bytes)
 3. refactor freewrl code to include a bitflag in each field (like Script and Proto field structs)
@@ -586,68 +587,84 @@ void rbp_run_physics(){
 							dRFromAxisAndAngle (R,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
 							dGeomSetRotation(x3dcshape->_geom,R);
 						}
+						if(x3dbody->autoDamp)
+							dBodySetAngularDamping(x3dbody->_body, x3dbody->angularDampingFactor);
+						else
+							dBodySetAngularDamping(x3dbody->_body, 0.0);
+							
 					} //if !geom
 
 				} //geometries
 
 				if(x3dbody->_body){
 					//not fixed
-					if(x3dbody->massDensityModel){
-						dReal sides[3];
-						dMass m;
-						switch(x3dbody->massDensityModel->_nodeType){
-							case NODE_Box:
-								{
-									struct X3D_Box *box = (struct X3D_Box*)x3dbody->massDensityModel;
-									sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
-									dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
-								}
-								break;
-							case NODE_Cylinder:
-								{
-									struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)x3dbody->massDensityModel;
-									sides[0] = cyl->radius;
-									sides[1] = cyl->height;
-									dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
-								}
-								break;
-							//case convex - not done yet, basically indexedfaceset
-							case NODE_Sphere:
-							default:
-								{
-									struct X3D_Sphere *sphere = (struct X3D_Sphere*)x3dbody->massDensityModel;
-									sides[0] = sphere->radius;
-									dMassSetSphere (&m,DENSITY,sides[0]);
-								}
-								break;
+					if(NNC(x3dbody)){
+						if(x3dbody->massDensityModel){
+							dReal sides[3];
+							dMass m;
+							switch(x3dbody->massDensityModel->_nodeType){
+								case NODE_Box:
+									{
+										struct X3D_Box *box = (struct X3D_Box*)x3dbody->massDensityModel;
+										sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
+										dMassSetBox (&m,DENSITY,sides[0],sides[1],sides[2]);
+									}
+									break;
+								case NODE_Cylinder:
+									{
+										struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)x3dbody->massDensityModel;
+										sides[0] = cyl->radius;
+										sides[1] = cyl->height;
+										dMassSetCylinder (&m,DENSITY,3,sides[0],sides[1]);
+									}
+									break;
+								//case convex - not done yet, basically indexedfaceset
+								case NODE_Sphere:
+								default:
+									{
+										struct X3D_Sphere *sphere = (struct X3D_Sphere*)x3dbody->massDensityModel;
+										sides[0] = sphere->radius;
+										dMassSetSphere (&m,DENSITY,sides[0]);
+									}
+									break;
+							}
+							dMassAdjust(&m,x3dbody->mass);
+							dBodySetMass (x3dbody->_body, &m);
+						}else{
+							dMass m;
+							dMassSetSphere (&m,DENSITY,.01);
+							dMassAdjust(&m,x3dbody->mass);
+							dBodySetMass (x3dbody->_body, &m);
 						}
-						dMassAdjust(&m,x3dbody->mass);
-						dBodySetMass (x3dbody->_body, &m);
-					}else{
-						dMass m;
-						dMassSetSphere (&m,DENSITY,.01);
-						dMassAdjust(&m,x3dbody->mass);
-						dBodySetMass (x3dbody->_body, &m);
-					}
 
-					if(x3dbody->useFiniteRotation){
-						dBodySetFiniteRotationAxis (x3dbody->_body, x3dbody->finiteRotationAxis.c[0],x3dbody->finiteRotationAxis.c[1],x3dbody->finiteRotationAxis.c[2]);
-					}
+						if(x3dbody->useFiniteRotation){
+							if(!vecsame3f(x3dbody->__old_finiteRotationAxis.c,x3dbody->finiteRotationAxis.c)){
+								dBodySetFiniteRotationAxis (x3dbody->_body, x3dbody->finiteRotationAxis.c[0],x3dbody->finiteRotationAxis.c[1],x3dbody->finiteRotationAxis.c[2]);
+								veccopy3f(x3dbody->__old_finiteRotationAxis.c,x3dbody->finiteRotationAxis.c);
+							}
+						}
 
-					//gravity?
-					if(!x3dbody->useGlobalGravity){
-						dBodySetGravityMode(x3dbody->_body,0);
-					}
-
-					//add any per-step per-body forces
-					float speed = veclength3f(x3dbody->linearVelocity.c);
-					if(speed > .001f){
-						dBodySetLinearVel(x3dbody->_body, x3dbody->linearVelocity.c[0],x3dbody->linearVelocity.c[1],x3dbody->linearVelocity.c[2]);
-					}
-					speed = veclength3f(x3dbody->angularVelocity.c);
-					if(speed > .0001f){
-						dBodySetAngularVel(x3dbody->_body, x3dbody->angularVelocity.c[0],x3dbody->angularVelocity.c[1],x3dbody->angularVelocity.c[2]);
-					}
+						//gravity?
+						if(!x3dbody->useGlobalGravity){
+							dBodySetGravityMode(x3dbody->_body,0);
+						}
+						//position and orientation set once in if(!_geom) above
+						//add any per-step per-body forces
+						float speed = veclength3f(x3dbody->linearVelocity.c);
+						if(speed > .001f){
+							if(!vecsame3f(x3dbody->__old_linearVelocity.c,x3dbody->linearVelocity.c)){
+								dBodySetLinearVel(x3dbody->_body, x3dbody->linearVelocity.c[0],x3dbody->linearVelocity.c[1],x3dbody->linearVelocity.c[2]);
+								veccopy3f(x3dbody->__old_linearVelocity.c,x3dbody->linearVelocity.c);
+							}
+						}
+						speed = veclength3f(x3dbody->angularVelocity.c);
+						if(speed > .0001f){
+							if(!vecsame3f(x3dbody->__old_angularVelocity.c,x3dbody->angularVelocity.c)){
+								dBodySetAngularVel(x3dbody->_body, x3dbody->angularVelocity.c[0],x3dbody->angularVelocity.c[1],x3dbody->angularVelocity.c[2]);
+								veccopy3f(x3dbody->__old_angularVelocity.c,x3dbody->angularVelocity.c);
+							}
+						}
+					} //if NCC(x3dbody)
 					if(x3dbody->autoDamp){
 					}
 					if(x3dbody->forces.n){
@@ -699,18 +716,27 @@ void rbp_run_physics(){
 								body2ID = xbody2 ? xbody2->_body : NULL;
 								jointID = dJointCreateHinge (x3dworld->_world,x3dworld->_group);
 								dJointAttach (jointID,body1ID,body2ID);
-								dJointSetHingeAnchor (jointID,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+								jnt->_joint = jointID;
+								veccopy3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c);
+								veccopy3f(jnt->__old_axis.c,jnt->axis.c);
+							}
+							if(NNC(jnt)){
+								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
+									dJointSetHingeAnchor (jointID,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+									veccopy3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c);
+								}
 								float axislen = veclength3f(jnt->axis.c);
 								if(axislen < .1){
 									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
 									jnt->axis.c[0] = jnt->axis.c[1] = 0.0f;
 									jnt->axis.c[2] = 1.0f;
 								}
-								dJointSetHingeAxis (jointID,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
-								jnt->_joint = jointID;
+								if(!vecsame3f(jnt->__old_axis.c,jnt->axis.c)){
+									dJointSetHingeAxis (jointID,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
+									veccopy3f(jnt->__old_axis.c,jnt->axis.c);
+								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 								MNC(jnt);
-
 							}
 						}
 						break;
@@ -765,16 +791,21 @@ void rbp_run_physics(){
 									jointID = dJointCreateSlider (x3dworld->_world,x3dworld->_group);
 									dJointAttach (jointID,body1ID,body2ID);
 									jnt->_joint = jointID;
-								dJointSetSliderAxis (jnt->_joint,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
+									veccopy3f(jnt->__old_axis.c,jnt->axis.c);
+								}
+								if(!vecsame3f(jnt->__old_axis.c,jnt->axis.c)){
+									dJointSetSliderAxis (jnt->_joint,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
+									veccopy3f(jnt->__old_axis.c,jnt->axis.c);
 								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 								MNC(jnt);
-
 							}
 						}
 						break;
 					case NODE_UniversalJoint:
 						{
+							// http://ode.org/ode-latest-userguide.html#sec_7_3_4
+							// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rigid_physics.html#UniversalJoint
 							dJointID jointID;
 							struct X3D_UniversalJoint *jnt = (struct X3D_UniversalJoint*)joint;
 							if(!jnt->_joint){
@@ -787,7 +818,15 @@ void rbp_run_physics(){
 								body2ID = xbody2 ? xbody2->_body : NULL;
 								jointID = dJointCreateUniversal (x3dworld->_world,x3dworld->_group);
 								dJointAttach (jointID,body1ID,body2ID);
-								dJointSetUniversalAnchor (jointID,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+								jnt->_joint = jointID;
+								dJointSetUniversalAnchor (jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+							}
+							if(NNC(jnt)){
+								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
+									dJointSetUniversalAnchor (jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+									veccopy3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c);
+								}
+
 								float axislen = veclength3f(jnt->axis1.c);
 								if(axislen < .1){
 									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
@@ -800,12 +839,16 @@ void rbp_run_physics(){
 									jnt->axis2.c[0] = jnt->axis2.c[2] = 0.0f;
 									jnt->axis2.c[1] = 1.0f;
 								}
-								dJointSetUniversalAxis1 (jointID,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
-								dJointSetUniversalAxis2 (jointID,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
-								jnt->_joint = jointID;
+								if(!vecsame3f(jnt->__old_axis1.c,jnt->axis1.c)){
+									dJointSetUniversalAxis1 (jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+									veccopy3f(jnt->__old_axis1.c,jnt->axis1.c);
+								}
+								if(!vecsame3f(jnt->__old_axis2.c,jnt->axis2.c)){
+									dJointSetUniversalAxis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
+									veccopy3f(jnt->__old_axis2.c,jnt->axis2.c);
+								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 								MNC(jnt);
-
 							}
 						}
 						break;

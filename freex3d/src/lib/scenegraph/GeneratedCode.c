@@ -151,6 +151,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__oldSFString",
 	"__oldSize",
 	"__old_anchorPoint",
+	"__old_angularVelocity",
 	"__old_axis",
 	"__old_axis1",
 	"__old_axis2",
@@ -6270,6 +6271,7 @@ const int OFFSETS_Rectangle2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_RigidBody[] = {
+	(int) FIELDNAMES___old_angularVelocity, (int) offsetof (struct X3D_RigidBody, __old_angularVelocity),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___old_centerOfMass, (int) offsetof (struct X3D_RigidBody, __old_centerOfMass),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___old_finiteRotationAxis, (int) offsetof (struct X3D_RigidBody, __old_finiteRotationAxis),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___old_linearVelocity, (int) offsetof (struct X3D_RigidBody, __old_linearVelocity),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11640,6 +11642,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_RigidBody : {
 			struct X3D_RigidBody * tmp2;
 			tmp2 = (struct X3D_RigidBody *) tmp;
+			tmp2->__old_angularVelocity.c[0] = 0.0f;tmp2->__old_angularVelocity.c[1] = 0.0f;tmp2->__old_angularVelocity.c[2] = 0.0f;
 			tmp2->__old_centerOfMass.c[0] = 0.0f;tmp2->__old_centerOfMass.c[1] = 0.0f;tmp2->__old_centerOfMass.c[2] = 0.0f;
 			tmp2->__old_finiteRotationAxis.c[0] = 0.0f;tmp2->__old_finiteRotationAxis.c[1] = 0.0f;tmp2->__old_finiteRotationAxis.c[2] = 0.0f;
 			tmp2->__old_linearVelocity.c[0] = 0.0f;tmp2->__old_linearVelocity.c[1] = 0.0f;tmp2->__old_linearVelocity.c[2] = 0.0f;
@@ -16356,6 +16359,11 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_RigidBody *tmp;
 			tmp = (struct X3D_RigidBody *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __old_angularVelocity (SFVec3f): \t");
+			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__old_angularVelocity.c[i]); }
+			fprintf (fp,"\n");
+		    }
 		    if(allFields) {
 			spacer fprintf (fp," __old_centerOfMass (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->__old_centerOfMass.c[i]); }
