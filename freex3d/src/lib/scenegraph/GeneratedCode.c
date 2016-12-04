@@ -154,7 +154,10 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__old_angularVelocity",
 	"__old_axis",
 	"__old_axis1",
+	"__old_axis1Angle",
 	"__old_axis2",
+	"__old_axis2Angle",
+	"__old_axis3Angle",
 	"__old_body1",
 	"__old_body2",
 	"__old_centerOfMass",
@@ -5509,6 +5512,9 @@ const int OFFSETS_MetadataString[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_MotorJoint[] = {
+	(int) FIELDNAMES___old_axis1Angle, (int) offsetof (struct X3D_MotorJoint, __old_axis1Angle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___old_axis2Angle, (int) offsetof (struct X3D_MotorJoint, __old_axis2Angle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES___old_axis3Angle, (int) offsetof (struct X3D_MotorJoint, __old_axis3Angle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___old_body1, (int) offsetof (struct X3D_MotorJoint, __old_body1),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___old_body2, (int) offsetof (struct X3D_MotorJoint, __old_body2),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___old_motor1Axis, (int) offsetof (struct X3D_MotorJoint, __old_motor1Axis),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10713,6 +10719,9 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_MotorJoint : {
 			struct X3D_MotorJoint * tmp2;
 			tmp2 = (struct X3D_MotorJoint *) tmp;
+			tmp2->__old_axis1Angle = 0.0f;
+			tmp2->__old_axis2Angle = 0.0f;
+			tmp2->__old_axis3Angle = 0.0f;
 			tmp2->__old_body1 = NULL;
 			tmp2->__old_body2 = NULL;
 			tmp2->__old_motor1Axis.c[0] = 0.0f;tmp2->__old_motor1Axis.c[1] = 0.0f;tmp2->__old_motor1Axis.c[2] = 0.0f;
@@ -15518,6 +15527,15 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_MotorJoint *tmp;
 			tmp = (struct X3D_MotorJoint *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," __old_axis1Angle (SFFloat) \t%4.3f\n",tmp->__old_axis1Angle);
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," __old_axis2Angle (SFFloat) \t%4.3f\n",tmp->__old_axis2Angle);
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," __old_axis3Angle (SFFloat) \t%4.3f\n",tmp->__old_axis3Angle);
+		    }
 		    if(allFields) {
 			spacer fprintf (fp," __old_body1 (SFNode):\n"); dump_scene(fp,level+1,tmp->__old_body1); 
 		    }

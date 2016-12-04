@@ -227,19 +227,24 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
   }
 }
 
-int NNC(struct X3D_Node* node){
+//Q. do you love criptic macros? Here's a few:
+int NNC0(struct X3D_Node* node){
 	//NNC Node Needs Compiling
 	return NODE_NEEDS_COMPILING;
 	//return FALSE;
 }
-void MNC(struct X3D_Node* node){
+void MNC0(struct X3D_Node* node){
 	//MNC Mark Node Compiled
 	MARK_NODE_COMPILED;
 }
-void MNX(struct X3D_Node* node){
+void MNX0(struct X3D_Node* node){
 	//MNX Mark Node Changed
 	node->_change++;
 }
+#define NNC(A) NNC0(X3D_NODE(A))
+#define MNC(A) MNC0(X3D_NODE(A))
+#define MNX(A) MNX0(X3D_NODE(A))
+
 static int init_rbp_once = 0;
 static dThreadingImplementationID threading;
 static dThreadingThreadPoolID pool;
@@ -421,6 +426,7 @@ body1,body2
 
 MotorJoint
 motor1Axis,motor2Axis,motor3Axis
+axisAngle1,axisAngle2,axisAngle3
 body1,body2
 
 RigidBody
@@ -694,11 +700,17 @@ void rbp_run_physics(){
 								body2ID = xbody2 ? xbody2->_body : NULL;
 								jointID = dJointCreateBall (x3dworld->_world,x3dworld->_group);
 								dJointAttach (jointID,body1ID,body2ID);
-								dJointSetBallAnchor(jointID, jnt->anchorPoint.c[0],jnt->anchorPoint.c[1], jnt->anchorPoint.c[2]);
 								jnt->_joint = jointID;
+								dJointSetBallAnchor(jnt->_joint, jnt->anchorPoint.c[0],jnt->anchorPoint.c[1], jnt->anchorPoint.c[2]);
+								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+							}
+							if(NNC(jnt)){
+								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
+									dJointSetBallAnchor(jnt->_joint, jnt->anchorPoint.c[0],jnt->anchorPoint.c[1], jnt->anchorPoint.c[2]);
+									veccopy3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c);
+								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 								MNC(jnt);
-
 							}
 						}
 						break;
@@ -742,6 +754,7 @@ void rbp_run_physics(){
 						break;
 					case NODE_DoubleAxisHingeJoint:
 						{
+							static int useD = FALSE; //not sure what DHinge is. Hinge2 matches x3d specs better.
 							dJointID jointID;
 							struct X3D_DoubleAxisHingeJoint *jnt = (struct X3D_DoubleAxisHingeJoint*)joint;
 							if(!jnt->_joint){
@@ -752,26 +765,57 @@ void rbp_run_physics(){
 								//allow for MULL body on one side of joint, to fix to static environment
 								body1ID = xbody1 ? xbody1->_body : NULL;
 								body2ID = xbody2 ? xbody2->_body : NULL;
-								jointID = dJointCreateHinge (x3dworld->_world,x3dworld->_group);
+								if(useD)
+									jointID = dJointCreateDHinge (x3dworld->_world,x3dworld->_group);
+								else
+									jointID = dJointCreateHinge2 (x3dworld->_world,x3dworld->_group);
 								dJointAttach (jointID,body1ID,body2ID);
-								dJointSetDHingeAnchor1(jointID,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+								jnt->_joint = jointID;
+								if(useD){
+									dJointSetDHingeAnchor1(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+									float anchor2[3];
+									vecadd3f(anchor2,jnt->anchorPoint.c,jnt->axis2.c);
+									dJointSetDHingeAnchor2(jnt->_joint, anchor2[0],anchor2[1],anchor2[2]);
+									dJointSetDHingeAxis(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+								}else{
+									dJointSetHinge2Anchor(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+									dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+									dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
+								}
+							}
+							if(NNC(jnt)){
 								float axislen = veclength3f(jnt->axis1.c);
 								if(axislen < .1){
 									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
 									jnt->axis1.c[0] = jnt->axis1.c[1] = 0.0f;
 									jnt->axis1.c[2] = 1.0f;
 								}
-								//dJointSetHingeAxis (jointID,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
-								dJointSetDHingeAxis(jointID,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
-								//dJointSetDHingeAxis2(jointID, jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
-								float anchor2[3];
-								vecadd3f(anchor2,jnt->anchorPoint.c,jnt->axis2.c);
-								dJointSetDHingeAnchor2(jointID, anchor2[0],anchor2[1],anchor2[2]);
-
-								jnt->_joint = jointID;
+								if(!vecsame3f(jnt->__old_axis1.c,jnt->axis1.c)){
+									if(useD)
+										dJointSetDHingeAxis(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+									else
+										dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+									veccopy3f(jnt->__old_axis1.c,jnt->axis1.c);
+								}
+								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
+									if(useD)
+										dJointSetDHingeAnchor1(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+									else
+										dJointSetHinge2Anchor(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+									veccopy3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c);
+								}
+								if(!vecsame3f(jnt->__old_axis2.c,jnt->axis2.c)){
+									if(useD){
+										float anchor2[3];
+										vecadd3f(anchor2,jnt->anchorPoint.c,jnt->axis2.c);
+										dJointSetDHingeAnchor2(jnt->_joint, anchor2[0],anchor2[1],anchor2[2]);
+									}else{
+										dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
+									}
+									veccopy3f(jnt->__old_axis2.c,jnt->axis2.c);
+								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 								MNC(jnt);
-
 							}
 						}
 						break;
@@ -779,19 +823,24 @@ void rbp_run_physics(){
 						{
 							dJointID jointID;
 							struct X3D_SliderJoint *jnt = (struct X3D_SliderJoint*)joint;
+							if(!jnt->_joint){
+								dBodyID body1ID, body2ID;
+								struct X3D_RigidBody *xbody1, *xbody2;
+								xbody1 = (struct X3D_RigidBody*)jnt->body1;
+								xbody2 = (struct X3D_RigidBody*)jnt->body2;
+								//allow for MULL body on one side of joint, to fix to static environment
+								body1ID = xbody1 ? xbody1->_body : NULL;
+								body2ID = xbody2 ? xbody2->_body : NULL;
+								jointID = dJointCreateSlider (x3dworld->_world,x3dworld->_group);
+								dJointAttach (jointID,body1ID,body2ID);
+								jnt->_joint = jointID;
+							}
 							if(NNC(jnt)){
-								if(!jnt->_joint){
-									dBodyID body1ID, body2ID;
-									struct X3D_RigidBody *xbody1, *xbody2;
-									xbody1 = (struct X3D_RigidBody*)jnt->body1;
-									xbody2 = (struct X3D_RigidBody*)jnt->body2;
-									//allow for MULL body on one side of joint, to fix to static environment
-									body1ID = xbody1 ? xbody1->_body : NULL;
-									body2ID = xbody2 ? xbody2->_body : NULL;
-									jointID = dJointCreateSlider (x3dworld->_world,x3dworld->_group);
-									dJointAttach (jointID,body1ID,body2ID);
-									jnt->_joint = jointID;
-									veccopy3f(jnt->__old_axis.c,jnt->axis.c);
+								float axislen = veclength3f(jnt->axis.c);
+								if(axislen < .1){
+									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
+									jnt->axis.c[0] = jnt->axis.c[1] = 0.0f;
+									jnt->axis.c[2] = 1.0f;
 								}
 								if(!vecsame3f(jnt->__old_axis.c,jnt->axis.c)){
 									dJointSetSliderAxis (jnt->_joint,jnt->axis.c[0],jnt->axis.c[1],jnt->axis.c[2]);
@@ -819,6 +868,8 @@ void rbp_run_physics(){
 								jointID = dJointCreateUniversal (x3dworld->_world,x3dworld->_group);
 								dJointAttach (jointID,body1ID,body2ID);
 								jnt->_joint = jointID;
+								//anchor point can be 0 0 0. If so, our vecsame3f technique below fails to set UniversalAnchor at least once.
+								//so we do the zero-capable fields in the _joint section once
 								dJointSetUniversalAnchor (jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
 							}
 							if(NNC(jnt)){
@@ -862,45 +913,88 @@ void rbp_run_physics(){
 							// dParamVel and dParamFMax relate specifically to AMotor joints
 							dJointID jointID;
 							struct X3D_MotorJoint *jnt = (struct X3D_MotorJoint*)joint;
-							if(NNC(jnt)){
-								if(!jnt->_joint){
-									dBodyID body1ID, body2ID;
-									struct X3D_RigidBody *xbody1, *xbody2;
-									xbody1 = (struct X3D_RigidBody*)jnt->body1;
-									xbody2 = (struct X3D_RigidBody*)jnt->body2;
-									//allow for MULL body on one side of joint, to fix to static environment
-									body1ID = xbody1 ? xbody1->_body : NULL;
-									body2ID = xbody2 ? xbody2->_body : NULL;
-									jointID = dJointCreateAMotor (x3dworld->_world,x3dworld->_group);
-									dJointAttach (jointID,body1ID,body2ID);
-									jnt->_joint = jointID;
-								}
+							if(!jnt->_joint){
+								dBodyID body1ID, body2ID;
+								struct X3D_RigidBody *xbody1, *xbody2;
+								xbody1 = (struct X3D_RigidBody*)jnt->body1;
+								xbody2 = (struct X3D_RigidBody*)jnt->body2;
+								//allow for MULL body on one side of joint, to fix to static environment
+								body1ID = xbody1 ? xbody1->_body : NULL;
+								body2ID = xbody2 ? xbody2->_body : NULL;
+								jointID = dJointCreateAMotor (x3dworld->_world,x3dworld->_group);
+								dJointAttach (jointID,body1ID,body2ID);
+								jnt->_joint = jointID;
+								dJointSetAMotorMode (jnt->_joint,dAMotorUser); 
 								//dJointSetAMotorMode (jointID,dAMotorEuler);
-								dJointSetAMotorMode (jointID,dAMotorUser); 
-								dJointSetAMotorNumAxes (jointID,jnt->enabledAxes);
+							}
+							if(NNC(jnt)){
+								float axislen;
+								dJointSetAMotorNumAxes (jnt->_joint,jnt->enabledAxes);
 								//rel: relative to: 0-static 1-first body 2-2nd body
 								if(TRUE || jnt->enabledAxes >0 ){
-									dJointSetAMotorAxis (jointID,0,0, jnt->motor1Axis.c[0],jnt->motor1Axis.c[1],jnt->motor1Axis.c[2]);
-									dJointSetAMotorAngle (jointID, 0, jnt->axis1Angle);
-									//dJointSetAMotorParam(jointID,dParamFMax,jnt->axis1Torque);
+									axislen = veclength3f(jnt->motor1Axis.c);
+									if(axislen < .1){
+										//specs say 0 0 0 is default but that's garbage, should be 0 0 1
+										jnt->motor1Axis.c[0] = jnt->motor1Axis.c[1] = 0.0f;
+										jnt->motor1Axis.c[2] = 1.0f;
+									}
+									
+									if(!vecsame3f(jnt->__old_motor1Axis.c,jnt->motor1Axis.c)){
+										dJointSetAMotorAxis (jnt->_joint,0,0, jnt->motor1Axis.c[0],jnt->motor1Axis.c[1],jnt->motor1Axis.c[2]);
+										veccopy3f(jnt->__old_motor1Axis.c,jnt->motor1Axis.c);
+									}
+									if(jnt->__old_axis1Angle != jnt->axis1Angle){
+										dJointSetAMotorAngle (jnt->_joint, 0, jnt->axis1Angle);
+										jnt->__old_axis1Angle = jnt->axis1Angle;
+									}
 								}
 								if(TRUE || jnt->enabledAxes >1 ){
-									dJointSetAMotorAxis (jointID,1,1, jnt->motor2Axis.c[0],jnt->motor2Axis.c[1],jnt->motor2Axis.c[2]);
-									dJointSetAMotorAngle (jointID, 1, jnt->axis2Angle);
+									axislen = veclength3f(jnt->motor2Axis.c);
+									if(axislen < .1){
+										//specs say 0 0 0 is default but that's garbage, should be 0 0 1
+										jnt->motor2Axis.c[0] = jnt->motor2Axis.c[1] = 0.0f;
+										jnt->motor2Axis.c[2] = 1.0f;
+									}
+									
+									if(!vecsame3f(jnt->__old_motor2Axis.c,jnt->motor2Axis.c)){
+										dJointSetAMotorAxis (jnt->_joint,1,1, jnt->motor2Axis.c[0],jnt->motor2Axis.c[1],jnt->motor2Axis.c[2]);
+										veccopy3f(jnt->__old_motor2Axis.c,jnt->motor2Axis.c);
+									}
+									if(jnt->__old_axis2Angle != jnt->axis2Angle){
+										dJointSetAMotorAngle (jnt->_joint, 1, jnt->axis2Angle);
+										jnt->__old_axis2Angle = jnt->axis2Angle;
+									}
 									//dJointSetAMotorParam(jointID,dParamFMax2,jnt->axis2Torque);
 								}
 								if(TRUE || jnt->enabledAxes >2 ){
-									dJointSetAMotorAxis (jointID,2,2, jnt->motor3Axis.c[0],jnt->motor3Axis.c[1],jnt->motor3Axis.c[2]);
-									dJointSetAMotorAngle (jointID, 2, jnt->axis2Angle);
+									axislen = veclength3f(jnt->motor3Axis.c);
+									if(axislen < .1){
+										//specs say 0 0 0 is default but that's garbage, should be 0 0 1
+										jnt->motor3Axis.c[0] = jnt->motor3Axis.c[1] = 0.0f;
+										jnt->motor3Axis.c[2] = 1.0f;
+									}
+									
+									if(!vecsame3f(jnt->__old_motor3Axis.c,jnt->motor3Axis.c)){
+										dJointSetAMotorAxis (jnt->_joint,2,2, jnt->motor3Axis.c[0],jnt->motor3Axis.c[1],jnt->motor3Axis.c[2]);
+										veccopy3f(jnt->__old_motor3Axis.c,jnt->motor3Axis.c);
+									}
+									if(jnt->__old_axis3Angle != jnt->axis3Angle){
+										dJointSetAMotorAngle (jnt->_joint, 2, jnt->axis3Angle);
+										jnt->__old_axis3Angle = jnt->axis3Angle;
+									}
 									//dJointSetAMotorParam(jointID,dParamFMax3,jnt->axis3Torque);
 								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+
+								//addMotorTorques is a macro function in ODE that finds the bodies involve and
+								//applies the torques to the bodies
+								dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
 								MNC(jnt);
 
-							//dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
 							}
-							//per-frame torque
-							dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
+							//per-frame torque - this will cause an acceleration, don't know if that's 
+							//what the x3dmotorjoint torque fields were meant for
+							//dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
 						}
 						break;
 					default:
