@@ -770,6 +770,20 @@ void rbp_run_physics(){
 								dJointSetHinge2Anchor(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
 								dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
 								dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
+
+								jnt->_motor1 = dJointCreateAMotor(x3dworld->_world,x3dworld->_group);
+								dJointAttach (jnt->_motor1,body1ID,body2ID);
+								dJointSetAMotorMode (jnt->_motor1,dAMotorUser); 
+								dJointSetAMotorNumAxes (jnt->_motor1,1);
+								dJointSetAMotorAxis (jnt->_motor1,0,0, jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+								
+								jnt->_motor2 = dJointCreateAMotor(x3dworld->_world,x3dworld->_group);
+								dJointAttach (jnt->_motor2,body1ID,body2ID);
+								dJointSetAMotorMode (jnt->_motor2,dAMotorUser); 
+								dJointSetAMotorNumAxes (jnt->_motor2,1);
+								dJointSetAMotorAxis (jnt->_motor2,0,0, jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
+								
+
 							}
 							if(NNC(jnt)){
 								float axislen = veclength3f(jnt->axis1.c);
@@ -780,6 +794,7 @@ void rbp_run_physics(){
 								}
 								if(!vecsame3f(jnt->__old_axis1.c,jnt->axis1.c)){
 									dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+									dJointSetAMotorAxis (jnt->_motor1,0,0, jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
 									veccopy3f(jnt->__old_axis1.c,jnt->axis1.c);
 								}
 								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
@@ -788,11 +803,40 @@ void rbp_run_physics(){
 								}
 								if(!vecsame3f(jnt->__old_axis2.c,jnt->axis2.c)){
 									dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
+									dJointSetAMotorAxis (jnt->_motor1,1,1, jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
 									veccopy3f(jnt->__old_axis2.c,jnt->axis2.c);
 								}
+								dJointSetAMotorParam (jnt->_motor1, dParamVel, jnt->desiredAngularVelocity1);
+								dJointSetAMotorParam (jnt->_motor1, dParamFMax, jnt->maxTorque1);
+								dJointSetAMotorParam (jnt->_motor2, dParamVel, jnt->desiredAngularVelocity2);
+								dJointSetAMotorParam (jnt->_motor2, dParamFMax, jnt->maxTorque2);
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 								MNC(jnt);
 							}
+							//per-frame 
+							/*
+							if(jnt->desiredAngularVelocity1 != 0.0){
+								double angularVelocity = dJointGetAMotorAngleRate(jnt->_motor1,0);
+								double deltaVelocity = angularVelocity - jnt->desiredAngularVelocity1;
+								if(fabs(deltaVelocity) < .01) {
+									dJointAddAMotorTorques(jnt->_motor1,0.0,0.0,0.0); //disable torque
+								} else {
+									double torque = jnt->maxTorque1 * deltaVelocity / jnt->desiredAngularVelocity1;
+									dJointAddAMotorTorques(jnt->_motor1,torque,0.0,0.0);
+								}
+							}
+							if(jnt->desiredAngularVelocity2 != 0.0){
+								double angularVelocity = dJointGetAMotorAngleRate(jnt->_motor2,0);
+								double deltaVelocity = angularVelocity - jnt->desiredAngularVelocity2;
+								if(fabs(deltaVelocity) < .01) {
+									dJointAddAMotorTorques(jnt->_motor2,0.0,0.0,0.0); //disable torque
+								} else {
+									double torque = jnt->maxTorque2 * deltaVelocity / jnt->desiredAngularVelocity2;
+									dJointAddAMotorTorques(jnt->_motor2,torque,0.0,0.0);
+								}
+							}
+							*/
+
 						}
 						break;
 					case NODE_SliderJoint:

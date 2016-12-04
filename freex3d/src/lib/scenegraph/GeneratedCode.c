@@ -256,6 +256,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_loc",
 	"_ltex",
 	"_method",
+	"_motor1",
+	"_motor2",
 	"_needs_gradient",
 	"_npoints",
 	"_nseg",
@@ -4166,6 +4168,8 @@ const int OFFSETS_DoubleAxisHingeJoint[] = {
 	(int) FIELDNAMES___old_body2, (int) offsetof (struct X3D_DoubleAxisHingeJoint, __old_body2),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__forceout, (int) offsetof (struct X3D_DoubleAxisHingeJoint, _forceout),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__joint, (int) offsetof (struct X3D_DoubleAxisHingeJoint, _joint),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__motor1, (int) offsetof (struct X3D_DoubleAxisHingeJoint, _motor1),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__motor2, (int) offsetof (struct X3D_DoubleAxisHingeJoint, _motor2),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_anchorPoint, (int) offsetof (struct X3D_DoubleAxisHingeJoint, anchorPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_axis1, (int) offsetof (struct X3D_DoubleAxisHingeJoint, axis1),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_axis2, (int) offsetof (struct X3D_DoubleAxisHingeJoint, axis2),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8957,6 +8961,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__old_body2 = NULL;
 			tmp2->_forceout = 0;
 			tmp2->_joint = 0;
+			tmp2->_motor1 = 0;
+			tmp2->_motor2 = 0;
 			tmp2->anchorPoint.c[0] = 0.0f;tmp2->anchorPoint.c[1] = 0.0f;tmp2->anchorPoint.c[2] = 0.0f;
 			tmp2->axis1.c[0] = 0.0f;tmp2->axis1.c[1] = 0.0f;tmp2->axis1.c[2] = 0.0f;
 			tmp2->axis2.c[0] = 0.0f;tmp2->axis2.c[1] = 0.0f;tmp2->axis2.c[2] = 0.0f;
