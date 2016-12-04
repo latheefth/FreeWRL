@@ -754,7 +754,6 @@ void rbp_run_physics(){
 						break;
 					case NODE_DoubleAxisHingeJoint:
 						{
-							static int useD = FALSE; //not sure what DHinge is. Hinge2 matches x3d specs better.
 							dJointID jointID;
 							struct X3D_DoubleAxisHingeJoint *jnt = (struct X3D_DoubleAxisHingeJoint*)joint;
 							if(!jnt->_joint){
@@ -765,23 +764,12 @@ void rbp_run_physics(){
 								//allow for MULL body on one side of joint, to fix to static environment
 								body1ID = xbody1 ? xbody1->_body : NULL;
 								body2ID = xbody2 ? xbody2->_body : NULL;
-								if(useD)
-									jointID = dJointCreateDHinge (x3dworld->_world,x3dworld->_group);
-								else
-									jointID = dJointCreateHinge2 (x3dworld->_world,x3dworld->_group);
+								jointID = dJointCreateHinge2 (x3dworld->_world,x3dworld->_group);
 								dJointAttach (jointID,body1ID,body2ID);
 								jnt->_joint = jointID;
-								if(useD){
-									dJointSetDHingeAnchor1(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
-									float anchor2[3];
-									vecadd3f(anchor2,jnt->anchorPoint.c,jnt->axis2.c);
-									dJointSetDHingeAnchor2(jnt->_joint, anchor2[0],anchor2[1],anchor2[2]);
-									dJointSetDHingeAxis(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
-								}else{
-									dJointSetHinge2Anchor(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
-									dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
-									dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
-								}
+								dJointSetHinge2Anchor(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+								dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+								dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
 							}
 							if(NNC(jnt)){
 								float axislen = veclength3f(jnt->axis1.c);
@@ -791,27 +779,15 @@ void rbp_run_physics(){
 									jnt->axis1.c[2] = 1.0f;
 								}
 								if(!vecsame3f(jnt->__old_axis1.c,jnt->axis1.c)){
-									if(useD)
-										dJointSetDHingeAxis(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
-									else
-										dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+									dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
 									veccopy3f(jnt->__old_axis1.c,jnt->axis1.c);
 								}
 								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
-									if(useD)
-										dJointSetDHingeAnchor1(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
-									else
-										dJointSetHinge2Anchor(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+									dJointSetHinge2Anchor(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
 									veccopy3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c);
 								}
 								if(!vecsame3f(jnt->__old_axis2.c,jnt->axis2.c)){
-									if(useD){
-										float anchor2[3];
-										vecadd3f(anchor2,jnt->anchorPoint.c,jnt->axis2.c);
-										dJointSetDHingeAnchor2(jnt->_joint, anchor2[0],anchor2[1],anchor2[2]);
-									}else{
-										dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
-									}
+									dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
 									veccopy3f(jnt->__old_axis2.c,jnt->axis2.c);
 								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
