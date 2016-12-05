@@ -524,9 +524,26 @@ void rbp_run_physics(){
 			//update bodies
 			for(i=0;i<x3dworld->bodies.n;i++){
 				x3dbody = (struct X3D_RigidBody*)x3dworld->bodies.p[i];
-				if(!x3dbody->_body && !x3dbody->fixed){
-					x3dbody->_body = dBodyCreate (x3dworld->_world);
-					dBodySetData (x3dbody->_body,(void*) x3dbody);
+				int method_anchor_fixed_with_fixed_joint = 1;
+				if(method_anchor_fixed_with_fixed_joint){
+					if(!x3dbody->_body){
+						x3dbody->_body = dBodyCreate (x3dworld->_world);
+						dBodySetData (x3dbody->_body,(void*) x3dbody);
+						if(x3dbody->fixed){
+							//a few joints - maybe just hinge2? - need 2 bodies or ODE ASSERTS.
+							//anchor with unrecommended fixed joint
+							//note we still need MASS on the fixed body, otherwise it jitters
+							dJointID anchorID = dJointCreateFixed(x3dworld->_world,x3dworld->_group);
+							dJointAttach(anchorID,x3dbody->_body,0);
+							dJointSetFixed (anchorID);
+						}
+					}
+				}else{
+					if(!x3dbody->_body && !x3dbody->fixed){
+						//_body == 0 tells ODE its fixed geometry
+						x3dbody->_body = dBodyCreate (x3dworld->_world);
+						dBodySetData (x3dbody->_body,(void*) x3dbody);
+					}
 				}
 				x3dcshape = NULL;
 				x3doffset = NULL;
@@ -578,9 +595,9 @@ void rbp_run_physics(){
 						translation = x3dbody->position;
 						rotation = x3dbody->orientation;
 						//if(FALSE || !x3dbody->fixed){
-						if(x3dbody->_body){
+						//if(x3dbody->_body){
 							dGeomSetBody(x3dcshape->_geom,x3dbody->_body);
-						}
+						//}
 						dGeomSetPosition (x3dcshape->_geom, (dReal)translation.c[0],(dReal)translation.c[1],(dReal)translation.c[2]);
 						if(1){
 							dReal dquat[4];
