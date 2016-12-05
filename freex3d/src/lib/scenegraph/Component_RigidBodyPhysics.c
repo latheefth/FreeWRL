@@ -593,11 +593,13 @@ void rbp_run_physics(){
 							dRFromAxisAndAngle (R,rotation.c[0],rotation.c[1],rotation.c[2],rotation.c[3]);
 							dGeomSetRotation(x3dcshape->_geom,R);
 						}
-						if(x3dbody->autoDamp)
-							dBodySetAngularDamping(x3dbody->_body, x3dbody->angularDampingFactor);
-						else
-							dBodySetAngularDamping(x3dbody->_body, 0.0);
-							
+						if(x3dbody->_body){
+							//not fixed
+							if(x3dbody->autoDamp)
+								dBodySetAngularDamping(x3dbody->_body, x3dbody->angularDampingFactor);
+							else
+								dBodySetAngularDamping(x3dbody->_body, 0.0);
+						}
 					} //if !geom
 
 				} //geometries
@@ -754,8 +756,10 @@ void rbp_run_physics(){
 						break;
 					case NODE_DoubleAxisHingeJoint:
 						{
+							//see the ODE demo_buggy for Hinge2 example of steerable wheel
 							dJointID jointID;
 							struct X3D_DoubleAxisHingeJoint *jnt = (struct X3D_DoubleAxisHingeJoint*)joint;
+
 							if(!jnt->_joint){
 								dBodyID body1ID, body2ID;
 								struct X3D_RigidBody *xbody1, *xbody2;
@@ -765,24 +769,15 @@ void rbp_run_physics(){
 								body1ID = xbody1 ? xbody1->_body : NULL;
 								body2ID = xbody2 ? xbody2->_body : NULL;
 								jointID = dJointCreateHinge2 (x3dworld->_world,x3dworld->_group);
+								//body1 should be the car, body2 the wheel
 								dJointAttach (jointID,body1ID,body2ID);
 								jnt->_joint = jointID;
 								dJointSetHinge2Anchor(jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
+								
+								//axis 1 should be the (vertical) steering axis
 								dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
+								//axis 2 should be the (horizontal) wheel axle
 								dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
-
-								jnt->_motor1 = dJointCreateAMotor(x3dworld->_world,x3dworld->_group);
-								dJointAttach (jnt->_motor1,body1ID,body2ID);
-								dJointSetAMotorMode (jnt->_motor1,dAMotorUser); 
-								dJointSetAMotorNumAxes (jnt->_motor1,1);
-								dJointSetAMotorAxis (jnt->_motor1,0,0, jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
-								
-								jnt->_motor2 = dJointCreateAMotor(x3dworld->_world,x3dworld->_group);
-								dJointAttach (jnt->_motor2,body1ID,body2ID);
-								dJointSetAMotorMode (jnt->_motor2,dAMotorUser); 
-								dJointSetAMotorNumAxes (jnt->_motor2,1);
-								dJointSetAMotorAxis (jnt->_motor2,0,0, jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
-								
 
 							}
 							if(NNC(jnt)){
@@ -794,7 +789,6 @@ void rbp_run_physics(){
 								}
 								if(!vecsame3f(jnt->__old_axis1.c,jnt->axis1.c)){
 									dJointSetHinge2Axis1(jnt->_joint,jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
-									dJointSetAMotorAxis (jnt->_motor1,0,0, jnt->axis1.c[0],jnt->axis1.c[1],jnt->axis1.c[2]);
 									veccopy3f(jnt->__old_axis1.c,jnt->axis1.c);
 								}
 								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
@@ -803,39 +797,26 @@ void rbp_run_physics(){
 								}
 								if(!vecsame3f(jnt->__old_axis2.c,jnt->axis2.c)){
 									dJointSetHinge2Axis2(jnt->_joint,jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
-									dJointSetAMotorAxis (jnt->_motor1,1,1, jnt->axis2.c[0],jnt->axis2.c[1],jnt->axis2.c[2]);
 									veccopy3f(jnt->__old_axis2.c,jnt->axis2.c);
 								}
-								dJointSetAMotorParam (jnt->_motor1, dParamVel, jnt->desiredAngularVelocity1);
-								dJointSetAMotorParam (jnt->_motor1, dParamFMax, jnt->maxTorque1);
-								dJointSetAMotorParam (jnt->_motor2, dParamVel, jnt->desiredAngularVelocity2);
-								dJointSetAMotorParam (jnt->_motor2, dParamFMax, jnt->maxTorque2);
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 								MNC(jnt);
 							}
 							//per-frame 
-							/*
-							if(jnt->desiredAngularVelocity1 != 0.0){
-								double angularVelocity = dJointGetAMotorAngleRate(jnt->_motor1,0);
-								double deltaVelocity = angularVelocity - jnt->desiredAngularVelocity1;
-								if(fabs(deltaVelocity) < .01) {
-									dJointAddAMotorTorques(jnt->_motor1,0.0,0.0,0.0); //disable torque
-								} else {
-									double torque = jnt->maxTorque1 * deltaVelocity / jnt->desiredAngularVelocity1;
-									dJointAddAMotorTorques(jnt->_motor1,torque,0.0,0.0);
-								}
-							}
-							if(jnt->desiredAngularVelocity2 != 0.0){
-								double angularVelocity = dJointGetAMotorAngleRate(jnt->_motor2,0);
-								double deltaVelocity = angularVelocity - jnt->desiredAngularVelocity2;
-								if(fabs(deltaVelocity) < .01) {
-									dJointAddAMotorTorques(jnt->_motor2,0.0,0.0,0.0); //disable torque
-								} else {
-									double torque = jnt->maxTorque2 * deltaVelocity / jnt->desiredAngularVelocity2;
-									dJointAddAMotorTorques(jnt->_motor2,torque,0.0,0.0);
-								}
-							}
-							*/
+							//motor
+							dJointSetHinge2Param (jnt->_joint,dParamVel2,jnt->desiredAngularVelocity2);
+							dJointSetHinge2Param (jnt->_joint,dParamFMax2,jnt->maxTorque2);
+							//steering
+							double agap = jnt->axis1Angle - dJointGetHinge2Angle1 (jnt->_joint);
+							//printf("agap %lf = %f - %lf\n",agap,jnt->axis1Angle,dJointGetHinge2Angle1 (jnt->_joint));
+							double avel = agap / .1 * jnt->desiredAngularVelocity1;
+							if (agap > 0.1) avel = jnt->desiredAngularVelocity1;
+							if (agap < -0.1) avel = -jnt->desiredAngularVelocity1;
+							dJointSetHinge2Param (jnt->_joint,dParamVel,avel);
+							dJointSetHinge2Param (jnt->_joint,dParamFMax,jnt->maxTorque1);
+							dJointSetHinge2Param (jnt->_joint,dParamLoStop,jnt->minAngle1);
+							dJointSetHinge2Param (jnt->_joint,dParamHiStop,jnt->maxAngle1);
+							dJointSetHinge2Param (jnt->_joint,dParamFudgeFactor,0.1);
 
 						}
 						break;
@@ -1042,7 +1023,7 @@ void rbp_run_physics(){
 					for(k=0;k<x3dbody->geometry.n;k++){
 						struct SFVec3f translation;
 						struct SFRotation rotation;
-						dReal *dpos, *dquat;
+						dReal *dpos, *dquat, *drot;
 						Quaternion quat;
 						double xyza[4];
 
@@ -1059,9 +1040,19 @@ void rbp_run_physics(){
 						dquat = dBodyGetQuaternion(x3dbody->_body);
 						quat.x = dquat[1], quat.y = dquat[2], quat.z = dquat[3], quat.w = dquat[0];
 						quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
-
+						if(0){
+							drot = dBodyGetRotation(x3dbody->_body);
+							double dangle = atan2(drot[1],drot[0]);
+							printf("\n");
+							printf("rad %lf\n",dangle);
+							for(int kk=0;kk<3;kk++)
+								printf("%lf %lf %lf %lf\n",drot[0+kk*4],drot[1+kk*4],drot[2+kk*4],drot[3+kk*4]);
+							printf("\n");
+						}
 						double2float(x3doffset->translation.c,dpos,3);
 						double2float(x3doffset->rotation.c,xyza,4);
+						if(0) printf("%f %f %f %f\n",x3doffset->rotation.c[0],x3doffset->rotation.c[1],x3doffset->rotation.c[2],x3doffset->rotation.c[3]);
+
 						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,translation));
 						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,rotation));
 

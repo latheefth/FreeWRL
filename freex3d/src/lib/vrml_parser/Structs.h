@@ -4180,6 +4180,7 @@ struct X3D_DoubleAxisHingeJoint {
 	struct X3D_Node *__old_body2;
 	void * _motor1;
 	void * _motor2;
+	float axis1Angle;
 };
 extern struct X3D_Virt virt_DoubleAxisHingeJoint;
 /***********************/

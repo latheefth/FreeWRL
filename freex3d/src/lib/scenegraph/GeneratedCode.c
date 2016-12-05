@@ -4172,6 +4172,7 @@ const int OFFSETS_DoubleAxisHingeJoint[] = {
 	(int) FIELDNAMES__motor2, (int) offsetof (struct X3D_DoubleAxisHingeJoint, _motor2),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_anchorPoint, (int) offsetof (struct X3D_DoubleAxisHingeJoint, anchorPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_axis1, (int) offsetof (struct X3D_DoubleAxisHingeJoint, axis1),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_axis1Angle, (int) offsetof (struct X3D_DoubleAxisHingeJoint, axis1Angle),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_axis2, (int) offsetof (struct X3D_DoubleAxisHingeJoint, axis2),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_body1, (int) offsetof (struct X3D_DoubleAxisHingeJoint, body1),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_body1AnchorPoint, (int) offsetof (struct X3D_DoubleAxisHingeJoint, body1AnchorPoint),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8965,6 +8966,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_motor2 = 0;
 			tmp2->anchorPoint.c[0] = 0.0f;tmp2->anchorPoint.c[1] = 0.0f;tmp2->anchorPoint.c[2] = 0.0f;
 			tmp2->axis1.c[0] = 0.0f;tmp2->axis1.c[1] = 0.0f;tmp2->axis1.c[2] = 0.0f;
+			tmp2->axis1Angle = 0.0f;
 			tmp2->axis2.c[0] = 0.0f;tmp2->axis2.c[1] = 0.0f;tmp2->axis2.c[2] = 0.0f;
 			tmp2->body1 = NULL;
 			tmp2->body1AnchorPoint.c[0] = 0.0f;tmp2->body1AnchorPoint.c[1] = 0.0f;tmp2->body1AnchorPoint.c[2] = 0.0f;
@@ -13816,6 +13818,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," axis1 (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->axis1.c[i]); }
 			fprintf (fp,"\n");
+			spacer fprintf (fp," axis1Angle (SFFloat) \t%4.3f\n",tmp->axis1Angle);
 			spacer fprintf (fp," axis2 (SFVec3f): \t");
 			for (i=0; i<3; i++) { fprintf (fp,"%4.3f  ",tmp->axis2.c[i]); }
 			fprintf (fp,"\n");

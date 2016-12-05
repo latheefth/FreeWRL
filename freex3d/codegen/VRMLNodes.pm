@@ -3083,6 +3083,7 @@ our %Nodes = (
 		__old_body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_motor1 => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		_motor2 => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		axis1Angle => ["SFFloat", 0, "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DRigidJointNode"),
 
 	"MotorJoint" => new VRML::NodeType("MotorJoint", [
