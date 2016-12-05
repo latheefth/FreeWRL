@@ -8203,7 +8203,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->body2AnchorPoint.c[0] = 0.0f;tmp2->body2AnchorPoint.c[1] = 0.0f;tmp2->body2AnchorPoint.c[2] = 0.0f;
 			tmp2->forceOutput.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->forceOutput.p[0] = newASCIIString("NONE");tmp2->forceOutput.n=1; ;
 			tmp2->metadata = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_joints;
 		break;
 		}
 		case NODE_Billboard : {
@@ -8991,7 +8991,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->stopErrorCorrection1 = 0.8f;
 			tmp2->suspensionErrorCorrection = 0.8f;
 			tmp2->suspensionForce = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_joints;
 		break;
 		}
 		case NODE_EaseInEaseOut : {
@@ -10764,7 +10764,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->stop2ErrorCorrection = 0.8f;
 			tmp2->stop3Bounce = 0.0f;
 			tmp2->stop3ErrorCorrection = 0.8f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_joints;
 		break;
 		}
 		case NODE_MovieTexture : {
@@ -11957,7 +11957,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->minAngle = -PIF+.0f;
 			tmp2->stopBounce = 0.0f;
 			tmp2->stopErrorCorrection = 0.8f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_joints;
 		break;
 		}
 		case NODE_SliderJoint : {
@@ -11980,7 +11980,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->sliderForce = 0.0f;
 			tmp2->stopBounce = 0.0f;
 			tmp2->stopErrorCorrection = 1.0f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_joints;
 		break;
 		}
 		case NODE_Sound : {
@@ -12704,7 +12704,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->stop1ErrorCorrection = 0.8f;
 			tmp2->stop2Bounce = 0.0f;
 			tmp2->stop2ErrorCorrection = 0.8f;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_joints;
 		break;
 		}
 		case NODE_Viewpoint : {

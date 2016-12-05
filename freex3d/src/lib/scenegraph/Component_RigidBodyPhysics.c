@@ -807,11 +807,18 @@ void rbp_run_physics(){
 							dJointSetHinge2Param (jnt->_joint,dParamVel2,jnt->desiredAngularVelocity2);
 							dJointSetHinge2Param (jnt->_joint,dParamFMax2,jnt->maxTorque2);
 							//steering
-							double agap = jnt->axis1Angle - dJointGetHinge2Angle1 (jnt->_joint);
-							//printf("agap %lf = %f - %lf\n",agap,jnt->axis1Angle,dJointGetHinge2Angle1 (jnt->_joint));
-							double avel = agap / .1 * jnt->desiredAngularVelocity1;
-							if (agap > 0.1) avel = jnt->desiredAngularVelocity1;
-							if (agap < -0.1) avel = -jnt->desiredAngularVelocity1;
+							double avel = jnt->desiredAngularVelocity1;
+							int method_extension_axis1Angle = 0;
+							if(method_extension_axis1Angle){
+								//the specs don't have an axis1Angle on DoubleAxisHingeJoint - too bad
+								//because here is how easy it would be to steer a car
+								//instead, you have to chain a motor to axis1
+								double agap = jnt->axis1Angle - dJointGetHinge2Angle1 (jnt->_joint);
+								//printf("agap %lf = %f - %lf\n",agap,jnt->axis1Angle,dJointGetHinge2Angle1 (jnt->_joint));
+								double avel = agap / .1 * jnt->desiredAngularVelocity1;
+								if (agap > 0.1) avel = jnt->desiredAngularVelocity1;
+								if (agap < -0.1) avel = -jnt->desiredAngularVelocity1;
+							}
 							dJointSetHinge2Param (jnt->_joint,dParamVel,avel);
 							dJointSetHinge2Param (jnt->_joint,dParamFMax,jnt->maxTorque1);
 							dJointSetHinge2Param (jnt->_joint,dParamLoStop,jnt->minAngle1);
@@ -932,7 +939,7 @@ void rbp_run_physics(){
 								float axislen;
 								dJointSetAMotorNumAxes (jnt->_joint,jnt->enabledAxes);
 								//rel: relative to: 0-static 1-first body 2-2nd body
-								if(TRUE || jnt->enabledAxes >0 ){
+								if(jnt->enabledAxes >0 ){
 									axislen = veclength3f(jnt->motor1Axis.c);
 									if(axislen < .1){
 										//specs say 0 0 0 is default but that's garbage, should be 0 0 1
@@ -949,7 +956,7 @@ void rbp_run_physics(){
 										jnt->__old_axis1Angle = jnt->axis1Angle;
 									}
 								}
-								if(TRUE || jnt->enabledAxes >1 ){
+								if(jnt->enabledAxes >1 ){
 									axislen = veclength3f(jnt->motor2Axis.c);
 									if(axislen < .1){
 										//specs say 0 0 0 is default but that's garbage, should be 0 0 1
@@ -967,7 +974,7 @@ void rbp_run_physics(){
 									}
 									//dJointSetAMotorParam(jointID,dParamFMax2,jnt->axis2Torque);
 								}
-								if(TRUE || jnt->enabledAxes >2 ){
+								if(jnt->enabledAxes >2 ){
 									axislen = veclength3f(jnt->motor3Axis.c);
 									if(axislen < .1){
 										//specs say 0 0 0 is default but that's garbage, should be 0 0 1
@@ -989,13 +996,23 @@ void rbp_run_physics(){
 
 								//addMotorTorques is a macro function in ODE that finds the bodies involve and
 								//applies the torques to the bodies
-								dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
+								//if(jnt->autoCalc == TRUE)
+									dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
 								MNC(jnt);
 
 							}
 							//per-frame torque - this will cause an acceleration, don't know if that's 
 							//what the x3dmotorjoint torque fields were meant for
 							//dJointAddAMotorTorques(jnt->_joint, jnt->axis1Torque, jnt->axis2Torque, jnt->axis3Torque);
+							if(jnt->autoCalc == FALSE){
+								//user sets angles on each frame
+								if(jnt->enabledAxes >0)
+									dJointSetAMotorAngle (jnt->_joint, 0, jnt->axis1Angle);
+								if(jnt->enabledAxes >1)
+									dJointSetAMotorAngle (jnt->_joint, 1, jnt->axis2Angle);
+								if(jnt->enabledAxes >2)
+									dJointSetAMotorAngle (jnt->_joint, 2, jnt->axis3Angle);
+							}
 						}
 						break;
 					default:
