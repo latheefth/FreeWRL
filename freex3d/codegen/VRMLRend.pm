@@ -202,8 +202,8 @@ our %defaultContainerType = (
 	ScreenGroup		=>["children"],
 
 	BallJoint		=>["joints"],
-	CollidableOffset	=>["children"],
-	CollidableShape		=>["collidables"],
+	CollidableOffset	=>["collidables","collidable"],
+	CollidableShape		=>["collidables","collidable"],
 	CollisionCollection	=>["collider"],
 	CollisionSensor		=>["children"],
 	CollisionSpace		=>["collidables"],

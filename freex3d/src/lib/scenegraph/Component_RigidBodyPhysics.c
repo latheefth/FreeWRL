@@ -520,6 +520,7 @@ void rbp_run_physics(){
 			struct X3D_CollidableShape *x3dcshape;
 			x3dworld = (struct X3D_RigidBodyCollection*)vector_get(struct X3D_Node*,x3dworlds,j);
 			//Collidable -> rigidbody 
+			if(!x3dworld->enabled) continue;
 
 			//update bodies
 			for(i=0;i<x3dworld->bodies.n;i++){
@@ -545,6 +546,11 @@ void rbp_run_physics(){
 						dBodySetData (x3dbody->_body,(void*) x3dbody);
 					}
 				}
+
+				if(x3dbody->enabled)
+					dBodyEnable (x3dbody->_body);
+				else
+					dBodyDisable(x3dbody->_body);
 				x3dcshape = NULL;
 				x3doffset = NULL;
 				for(k=0;k<x3dbody->geometry.n;k++){
@@ -769,6 +775,8 @@ void rbp_run_physics(){
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
 								MNC(jnt);
 							}
+							dJointSetHingeParam (jnt->_joint,dParamLoStop,jnt->minAngle);
+							dJointSetHingeParam (jnt->_joint,dParamHiStop,jnt->maxAngle);
 						}
 						break;
 					case NODE_DoubleAxisHingeJoint:
