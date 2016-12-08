@@ -3269,6 +3269,7 @@ struct X3D_CollidableOffset {
 	int __do_trans;
 	int __do_rotation;
 	struct X3D_Node *collidable;
+	void * _geom;
 };
 extern struct X3D_Virt virt_CollidableOffset;
 /***********************/

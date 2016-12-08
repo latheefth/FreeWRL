@@ -2978,6 +2978,7 @@ our %Nodes = (
 		__do_trans => ["SFInt32", "FALSE", "initializeOnly", 0],
 		__do_rotation => ["SFInt32", "FALSE", "initializeOnly", 0],
 		collidable => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_geom => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DNBodyCollidableNode"),
 
 	"CollidableShape" => new VRML::NodeType("CollidableShape", [
@@ -3202,7 +3203,7 @@ our %Nodes = (
 		_joint => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		_forceout => ["SFInt32", 0, "initializeOnly", 0],
 		__old_anchorPoint => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		__old_axis => ["SFVec3f", [0,0,1], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__old_body1 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__old_body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DRigidJointNode"),

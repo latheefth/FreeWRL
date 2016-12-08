@@ -3773,6 +3773,7 @@ const int OFFSETS_ClipPlane[] = {
 const int OFFSETS_CollidableOffset[] = {
 	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_CollidableOffset, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CollidableOffset, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__geom, (int) offsetof (struct X3D_CollidableOffset, _geom),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CollidableOffset, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CollidableOffset, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_collidable, (int) offsetof (struct X3D_CollidableOffset, collidable),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8435,6 +8436,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_CollidableOffset *) tmp;
 			tmp2->__do_rotation = FALSE;
 			tmp2->__do_trans = FALSE;
+			tmp2->_geom = 0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->collidable = NULL;
@@ -11938,7 +11940,7 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_SingleAxisHingeJoint * tmp2;
 			tmp2 = (struct X3D_SingleAxisHingeJoint *) tmp;
 			tmp2->__old_anchorPoint.c[0] = 0.0f;tmp2->__old_anchorPoint.c[1] = 0.0f;tmp2->__old_anchorPoint.c[2] = 0.0f;
-			tmp2->__old_axis.c[0] = 0.0f;tmp2->__old_axis.c[1] = 0.0f;tmp2->__old_axis.c[2] = 1.0f;
+			tmp2->__old_axis.c[0] = 0.0f;tmp2->__old_axis.c[1] = 0.0f;tmp2->__old_axis.c[2] = 0.0f;
 			tmp2->__old_body1 = NULL;
 			tmp2->__old_body2 = NULL;
 			tmp2->_forceout = 0;
