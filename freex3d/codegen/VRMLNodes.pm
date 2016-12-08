@@ -2979,6 +2979,8 @@ our %Nodes = (
 		__do_rotation => ["SFInt32", "FALSE", "initializeOnly", 0],
 		collidable => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_geom => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_initialRotation => ["SFRotation", [0, 0, 1, 0], "initializeOnly", 0], 
+		_initialTranslation => ["SFVec3f", [0, 0, 0], "initializeOnly", 0],
 		], "X3DNBodyCollidableNode"),
 
 	"CollidableShape" => new VRML::NodeType("CollidableShape", [
@@ -2992,6 +2994,8 @@ our %Nodes = (
 		__do_rotation => ["SFInt32", "FALSE", "initializeOnly", 0],
 		shape => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_geom => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_initialRotation => ["SFRotation", [0, 0, 1, 0], "initializeOnly", 0], 
+		_initialTranslation => ["SFVec3f", [0, 0, 0], "initializeOnly", 0],
 		], "X3DNBodyCollidableNode"),
 
 	"CollisionCollection" => new VRML::NodeType("CollisionCollection", [
@@ -3160,6 +3164,7 @@ our %Nodes = (
 		__old_linearVelocity => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__old_orientation => ["SFRotation", [0, 0, 1, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		__old_position => ["SFVec3f", [0, 0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_geomIdentityTransform => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DSFNode"),
 
 	"RigidBodyCollection" => new VRML::NodeType("RigidBodyCollection", [

@@ -673,6 +673,126 @@ void setTransformsAndGeom_C(int space, struct X3D_RigidBodyCollection *x3dworld,
 }
 
 
+void setTransformsAndGeom_D(dSpaceID space, struct X3D_RigidBodyCollection *x3dworld, struct X3D_Node* parent, struct X3D_Node *node){
+	// ATTEMPT 5
+	// we can recurse if collidableOffset, although not branching recursion
+	// - collidableShape is the leaf
+	// http://ode.org/ode-latest-userguide.html#sec_10_7_7
+	// we use a geomTransform for a collidableOffset
+
+	dGeomID gid = NULL; //top level geom
+	if(node)
+	if(node->_nodeType == NODE_CollidableShape || node->_nodeType == NODE_CollidableOffset){
+		float *translation, *rotation;
+		struct X3D_CollidableOffset *collidable = (struct X3D_CollidableOffset *)node;
+		translation = collidable->translation.c;
+		rotation = collidable->rotation.c;
+
+		switch(node->_nodeType){
+			case NODE_CollidableShape:
+				{
+					struct X3D_CollidableShape *cshape = (struct X3D_CollidableShape *)node;
+					struct X3D_Shape *shape = (struct X3D_Shape*)cshape->shape;
+					veccopy3f(cshape->_initialTranslation.c,cshape->translation.c);
+					veccopy4f(cshape->_initialRotation.c,cshape->rotation.c);
+
+					if(shape && shape->geometry){
+
+						dReal sides[3];
+						switch(shape->geometry->_nodeType){
+							case NODE_Box:
+								{
+									struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
+									sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
+									gid = dCreateBox(space,sides[0],sides[1],sides[2]);
+								}
+								break;
+							case NODE_Cylinder:
+								{
+									struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
+									sides[0] = cyl->radius;
+									sides[1] = cyl->height;
+									gid = dCreateCylinder(space,sides[0],sides[1]);
+								}
+								break;
+							//case convex - not done yet, basically indexedfaceset or triangleSet?
+							case NODE_Sphere:
+							default:
+								{
+									struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
+									sides[0] = sphere->radius;
+									gid = dCreateSphere(space,sides[0]);
+								}
+								break;
+						}
+					}
+					cshape->_geom = gid;
+				}
+				break;
+			case NODE_CollidableOffset:
+				{
+
+					if(0){
+						//ATTEMPT 4
+						struct X3D_CollidableOffset *goff, *coff;
+						coff = (struct X3D_CollidableOffset *)node;
+						goff = (struct X3D_CollidableOffset *)coff->collidable;
+						setTransformsAndGeom_D(space,x3dworld,X3D_NODE(coff),X3D_NODE(goff));
+						coff->_geom = goff->_geom;
+						dGeomSetOffsetPosition(coff->_geom,coff->translation.c[0],coff->translation.c[1],coff->translation.c[2]);
+						
+					}else{
+						//ATTEMPT 3
+						struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)node;
+						veccopy3f(coff->_initialTranslation.c,coff->translation.c);
+						veccopy4f(coff->_initialRotation.c,coff->rotation.c);
+
+						gid = dCreateGeomTransform (space); //dSpaceID space);
+						coff->_geom = gid;
+						//recurse to leaf-node collidableShape
+						//setTransformsAndGeom(space,x3dworld,X3D_NODE(coff),X3D_NODE(coff->collidable));
+						setTransformsAndGeom_D(space,x3dworld,X3D_NODE(coff),X3D_NODE(coff->collidable));
+					}
+				}
+				break;
+			default:
+				break;
+		}
+		if(gid){
+			switch(parent->_nodeType){
+				case NODE_CollidableOffset:
+					{
+						struct X3D_CollidableOffset *poff = (struct X3D_CollidableOffset *)parent;
+						if(1) dGeomTransformSetGeom (poff->_geom,gid);
+					}
+					break;
+				case NODE_RigidBody:
+					{
+						struct X3D_RigidBody *rb = (struct X3D_RigidBody *)parent;
+						//dGeomSetBody(gid,rb->_body);
+						dGeomTransformSetGeom (rb->_geomIdentityTransform,gid);
+					}
+					break;
+				default:
+					break;
+			}
+			dGeomSetPosition (gid, (dReal)translation[0],(dReal)translation[1],(dReal)translation[2]);
+			//printf("%x %f %f %f\n",gid,translation[0],translation[1],translation[2]);
+			if(1){
+				dReal dquat[4];
+				Quaternion quat;
+				vrmlrot_to_quaternion(&quat,rotation[0],rotation[1],rotation[2],rotation[3]);
+				dquat[0] = quat.w; dquat[1] = quat.x, dquat[2] = quat.y, dquat[3] = quat.z;
+				dGeomSetQuaternion(gid,dquat);
+			}else{
+				dMatrix3 R;
+				dRFromAxisAndAngle (R,rotation[0],rotation[1],rotation[2],rotation[3]);
+				dGeomSetRotation(gid,R);
+			}
+		}
+	}
+}
+
 static int pause = FALSE;
 static double STEP_SIZE = .02; //seconds
 /* http://www.ode.org/ode-0.039-userguide.html#ref27
@@ -869,6 +989,62 @@ void rbp_run_physics(){
 				if(1){
 					if(isNewBody){
 						if(1){
+							// ATTEMPT 5, Dec 8, 2016
+							// IDEA: 
+							// 1. save collidableOffset/Shape _initialTranslation _initialRotation on compile_
+							// 2. stop ODE from transmitting initial x3dbody pose to geom and vice versa
+							//   by insertin an extra wrapper per RigidBody: geomTransform or geomSpace with no net transform
+							// 3. on MARK_EVENT set RigidBody pose and MARK, 
+							//    and take RigidBody pose and concatonate with collidable _initial pose
+							//		and set on collidable* translation,rotation and MARK_EVENT
+							// This should allow composite geom RigidBodys
+							// visualization - as usual either expose collidable in scenegraph, or route from them
+							//   to individual parts, or from the corresponding rigidbody to a wrapper transform on other geom
+							//   that doesn't need the individual part transforms
+							float *translation, *rotation;
+							translation = x3dbody->position.c;
+							rotation = x3dbody->orientation.c;
+							//our extra geomTransform to block ODE from transmitting pose between geom and body:
+							dGeomID gid = dCreateGeomTransform (x3dworld->_space);
+							// dGeomTransformSetCleanup (gid,1);
+							 
+							x3dbody->_geomIdentityTransform = gid;
+							dGeomSetBody(x3dbody->_geomIdentityTransform,x3dbody->_body);
+							//dGeomSetBody(gid,x3dbody->_body);
+
+
+							for(k=0;k<x3dbody->geometry.n;k++){
+								struct X3D_CollidableOffset* collidable = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
+								if(!collidable->_geom){
+									//if(1){
+										//ATTEMPT 3 uses geomTransform
+										setTransformsAndGeom_D(x3dworld->_space, x3dworld, X3D_NODE(x3dbody), X3D_NODE(collidable));
+									//}else{
+									//	//ATTEMPT 4 uses geomOffset
+									//	setTransformsAndGeom_C(space, x3dworld, x3dbody, X3D_NODE(collidable));
+									//}
+								}
+							}
+							if(verify_translate(translation)){
+								printf("verified translation= %f %f %f\n",translation[0],translation[1],translation[2]);
+								dBodySetPosition (x3dbody->_body, (dReal)translation[0],(dReal)translation[1],(dReal)translation[2]);
+							}
+							if(verify_rotate(rotation)){
+								printf("verified reotation= %f %f %f\n",rotation[0],rotation[1],rotation[2]);
+								if(1){
+									dReal dquat[4];
+									Quaternion quat;
+									vrmlrot_to_quaternion(&quat,rotation[0],rotation[1],rotation[2],rotation[3]);
+									dquat[0] = quat.w; dquat[1] = quat.x, dquat[2] = quat.y, dquat[3] = quat.z;
+									dBodySetQuaternion(x3dbody->_body,dquat);
+								}else{
+									dMatrix3 R;
+									dRFromAxisAndAngle (R,rotation[0],rotation[1],rotation[2],rotation[3]);
+									dBodySetRotation(x3dbody->_body,R);
+								}
+							}
+
+						}else if(1){
 							// ATTEMPT 3 Dec 7, 2016
 							float *translation, *rotation;
 							int space = 0;
@@ -883,7 +1059,7 @@ void rbp_run_physics(){
 										setTransformsAndGeom_B(space, x3dworld, X3D_NODE(x3dbody), X3D_NODE(collidable));
 									}else{
 										//ATTEMPT 4 uses geomOffset
-										setTransformsAndGeom_C(space, x3dworld, X3D_NODE(x3dbody), X3D_NODE(collidable));
+										setTransformsAndGeom_C(space, x3dworld, x3dbody, X3D_NODE(collidable));
 									}
 								}
 							}
@@ -906,7 +1082,7 @@ void rbp_run_physics(){
 								}
 							}
 
-						}else{
+						}else if(1){
 							// ATTEMPT 2 Dec 6, 2016
 							dGeomID gid;
 							double *geomTranslation, geomQuaternion[4];
@@ -1480,6 +1656,63 @@ void rbp_run_physics(){
 				if(x3dbody->_body){
 					//if not fixed, it will have a body that maybe moved
 					if(1){
+						//ATTEMPT 5
+						//we set and mark both x3dbody and top-level collidable translation,rotation
+						//top level collidable: we concatonate x3dboy * top-collidable transform
+						dReal *dpos, *dquat, *drot;
+						Quaternion quat;
+						double xyza[4];
+
+						dpos = dBodyGetPosition (x3dbody->_body);
+						//printf("dpos = %lf %lf %lf\n",dpos[0],dpos[1],dpos[2]);
+						dquat = dBodyGetQuaternion(x3dbody->_body);
+						quat.x = dquat[1], quat.y = dquat[2], quat.z = dquat[3], quat.w = dquat[0];
+						quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
+						double2float(x3dbody->position.c,dpos,3);
+						double2float(x3dbody->orientation.c,xyza,4);
+						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_RigidBody,position));
+						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_RigidBody,orientation));
+
+						for(k=0;k<x3dbody->geometry.n;k++){
+							float *translation, *rotation;
+							struct X3D_CollidableOffset* x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
+							translation = x3doffset->translation.c;
+							rotation = x3doffset->rotation.c;
+							//ATTEMPT 5: concatonate rigidbody transform with top-level collidable transform
+							{
+								//body_T * body_R * geom_T * geom_R ==
+								//(body_T + body_R*geom_T) * body_R*geom R
+								double geomT[3], geomR[4];
+								Quaternion geomQ;
+								float2double(geomT,x3doffset->_initialTranslation.c,3);
+								float2double(geomR,x3doffset->_initialRotation.c,4);
+								vrmlrot_to_quaternion(&geomQ,geomR[0],geomR[1],geomR[2],geomR[3]);
+								quaternion_rotationd(geomT,&quat,geomT);
+								double2float(translation,geomT,3);
+								vecadd3f(translation,translation,x3dbody->position.c);
+								quaternion_multiply(&geomQ,&quat,&geomQ);
+								quaternion_to_vrmlrot(&geomQ,&geomR[0],&geomR[1],&geomR[2],&geomR[3]);
+								double2float(rotation,geomR,4);
+							}
+							//double2float(translation,dpos,3);
+							//double2float(rotation,xyza,4);
+							if(i==0){
+								static int loopcount = 0;
+								if(loopcount < 30){
+									printf("pos %lf %lf %lf\n",dpos[0],dpos[1],dpos[2]);
+									printf("rot %f %f %f %f\n",rotation[0],rotation[1],rotation[2],rotation[3]);
+									printf("trn %f %f %f\n",translation[0],translation[1],translation[2]);
+									loopcount++;
+								}
+							}
+							//if(1) printf("transout %f %f %f\n",translation[0],translation[1],translation[2]);
+							MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,translation));
+							MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,rotation));
+
+							x3doffset->_change++;
+						}
+					}else if(1){
+						//ATTEMPT 3
 						dReal *dpos, *dquat, *drot;
 						Quaternion quat;
 						double xyza[4];
@@ -1504,7 +1737,8 @@ void rbp_run_physics(){
 
 							x3doffset->_change++;
 						}
-					}else{
+					}else if(0){
+						//ATTEMPT 1
 						x3dcshape = NULL;
 						x3doffset = NULL;
 						for(k=0;k<x3dbody->geometry.n;k++){
@@ -1839,6 +2073,8 @@ void compile_CollidableShape(struct X3D_Node *_node){
 		INITIALIZE_EXTENT;
 		node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
 		node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
+		//veccopy3f(node->_initialTranslation.c,node->translation.c); //too late here?
+		//veccopy4f(node->_initialRotation.c,node->rotation.c);
 		MARK_NODE_COMPILED;
 	}
 }

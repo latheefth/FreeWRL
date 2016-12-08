@@ -238,10 +238,13 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_forceout",
 	"_frameSpeed",
 	"_geom",
+	"_geomIdentityTransform",
 	"_geometryType",
 	"_group",
 	"_hatchScale",
 	"_ifs",
+	"_initialRotation",
+	"_initialTranslation",
 	"_initialized",
 	"_input",
 	"_int32InpFIFO",
@@ -3774,6 +3777,8 @@ const int OFFSETS_CollidableOffset[] = {
 	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_CollidableOffset, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CollidableOffset, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__geom, (int) offsetof (struct X3D_CollidableOffset, _geom),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialRotation, (int) offsetof (struct X3D_CollidableOffset, _initialRotation),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialTranslation, (int) offsetof (struct X3D_CollidableOffset, _initialTranslation),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CollidableOffset, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CollidableOffset, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_collidable, (int) offsetof (struct X3D_CollidableOffset, collidable),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3787,6 +3792,8 @@ const int OFFSETS_CollidableShape[] = {
 	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_CollidableShape, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CollidableShape, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__geom, (int) offsetof (struct X3D_CollidableShape, _geom),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialRotation, (int) offsetof (struct X3D_CollidableShape, _initialRotation),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialTranslation, (int) offsetof (struct X3D_CollidableShape, _initialTranslation),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CollidableShape, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CollidableShape, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_CollidableShape, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6290,6 +6297,7 @@ const int OFFSETS_RigidBody[] = {
 	(int) FIELDNAMES___old_orientation, (int) offsetof (struct X3D_RigidBody, __old_orientation),  (int) FIELDTYPE_SFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES___old_position, (int) offsetof (struct X3D_RigidBody, __old_position),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES__body, (int) offsetof (struct X3D_RigidBody, _body),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__geomIdentityTransform, (int) offsetof (struct X3D_RigidBody, _geomIdentityTransform),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_angularDampingFactor, (int) offsetof (struct X3D_RigidBody, angularDampingFactor),  (int) FIELDTYPE_SFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_angularVelocity, (int) offsetof (struct X3D_RigidBody, angularVelocity),  (int) FIELDTYPE_SFVec3f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_autoDamp, (int) offsetof (struct X3D_RigidBody, autoDamp),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8437,6 +8445,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_rotation = FALSE;
 			tmp2->__do_trans = FALSE;
 			tmp2->_geom = 0;
+			tmp2->_initialRotation.c[0] = 0;tmp2->_initialRotation.c[1] = 0;tmp2->_initialRotation.c[2] = 1;tmp2->_initialRotation.c[3] = 0;;
+			tmp2->_initialTranslation.c[0] = 0.0f;tmp2->_initialTranslation.c[1] = 0.0f;tmp2->_initialTranslation.c[2] = 0.0f;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->collidable = NULL;
@@ -8453,6 +8463,8 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__do_rotation = FALSE;
 			tmp2->__do_trans = FALSE;
 			tmp2->_geom = 0;
+			tmp2->_initialRotation.c[0] = 0;tmp2->_initialRotation.c[1] = 0;tmp2->_initialRotation.c[2] = 1;tmp2->_initialRotation.c[3] = 0;;
+			tmp2->_initialTranslation.c[0] = 0.0f;tmp2->_initialTranslation.c[1] = 0.0f;tmp2->_initialTranslation.c[2] = 0.0f;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->enabled = TRUE;
@@ -11668,6 +11680,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->__old_orientation.c[0] = 0;tmp2->__old_orientation.c[1] = 0;tmp2->__old_orientation.c[2] = 1;tmp2->__old_orientation.c[3] = 0;;
 			tmp2->__old_position.c[0] = 0.0f;tmp2->__old_position.c[1] = 0.0f;tmp2->__old_position.c[2] = 0.0f;
 			tmp2->_body = 0;
+			tmp2->_geomIdentityTransform = 0;
 			tmp2->angularDampingFactor = 0.001f;
 			tmp2->angularVelocity.c[0] = 0.0f;tmp2->angularVelocity.c[1] = 0.0f;tmp2->angularVelocity.c[2] = 0.0f;
 			tmp2->autoDamp = FALSE;
