@@ -727,19 +727,18 @@ void rbp_run_physics(){
 					//   for the purposes of allowing composite objects, and do that 
 					//   by always inserting exactly  one geomTransform wrapper per RigidBody
 					//   with no transform applied to the geomTransform
+					//   see ODE demo_boxstack.cpp 'x' option
 					// 2. when recursing down Collidables stack for first traverse/initialization, 
-					//    a) concatonate the collidables transforms,
-					//    b) and apply only to leaf geom ie box, sphere, ...
-					//    c) save initialization transform in case needed
-					//    d) option: zero the collidables transforms after saved to _initial.. 
-					//         -not necessary with one-level of collidable
-					//         - but 2-level collidable may not be transformed right the way I'm doing it now, 
-					//           unless bottom level is zeroed
+					//    a) on init of Collidable, save CollidableOffset to initialTranslation,_initialRotation,
+					//			zero the translation,rotation fields of CollidableOffset and CollidableShape
+					//    b) apply only CollidableOffset initial transform (saved in _initialTranslation,_initialRotation)
+					//         to shape, to position it relative to its parent/grandParent RigidBody,
+					//         and apply it only to leaf geom ie box, sphere, ...
 					// 3. on MARK_EVENT set RigidBody pose and MARK, 
-					//    and take RigidBody pose and set on top collidable* translation,rotation and MARK_EVENT
+					//    and take RigidBody pose, apply _initialTranslation, _initialRotation of top collidable,
+					//    and set on top collidable* translation,rotation and MARK_EVENT
 					// 4. on scenegraph traversal
-					//	  transform using the top collidable transform
-					//    concatonate __initialTransform
+					//	  transform using collidable transforms like a normal transform stack
 					// This should allow composite geom RigidBodys
 					// visualization - as usual either expose collidable in scenegraph, or route from them
 					//   to individual parts, or from the corresponding rigidbody to a wrapper transform on other geom
@@ -759,7 +758,7 @@ void rbp_run_physics(){
 						//   so we can set mass to the same pose
 						struct X3D_CollidableOffset* collidable = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
 						if(!collidable->_geom){
-							initCollidable(collidable); //checks if first time, copies pose to _initial if offset, and zeros
+							initCollidable(X3D_NODE(collidable)); //checks if first time, copies pose to _initial if offset, and zeros
 							setTransformsAndGeom_E(x3dworld->_space, x3dworld, X3D_NODE(x3dbody), X3D_NODE(collidable));
 						}
 					}
@@ -1222,131 +1221,60 @@ void rbp_run_physics(){
 				x3dbody = (struct X3D_RigidBody*)x3dworld->bodies.p[i];
 				if(x3dbody->_body){
 					//if not fixed, it will have a body that maybe moved
-					if(1){
-						//ATTEMPT 5 and 6
-						//we set and mark both x3dbody and top-level collidable translation,rotation
-						//top level collidable: we concatonate x3dboy * top-collidable transform
-						dReal *dpos, *dquat, *drot;
-						Quaternion quat;
-						double xyza[4];
+					//ATTEMPT 5 and 6
+					//we set and mark both x3dbody and top-level collidable translation,rotation
+					//top level collidable: we concatonate x3dboy * top-collidable transform
+					dReal *dpos, *dquat, *drot;
+					Quaternion quat;
+					double xyza[4];
 
-						dpos = dBodyGetPosition (x3dbody->_body);
-						//printf("dpos = %lf %lf %lf\n",dpos[0],dpos[1],dpos[2]);
-						dquat = dBodyGetQuaternion(x3dbody->_body);
-						quat.x = dquat[1], quat.y = dquat[2], quat.z = dquat[3], quat.w = dquat[0];
-						quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
-						double2float(x3dbody->position.c,dpos,3);
-						double2float(x3dbody->orientation.c,xyza,4);
-						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_RigidBody,position));
-						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_RigidBody,orientation));
+					dpos = dBodyGetPosition (x3dbody->_body);
+					//printf("dpos = %lf %lf %lf\n",dpos[0],dpos[1],dpos[2]);
+					dquat = dBodyGetQuaternion(x3dbody->_body);
+					quat.x = dquat[1], quat.y = dquat[2], quat.z = dquat[3], quat.w = dquat[0];
+					quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
+					double2float(x3dbody->position.c,dpos,3);
+					double2float(x3dbody->orientation.c,xyza,4);
+					MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_RigidBody,position));
+					MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_RigidBody,orientation));
 
-						for(k=0;k<x3dbody->geometry.n;k++){
-							float *translation, *rotation;
-							struct X3D_CollidableOffset* x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
-							translation = x3doffset->translation.c;
-							rotation = x3doffset->rotation.c;
-							//ATTEMPT 5: concatonate rigidbody transform with top-level collidable transform
-							{
-								//body_T * body_R * geom_T * geom_R ==
-								//(body_T + body_R*geom_T) * body_R*geom R
-								double geomT[3], geomR[4];
-								Quaternion geomQ;
-								float2double(geomT,x3doffset->_initialTranslation.c,3);
-								float2double(geomR,x3doffset->_initialRotation.c,4);
-								vrmlrot_to_quaternion(&geomQ,geomR[0],geomR[1],geomR[2],geomR[3]);
-								quaternion_rotationd(geomT,&quat,geomT);
-								double2float(translation,geomT,3);
-								vecadd3f(translation,translation,x3dbody->position.c);
-								quaternion_multiply(&geomQ,&quat,&geomQ);
-								quaternion_to_vrmlrot(&geomQ,&geomR[0],&geomR[1],&geomR[2],&geomR[3]);
-								double2float(rotation,geomR,4);
-							}
-							//double2float(translation,dpos,3);
-							//double2float(rotation,xyza,4);
-							if(i==0){
-								static int loopcount = 0;
-								if(loopcount < 30){
-									printf("pos %lf %lf %lf\n",dpos[0],dpos[1],dpos[2]);
-									printf("rot %f %f %f %f\n",rotation[0],rotation[1],rotation[2],rotation[3]);
-									printf("trn %f %f %f\n",translation[0],translation[1],translation[2]);
-									loopcount++;
-								}
-							}
-							//if(1) printf("transout %f %f %f\n",translation[0],translation[1],translation[2]);
-							MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,translation));
-							MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,rotation));
-
-							x3doffset->_change++;
+					for(k=0;k<x3dbody->geometry.n;k++){
+						float *translation, *rotation;
+						struct X3D_CollidableOffset* x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
+						translation = x3doffset->translation.c;
+						rotation = x3doffset->rotation.c;
+						//ATTEMPT 5: concatonate rigidbody transform with top-level collidable transform
+						{
+							//body_T * body_R * geom_T * geom_R ==
+							//(body_T + body_R*geom_T) * body_R*geom R
+							double geomT[3], geomR[4];
+							Quaternion geomQ;
+							float2double(geomT,x3doffset->_initialTranslation.c,3);
+							float2double(geomR,x3doffset->_initialRotation.c,4);
+							vrmlrot_to_quaternion(&geomQ,geomR[0],geomR[1],geomR[2],geomR[3]);
+							quaternion_rotationd(geomT,&quat,geomT);
+							double2float(translation,geomT,3);
+							vecadd3f(translation,translation,x3dbody->position.c);
+							quaternion_multiply(&geomQ,&quat,&geomQ);
+							quaternion_to_vrmlrot(&geomQ,&geomR[0],&geomR[1],&geomR[2],&geomR[3]);
+							double2float(rotation,geomR,4);
 						}
-					}else if(1){
-						//ATTEMPT 3
-						dReal *dpos, *dquat, *drot;
-						Quaternion quat;
-						double xyza[4];
-
-						dpos = dBodyGetPosition (x3dbody->_body);
-						//printf("dpos = %lf %lf %lf\n",dpos[0],dpos[1],dpos[2]);
-						dquat = dBodyGetQuaternion(x3dbody->_body);
-						quat.x = dquat[1], quat.y = dquat[2], quat.z = dquat[3], quat.w = dquat[0];
-						quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
-
-						for(k=0;k<x3dbody->geometry.n;k++){
-							float *translation, *rotation;
-							struct X3D_CollidableOffset* x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
-							translation = x3doffset->translation.c;
-							rotation = x3doffset->rotation.c;
-							double2float(translation,dpos,3);
-							double2float(rotation,xyza,4);
-							if(0) printf("%f %f %f %f\n",x3doffset->rotation.c[0],x3doffset->rotation.c[1],x3doffset->rotation.c[2],x3doffset->rotation.c[3]);
-							//if(1) printf("transout %f %f %f\n",translation[0],translation[1],translation[2]);
-							MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,translation));
-							MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,rotation));
-
-							x3doffset->_change++;
-						}
-					}else if(0){
-						//ATTEMPT 1
-						x3dcshape = NULL;
-						x3doffset = NULL;
-						for(k=0;k<x3dbody->geometry.n;k++){
-							struct SFVec3f translation;
-							struct SFRotation rotation;
-							dReal *dpos, *dquat, *drot;
-							Quaternion quat;
-							double xyza[4];
-
-							if(x3dbody->geometry.p[k]->_nodeType == NODE_CollidableOffset){
-								x3doffset = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
-								x3dcshape = (struct X3D_CollidableShape*)x3doffset->collidable;
-							}else if(x3dbody->geometry.p[k]->_nodeType == NODE_CollidableShape){
-								x3dcshape = (struct X3D_CollidableShape*)x3dbody->geometry.p[k];
-								x3doffset = (struct X3D_CollidableOffset*)x3dcshape;
+						//double2float(translation,dpos,3);
+						//double2float(rotation,xyza,4);
+						if(i==0){
+							static int loopcount = 0;
+							if(loopcount < 30){
+								printf("pos %lf %lf %lf\n",dpos[0],dpos[1],dpos[2]);
+								printf("rot %f %f %f %f\n",rotation[0],rotation[1],rotation[2],rotation[3]);
+								printf("trn %f %f %f\n",translation[0],translation[1],translation[2]);
+								loopcount++;
 							}
-							translation = x3doffset->translation;
-							rotation = x3doffset->rotation;
-							dpos = dBodyGetPosition (x3dbody->_body);
-							dquat = dBodyGetQuaternion(x3dbody->_body);
-							quat.x = dquat[1], quat.y = dquat[2], quat.z = dquat[3], quat.w = dquat[0];
-							quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
-							if(0){
-								drot = dBodyGetRotation(x3dbody->_body);
-								double dangle = atan2(drot[1],drot[0]);
-								printf("\n");
-								printf("rad %lf\n",dangle);
-								for(int kk=0;kk<3;kk++)
-									printf("%lf %lf %lf %lf\n",drot[0+kk*4],drot[1+kk*4],drot[2+kk*4],drot[3+kk*4]);
-								printf("\n");
-							}
-							double2float(x3doffset->translation.c,dpos,3);
-							double2float(x3doffset->rotation.c,xyza,4);
-							if(0) printf("%f %f %f %f\n",x3doffset->rotation.c[0],x3doffset->rotation.c[1],x3doffset->rotation.c[2],x3doffset->rotation.c[3]);
-
-							MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,translation));
-							MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,rotation));
-
-							x3doffset->_change++;
-
 						}
+						//if(1) printf("transout %f %f %f\n",translation[0],translation[1],translation[2]);
+						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,translation));
+						MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_CollidableOffset,rotation));
+
+						x3doffset->_change++;
 					}
 				}
 			} //for bodies
@@ -1637,7 +1565,7 @@ void compile_CollidableShape(struct X3D_Node *_node){
 		struct X3D_CollidableShape *node = (struct X3D_CollidableShape*)_node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 		
-		initCollidable(node); //checks if first time, also called from run_rigid_body in case it gets to it first
+		initCollidable(X3D_NODE(node)); //checks if first time, also called from run_rigid_body in case it gets to it first
 
 		INITIALIZE_EXTENT;
 		node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
