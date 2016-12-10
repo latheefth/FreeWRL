@@ -793,6 +793,122 @@ void setTransformsAndGeom_D(dSpaceID space, struct X3D_RigidBodyCollection *x3dw
 	}
 }
 
+void setTransformsAndGeom_E(dSpaceID space, struct X3D_RigidBodyCollection *x3dworld, 
+	struct X3D_Node* parent, struct X3D_Node *node){
+	// ATTEMPT 6
+	// this is an initialzation step function, called once for program/scene run, not called again once _body is intialized
+	// USING OCTAGA CONVENTION - only use initial CollidableOffset for offset
+	// which initCollidable() copies to _initialTranslation, _initialRotation just once, 
+	// - and zeros the regular translation, rotation for both CollidableOffset and CollidableShape
+	// - either on compile_CollidableXXXX or in run_rigid_body() on initialization of _body
+	// we can recurse if collidableOffset, although not branching recursion
+	// - collidableShape is the leaf
+	// http://ode.org/ode-latest-userguide.html#sec_10_7_7
+	// geomTransform is used between RigidBody and shape geom so geom can have composite delta/shift/offset
+	// see demo_boxstack 'x' keyboard option, which is for composite objects. 
+	// phase I - get mass, collision geom, and visual to show up in the same place
+	// phase II - harmonize with RigidBodyCollection->collidables [CollisionCollection] stack, which can 
+	//    include static geometry not represented as RigidBodys. By harmonize I mean
+	//    - detect if already generated collidable, and add RB mass
+
+	dGeomID gid = NULL; //top level geom
+	if(node)
+	if(node->_nodeType == NODE_CollidableShape || node->_nodeType == NODE_CollidableOffset){
+		float *translation, *rotation;
+		struct X3D_CollidableOffset *collidable = (struct X3D_CollidableOffset *)node;
+		translation = collidable->translation.c;
+		rotation = collidable->rotation.c;
+
+		switch(node->_nodeType){
+			case NODE_CollidableShape:
+				{
+					struct X3D_CollidableShape *cshape = (struct X3D_CollidableShape *)node;
+					struct X3D_Shape *shape = (struct X3D_Shape*)cshape->shape;
+					// will be zeroed in initCollidable():
+					//veccopy3f(cshape->_initialTranslation.c,cshape->translation.c);
+					//veccopy4f(cshape->_initialRotation.c,cshape->rotation.c);
+					dGeomID shapegid;
+					gid = dCreateGeomTransform (space); //dSpaceID space);
+					dGeomTransformSetCleanup (gid,1);
+
+					if(shape && shape->geometry){
+
+						dReal sides[3];
+						switch(shape->geometry->_nodeType){
+							case NODE_Box:
+								{
+									struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
+									sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
+									shapegid = dCreateBox(0,sides[0],sides[1],sides[2]);
+								}
+								break;
+							case NODE_Cylinder:
+								{
+									struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
+									sides[0] = cyl->radius;
+									sides[1] = cyl->height;
+									shapegid = dCreateCylinder(0,sides[0],sides[1]);
+								}
+								break;
+							//case convex - not done yet, basically indexedfaceset or triangleSet?
+							case NODE_Sphere:
+							default:
+								{
+									struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
+									sides[0] = sphere->radius;
+									shapegid = dCreateSphere(0,sides[0]);
+								}
+								break;
+						}
+					}
+					cshape->_geom = gid; //we will put trans wrapper whether or not there's an offset parent.
+					dGeomTransformSetGeom (gid,shapegid);
+
+				}
+				break;
+			case NODE_CollidableOffset:
+				{
+					struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)node;
+
+					//recurse to leaf-node collidableShape
+					setTransformsAndGeom_E(space,x3dworld,X3D_NODE(coff),X3D_NODE(coff->collidable));
+					gid = coff->_geom;
+				}
+				break;
+			default:
+				break;
+		}
+		if(gid){
+			switch(parent->_nodeType){
+				case NODE_RigidBody:
+				{
+					struct X3D_RigidBody *rb = (struct X3D_RigidBody *)parent;
+					dGeomSetBody (gid,rb->_body);
+				}
+				break;
+				case NODE_CollidableOffset:
+				{
+					//snippet from ODE demo_boxstack.cpp cmd == 'x' {} section
+					struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)parent;
+					float *translation, *rotation;
+					translation = coff->_initialTranslation.c;
+					rotation = coff->_initialRotation.c;
+					dGeomSetPosition (gid,translation[0],translation[1],translation[2]);
+					dMatrix3 Rtx;
+					dRFromAxisAndAngle (Rtx,rotation[0],rotation[1],rotation[2],rotation[3]);
+					dGeomSetRotation (gid,Rtx);
+					coff->_geom = gid;
+				}
+				break;
+				case NODE_CollisionSpace:
+				break;
+				default:
+				break;
+			}
+		}
+	}
+}
+
 static int pause = FALSE;
 static double STEP_SIZE = .02; //seconds
 /* http://www.ode.org/ode-0.039-userguide.html#ref27
@@ -901,7 +1017,31 @@ Issue with 2,3,4: either you need all the bitflags set on startup (to trigger al
 DECISION: we'll do the #1 __oldvalue technique.
 
 */
-
+void initCollidable(struct X3D_Node* node){
+	//OCTAGA convention for compositing collidableGeoms into a RigidBody
+	//during initialization of Collidable, copy only the CollidableOffset translation,rotation to
+	// _initialTranslation, _initialRotation
+	// and zero (enforce ignore policy) the translation, rotatation fields
+	// (top level transform will be written to after sim step, and used in scenegraph for positioning)
+	if(node && (node->_nodeType == NODE_CollidableOffset || node->_nodeType == NODE_CollidableShape))
+	{
+		struct X3D_CollidableOffset *cnode = (struct X3D_CollidableOffset*)node;
+		if(!cnode->_initialized){
+			//Octaga convention: only save CollidableOffset transform during initialization
+			//will duplicate this in run_rigid_body call stack in case it gets here first
+			if(node->_nodeType == NODE_CollidableOffset){
+				veccopy3f(cnode->_initialTranslation.c,cnode->translation.c); //too late here?
+				veccopy4f(cnode->_initialRotation.c,cnode->rotation.c);
+			}else{
+				//CollidableShape
+			}
+			vecset3f(cnode->translation.c,0.0f,0.0f,0.0f);
+			vecset3f(cnode->rotation.c,0.0f,0.0f,0.0f);
+			cnode->rotation.c[3] = 0.0f;
+			cnode->_initialized = TRUE;
+		}
+	}
+}
 void rbp_run_physics(){
 	/*	called once per frame.
 		assumes we have lists of registered worlds (x3drigidbodycollections) and 
@@ -989,6 +1129,83 @@ void rbp_run_physics(){
 				if(1){
 					if(isNewBody){
 						if(1){
+							// ATTEMPT 6, Dec 8 and 9, 10 2016
+							//ATTEMPT 6 WILL USE OCTAGA CONVENTION.
+							//- ignore CollidableShape pose on init
+							//- use CollidableOffset pose for compositing offset/delta
+							//- write to only the top Collidable transform fields
+							//- apply the offset -if CollidableOffset- before writing the transform fields
+							//- on render, use only the top level transform (which will include any offset if present)
+							//- a way to ensure, is when compile_ collideable, save to __initials only if Offset,
+							//    then zero transform without marking event
+							// based on ODE test demo_boxstack.cpp 'x' option for composite object
+							// - it seems to be doing within-RB transforms during composition
+							// - then transforming the rigidbody during physics
+							// - 2 ways: a) USE_GEOM_OFFSET b) geomTransform
+							// - and in both cases the composition transforms are applied to the collidable shape geom
+							// - geomTransform is just there to force separation between RB and collidable 
+							//		so they don't share transform
+							// IDEA: 
+							// 1. stop ODE from transmitting initial x3dbody pose to geom and vice versa
+							//   for the purposes of allowing composite objects, and do that 
+							//   by always inserting exactly  one geomTransform wrapper per RigidBody
+							//   with no transform applied to the geomTransform
+							// 2. when recursing down Collidables stack for first traverse/initialization, 
+							//    a) concatonate the collidables transforms,
+							//    b) and apply only to leaf geom ie box, sphere, ...
+							//    c) save initialization transform in case needed
+							//    d) option: zero the collidables transforms after saved to _initial.. 
+							//         -not necessary with one-level of collidable
+							//         - but 2-level collidable may not be transformed right the way I'm doing it now, 
+							//           unless bottom level is zeroed
+							// 3. on MARK_EVENT set RigidBody pose and MARK, 
+							//    and take RigidBody pose and set on top collidable* translation,rotation and MARK_EVENT
+							// 4. on scenegraph traversal
+							//	  transform using the top collidable transform
+							//    concatonate __initialTransform
+							// This should allow composite geom RigidBodys
+							// visualization - as usual either expose collidable in scenegraph, or route from them
+							//   to individual parts, or from the corresponding rigidbody to a wrapper transform on other geom
+							//   that doesn't need the individual part transforms
+							// Phase I - get SingleHingeJoint type scenes to work
+							// Phase II - harmonize with RigidBodyCollection->collidables [CollidableCollection] scenes
+
+							float *translation, *rotation;
+							translation = x3dbody->position.c;
+							rotation = x3dbody->orientation.c;
+
+							for(k=0;k<x3dbody->geometry.n;k++){
+								//iterate over composite geometry
+								//Phase I: just do _geom if not already done, and do both collidable geom and mass
+								//   composition in one callstack
+								//Phase II option: recurse even if _geom set by RBP->collidables separate traverse/callstack
+								//   so we can set mass to the same pose
+								struct X3D_CollidableOffset* collidable = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
+								if(!collidable->_geom){
+									initCollidable(collidable); //checks if first time, copies pose to _initial if offset, and zeros
+									setTransformsAndGeom_E(x3dworld->_space, x3dworld, X3D_NODE(x3dbody), X3D_NODE(collidable));
+								}
+							}
+							if(verify_translate(translation)){
+								printf("verified translation= %f %f %f\n",translation[0],translation[1],translation[2]);
+								dBodySetPosition (x3dbody->_body, (dReal)translation[0],(dReal)translation[1],(dReal)translation[2]);
+							}
+							if(verify_rotate(rotation)){
+								printf("verified reotation= %f %f %f\n",rotation[0],rotation[1],rotation[2]);
+								if(1){
+									dReal dquat[4];
+									Quaternion quat;
+									vrmlrot_to_quaternion(&quat,rotation[0],rotation[1],rotation[2],rotation[3]);
+									dquat[0] = quat.w; dquat[1] = quat.x, dquat[2] = quat.y, dquat[3] = quat.z;
+									dBodySetQuaternion(x3dbody->_body,dquat);
+								}else{
+									dMatrix3 R;
+									dRFromAxisAndAngle (R,rotation[0],rotation[1],rotation[2],rotation[3]);
+									dBodySetRotation(x3dbody->_body,R);
+								}
+							}
+
+						}else if(1){
 							// ATTEMPT 5, Dec 8, 2016
 							// IDEA: 
 							// 1. save collidableOffset/Shape _initialTranslation _initialRotation on compile_
@@ -1656,7 +1873,7 @@ void rbp_run_physics(){
 				if(x3dbody->_body){
 					//if not fixed, it will have a body that maybe moved
 					if(1){
-						//ATTEMPT 5
+						//ATTEMPT 5 and 6
 						//we set and mark both x3dbody and top-level collidable translation,rotation
 						//top level collidable: we concatonate x3dboy * top-collidable transform
 						dReal *dpos, *dquat, *drot;
@@ -2070,11 +2287,11 @@ void compile_CollidableShape(struct X3D_Node *_node){
 		struct X3D_CollidableShape *node = (struct X3D_CollidableShape*)_node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 		
+		initCollidable(node); //checks if first time, also called from run_rigid_body in case it gets to it first
+
 		INITIALIZE_EXTENT;
 		node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
 		node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
-		//veccopy3f(node->_initialTranslation.c,node->translation.c); //too late here?
-		//veccopy4f(node->_initialRotation.c,node->rotation.c);
 		MARK_NODE_COMPILED;
 	}
 }

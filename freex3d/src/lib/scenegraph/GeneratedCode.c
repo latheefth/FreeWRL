@@ -3779,6 +3779,7 @@ const int OFFSETS_CollidableOffset[] = {
 	(int) FIELDNAMES__geom, (int) offsetof (struct X3D_CollidableOffset, _geom),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__initialRotation, (int) offsetof (struct X3D_CollidableOffset, _initialRotation),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__initialTranslation, (int) offsetof (struct X3D_CollidableOffset, _initialTranslation),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_CollidableOffset, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CollidableOffset, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CollidableOffset, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_collidable, (int) offsetof (struct X3D_CollidableOffset, collidable),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -3794,6 +3795,7 @@ const int OFFSETS_CollidableShape[] = {
 	(int) FIELDNAMES__geom, (int) offsetof (struct X3D_CollidableShape, _geom),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__initialRotation, (int) offsetof (struct X3D_CollidableShape, _initialRotation),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__initialTranslation, (int) offsetof (struct X3D_CollidableShape, _initialTranslation),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__initialized, (int) offsetof (struct X3D_CollidableShape, _initialized),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_bboxCenter, (int) offsetof (struct X3D_CollidableShape, bboxCenter),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bboxSize, (int) offsetof (struct X3D_CollidableShape, bboxSize),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_CollidableShape, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8447,6 +8449,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_geom = 0;
 			tmp2->_initialRotation.c[0] = 0;tmp2->_initialRotation.c[1] = 0;tmp2->_initialRotation.c[2] = 1;tmp2->_initialRotation.c[3] = 0;;
 			tmp2->_initialTranslation.c[0] = 0.0f;tmp2->_initialTranslation.c[1] = 0.0f;tmp2->_initialTranslation.c[2] = 0.0f;
+			tmp2->_initialized = 0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->collidable = NULL;
@@ -8465,6 +8468,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_geom = 0;
 			tmp2->_initialRotation.c[0] = 0;tmp2->_initialRotation.c[1] = 0;tmp2->_initialRotation.c[2] = 1;tmp2->_initialRotation.c[3] = 0;;
 			tmp2->_initialTranslation.c[0] = 0.0f;tmp2->_initialTranslation.c[1] = 0.0f;tmp2->_initialTranslation.c[2] = 0.0f;
+			tmp2->_initialized = 0;
 			tmp2->bboxCenter.c[0] = 0.0f;tmp2->bboxCenter.c[1] = 0.0f;tmp2->bboxCenter.c[2] = 0.0f;
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->enabled = TRUE;
@@ -11705,7 +11709,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->torques.n=0; tmp2->torques.p=0;
 			tmp2->useFiniteRotation = FALSE;
 			tmp2->useGlobalGravity = TRUE;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_bodies;
 		break;
 		}
 		case NODE_RigidBodyCollection : {

@@ -3275,6 +3275,7 @@ struct X3D_CollidableOffset {
 	void * _geom;
 	struct SFRotation _initialRotation;
 	struct SFVec3f _initialTranslation;
+	int _initialized;
 };
 extern struct X3D_Virt virt_CollidableOffset;
 /***********************/
@@ -3305,6 +3306,7 @@ struct X3D_CollidableShape {
 	void * _geom;
 	struct SFRotation _initialRotation;
 	struct SFVec3f _initialTranslation;
+	int _initialized;
 };
 extern struct X3D_Virt virt_CollidableShape;
 /***********************/
