@@ -183,6 +183,7 @@ static int fbnum=0;
 //our registered lists (should be in gglobal p-> or scene->)
 static struct Vector *x3dworlds = NULL;
 static struct Vector *x3dcollisionsensors = NULL;
+static struct Vector *x3dcollisioncollections = NULL; //
 
 // this is called by dSpaceCollide when two objects in space are
 // potentially colliding.
@@ -365,8 +366,7 @@ unsigned int forceout_from_names(int n, struct Uni_String **p){
 }
 
 
-void setTransformsAndGeom_E(dSpaceID space, struct X3D_RigidBodyCollection *x3dworld, 
-	struct X3D_Node* parent, struct X3D_Node *node){
+void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_Node **nodes, int n){
 	// ATTEMPT 6
 	// this is an initialzation step function, called once for program/scene run, not called again once _body is intialized
 	// USING OCTAGA CONVENTION - only use initial CollidableOffset for offset
@@ -383,99 +383,133 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_RigidBodyCollection *x3dw
 	//    include static geometry not represented as RigidBodys. By harmonize I mean
 	//    - detect if already generated collidable, and add RB mass
 
-	dGeomID gid = NULL; //top level geom
-	if(node)
-	if(node->_nodeType == NODE_CollidableShape || node->_nodeType == NODE_CollidableOffset){
-		float *translation, *rotation;
-		struct X3D_CollidableOffset *collidable = (struct X3D_CollidableOffset *)node;
-		translation = collidable->translation.c;
-		rotation = collidable->rotation.c;
+	int k;
+	for(k=0;k<n;k++){
+		dGeomID gid = NULL; //top level geom
+		struct X3D_Node *node = nodes[k];
+		if(node)
+		if(node->_nodeType == NODE_CollidableShape || node->_nodeType == NODE_CollidableOffset){
+			float *translation, *rotation;
+			struct X3D_CollidableOffset *collidable = (struct X3D_CollidableOffset *)node;
+			translation = collidable->translation.c;
+			rotation = collidable->rotation.c;
 
-		switch(node->_nodeType){
-			case NODE_CollidableShape:
-				{
-					struct X3D_CollidableShape *cshape = (struct X3D_CollidableShape *)node;
-					struct X3D_Shape *shape = (struct X3D_Shape*)cshape->shape;
-					// will be zeroed in initCollidable():
-					//veccopy3f(cshape->_initialTranslation.c,cshape->translation.c);
-					//veccopy4f(cshape->_initialRotation.c,cshape->rotation.c);
-					dGeomID shapegid;
-					gid = dCreateGeomTransform (space); //dSpaceID space);
-					dGeomTransformSetCleanup (gid,1);
+			switch(node->_nodeType){
+				case NODE_CollidableShape:
+					{
+						struct X3D_CollidableShape *cshape = (struct X3D_CollidableShape *)node;
+						struct X3D_Shape *shape = (struct X3D_Shape*)cshape->shape;
+						// will be zeroed in initCollidable():
+						//veccopy3f(cshape->_initialTranslation.c,cshape->translation.c);
+						//veccopy4f(cshape->_initialRotation.c,cshape->rotation.c);
+						dGeomID shapegid;
+						gid = dCreateGeomTransform (space); //dSpaceID space);
+						dGeomTransformSetCleanup (gid,1);
 
-					if(shape && shape->geometry){
+						if(shape && shape->geometry){
 
-						dReal sides[3];
-						switch(shape->geometry->_nodeType){
-							case NODE_Box:
-								{
-									struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
-									sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
-									shapegid = dCreateBox(0,sides[0],sides[1],sides[2]);
-								}
-								break;
-							case NODE_Cylinder:
-								{
-									struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
-									sides[0] = cyl->radius;
-									sides[1] = cyl->height;
-									shapegid = dCreateCylinder(0,sides[0],sides[1]);
-								}
-								break;
-							//case convex - not done yet, basically indexedfaceset or triangleSet?
-							case NODE_Sphere:
-							default:
-								{
-									struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
-									sides[0] = sphere->radius;
-									shapegid = dCreateSphere(0,sides[0]);
-								}
-								break;
+							dReal sides[3];
+							switch(shape->geometry->_nodeType){
+								case NODE_Box:
+									{
+										struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
+										sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
+										shapegid = dCreateBox(0,sides[0],sides[1],sides[2]);
+									}
+									break;
+								case NODE_Cylinder:
+									{
+										struct X3D_Cylinder *cyl = (struct X3D_Cylinder*)shape->geometry;
+										sides[0] = cyl->radius;
+										sides[1] = cyl->height;
+										shapegid = dCreateCylinder(0,sides[0],sides[1]);
+									}
+									break;
+								//case convex - not done yet, basically indexedfaceset or triangleSet?
+								case NODE_TriangleSet:
+									{
+										//see ODE demo_heightfield.cpp 
+										struct X3D_TriangleSet *tris = (struct X3D_TriangleSet*)shape->geometry;
+										struct X3D_Coordinate *coord = (struct X3D_Coordinate *)tris->coord;
+										int index_count = coord->point.n;
+										dTriIndex * indices = malloc(index_count);
+										for(int j=0;j<index_count/3;j++){
+											for(int k=0;k<3;k++)
+												indices[j*3 +k] = j*3 + k;
+										}
+										dTriMeshDataID new_tmdata = dGeomTriMeshDataCreate();
+										dGeomTriMeshDataBuildSingle(new_tmdata, coord->point.p, 3 * sizeof(float), coord->point.n, 
+											&indices[0], index_count, 3 * sizeof(dTriIndex));
+
+										shapegid = dCreateTriMesh(0, new_tmdata, 0, 0, 0);
+										//free(indices);
+									}
+									break;
+								case NODE_Sphere:
+								default:
+									{
+										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
+										sides[0] = sphere->radius;
+										shapegid = dCreateSphere(0,sides[0]);
+									}
+									break;
+							}
 						}
+						cshape->_geom = gid; //we will put trans wrapper whether or not there's an offset parent.
+						dGeomTransformSetGeom (gid,shapegid);
+
 					}
-					cshape->_geom = gid; //we will put trans wrapper whether or not there's an offset parent.
-					dGeomTransformSetGeom (gid,shapegid);
-
-				}
-				break;
-			case NODE_CollidableOffset:
-				{
-					struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)node;
-
-					//recurse to leaf-node collidableShape
-					setTransformsAndGeom_E(space,x3dworld,X3D_NODE(coff),X3D_NODE(coff->collidable));
-					gid = coff->_geom;
-				}
-				break;
-			default:
-				break;
-		}
-		if(gid){
-			switch(parent->_nodeType){
-				case NODE_RigidBody:
-				{
-					struct X3D_RigidBody *rb = (struct X3D_RigidBody *)parent;
-					dGeomSetBody (gid,rb->_body);
-				}
-				break;
-				case NODE_CollidableOffset:
-				{
-					//snippet from ODE demo_boxstack.cpp cmd == 'x' {} section
-					struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)parent;
-					float *translation, *rotation;
-					translation = coff->_initialTranslation.c;
-					rotation = coff->_initialRotation.c;
-					dGeomSetPosition (gid,translation[0],translation[1],translation[2]);
-					dMatrix3 Rtx;
-					dRFromAxisAndAngle (Rtx,rotation[0],rotation[1],rotation[2],rotation[3]);
-					dGeomSetRotation (gid,Rtx);
-					coff->_geom = gid;
-				}
-				break;
+					break;
 				case NODE_CollisionSpace:
-				break;
+					{
+						struct X3D_CollisionSpace *cspace = (struct X3D_CollisionSpace *)node;
+
+						//recurse to leaf-node collidableShape
+						if(!cspace->_space)
+							cspace->_space = dHashSpaceCreate (space);
+						setTransformsAndGeom_E(cspace->_space,X3D_NODE(cspace),cspace->collidables.p,1);
+
+					}
+				case NODE_CollidableOffset:
+					{
+						struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)node;
+
+						//recurse to leaf-node collidableShape
+						setTransformsAndGeom_E(space,X3D_NODE(coff),&X3D_NODE(coff->collidable),1);
+						gid = coff->_geom;
+					}
+					break;
 				default:
-				break;
+					break;
+			}
+			if(gid){
+				switch(parent->_nodeType){
+					case NODE_RigidBody:
+					{
+						struct X3D_RigidBody *rb = (struct X3D_RigidBody *)parent;
+						dGeomSetBody (gid,rb->_body);
+					}
+					break;
+					case NODE_CollidableOffset:
+					{
+						//snippet from ODE demo_boxstack.cpp cmd == 'x' {} section
+						struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)parent;
+						float *translation, *rotation;
+						translation = coff->_initialTranslation.c;
+						rotation = coff->_initialRotation.c;
+						dGeomSetPosition (gid,translation[0],translation[1],translation[2]);
+						dMatrix3 Rtx;
+						dRFromAxisAndAngle (Rtx,rotation[0],rotation[1],rotation[2],rotation[3]);
+						dGeomSetRotation (gid,Rtx);
+						coff->_geom = gid;
+					}
+					break;
+					case NODE_CollisionSpace:
+					case NODE_CollisionCollection:
+					case NODE_RigidBodyCollection:
+					default:
+					break;
+				}
 			}
 		}
 	}
@@ -759,7 +793,7 @@ void rbp_run_physics(){
 						struct X3D_CollidableOffset* collidable = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
 						if(!collidable->_geom){
 							initCollidable(X3D_NODE(collidable)); //checks if first time, copies pose to _initial if offset, and zeros
-							setTransformsAndGeom_E(x3dworld->_space, x3dworld, X3D_NODE(x3dbody), X3D_NODE(collidable));
+							setTransformsAndGeom_E(x3dworld->_space, X3D_NODE(x3dbody), &X3D_NODE(collidable),1);
 						}
 					}
 					if(verify_translate(translation)){
@@ -1206,6 +1240,21 @@ void rbp_run_physics(){
 				} //switch (joint type)
 			}
 
+			//register any unregistered / non-rigidbody collidables ie fixed
+			if(x3dcollisioncollections){
+				struct X3D_CollisionCollection *ccol;
+				for(i=0;i<x3dcollisioncollections->n;i++){
+					void *space = NULL;
+					ccol = vector_get(struct X3D_CollisionCollection*,x3dcollisioncollections,i);
+					for(j=0;j<ccol->collidables.n;j++){
+						struct X3D_CollidableOffset* collidable = (struct X3D_CollidableOffset*)ccol->collidables.p[j];
+						if(!collidable->_geom){
+							//initCollidable(X3D_NODE(collidable)); //checks if first time, copies pose to _initial if offset, and zeros
+							setTransformsAndGeom_E(x3dworld->_space, X3D_NODE(ccol), ccol->collidables.p, ccol->collidables.n);
+						}
+					}
+				}
+			}
 
 			//RUN PHYSICS ENGINE
 			dSpaceCollide (x3dworld->_space,0,&nearCallback);
@@ -1261,7 +1310,8 @@ void rbp_run_physics(){
 						}
 						//double2float(translation,dpos,3);
 						//double2float(rotation,xyza,4);
-						if(i==0){
+						if(0) if(i==0){
+							//some debug 
 							static int loopcount = 0;
 							if(loopcount < 30){
 								printf("pos %lf %lf %lf\n",dpos[0],dpos[1],dpos[2]);
@@ -1453,7 +1503,16 @@ void rbp_run_physics(){
 
 }
 
-
+void register_CollisionCollection(struct X3D_Node * _node){
+	if(_node->_nodeType == NODE_CollisionCollection){
+		ppComponent_RigidBodyPhysics p;
+		struct X3D_CollisionSensor *node = (struct X3D_CollisionSensor*)_node;
+		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
+		if(!x3dcollisioncollections) x3dcollisioncollections = newVector(struct X3D_Node*,5);
+		vector_pushBack(struct X3D_Node*,x3dcollisioncollections,_node);
+		MARK_NODE_COMPILED;
+	}
+}
 void register_CollisionSensor(struct X3D_Node *_node){
 	if(_node->_nodeType == NODE_CollisionSensor){
 		ppComponent_RigidBodyPhysics p;
@@ -1565,7 +1624,7 @@ void compile_CollidableShape(struct X3D_Node *_node){
 		struct X3D_CollidableShape *node = (struct X3D_CollidableShape*)_node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 		
-		initCollidable(X3D_NODE(node)); //checks if first time, also called from run_rigid_body in case it gets to it first
+		if(0) initCollidable(X3D_NODE(node)); //checks if first time, also called from run_rigid_body in case it gets to it first
 
 		INITIALIZE_EXTENT;
 		node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
@@ -1648,6 +1707,12 @@ void add_physics(struct X3D_Node *node){
 			//its almost the same place as physics, which is just after do_events,routing
 			// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/concepts.html#ExecutionModel
 			register_CollisionSensor(node);
+			break;
+		case NODE_CollisionCollection:
+			//CollisionCollections are x3dchild nodes, and can appear naked in scenegraph
+			//or in CollisionSensor field, or in RigidBodyCollection field
+			//ie might be DEF/USED
+			register_CollisionCollection(node);
 			break;
 		case NODE_RigidBodyCollection:
 			//OK good.
