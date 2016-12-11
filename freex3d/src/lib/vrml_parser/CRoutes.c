@@ -717,7 +717,7 @@ void do_ScalarChaserTick(void * ptr);
 void do_ScalarDamperTick(void * ptr);
 void do_TexCoordChaser2DTick(void * ptr);
 void do_TexCoordDamper2DTick(void * ptr);
-//void do_CollisionSensorTick(void * ptr);
+void do_CollisionSensorTick(void * ptr);
 
 void add_first(struct X3D_Node * node) {
 	void (*myp)(void *);
@@ -774,7 +774,7 @@ void add_first(struct X3D_Node * node) {
 		case NODE_PointPickSensor:		myp = do_PickSensorTick;		break;
 		case NODE_PrimitivePickSensor:	myp = do_PickSensorTick;		break;
 		case NODE_VolumePickSensor:		myp = do_PickSensorTick;		break;
-		//case NODE_CollisionSensor:		myp = do_CollisionSensorTick;	break;
+		case NODE_CollisionSensor:		myp = do_CollisionSensorTick;	break;
 		default:
 			// printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype));
 			return; //not a clocktype node

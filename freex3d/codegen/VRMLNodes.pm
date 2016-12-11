@@ -3013,6 +3013,7 @@ our %Nodes = (
 		softnessErrorCorrection => ["SFFloat", 0.8, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		surfaceSpeed => ["SFVec2f", [0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_class => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_csensor => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		],"X3DChildNode"),
 
 	"CollisionSensor" => new VRML::NodeType("CollsionSensor", [
