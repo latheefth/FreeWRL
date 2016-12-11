@@ -400,12 +400,9 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 					{
 					struct X3D_CollidableShape *cshape = (struct X3D_CollidableShape *)node;
 					gid = cshape->_geom;
-					printf("handle collidable shape\n");
+					//printf("handle collidable shape\n");
 					if(!cshape->_geom){
 						struct X3D_Shape *shape = (struct X3D_Shape*)cshape->shape;
-						// will be zeroed in initCollidable():
-						//veccopy3f(cshape->_initialTranslation.c,cshape->translation.c);
-						//veccopy4f(cshape->_initialRotation.c,cshape->rotation.c);
 						dGeomID shapegid;
 						gid = dCreateGeomTransform (space); //dSpaceID space);
 						dGeomTransformSetCleanup (gid,1);
@@ -419,7 +416,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 										struct X3D_Box *box = (struct X3D_Box*)shape->geometry;
 										sides[0] = box->size.c[0]; sides[1] = box->size.c[1], sides[2] = box->size.c[2];
 										shapegid = dCreateBox(0,sides[0],sides[1],sides[2]);
-										printf("shape box\n");
+										//printf("shape box\n");
 									}
 									break;
 								case NODE_Cylinder:
@@ -448,7 +445,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 
 										shapegid = dCreateTriMesh(0, new_tmdata, 0, 0, 0);
 										//free(indices); will need to clean up at program end, ODE assumes this and the point.p hang around
-										printf("shape trimesh\n");
+										//printf("shape trimesh\n");
 									}
 									break;
 								case NODE_Sphere:
@@ -457,7 +454,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 										struct X3D_Sphere *sphere = (struct X3D_Sphere*)shape->geometry;
 										sides[0] = sphere->radius;
 										shapegid = dCreateSphere(0,sides[0]);
-										printf("shape sphere\n");
+										//printf("shape sphere\n");
 									}
 									break;
 							}
@@ -474,7 +471,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 						//recurse to leaf-node collidableShape
 						if(!cspace->_space)
 							cspace->_space = dHashSpaceCreate (space);
-						printf("handle collisionspace\n");
+						//printf("handle collisionspace\n");
 						setTransformsAndGeom_E(cspace->_space,X3D_NODE(cspace),cspace->collidables.p,1);
 
 					}
@@ -482,7 +479,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 				case NODE_CollidableOffset:
 					{
 						struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)node;
-						printf("handle collidableoffset\n");
+						//printf("handle collidableoffset\n");
 						//recurse to leaf-node collidableShape
 						setTransformsAndGeom_E(space,X3D_NODE(coff),&X3D_NODE(coff->collidable),1);
 						gid = coff->_geom;
@@ -505,24 +502,23 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 						dRFromAxisAndAngle (Rtx,rotation[0],rotation[1],rotation[2],rotation[3]);
 						dGeomSetRotation (gid,Rtx);
 						coff->_geom = gid;
-						printf("parent collidableoffset\n");
+						//printf("parent collidableoffset\n");
 					}
 					break;
 					case NODE_RigidBody:
 					{
 						struct X3D_RigidBody *rb = (struct X3D_RigidBody *)parent;
 						dGeomSetBody (gid,rb->_body);
-						printf("parent rigidbody\n");
+						//printf("parent rigidbody\n");
 					}
-					//break;
-
+					//fallthrough to transform initializing below
 					case NODE_CollisionSpace:
-						printf("parent space\n");
+						//printf("parent space\n");
 					case NODE_CollisionCollection:
-						printf("parent collisionCollection\n");
+						//printf("parent collisionCollection\n");
 					case NODE_RigidBodyCollection:
 					{
-						printf("parent rigidbodycollection\n");
+						//printf("parent rigidbodycollection\n");
 						if(node->_nodeType == NODE_CollidableShape){
 							//we have a collidable, but we aren't inside a rigidbody
 							//so we want to keep and use any translate/rotate for global placement
@@ -545,7 +541,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 									veccopy4f(initialrotation,rotation);
 								}
 								cshape2->_initialized = TRUE;
-								printf("initializingB\n");
+								//printf("initializingB\n");
 							}
 						}
 
@@ -666,33 +662,6 @@ Issue with 2,3,4: either you need all the bitflags set on startup (to trigger al
 DECISION: we'll do the #1 __oldvalue technique.
 
 */
-void initCollidable(struct X3D_Node* node){
-	//OCTAGA convention for compositing collidableGeoms into a RigidBody
-	//during initialization of Collidable, copy only the CollidableOffset translation,rotation to
-	// _initialTranslation, _initialRotation
-	// and zero (enforce ignore policy) the translation, rotatation fields
-	// (top level transform will be written to after sim step, and used in scenegraph for positioning)
-	if(node && (node->_nodeType == NODE_CollidableOffset || node->_nodeType == NODE_CollidableShape))
-	{
-		struct X3D_CollidableOffset *cnode = (struct X3D_CollidableOffset*)node;
-		if(!cnode->_initialized){
-			//Octaga convention: only save CollidableOffset transform during initialization
-			//will duplicate this in run_rigid_body call stack in case it gets here first
-			if(node->_nodeType == NODE_CollidableOffset){
-				veccopy3f(cnode->_initialTranslation.c,cnode->translation.c); //too late here?
-				veccopy4f(cnode->_initialRotation.c,cnode->rotation.c);
-			}else{
-				//CollidableShape
-			}
-			vecset3f(cnode->translation.c,0.0f,0.0f,0.0f);
-			vecset3f(cnode->rotation.c,0.0f,0.0f,0.0f);
-			cnode->rotation.c[3] = 0.0f;
-			cnode->_initialized = TRUE;
-			printf("initializingA\n");
-
-		}
-	}
-}
 void rbp_run_physics(){
 	/*	called once per frame.
 		assumes we have lists of registered worlds (x3drigidbodycollections) and 
@@ -739,9 +708,7 @@ void rbp_run_physics(){
 			if(1) if(x3dcollisioncollections){
 				struct X3D_CollisionCollection *ccol;
 				for(i=0;i<x3dcollisioncollections->n;i++){
-					//void *space = NULL;
 					ccol = vector_get(struct X3D_CollisionCollection*,x3dcollisioncollections,i);
-					//initCollidable(X3D_NODE(collidable)); //checks if first time, copies pose to _initial if offset, and zeros
 					setTransformsAndGeom_E(space, X3D_NODE(ccol), ccol->collidables.p, ccol->collidables.n);
 				}
 			}
@@ -849,17 +816,14 @@ void rbp_run_physics(){
 						//Phase II option: recurse even if _geom set by RBP->collidables separate traverse/callstack
 						//   so we can set mass to the same pose
 						struct X3D_CollidableOffset* collidable = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
-						//if(!collidable->_geom){
-							//initCollidable(X3D_NODE(collidable)); //checks if first time, copies pose to _initial if offset, and zeros
-							setTransformsAndGeom_E(space, X3D_NODE(x3dbody), &X3D_NODE(collidable),1);
-						//}
+						setTransformsAndGeom_E(space, X3D_NODE(x3dbody), &X3D_NODE(collidable),1);
 					}
 					if(verify_translate(translation)){
-						printf("verified translation= %f %f %f\n",translation[0],translation[1],translation[2]);
+						//printf("verified translation= %f %f %f\n",translation[0],translation[1],translation[2]);
 						dBodySetPosition (x3dbody->_body, (dReal)translation[0],(dReal)translation[1],(dReal)translation[2]);
 					}
 					if(verify_rotate(rotation)){
-						printf("verified reotation= %f %f %f\n",rotation[0],rotation[1],rotation[2]);
+						//printf("verified reotation= %f %f %f\n",rotation[0],rotation[1],rotation[2]);
 						if(1){
 							dReal dquat[4];
 							Quaternion quat;
@@ -1298,17 +1262,6 @@ void rbp_run_physics(){
 				} //switch (joint type)
 			}
 
-			//register any unregistered / non-rigidbody collidables ie fixed
-			if(0) if(x3dcollisioncollections){
-				struct X3D_CollisionCollection *ccol;
-				for(i=0;i<x3dcollisioncollections->n;i++){
-					//void *space = NULL;
-					ccol = vector_get(struct X3D_CollisionCollection*,x3dcollisioncollections,i);
-					//initCollidable(X3D_NODE(collidable)); //checks if first time, copies pose to _initial if offset, and zeros
-					setTransformsAndGeom_E(space, X3D_NODE(ccol), ccol->collidables.p, ccol->collidables.n);
-				}
-			}
-			//printf("pause\n");
 			//RUN PHYSICS ENGINE
 			dSpaceCollide (space,0,&nearCallback);
 			if (!pause) {
@@ -1683,8 +1636,6 @@ void compile_CollidableShape(struct X3D_Node *_node){
 		struct X3D_CollidableShape *node = (struct X3D_CollidableShape*)_node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 		
-		if(0) initCollidable(X3D_NODE(node)); //checks if first time, also called from run_rigid_body in case it gets to it first
-
 		INITIALIZE_EXTENT;
 		node->__do_trans = verify_translate ((GLfloat *)node->translation.c);
 		node->__do_rotation = verify_rotate ((GLfloat *)node->rotation.c);
