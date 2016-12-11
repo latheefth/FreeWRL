@@ -8774,7 +8774,6 @@ struct X3D_RigidBodyCollection {
 	int preferAccuracy;
 	struct X3D_Node *collider;
 	void * _world;
-	void * _space;
 	void * _group;
 };
 extern struct X3D_Virt virt_RigidBodyCollection;

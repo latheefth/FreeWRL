@@ -3188,7 +3188,7 @@ our %Nodes = (
 		preferAccuracy => ["SFBool", "FALSE", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		collider => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_world => ["FreeWRLPTR", 0, "initializeOnly", 0],
-		_space => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		#_space => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		_group => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DChildNode"),
 

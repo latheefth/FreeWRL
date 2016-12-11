@@ -6328,7 +6328,6 @@ const int OFFSETS_RigidBody[] = {
 
 const int OFFSETS_RigidBodyCollection[] = {
 	(int) FIELDNAMES__group, (int) offsetof (struct X3D_RigidBodyCollection, _group),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
-	(int) FIELDNAMES__space, (int) offsetof (struct X3D_RigidBodyCollection, _space),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__world, (int) offsetof (struct X3D_RigidBodyCollection, _world),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_autoDisable, (int) offsetof (struct X3D_RigidBodyCollection, autoDisable),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_bodies, (int) offsetof (struct X3D_RigidBodyCollection, bodies),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11716,7 +11715,6 @@ void *createNewX3DNode0 (int nt) {
 			struct X3D_RigidBodyCollection * tmp2;
 			tmp2 = (struct X3D_RigidBodyCollection *) tmp;
 			tmp2->_group = 0;
-			tmp2->_space = 0;
 			tmp2->_world = 0;
 			tmp2->autoDisable = FALSE;
 			tmp2->bodies.n=0; tmp2->bodies.p=0;
