@@ -383,10 +383,10 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 	//    include static geometry not represented as RigidBodys. By harmonize I mean
 	//    - detect if already generated collidable, and add RB mass
 
-	int k;
-	for(k=0;k<n;k++){
+	int kn;
+	for(kn=0;kn<n;kn++){
 		dGeomID gid = NULL; //top level geom
-		struct X3D_Node *node = nodes[k];
+		struct X3D_Node *node = nodes[kn];
 		if(node)
 		if(node->_nodeType == NODE_CollidableShape || node->_nodeType == NODE_CollidableOffset){
 			float *translation, *rotation;
@@ -397,7 +397,9 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 			switch(node->_nodeType){
 				case NODE_CollidableShape:
 					{
-						struct X3D_CollidableShape *cshape = (struct X3D_CollidableShape *)node;
+					struct X3D_CollidableShape *cshape = (struct X3D_CollidableShape *)node;
+					gid = cshape->_geom;
+					if(!cshape->_geom){
 						struct X3D_Shape *shape = (struct X3D_Shape*)cshape->shape;
 						// will be zeroed in initCollidable():
 						//veccopy3f(cshape->_initialTranslation.c,cshape->translation.c);
@@ -432,7 +434,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 										struct X3D_TriangleSet *tris = (struct X3D_TriangleSet*)shape->geometry;
 										struct X3D_Coordinate *coord = (struct X3D_Coordinate *)tris->coord;
 										int index_count = coord->point.n;
-										dTriIndex * indices = malloc(index_count);
+										dTriIndex * indices = malloc(index_count*sizeof(dTriIndex));
 										for(int j=0;j<index_count/3;j++){
 											for(int k=0;k<3;k++)
 												indices[j*3 +k] = j*3 + k;
@@ -442,7 +444,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 											&indices[0], index_count, 3 * sizeof(dTriIndex));
 
 										shapegid = dCreateTriMesh(0, new_tmdata, 0, 0, 0);
-										//free(indices);
+										//free(indices); will need to clean up at program end, ODE assumes this and the point.p hang around
 									}
 									break;
 								case NODE_Sphere:
@@ -457,7 +459,7 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 						}
 						cshape->_geom = gid; //we will put trans wrapper whether or not there's an offset parent.
 						dGeomTransformSetGeom (gid,shapegid);
-
+					}
 					}
 					break;
 				case NODE_CollisionSpace:
@@ -507,6 +509,28 @@ void setTransformsAndGeom_E(dSpaceID space, struct X3D_Node* parent, struct X3D_
 					case NODE_CollisionSpace:
 					case NODE_CollisionCollection:
 					case NODE_RigidBodyCollection:
+					{
+						if(node->_nodeType == NODE_CollidableShape){
+							//we have a collidable, but we aren't inside a rigidbody
+							//so we want to keep and use any translate/rotate for global placement
+							struct X3D_CollidableShape *cshape2 = (struct X3D_CollidableShape *)node;
+							float *translation, *rotation, *initialtranslation, *initialrotation;
+							translation = cshape2->translation.c;
+							rotation = cshape2->rotation.c;
+							initialtranslation = cshape2->_initialTranslation.c;
+							initialrotation = cshape2->_initialRotation.c;
+							if(!vecsame3f(initialtranslation,translation)){
+								dGeomSetPosition (gid,translation[0],translation[1],translation[2]);
+								veccopy3f(initialtranslation,translation);
+							}
+							if(!vecsame4f(initialrotation,rotation)){
+								dMatrix3 Rtx;
+								dRFromAxisAndAngle (Rtx,rotation[0],rotation[1],rotation[2],rotation[3]);
+								dGeomSetRotation (gid,Rtx);
+								veccopy4f(initialrotation,rotation);
+							}
+						}
+					}
 					default:
 					break;
 				}
@@ -1246,13 +1270,8 @@ void rbp_run_physics(){
 				for(i=0;i<x3dcollisioncollections->n;i++){
 					void *space = NULL;
 					ccol = vector_get(struct X3D_CollisionCollection*,x3dcollisioncollections,i);
-					for(j=0;j<ccol->collidables.n;j++){
-						struct X3D_CollidableOffset* collidable = (struct X3D_CollidableOffset*)ccol->collidables.p[j];
-						if(!collidable->_geom){
-							//initCollidable(X3D_NODE(collidable)); //checks if first time, copies pose to _initial if offset, and zeros
-							setTransformsAndGeom_E(x3dworld->_space, X3D_NODE(ccol), ccol->collidables.p, ccol->collidables.n);
-						}
-					}
+					//initCollidable(X3D_NODE(collidable)); //checks if first time, copies pose to _initial if offset, and zeros
+					setTransformsAndGeom_E(x3dworld->_space, X3D_NODE(ccol), ccol->collidables.p, ccol->collidables.n);
 				}
 			}
 
