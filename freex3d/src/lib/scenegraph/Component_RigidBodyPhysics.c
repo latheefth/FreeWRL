@@ -225,7 +225,8 @@ struct X3D_CollisionCollection * getCollisionCollectionFromData(void *cdata){
 	if(ccol && !ccol->enabled) ccol = NULL;
 	return ccol;
 }
-
+static struct X3D_Contact static_contacts_p[100];
+static int static_contacts_n = 0;
 // this is called by dSpaceCollide when two objects in space are
 // potentially colliding.
 // http://ode.org/ode-latest-userguide.html#sec_10_5_0
@@ -315,23 +316,53 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					}
 					else fbnum++;
 				}
-			}
-			if(1){
-				//X3D Component_RigidBodyPhysics
-				//somewhere we need to spit out X3DContacts if there was a X3DCollisionSensor
-				void *csens1, *csens2;
-				static int count = 0;
-				csens1 = dGeomGetData(o1);
-				csens2 = dGeomGetData(o2);
-				if(csens1){
-					struct X3D_CollisionSensor *csens = (struct X3D_CollisionSensor *)csens1;
-					if(count < 20) printf("have csens1 %x\n",csens);
+				if(1){
+					int k;
+					struct X3D_Contact *ct;
+					dSurfaceParameters *surface;
+					static_contacts_n = static_contacts_n < 100 ? static_contacts_n++ : static_contacts_n;
+					k = static_contacts_n -1;
+					ct = &static_contacts_p[k];
+					surface = &contact[i].surface;
+
+					ct->appliedParameters.p = ccol ? ccol->appliedParameters.p : NULL;
+					ct->appliedParameters.n = ccol ? ccol->appliedParameters.n : 0;
+					ct->body1 = NULL;
+					ct->body2 = NULL;
+					ct->bounce = surface->bounce;
+					double2float(ct->contactNormal.c,contact[i].geom.normal,3);
+					ct->depth =  contact[i].geom.depth;
+					ct->frictionCoefficients.c[0] = surface->mu;
+					ct->frictionCoefficients.c[1] = surface->mu2;
+
+					double2float(ct->frictionDirection.c,contact[i].fdir1,2);
+					ct->geometry1 = NULL;
+					ct->geometry2 = NULL;
+					ct->minBounceSpeed = surface->bounce_vel;
+					double2float(ct->position.c,contact[i].geom.pos,3);
+					ct->slipCoefficients.c[0] = surface->mu;
+					ct->slipCoefficients.c[1] = surface->mu2;
+					ct->softnessConstantForceMix = surface->soft_cfm;
+					ct->softnessErrorCorrection = surface->soft_erp;
+					ct->surfaceSpeed.c[0]= surface->motion1;
+					ct->surfaceSpeed.c[1]= surface->motion2;
+					if(csens1){
+						csens1->contacts.p = realloc(csens1->contacts.p,(csens1->contacts.n+1)*sizeof(void*));
+						csens1->contacts.p[csens1->contacts.n] = X3D_NODE(ct);
+						csens1->contacts.n++;
+						MARK_EVENT(X3D_NODE(csens1),offsetof(struct X3D_CollisionSensor,contacts));
+						csens1->isActive = TRUE;
+						MARK_EVENT(X3D_NODE(csens1),offsetof(struct X3D_CollisionSensor,isActive));
+					}
+					if(csens2){
+						csens2->contacts.p = realloc(csens2->contacts.p,(csens2->contacts.n+1)*sizeof(void*));
+						csens2->contacts.p[csens2->contacts.n] = X3D_NODE(ct);
+						csens2->contacts.n++;
+						//MARK_EVENT(X3D_NODE(csens2),offsetof(struct X3D_CollisionSensor,contacts));
+						//csens2->isActive = TRUE;
+						//MARK_EVENT(X3D_NODE(csens2),offsetof(struct X3D_CollisionSensor,isActive));
+					}
 				}
-				if(csens2){
-					struct X3D_CollisionSensor *csens = (struct X3D_CollisionSensor *)csens1;
-					if(count < 20) printf("have csens2 %x\n",csens);
-				}
-				count++;
 			}
 		}
 	}
@@ -1876,11 +1907,22 @@ void do_CollisionSensorTick0(struct X3D_CollisionSensor *node){
 	//		
 	//	}
 	//}
-	if(NNC(node)){
-		if(node->contacts.n)
+	//if(NNC(node)){
+		if(node->contacts.n){
+			if(node->isActive == FALSE){
+				node->isActive = TRUE;
+				MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
+			}
 			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
-		MNC(node);
-	}
+		}else{
+			if(node->isActive == TRUE){
+				node->isActive = FALSE;
+				MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
+				MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
+			}
+		}
+	//	MNC(node);
+	//}
 }
 void do_CollisionSensorTick(void * ptr){
 	if(ptr)

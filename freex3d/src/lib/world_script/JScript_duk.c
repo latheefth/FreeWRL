@@ -1343,7 +1343,10 @@ int cget(duk_context *ctx) {
 			key = duk_get_string(ctx,-2);
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
 			if(!found){
-				ConsoleMessage("type %s has no property or function %s - please check your typing\n",fwt->name,key);
+				static int once = 0;
+				if(!once)
+					ConsoleMessage("type %s has no property or function %s - please check your typing\n",fwt->name,key);
+				once = 1;
 			}
 		}
 		if(found && type=='f'){
