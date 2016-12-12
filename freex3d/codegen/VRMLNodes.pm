@@ -2982,6 +2982,7 @@ our %Nodes = (
 		_initialRotation => ["SFRotation", [0, 0, 1, 0], "initializeOnly", 0], 
 		_initialTranslation => ["SFVec3f", [0, 0, 0], "initializeOnly", 0],
 		_initialized => ["SFBool",0,"initializeOnly",0],
+		_csensor => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DNBodyCollidableNode"),
 
 	"CollidableShape" => new VRML::NodeType("CollidableShape", [
@@ -2998,6 +2999,7 @@ our %Nodes = (
 		_initialRotation => ["SFRotation", [0, 0, 1, 0], "initializeOnly", 0], 
 		_initialTranslation => ["SFVec3f", [0, 0, 0], "initializeOnly", 0],
 		_initialized => ["SFBool",0,"initializeOnly",0],
+		_csensor => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DNBodyCollidableNode"),
 
 	"CollisionCollection" => new VRML::NodeType("CollisionCollection", [

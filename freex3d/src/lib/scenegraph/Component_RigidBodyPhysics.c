@@ -188,41 +188,51 @@ static struct Vector *x3dcollisioncollections = NULL; //
 
 //I'm not sure what I'll be setting as *data on geom
 //here's a method to use only one pointer can be either sensor or collection
-struct X3D_CollisionSensor * getCollisionSensorFromData(void *cdata){
+struct X3D_CollidableShape * getCollidableShapeFromData(void *cdata){
+	struct X3D_CollidableShape * xshape = NULL;
+	if(cdata)
+		xshape = (struct X3D_CollidableShape*)cdata;
+	return xshape;
+}
+struct X3D_CollisionSensor * getCollisionSensorFromCsensor(void *csensor){
 	struct X3D_CollisionSensor *csens = NULL;
-	switch(X3D_NODE(cdata)->_nodeType){
-		case NODE_CollisionSensor:
-			csens = (struct X3D_CollisionSensor*)cdata;
-		break;
-		case NODE_CollisionCollection:
-			{
-				struct X3D_CollisionCollection *ccol = (struct X3D_CollisionCollection*)cdata;
-				if(ccol->_csensor)
-					csens = (struct X3D_CollisionSensor*)ccol->_csensor;
-			}
-		default:
-		break;
+	if(csensor){
+		switch(X3D_NODE(csensor)->_nodeType){
+			case NODE_CollisionSensor:
+				csens = (struct X3D_CollisionSensor*)csensor;
+			break;
+			case NODE_CollisionCollection:
+				{
+					struct X3D_CollisionCollection *ccol = (struct X3D_CollisionCollection*)csensor;
+					if(ccol->_csensor)
+						csens = (struct X3D_CollisionSensor*)ccol->_csensor;
+				}
+			default:
+			break;
+		}
+		if(csens && !csens->enabled) csens = NULL;
 	}
-	if(csens && !csens->enabled) csens = NULL;
 	return csens;
 }
-struct X3D_CollisionCollection * getCollisionCollectionFromData(void *cdata){
+struct X3D_CollisionCollection * getCollisionCollectionFromCsensor(void *csensor){
 	struct X3D_CollisionCollection *ccol = NULL;
-	switch(X3D_NODE(cdata)->_nodeType){
-		case NODE_CollisionSensor:
-			{
-				struct X3D_CollisionSensor* csens = (struct X3D_CollisionSensor*)cdata;
-				if(csens->collider)
-					ccol =	(struct X3D_CollisionCollection*)csens->collider;
-			}
-		break;
-		case NODE_CollisionCollection:
-			ccol =	(struct X3D_CollisionCollection*)cdata;
-		break;
-		default:
-		break;
+	if(csensor){
+		switch(X3D_NODE(csensor)->_nodeType){
+			case NODE_CollisionSensor:
+				{
+					struct X3D_CollisionSensor* csens = (struct X3D_CollisionSensor*)csensor;
+					if(csens->collider)
+						ccol =	(struct X3D_CollisionCollection*)csens->collider;
+				}
+			break;
+			case NODE_CollisionCollection:
+				ccol =	(struct X3D_CollisionCollection*)csensor;
+			break;
+			default:
+			break;
+		}
+		if(ccol && !ccol->enabled) ccol = NULL;
 	}
-	if(ccol && !ccol->enabled) ccol = NULL;
 	return ccol;
 }
 static struct X3D_Contact static_contacts_p[100];
@@ -253,23 +263,27 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 		//X3D Component_RigidBodyPhysics
 		//somewhere we need to spit out X3DContacts if there was a X3DCollisionSensor
 		void *cdata1, *cdata2;
-		struct X3D_CollisionSensor *csens1, *csens2;
-		struct X3D_CollisionCollection *ccol1, *ccol2, *ccol;
+		struct X3D_CollidableShape *xshape1, *xshape2;
+		struct X3D_RigidBody *xbody1, *xbody2;
+		struct X3D_CollisionSensor *xsens1, *xsens2;
+		struct X3D_CollisionCollection *xcol1, *xcol2, *xcol;
 		static int count = 0;
 		cdata1 = dGeomGetData(o1);
 		cdata2 = dGeomGetData(o2);
-		csens1 = getCollisionSensorFromData(cdata1);
-		csens2 = getCollisionSensorFromData(cdata2);
-		ccol1 = getCollisionCollectionFromData(cdata1);
-		ccol2 = getCollisionCollectionFromData(cdata2);
+		xshape1 = getCollidableShapeFromData(cdata1);
+		xshape2 = getCollidableShapeFromData(cdata2);
+		xcol1 = getCollisionCollectionFromCsensor(xshape1->_csensor);
+		xcol2 = getCollisionCollectionFromCsensor(xshape2->_csensor);
+		xsens1 = getCollisionSensorFromCsensor(xshape1->_csensor);
+		xsens2 = getCollisionSensorFromCsensor(xshape2->_csensor);
 		if(count < 20){
-			if(csens1) printf("have csens1 %x\n",csens1);
-			if(csens2) printf("have csens2 %x\n",csens2);
-			if(ccol1) printf("have ccol1 %x\n",ccol1);
-			if(ccol2) printf("have ccol2 %x\n",ccol2);
+			if(xsens1) printf("have csens1 %x\n",xsens1);
+			if(xsens2) printf("have csens2 %x\n",xsens2);
+			if(xcol1) printf("have ccol1 %x\n",xcol1);
+			if(xcol2) printf("have ccol2 %x\n",xcol2);
 		}
 		count++;
-		ccol = ccol1 ? ccol1 : ccol2;
+		xcol = xcol1 ? xcol1 : xcol2; //do we only need one, or how to pick which one?
 
 		//prep some defaults for any contacts found in dCollide
 		// http://ode.org/ode-latest-userguide.html#sec_7_3_7
@@ -282,16 +296,16 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 			contact[i].surface.bounce_vel = 0.1;
 			contact[i].surface.soft_cfm = 0.01;
 			
-			if(ccol){
-				contact[i].surface.mode = ccol->_appliedParametersMask; //dContactBounce; // | dContactSoftCFM;
-				contact[i].surface.mu = ccol->slipFactors.c[0]; //dInfinity;
-				contact[i].surface.mu2 = ccol->slipFactors.c[1];
-				contact[i].surface.bounce = ccol->bounce;
-				contact[i].surface.bounce_vel = ccol->minBounceSpeed;
-				contact[i].surface.soft_cfm = ccol->softnessConstantForceMix;
-				contact[i].surface.soft_erp = ccol->softnessErrorCorrection;
-				contact[i].surface.motion1 = ccol->surfaceSpeed.c[0];
-				contact[i].surface.motion2 = ccol->surfaceSpeed.c[1];
+			if(xcol){
+				contact[i].surface.mode = xcol->_appliedParametersMask; //dContactBounce; // | dContactSoftCFM;
+				contact[i].surface.mu = xcol->slipFactors.c[0]; //dInfinity;
+				contact[i].surface.mu2 = xcol->slipFactors.c[1];
+				contact[i].surface.bounce = xcol->bounce;
+				contact[i].surface.bounce_vel = xcol->minBounceSpeed;
+				contact[i].surface.soft_cfm = xcol->softnessConstantForceMix;
+				contact[i].surface.soft_erp = xcol->softnessErrorCorrection;
+				contact[i].surface.motion1 = xcol->surfaceSpeed.c[0];
+				contact[i].surface.motion2 = xcol->surfaceSpeed.c[1];
 			}
 		}
 
@@ -325,10 +339,10 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					ct = &static_contacts_p[k];
 					surface = &contact[i].surface;
 
-					ct->appliedParameters.p = ccol ? ccol->appliedParameters.p : NULL;
-					ct->appliedParameters.n = ccol ? ccol->appliedParameters.n : 0;
-					ct->body1 = NULL;
-					ct->body2 = NULL;
+					ct->appliedParameters.p = xcol ? xcol->appliedParameters.p : NULL;
+					ct->appliedParameters.n = xcol ? xcol->appliedParameters.n : 0;
+					ct->body1 = b1 ? dBodyGetData(b1) : NULL; //we set the user data to X3DRigidBody* when initializing the bodies
+					ct->body2 = b2 ? dBodyGetData(b2) : NULL;
 					ct->bounce = surface->bounce;
 					double2float(ct->contactNormal.c,contact[i].geom.normal,3);
 					ct->depth =  contact[i].geom.depth;
@@ -336,8 +350,8 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					ct->frictionCoefficients.c[1] = surface->mu2;
 
 					double2float(ct->frictionDirection.c,contact[i].fdir1,2);
-					ct->geometry1 = NULL;
-					ct->geometry2 = NULL;
+					ct->geometry1 = X3D_NODE(xshape1);
+					ct->geometry2 = X3D_NODE(xshape2);
 					ct->minBounceSpeed = surface->bounce_vel;
 					double2float(ct->position.c,contact[i].geom.pos,3);
 					ct->slipCoefficients.c[0] = surface->mu;
@@ -346,21 +360,22 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					ct->softnessErrorCorrection = surface->soft_erp;
 					ct->surfaceSpeed.c[0]= surface->motion1;
 					ct->surfaceSpeed.c[1]= surface->motion2;
-					if(csens1){
-						csens1->contacts.p = realloc(csens1->contacts.p,(csens1->contacts.n+1)*sizeof(void*));
-						csens1->contacts.p[csens1->contacts.n] = X3D_NODE(ct);
-						csens1->contacts.n++;
-						MARK_EVENT(X3D_NODE(csens1),offsetof(struct X3D_CollisionSensor,contacts));
-						csens1->isActive = TRUE;
-						MARK_EVENT(X3D_NODE(csens1),offsetof(struct X3D_CollisionSensor,isActive));
+					if(xsens1){
+						xsens1->contacts.p = realloc(xsens1->contacts.p,(xsens1->contacts.n+1)*sizeof(void*));
+						xsens1->contacts.p[xsens1->contacts.n] = X3D_NODE(ct);
+						xsens1->contacts.n++;
+						//we mark these in do_CollisionSensor if contacts.n > 0
+						//MARK_EVENT(X3D_NODE(xsens1),offsetof(struct X3D_CollisionSensor,contacts));
+						//xsens1->isActive = TRUE;
+						//MARK_EVENT(X3D_NODE(xsens1),offsetof(struct X3D_CollisionSensor,isActive));
 					}
-					if(csens2){
-						csens2->contacts.p = realloc(csens2->contacts.p,(csens2->contacts.n+1)*sizeof(void*));
-						csens2->contacts.p[csens2->contacts.n] = X3D_NODE(ct);
-						csens2->contacts.n++;
-						//MARK_EVENT(X3D_NODE(csens2),offsetof(struct X3D_CollisionSensor,contacts));
-						//csens2->isActive = TRUE;
-						//MARK_EVENT(X3D_NODE(csens2),offsetof(struct X3D_CollisionSensor,isActive));
+					if(xsens2){
+						xsens2->contacts.p = realloc(xsens2->contacts.p,(xsens2->contacts.n+1)*sizeof(void*));
+						xsens2->contacts.p[xsens2->contacts.n] = X3D_NODE(ct);
+						xsens2->contacts.n++;
+						//MARK_EVENT(X3D_NODE(xsens2),offsetof(struct X3D_CollisionSensor,contacts));
+						//xsens2->isActive = TRUE;
+						//MARK_EVENT(X3D_NODE(xsens2),offsetof(struct X3D_CollisionSensor,isActive));
 					}
 				}
 			}
@@ -506,7 +521,7 @@ unsigned int forceout_from_names(int n, struct Uni_String **p){
 }
 
 
-void setTransformsAndGeom_E(dSpaceID space, void *cdata, struct X3D_Node* parent, struct X3D_Node **nodes, int n){
+void setTransformsAndGeom_E(dSpaceID space, void *csensor, struct X3D_Node* parent, struct X3D_Node **nodes, int n){
 	// ATTEMPT 6
 	// this is an initialzation step function, called once for program/scene run, not called again once _body is intialized
 	// USING OCTAGA CONVENTION - only use initial CollidableOffset for offset
@@ -599,8 +614,9 @@ void setTransformsAndGeom_E(dSpaceID space, void *cdata, struct X3D_Node* parent
 							}
 						}
 						cshape->_geom = gid; //we will put trans wrapper whether or not there's an offset parent.
+						cshape->_csensor = csensor;
 						dGeomTransformSetGeom (gid,shapegid);
-						dGeomSetData(gid,cdata); //so on collision nearCallback we know which collisionSensor->contacts to set
+						dGeomSetData(gid,cshape); //so on collision nearCallback we know which collisionSensor->contacts to set
 					}
 					}
 					break;
@@ -612,7 +628,7 @@ void setTransformsAndGeom_E(dSpaceID space, void *cdata, struct X3D_Node* parent
 						if(!cspace->_space)
 							cspace->_space = dHashSpaceCreate (space);
 						//printf("handle collisionspace\n");
-						setTransformsAndGeom_E(cspace->_space,cdata,X3D_NODE(cspace),cspace->collidables.p,1);
+						setTransformsAndGeom_E(cspace->_space,csensor,X3D_NODE(cspace),cspace->collidables.p,1);
 
 					}
 					break;
@@ -621,7 +637,7 @@ void setTransformsAndGeom_E(dSpaceID space, void *cdata, struct X3D_Node* parent
 						struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)node;
 						//printf("handle collidableoffset\n");
 						//recurse to leaf-node collidableShape
-						setTransformsAndGeom_E(space,cdata,X3D_NODE(coff),&X3D_NODE(coff->collidable),1);
+						setTransformsAndGeom_E(space,csensor,X3D_NODE(coff),&X3D_NODE(coff->collidable),1);
 						gid = coff->_geom;
 					}
 					break;
@@ -864,7 +880,7 @@ void rbp_run_physics(){
 			// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rigid_physics.html#CollisionCollection
 			struct X3D_CollisionCollection *ccol;
 			struct X3D_CollisionSensor *csens;
-			void * cdata;
+			void * csensor;
 			for(i=0;i<x3dcollisioncollections->n;i++){
 				ccol = vector_get(struct X3D_CollisionCollection*,x3dcollisioncollections,i);
 				csens = ccol->_csensor;
@@ -898,8 +914,8 @@ void rbp_run_physics(){
 					ccol->_appliedParametersMask = mask;
 					MNC(ccol);
 				}
-				cdata = csens ? (void*)csens : (void*)ccol;  //user data assigned to geom, for recovery from collided geoms in nearCallback
-				setTransformsAndGeom_E(space, cdata, X3D_NODE(ccol), ccol->collidables.p, ccol->collidables.n);
+				csensor = csens ? (void*)csens : (void*)ccol;  //user data assigned to geom, for recovery from collided geoms in nearCallback
+				setTransformsAndGeom_E(space, csensor, X3D_NODE(ccol), ccol->collidables.p, ccol->collidables.n);
 			}
 		}
 

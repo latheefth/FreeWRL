@@ -3778,6 +3778,7 @@ const int OFFSETS_ClipPlane[] = {
 const int OFFSETS_CollidableOffset[] = {
 	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_CollidableOffset, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CollidableOffset, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__csensor, (int) offsetof (struct X3D_CollidableOffset, _csensor),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__geom, (int) offsetof (struct X3D_CollidableOffset, _geom),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__initialRotation, (int) offsetof (struct X3D_CollidableOffset, _initialRotation),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__initialTranslation, (int) offsetof (struct X3D_CollidableOffset, _initialTranslation),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
@@ -3794,6 +3795,7 @@ const int OFFSETS_CollidableOffset[] = {
 const int OFFSETS_CollidableShape[] = {
 	(int) FIELDNAMES___do_rotation, (int) offsetof (struct X3D_CollidableShape, __do_rotation),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES___do_trans, (int) offsetof (struct X3D_CollidableShape, __do_trans),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__csensor, (int) offsetof (struct X3D_CollidableShape, _csensor),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__geom, (int) offsetof (struct X3D_CollidableShape, _geom),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__initialRotation, (int) offsetof (struct X3D_CollidableShape, _initialRotation),  (int) FIELDTYPE_SFRotation, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__initialTranslation, (int) offsetof (struct X3D_CollidableShape, _initialTranslation),  (int) FIELDTYPE_SFVec3f, (int) KW_initializeOnly, (int) 0,
@@ -8449,6 +8451,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_CollidableOffset *) tmp;
 			tmp2->__do_rotation = FALSE;
 			tmp2->__do_trans = FALSE;
+			tmp2->_csensor = 0;
 			tmp2->_geom = 0;
 			tmp2->_initialRotation.c[0] = 0;tmp2->_initialRotation.c[1] = 0;tmp2->_initialRotation.c[2] = 1;tmp2->_initialRotation.c[3] = 0;;
 			tmp2->_initialTranslation.c[0] = 0.0f;tmp2->_initialTranslation.c[1] = 0.0f;tmp2->_initialTranslation.c[2] = 0.0f;
@@ -8468,6 +8471,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_CollidableShape *) tmp;
 			tmp2->__do_rotation = FALSE;
 			tmp2->__do_trans = FALSE;
+			tmp2->_csensor = 0;
 			tmp2->_geom = 0;
 			tmp2->_initialRotation.c[0] = 0;tmp2->_initialRotation.c[1] = 0;tmp2->_initialRotation.c[2] = 1;tmp2->_initialRotation.c[3] = 0;;
 			tmp2->_initialTranslation.c[0] = 0.0f;tmp2->_initialTranslation.c[1] = 0.0f;tmp2->_initialTranslation.c[2] = 0.0f;
