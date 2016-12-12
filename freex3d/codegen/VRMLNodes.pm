@@ -3014,6 +3014,7 @@ our %Nodes = (
 		surfaceSpeed => ["SFVec2f", [0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_class => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		_csensor => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_appliedParametersMask => ["SFInt32", 0, "initializeOnly", 0],
 		],"X3DChildNode"),
 
 	"CollisionSensor" => new VRML::NodeType("CollsionSensor", [

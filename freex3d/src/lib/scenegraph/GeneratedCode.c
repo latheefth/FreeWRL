@@ -216,6 +216,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__xparams",
 	"_align",
 	"_amb",
+	"_appliedParametersMask",
 	"_bboxCenter",
 	"_bboxSize",
 	"_body",
@@ -3822,6 +3823,7 @@ const int OFFSETS_Collision[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_CollisionCollection[] = {
+	(int) FIELDNAMES__appliedParametersMask, (int) offsetof (struct X3D_CollisionCollection, _appliedParametersMask),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__class, (int) offsetof (struct X3D_CollisionCollection, _class),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__csensor, (int) offsetof (struct X3D_CollisionCollection, _csensor),  (int) FIELDTYPE_FreeWRLPTR, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_appliedParameters, (int) offsetof (struct X3D_CollisionCollection, appliedParameters),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8501,6 +8503,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_CollisionCollection : {
 			struct X3D_CollisionCollection * tmp2;
 			tmp2 = (struct X3D_CollisionCollection *) tmp;
+			tmp2->_appliedParametersMask = 0;
 			tmp2->_class = 0;
 			tmp2->_csensor = 0;
 			tmp2->appliedParameters.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->appliedParameters.p[0] = newASCIIString("BOUNCE");tmp2->appliedParameters.n=1; ;
