@@ -330,7 +330,9 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					}
 					else fbnum++;
 				}
-				if(1){
+				if(xsens1 || xsens2){
+					// do we have a collisionSensor node? 
+					// If so we need to send out the collisions its looking for
 					int k;
 					struct X3D_Contact *ct;
 					dSurfaceParameters *surface;
@@ -341,6 +343,7 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 
 					ct->appliedParameters.p = xcol ? xcol->appliedParameters.p : NULL;
 					ct->appliedParameters.n = xcol ? xcol->appliedParameters.n : 0;
+					ct->_appliedParameters = contact[i].surface.mode;
 					ct->body1 = b1 ? dBodyGetData(b1) : NULL; //we set the user data to X3DRigidBody* when initializing the bodies
 					ct->body2 = b2 ? dBodyGetData(b2) : NULL;
 					ct->bounce = surface->bounce;
@@ -929,6 +932,37 @@ void rbp_run_physics(){
 			//Collidable -> rigidbody 
 			if(!x3dworld->enabled) continue;
 
+			if(x3dworld->set_contacts.n){
+				//someone in javascript / sai sent us some extra contacts to add as contact joints
+				for (int kk=0; kk < x3dworld->set_contacts.n; kk++) {
+					struct X3D_RigidBody *body1, *body2;
+					struct X3D_Contact *ct = (struct X3D_Contact *)x3dworld->set_contacts.p[kk];
+					dContact contact;
+
+					dJointID c = dJointCreateContact (world,contactgroup,&contact);
+
+					contact.surface.mode = ct->_appliedParameters; //dContactBounce; // | dContactSoftCFM;
+					contact.surface.mu = ct->slipCoefficients.c[0]; //dInfinity;
+					contact.surface.mu2 = ct->slipCoefficients.c[1];
+					contact.surface.bounce = ct->bounce;
+					contact.surface.bounce_vel = ct->minBounceSpeed;
+					contact.surface.soft_cfm = ct->softnessConstantForceMix;
+					contact.surface.soft_erp = ct->softnessErrorCorrection;
+					contact.surface.motion1 = ct->surfaceSpeed.c[0];
+					contact.surface.motion2 = ct->surfaceSpeed.c[1];
+					float2double(contact.geom.pos,ct->position.c,3);
+					float2double(contact.fdir1,ct->frictionDirection.c,2);
+					float2double(contact.geom.normal,ct->contactNormal.c,3);
+
+					body1 = (struct X3D_RigidBody*)ct->body1;
+					body2 = (struct X3D_RigidBody*)ct->body2;
+					dBodyID b1 = body1 ? body1->_body : NULL;
+					dBodyID b2 = body2 ? body2->_body : NULL;
+					if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) continue;
+					dJointAttach (c,b1,b2);
+				}
+				x3dworld->set_contacts.n = 0;
+			}
 			//update bodies
 			for(i=0;i<x3dworld->bodies.n;i++){
 				int isNewBody = FALSE;

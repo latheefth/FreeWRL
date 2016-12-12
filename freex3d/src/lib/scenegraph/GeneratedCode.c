@@ -216,6 +216,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"__xparams",
 	"_align",
 	"_amb",
+	"_appliedParameters",
 	"_appliedParametersMask",
 	"_bboxCenter",
 	"_bboxSize",
@@ -3991,6 +3992,7 @@ const int OFFSETS_ConeEmitter[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Contact[] = {
+	(int) FIELDNAMES__appliedParameters, (int) offsetof (struct X3D_Contact, _appliedParameters),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_appliedParameters, (int) offsetof (struct X3D_Contact, appliedParameters),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_body1, (int) offsetof (struct X3D_Contact, body1),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_body2, (int) offsetof (struct X3D_Contact, body2),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -8718,6 +8720,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_Contact : {
 			struct X3D_Contact * tmp2;
 			tmp2 = (struct X3D_Contact *) tmp;
+			tmp2->_appliedParameters = 0;
 			tmp2->appliedParameters.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->appliedParameters.p[0] = newASCIIString("BOUNCE");tmp2->appliedParameters.n=1; ;
 			tmp2->body1 = NULL;
 			tmp2->body2 = NULL;

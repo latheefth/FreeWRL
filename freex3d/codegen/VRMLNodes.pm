@@ -3056,6 +3056,7 @@ our %Nodes = (
 		softnessConstantForceMix => ["SFFloat", 0.0001, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		softnessErrorCorrection => ["SFFloat", 0.8, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surfaceSpeed => ["SFVec2f", [0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_appliedParameters => ["SFInt32", 0, "initializeOnly", 0],
 		], "X3DSFNode"),
 
 	"DoubleAxisHingeJoint" => new VRML::NodeType("DoubleAxisHingeJoint", [

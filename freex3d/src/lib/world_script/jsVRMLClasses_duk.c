@@ -1350,7 +1350,15 @@ int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 	}
 	return nr;
 }
-
+int SFNode_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	char str[512];
+	void **ptr = (void **)fwn;
+	sprintf(str,"%x",(*ptr));
+	fwretval->_string =  strdup(str);
+	fwretval->itype = 'S';
+	return 1;
+}
 FWFunctionSpec (SFNodeFunctions)[] = {
 	{"getNodeName",	SFNode_getNodeName, 'S',{0,0,0,NULL}},
 	// nov 2014 dug9: I was too lazy to implement the following, good luck:
@@ -1358,6 +1366,7 @@ FWFunctionSpec (SFNodeFunctions)[] = {
 	//{"getFieldDefinitions", SFNode_getFieldDefinitions, 'P',{0,0,0,NULL}},
 	//{"toVRMLString", SFNode_toVRMLString, 'S',{0,0,0,NULL}},
 	//{"toXMLString", SFNode_toXMLString, 'S',{0,0,0,NULL}},
+	//{"toString", SFNode_toString, 'S',{0,0,0,NULL}},
 	{0}
 };
 
