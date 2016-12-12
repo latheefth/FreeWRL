@@ -1234,6 +1234,8 @@ void rbp_run_physics(){
 							}
 							dJointSetHingeParam (jnt->_joint,dParamLoStop,jnt->minAngle);
 							dJointSetHingeParam (jnt->_joint,dParamHiStop,jnt->maxAngle);
+							dJointSetHingeParam (jnt->_joint,dParamBounce,jnt->stopBounce);
+							dJointSetHingeParam (jnt->_joint,dParamStopERP,jnt->stopErrorCorrection);
 						}
 						break;
 					case NODE_DoubleAxisHingeJoint:
@@ -1282,6 +1284,11 @@ void rbp_run_physics(){
 									veccopy3f(jnt->__old_axis2.c,jnt->axis2.c);
 								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								dJointSetHinge2Param (jnt->_joint,dParamBounce1,jnt->stopBounce1);
+								dJointSetHinge2Param (jnt->_joint,dParamStopERP1,jnt->stopErrorCorrection1);
+								dJointSetHinge2Param (jnt->_joint,dParamSuspensionERP,jnt->suspensionErrorCorrection);
+								dJointSetHinge2Param (jnt->_joint,dParamSuspensionCFM,jnt->suspensionForce);
+
 								MNC(jnt);
 							}
 							//per-frame 
@@ -1337,6 +1344,9 @@ void rbp_run_physics(){
 									veccopy3f(jnt->__old_axis.c,jnt->axis.c);
 								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								dJointSetSliderParam (jnt->_joint,dParamBounce,jnt->stopBounce);
+								dJointSetSliderParam (jnt->_joint,dParamStopERP,jnt->stopErrorCorrection);
+
 								MNC(jnt);
 							}
 						}
@@ -1389,6 +1399,11 @@ void rbp_run_physics(){
 									veccopy3f(jnt->__old_axis2.c,jnt->axis2.c);
 								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								dJointSetUniversalParam (jnt->_joint,dParamBounce1,jnt->stop1Bounce);
+								dJointSetUniversalParam (jnt->_joint,dParamStopERP1,jnt->stop1ErrorCorrection);
+								dJointSetUniversalParam (jnt->_joint,dParamBounce2,jnt->stop2Bounce);
+								dJointSetUniversalParam (jnt->_joint,dParamStopERP2,jnt->stop2ErrorCorrection);
+
 								MNC(jnt);
 							}
 						}
@@ -1475,6 +1490,13 @@ void rbp_run_physics(){
 									//dJointSetAMotorParam(jointID,dParamFMax3,jnt->axis3Torque);
 								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+
+								dJointSetAMotorParam (jnt->_joint,dParamBounce1,jnt->stop1Bounce);
+								dJointSetAMotorParam (jnt->_joint,dParamStopERP1,jnt->stop1ErrorCorrection);
+								dJointSetAMotorParam (jnt->_joint,dParamBounce2,jnt->stop2Bounce);
+								dJointSetAMotorParam (jnt->_joint,dParamStopERP2,jnt->stop2ErrorCorrection);
+								dJointSetAMotorParam (jnt->_joint,dParamBounce3,jnt->stop3Bounce);
+								dJointSetAMotorParam (jnt->_joint,dParamStopERP3,jnt->stop3ErrorCorrection);
 
 								//addMotorTorques is a macro function in ODE that finds the bodies involve and
 								//applies the torques to the bodies
