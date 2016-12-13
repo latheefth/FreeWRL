@@ -296,6 +296,8 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 		}
 		if(xcol1 && !xcol1->enabled ) return;
 		if(xcol2 && !xcol2->enabled ) return;
+		if(xshape1 && !xshape1->enabled) return;
+		if(xshape2 && !xshape2->enabled) return;
 
 		count++;
 		xcol = xcol1 ? xcol1 : xcol2; //do we only need one, or how to pick which one?
