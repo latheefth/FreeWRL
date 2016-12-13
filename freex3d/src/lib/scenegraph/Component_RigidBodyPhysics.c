@@ -1192,11 +1192,21 @@ void rbp_run_physics(){
 									break;
 								//case convex - not done yet, basically indexedfaceset
 								case NODE_Sphere:
-								default:
 									{
 										struct X3D_Sphere *sphere = (struct X3D_Sphere*)x3dbody->massDensityModel;
 										sides[0] = sphere->radius;
 										dMassSetSphere (&m,DENSITY,sides[0]);
+									}
+									break;
+								default:
+									{
+										// http://ode.org/ode-latest-userguide.html#sec_9_2_0
+										// 9.2 Mass Functions
+										float *I = x3dbody->inertia.c;
+										dMassSetParameters (&m, DENSITY,
+											0.0, 0.0, 0.0,  //center of gravity - we'll adjust below in dMassTranslate
+											I[0], I[1], I[2], //diagonal elements of 3x3 inertial tensor
+											I[3], I[4], I[5]); //upper diagonal of 3x3 inertial tensor
 									}
 									break;
 							}
@@ -1242,13 +1252,24 @@ void rbp_run_physics(){
 						dBodySetAutoDisableLinearThreshold (x3dbody->_body, x3dbody->disableLinearSpeed);
 						dBodySetAutoDisableAngularThreshold (x3dbody->_body, x3dbody->disableAngularSpeed);
 						dBodySetAutoDisableTime (x3dbody->_body, x3dbody->disableTime);
+						if(x3dbody->forces.n){
+							//the engine's force accumulator is zeroed after each step, so for these
+							//constant forces you have to re-add them on each step
+							for(int kf=0;kf<x3dbody->forces.n;kf++){
+								float *force = x3dbody->forces.p[kf].c;
+								dBodyAddForce(x3dbody->_body, force[0], force[1], force[2]);
+							}
+						}
+						if(x3dbody->torques.n){
+							//the engine's torque accumulator is zeroed after each step, so for these
+							//constant torques you have to re-add them on each step
+							for(int kf=0;kf<x3dbody->torques.n;kf++){
+								float *torque = x3dbody->torques.p[kf].c;
+								dBodyAddTorque(x3dbody->_body, torque[0], torque[1], torque[2]);
+							}
+						}
 					} //if NCC(x3dbody)
-					if(x3dbody->autoDamp){
-					}
-					if(x3dbody->forces.n){
-					}
-					if(x3dbody->torques.n){
-					}
+
 				} // if x3dbody->_body (not fixed)
 
 			} //bodies
