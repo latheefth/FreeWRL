@@ -1165,11 +1165,12 @@ void rbp_run_physics(){
 					//not fixed
 					if(NNC(x3dbody)){
 						//not fixed
-						if(x3dbody->autoDamp)
+						if(x3dbody->autoDamp){
 							dBodySetAngularDamping(x3dbody->_body, x3dbody->angularDampingFactor);
-						else
-							dBodySetAngularDamping(x3dbody->_body, 0.0);
-
+							dBodySetLinearDamping(x3dbody->_body, x3dbody->linearDampingFactor);
+						}else{
+							dBodySetDampingDefaults(x3dbody->_body);
+						}
 						if(x3dbody->massDensityModel){
 							dReal sides[3];
 							dMass m;
