@@ -251,8 +251,16 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
       // colliding a space with something
       dSpaceCollide2 (o1,o2,data,&nearCallback);
       // collide all geoms internal to the space(s)
-      if (dGeomIsSpace (o1)) dSpaceCollide ((dSpaceID)o1,data,&nearCallback);
-      if (dGeomIsSpace (o2)) dSpaceCollide ((dSpaceID)o2,data,&nearCallback);
+      if (dGeomIsSpace (o1)) {
+		struct X3D_CollisionSpace *cspace = dGeomGetData(o1);
+		if(cspace->enabled)
+			dSpaceCollide ((dSpaceID)o1,data,&nearCallback);
+	  }
+      if (dGeomIsSpace (o2)) {
+		struct X3D_CollisionSpace *cspace = dGeomGetData(o2);
+		if(cspace->enabled)
+			dSpaceCollide ((dSpaceID)o2,data,&nearCallback);
+	  }
     } else {
 		int i, numc;
 		dContact contact[MAX_CONTACTS];   // up to MAX_CONTACTS contacts per box-box
@@ -286,6 +294,9 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 			if(xcol1) printf("have ccol1 %x\n",xcol1);
 			if(xcol2) printf("have ccol2 %x\n",xcol2);
 		}
+		if(xcol1 && !xcol1->enabled ) return;
+		if(xcol2 && !xcol2->enabled ) return;
+
 		count++;
 		xcol = xcol1 ? xcol1 : xcol2; //do we only need one, or how to pick which one?
 
@@ -672,8 +683,10 @@ void setTransformsAndGeom_E(dSpaceID space, void *csensor, struct X3D_Node* pare
 						struct X3D_CollisionSpace *cspace = (struct X3D_CollisionSpace *)node;
 
 						//recurse to leaf-node collidableShape
-						if(!cspace->_space)
+						if(!cspace->_space){
 							cspace->_space = dHashSpaceCreate (space);
+							dGeomSetData(cspace->_space,cspace);
+						}
 						//printf("handle collisionspace\n");
 						setTransformsAndGeom_E(cspace->_space,csensor,X3D_NODE(cspace),cspace->collidables.p,1);
 
@@ -936,6 +949,7 @@ void rbp_run_physics(){
 			void * csensor;
 			for(i=0;i<x3dcollisioncollections->n;i++){
 				ccol = vector_get(struct X3D_CollisionCollection*,x3dcollisioncollections,i);
+
 				csens = ccol->_csensor;
 				if(NNC(ccol)){
 					unsigned int mask = 0;
@@ -965,6 +979,8 @@ void rbp_run_physics(){
 						}
 					}
 					ccol->_appliedParametersMask = mask;
+					// Q. how to 'enable=FALSE' a collisionCollection?
+					// H: ODE category bits? dug9 Dec 2016 I didn't implement.
 					MNC(ccol);
 				}
 				csensor = csens ? (void*)csens : (void*)ccol;  //user data assigned to geom, for recovery from collided geoms in nearCallback
