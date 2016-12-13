@@ -270,6 +270,14 @@ double vecangle(struct point_XYZ* V1, struct point_XYZ* V2) {
 		sqrt( (V1->x*V1->x + V1->y*V1->y + V1->z*V1->z)*(V2->x*V2->x + V2->y*V2->y + V2->z*V2->z) )  );
 };
 
+float *veccopy4f(float *b, float *a)
+{
+	b[0] = a[0];
+	b[1] = a[1];
+	b[2] = a[2];
+	b[3] = a[3];
+	return b;
+}
 
 float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b)
 {
@@ -305,6 +313,12 @@ float calc_angle_between_two_vectors(struct point_XYZ a, struct point_XYZ b)
 int vecsame3f(float *a, float *b){
 	int i,isame = TRUE;
 	for(i=0;i<3;i++)
+		if(a[i] != b[i]) isame = FALSE;
+	return isame;
+}
+int vecsame4f(float *a, float *b){
+	int i,isame = TRUE;
+	for(i=0;i<4;i++)
 		if(a[i] != b[i]) isame = FALSE;
 	return isame;
 }

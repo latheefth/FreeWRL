@@ -214,8 +214,11 @@ BOOL line_intersect_planed_3f(float *p, float *v, float *N, float d, float *pi, 
 BOOL line_intersect_plane_3f(float *p, float *v, float *N, float *pp, float *pi, float *t);
 BOOL line_intersect_cylinder_3f(float *p, float *v, float radius, float *pi);
 
+
 float vecdot4f( float *a, float *b );
 float *vecscale4f(float *b, float *a, float scale);
+float *veccopy4f(float *b, float *a);
+int vecsame4f(float *a, float *b);
 
 GLDOUBLE det3x3(GLDOUBLE* data);
 

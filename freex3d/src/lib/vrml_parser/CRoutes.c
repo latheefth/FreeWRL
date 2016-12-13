@@ -717,6 +717,7 @@ void do_ScalarChaserTick(void * ptr);
 void do_ScalarDamperTick(void * ptr);
 void do_TexCoordChaser2DTick(void * ptr);
 void do_TexCoordDamper2DTick(void * ptr);
+void do_CollisionSensorTick(void * ptr);
 
 void add_first(struct X3D_Node * node) {
 	void (*myp)(void *);
@@ -773,6 +774,7 @@ void add_first(struct X3D_Node * node) {
 		case NODE_PointPickSensor:		myp = do_PickSensorTick;		break;
 		case NODE_PrimitivePickSensor:	myp = do_PickSensorTick;		break;
 		case NODE_VolumePickSensor:		myp = do_PickSensorTick;		break;
+		case NODE_CollisionSensor:		myp = do_CollisionSensorTick;	break;
 		default:
 			// printf ("this is not a type we need to add_first for %s\n",stringNodeType(clocktype));
 			return; //not a clocktype node
@@ -3001,6 +3003,12 @@ void do_first() {
 	}
 
 	if(1){
+		// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/concepts.html#ExecutionModel
+		// if the do_ are b. Evaluate Sensors, and propagate_events are c. evaluate Routes,
+		// and according to d. if any events generated repeate b, c, 
+		// then we should in theory have a loop here 
+		// (but looks like we don't, so sensors done once per loop. 
+		// But script eval in propagate events is in that route loop)
 		//all the do_ functions are called here
 		ne = p->num_ClockEvents;
 		for (counter =0; counter < ne; counter ++) {

@@ -302,6 +302,16 @@ void  child_Billboard (struct X3D_Billboard *node) {
 //}
 
 
+/*
+Nov 28, 2016 we aren't doing collision->proxy
+COLLISION_PROXY
+http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/navigation.html#Collision
+"""
+The collision proxy, defined in the proxy field, is any legal children node as described in 10.2.1 Grouping and children node types that is used as a substitute for the Collision node's children during collision detection. The proxy is used strictly for collision detection; it is not drawn.
+"""
+http://www.web3d.org/x3d/content/examples/Basic/development/ProxyShapeExampleIndex.html
+- example showing you can re-order / change the order / length of children field and proxy should still be proxy
+*/
 
 void child_Collision (struct X3D_Collision *node) {
     int nc = node->children.n;

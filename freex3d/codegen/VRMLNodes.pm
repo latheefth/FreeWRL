@@ -2961,6 +2961,11 @@ our %Nodes = (
 		metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		body1AnchorPoint => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		body2AnchorPoint => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_joint => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_forceout => ["SFInt32", 0, "initializeOnly", 0],
+		__old_anchorPoint => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body1 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DRigidJointNode"),
 
 	"CollidableOffset" => new VRML::NodeType("CollidableOffset", [
@@ -2973,6 +2978,11 @@ our %Nodes = (
 		__do_trans => ["SFInt32", "FALSE", "initializeOnly", 0],
 		__do_rotation => ["SFInt32", "FALSE", "initializeOnly", 0],
 		collidable => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_geom => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_initialRotation => ["SFRotation", [0, 0, 1, 0], "initializeOnly", 0], 
+		_initialTranslation => ["SFVec3f", [0, 0, 0], "initializeOnly", 0],
+		_initialized => ["SFBool",0,"initializeOnly",0],
+		_csensor => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DNBodyCollidableNode"),
 
 	"CollidableShape" => new VRML::NodeType("CollidableShape", [
@@ -2986,6 +2996,10 @@ our %Nodes = (
 		__do_rotation => ["SFInt32", "FALSE", "initializeOnly", 0],
 		shape => ["SFNode", "NULL", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_geom => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_initialRotation => ["SFRotation", [0, 0, 1, 0], "initializeOnly", 0], 
+		_initialTranslation => ["SFVec3f", [0, 0, 0], "initializeOnly", 0],
+		_initialized => ["SFBool",0,"initializeOnly",0],
+		_csensor => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DNBodyCollidableNode"),
 
 	"CollisionCollection" => new VRML::NodeType("CollisionCollection", [
@@ -3001,6 +3015,8 @@ our %Nodes = (
 		softnessErrorCorrection => ["SFFloat", 0.8, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"], # see note top of file
 		surfaceSpeed => ["SFVec2f", [0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_class => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_csensor => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_appliedParametersMask => ["SFInt32", 0, "initializeOnly", 0],
 		],"X3DChildNode"),
 
 	"CollisionSensor" => new VRML::NodeType("CollsionSensor", [
@@ -3040,6 +3056,7 @@ our %Nodes = (
 		softnessConstantForceMix => ["SFFloat", 0.0001, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		softnessErrorCorrection => ["SFFloat", 0.8, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		surfaceSpeed => ["SFVec2f", [0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_appliedParameters => ["SFInt32", 0, "initializeOnly", 0],
 		], "X3DSFNode"),
 
 	"DoubleAxisHingeJoint" => new VRML::NodeType("DoubleAxisHingeJoint", [
@@ -3069,6 +3086,16 @@ our %Nodes = (
 		hinge1AngleRate=>["SFFloat",0.0,"outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		hinge2Angle=>["SFFloat",0.0,"outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		hinge2AngleRate=>["SFFloat",0.0,"outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_joint => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_forceout => ["SFInt32", 0, "initializeOnly", 0],
+		__old_anchorPoint => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis1 => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis2 => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body1 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_motor1 => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_motor2 => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		axis1Angle => ["SFFloat", 0, "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DRigidJointNode"),
 
 	"MotorJoint" => new VRML::NodeType("MotorJoint", [
@@ -3100,6 +3127,16 @@ our %Nodes = (
 		motor3Angle=>["SFFloat",0.0,"outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		motor3AngleRate=>["SFFloat",0.0,"outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		autoCalc => ["SFBool", "FALSE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_joint => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_forceout => ["SFInt32", 0, "initializeOnly", 0],
+		__old_motor1Axis => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_motor2Axis => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_motor3Axis => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body1 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis1Angle => ["SFFloat", 0, "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis2Angle => ["SFFloat", 0, "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis3Angle => ["SFFloat", 0, "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DRigidJointNode"),
 
 	"RigidBody" => new VRML::NodeType("RigidBody", [
@@ -3128,6 +3165,13 @@ our %Nodes = (
 		useFiniteRotation => ["SFBool", "FALSE", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		useGlobalGravity => ["SFBool", "TRUE", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_body => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		__old_angularVelocity => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_centerOfMass => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_finiteRotationAxis => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_linearVelocity => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_orientation => ["SFRotation", [0, 0, 1, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_position => ["SFVec3f", [0, 0, 0], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_geomIdentityTransform => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DSFNode"),
 
 	"RigidBodyCollection" => new VRML::NodeType("RigidBodyCollection", [
@@ -3149,12 +3193,13 @@ our %Nodes = (
 		preferAccuracy => ["SFBool", "FALSE", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		collider => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		_world => ["FreeWRLPTR", 0, "initializeOnly", 0],
-		_space => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		#_space => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_group => ["FreeWRLPTR", 0, "initializeOnly", 0],
 		], "X3DChildNode"),
 
 	"SingleAxisHingeJoint" => new VRML::NodeType("SingleAxisHingeJoint", [
 		anchorPoint => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-		axis => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		axis => ["SFVec3f", [0,0,1], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		body1 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		forceOutput => ["MFString", ["NONE"], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
@@ -3167,6 +3212,12 @@ our %Nodes = (
 		angleRate=>["SFFloat",0.0,"outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		body1AnchorPoint => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		body2AnchorPoint => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_joint => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_forceout => ["SFInt32", 0, "initializeOnly", 0],
+		__old_anchorPoint => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body1 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DRigidJointNode"),
 
 	"SliderJoint" => new VRML::NodeType("SliderJoint", [
@@ -3182,6 +3233,11 @@ our %Nodes = (
 		stopErrorCorrection => ["SFFloat",  1, "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		separation => ["SFFloat",0.0,"outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		separationRate=>["SFFloat",0.0,"outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_joint => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_forceout => ["SFInt32", 0, "initializeOnly", 0],
+		__old_axis => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body1 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DRigidJointNode"),
 	
 	"UniversalJoint" => new VRML::NodeType("UniversalJoint", [
@@ -3200,6 +3256,13 @@ our %Nodes = (
 		body1Axis => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		body2AnchorPoint => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		body2Axis => ["SFVec3f",[0,0,0],"outputOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_joint => ["FreeWRLPTR", 0, "initializeOnly", 0],
+		_forceout => ["SFInt32", 0, "initializeOnly", 0],
+		__old_anchorPoint => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis1 => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_axis2 => ["SFVec3f", [0,0,0], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body1 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		__old_body2 => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		], "X3DRigidJointNode"),
 	
 	
