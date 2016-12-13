@@ -237,6 +237,8 @@ struct X3D_CollisionCollection * getCollisionCollectionFromCsensor(void *csensor
 }
 static struct X3D_Contact static_contacts_p[100];
 static int static_contacts_n = 0;
+static struct X3D_Contact *static_contacts_initializer = NULL;
+static int static_contacts_initialized = FALSE;
 // this is called by dSpaceCollide when two objects in space are
 // potentially colliding.
 // http://ode.org/ode-latest-userguide.html#sec_10_5_0
@@ -276,7 +278,7 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 		xcol2 = getCollisionCollectionFromCsensor(xshape2->_csensor);
 		xsens1 = getCollisionSensorFromCsensor(xshape1->_csensor);
 		xsens2 = getCollisionSensorFromCsensor(xshape2->_csensor);
-		if(count < 20){
+		if(0) if(count < 20){
 			if(xsens1) printf("have csens1 %x\n",xsens1);
 			if(xsens2) printf("have csens2 %x\n",xsens2);
 			if(xcol1) printf("have ccol1 %x\n",xcol1);
@@ -336,9 +338,18 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					int k;
 					struct X3D_Contact *ct;
 					dSurfaceParameters *surface;
-					static_contacts_n = static_contacts_n < 100 ? static_contacts_n++ : static_contacts_n;
+					if(!static_contacts_initialized){
+						//they are nodes, but static. We don't have a pure initialize function
+						//in GeneratedCode (and too rushed to do one now), so will create one non-static,
+						//and use it to initialize the statics
+						static_contacts_initializer = createNewX3DNode0(NODE_Contact);
+						static_contacts_initialized = TRUE;
+					}
+					static_contacts_n++;
+					if(static_contacts_n >= 100) static_contacts_n = 99;
 					k = static_contacts_n -1;
 					ct = &static_contacts_p[k];
+					memcpy(ct,static_contacts_initializer,sizeof(struct X3D_Contact));
 					surface = &contact[i].surface;
 
 					ct->appliedParameters.p = xcol ? xcol->appliedParameters.p : NULL;
@@ -364,7 +375,10 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					ct->surfaceSpeed.c[0]= surface->motion1;
 					ct->surfaceSpeed.c[1]= surface->motion2;
 					if(xsens1){
-						xsens1->contacts.p = realloc(xsens1->contacts.p,(xsens1->contacts.n+1)*sizeof(void*));
+						if(xsens1->contacts.n == 0)
+							xsens1->contacts.p = malloc((xsens1->contacts.n+1)*sizeof(void*));
+						else
+							xsens1->contacts.p = realloc(xsens1->contacts.p,(xsens1->contacts.n+1)*sizeof(void*));
 						xsens1->contacts.p[xsens1->contacts.n] = X3D_NODE(ct);
 						xsens1->contacts.n++;
 						//we mark these in do_CollisionSensor if contacts.n > 0
@@ -372,8 +386,11 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 						//xsens1->isActive = TRUE;
 						//MARK_EVENT(X3D_NODE(xsens1),offsetof(struct X3D_CollisionSensor,isActive));
 					}
-					if(xsens2){
-						xsens2->contacts.p = realloc(xsens2->contacts.p,(xsens2->contacts.n+1)*sizeof(void*));
+					if(xsens2 && (xsens2 != xsens1)){
+						if(xsens2->contacts.n == 0)
+							xsens2->contacts.p = malloc((xsens2->contacts.n+1)*sizeof(void*));
+						else
+							xsens2->contacts.p = realloc(xsens2->contacts.p,(xsens2->contacts.n+1)*sizeof(void*));
 						xsens2->contacts.p[xsens2->contacts.n] = X3D_NODE(ct);
 						xsens2->contacts.n++;
 						//MARK_EVENT(X3D_NODE(xsens2),offsetof(struct X3D_CollisionSensor,contacts));
@@ -870,6 +887,7 @@ void rbp_run_physics(){
 				csens = vector_get(struct X3D_CollisionSensor*,x3dcollisionsensors,i);
 				//clear contacts from last frame
 				csens->contacts.n = 0;
+				FREE_IF_NZ(csens->contacts.p);
 				//clear intersections from last frame
 				csens->intersections.n = 0;
 				if(csens->collider){
@@ -1230,12 +1248,12 @@ void rbp_run_physics(){
 									veccopy3f(jnt->__old_axis.c,jnt->axis.c);
 								}
 								jnt->_forceout = forceout_from_names(jnt->forceOutput.n,jnt->forceOutput.p);
+								dJointSetHingeParam (jnt->_joint,dParamLoStop,jnt->minAngle);
+								dJointSetHingeParam (jnt->_joint,dParamHiStop,jnt->maxAngle);
+								dJointSetHingeParam (jnt->_joint,dParamBounce,jnt->stopBounce);
+								dJointSetHingeParam (jnt->_joint,dParamStopERP,jnt->stopErrorCorrection);
 								MNC(jnt);
 							}
-							dJointSetHingeParam (jnt->_joint,dParamLoStop,jnt->minAngle);
-							dJointSetHingeParam (jnt->_joint,dParamHiStop,jnt->maxAngle);
-							dJointSetHingeParam (jnt->_joint,dParamBounce,jnt->stopBounce);
-							dJointSetHingeParam (jnt->_joint,dParamStopERP,jnt->stopErrorCorrection);
 						}
 						break;
 					case NODE_DoubleAxisHingeJoint:
@@ -1289,6 +1307,11 @@ void rbp_run_physics(){
 								dJointSetHinge2Param (jnt->_joint,dParamSuspensionERP,jnt->suspensionErrorCorrection);
 								dJointSetHinge2Param (jnt->_joint,dParamSuspensionCFM,jnt->suspensionForce);
 
+								dJointSetHinge2Param (jnt->_joint,dParamFMax,jnt->maxTorque1);
+								dJointSetHinge2Param (jnt->_joint,dParamLoStop,jnt->minAngle1);
+								dJointSetHinge2Param (jnt->_joint,dParamHiStop,jnt->maxAngle1);
+								dJointSetHinge2Param (jnt->_joint,dParamFudgeFactor,0.1);
+
 								MNC(jnt);
 							}
 							//per-frame 
@@ -1309,10 +1332,6 @@ void rbp_run_physics(){
 								if (agap < -0.1) avel = -jnt->desiredAngularVelocity1;
 							}
 							dJointSetHinge2Param (jnt->_joint,dParamVel,avel);
-							dJointSetHinge2Param (jnt->_joint,dParamFMax,jnt->maxTorque1);
-							dJointSetHinge2Param (jnt->_joint,dParamLoStop,jnt->minAngle1);
-							dJointSetHinge2Param (jnt->_joint,dParamHiStop,jnt->maxAngle1);
-							dJointSetHinge2Param (jnt->_joint,dParamFudgeFactor,0.1);
 
 						}
 						break;
@@ -1971,30 +1990,21 @@ void do_CollisionSensorTick0(struct X3D_CollisionSensor *node){
 	//so in rbp_run_physics the first thing we can do is clear the contacts in any sensors
 	//then any contacts generated during physics can come out of here in the next routing session
 
-	//if(node->collider){
-	//	struct X3D_CollisionCollection *collider = (struct X3D_CollisionCollection *)node->collider;
-	//}
-	//if(node->contacts.n){
-	//	for(int i=0;i<node->contacts.n;i++){
-	//		
-	//	}
-	//}
-	//if(NNC(node)){
-		if(node->contacts.n){
-			if(node->isActive == FALSE){
-				node->isActive = TRUE;
-				MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
-			}
-			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
-		}else{
-			if(node->isActive == TRUE){
-				node->isActive = FALSE;
-				MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
-				MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
-			}
+	if(node->contacts.n){
+		if(node->isActive == FALSE){
+			node->isActive = TRUE;
+			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
 		}
-	//	MNC(node);
-	//}
+		MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
+	}else{
+		if(node->isActive == TRUE){
+			node->isActive = FALSE;
+			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
+			//do I need to route n=0? 
+			node->contacts.p = NULL; //if I don't set to null and mark, then CRoutes bombs in some cleanup code.
+			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
+		}
+	}
 }
 void do_CollisionSensorTick(void * ptr){
 	if(ptr)
