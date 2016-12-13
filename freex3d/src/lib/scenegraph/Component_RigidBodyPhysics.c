@@ -376,7 +376,7 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					ct->softnessErrorCorrection = surface->soft_erp;
 					ct->surfaceSpeed.c[0]= surface->motion1;
 					ct->surfaceSpeed.c[1]= surface->motion2;
-					if(xsens1){
+					if(xsens1 && xsens1->enabled){
 						//BOMBING - CRoutes was bombing if I was resizing contacts.p and intersections.p in there
 						//so I malloc once to 100=MAXCONTACTS
 						if(xsens1->contacts.p == NULL)
@@ -401,7 +401,7 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 						xsens1->intersections.n++;
 
 					}
-					if(xsens2 && (xsens2 != xsens1)){
+					if(xsens2 && xsens2->enabled && (xsens2 != xsens1 || (xsens1 && !xsens1->enabled))){
 						if(xsens2->contacts.p == NULL)
 							xsens2->contacts.p = malloc(100 * sizeof(void*));
 						//if(xsens2->contacts.n == 0)
@@ -414,7 +414,7 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 						//xsens2->isActive = TRUE;
 						//MARK_EVENT(X3D_NODE(xsens2),offsetof(struct X3D_CollisionSensor,isActive));
 					}
-					if(xsens2){
+					if(xsens2 && xsens2->enabled){
 						if(xsens2->intersections.p == NULL)
 							xsens2->intersections.p = malloc(100 * sizeof(void*));
 						//if(xsens2->intersections.n == 0)
@@ -915,12 +915,14 @@ void rbp_run_physics(){
 			struct X3D_CollisionSensor *csens;
 			for(i=0;i<x3dcollisionsensors->n;i++){
 				csens = vector_get(struct X3D_CollisionSensor*,x3dcollisionsensors,i);
-				//clear contacts from last frame - we do this in do_Tick below 
-				//csens->contacts.n = 0;
+				//clear contacts from last frame 
+				csens->contacts.n = 0;
 				// leave at 100 FREE_IF_NZ(csens->contacts.p);
 				//clear intersections from last frame
-				//csens->intersections.n = 0;
+				csens->intersections.n = 0;
 				if(csens->collider){
+					//this doesn't run the collision sensor, just makes sure it's 'compiled' / initialized
+					//so no need to check for ->enabled
 					struct X3D_CollisionCollection *ccol = (struct X3D_CollisionCollection *)csens->collider;
 					ccol->_csensor = csens;
 				}
@@ -2021,13 +2023,15 @@ void do_CollisionSensorTick0(struct X3D_CollisionSensor *node){
 	//then any contacts generated during physics can come out of here in the next routing session
 	if(!static_did_physics_since_last_Tick) return;
 	static_did_physics_since_last_Tick = 0;
+	if(!node->enabled) return;
+
 	if(node->contacts.n){
 		if(node->isActive == FALSE){
 			node->isActive = TRUE;
 			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
 		}
 		MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
-		node->contacts.n = 0;
+		//node->contacts.n = 0;
 		// leave at 100 FREE_IF_NZ(node->contacts.p);
 	}else{
 		if(node->isActive == TRUE){
@@ -2041,7 +2045,7 @@ void do_CollisionSensorTick0(struct X3D_CollisionSensor *node){
 	if(node->isActive){
 		if(node->intersections.n){
 			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,intersections));
-			node->intersections.n = 0;
+			//node->intersections.n = 0;
 			//leave at 100 FREE_IF_NZ(node->intersections.p);
 		}
 		//else{
