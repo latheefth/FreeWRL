@@ -80,6 +80,8 @@ void set_physics();
 
 //#undef WITH_RBP
 #ifdef WITH_RBP
+//START MIT LIC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 //#define dSINGLE 1  //Q. do we need to match the physics lib build
 #define dDOUBLE 1
 #include <ode/ode.h>
@@ -2077,6 +2079,7 @@ void add_physics(struct X3D_Node *node){
 	}
 }
 
+//END MIT LIC <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 #else //else no ode phyiscs engine, just stubs
 
