@@ -1200,20 +1200,22 @@ void rbp_run_physics(){
 									break;
 							}
 							dMassAdjust(&m,x3dbody->mass);
+							dMassTranslate (&m,x3dbody->centerOfMass.c[0],x3dbody->centerOfMass.c[1],x3dbody->centerOfMass.c[2]);
 							dBodySetMass (x3dbody->_body, &m);
 						}else{
 							dMass m;
 							dMassSetSphere (&m,DENSITY,.01);
 							dMassAdjust(&m,x3dbody->mass);
+							dMassTranslate (&m,x3dbody->centerOfMass.c[0],x3dbody->centerOfMass.c[1],x3dbody->centerOfMass.c[2]);
 							dBodySetMass (x3dbody->_body, &m);
 						}
-
 						if(x3dbody->useFiniteRotation){
 							if(!vecsame3f(x3dbody->__old_finiteRotationAxis.c,x3dbody->finiteRotationAxis.c)){
 								dBodySetFiniteRotationAxis (x3dbody->_body, x3dbody->finiteRotationAxis.c[0],x3dbody->finiteRotationAxis.c[1],x3dbody->finiteRotationAxis.c[2]);
 								veccopy3f(x3dbody->__old_finiteRotationAxis.c,x3dbody->finiteRotationAxis.c);
 							}
 						}
+						dBodySetFiniteRotationMode (x3dbody->_body, x3dbody->useFiniteRotation ? 1 : 0);
 
 						//gravity?
 						if(!x3dbody->useGlobalGravity){
@@ -1235,6 +1237,10 @@ void rbp_run_physics(){
 								veccopy3f(x3dbody->__old_angularVelocity.c,x3dbody->angularVelocity.c);
 							}
 						}
+						dBodySetAutoDisableFlag (x3dbody->_body, x3dbody->autoDisable ? 1 : 0);
+						dBodySetAutoDisableLinearThreshold (x3dbody->_body, x3dbody->disableLinearSpeed);
+						dBodySetAutoDisableAngularThreshold (x3dbody->_body, x3dbody->disableAngularSpeed);
+						dBodySetAutoDisableTime (x3dbody->_body, x3dbody->disableTime);
 					} //if NCC(x3dbody)
 					if(x3dbody->autoDamp){
 					}
