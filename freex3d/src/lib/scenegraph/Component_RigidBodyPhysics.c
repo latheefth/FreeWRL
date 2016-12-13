@@ -991,7 +991,6 @@ void rbp_run_physics(){
 		}
 
 
-
 		for(j=0;j<vectorSize(x3dworlds);j++){
 			struct X3D_RigidBody *x3dbody;
 			struct X3D_CollidableOffset *x3doffset;
@@ -999,6 +998,22 @@ void rbp_run_physics(){
 			x3dworld = (struct X3D_RigidBodyCollection*)vector_get(struct X3D_Node*,x3dworlds,j);
 			//Collidable -> rigidbody 
 			if(!x3dworld->enabled) continue;
+			//if(!x3dworld->_world){
+			if(NNC(x3dworld)){
+				x3dworld->_world = world;
+				if(x3dworld->contactSurfaceThickness > 0)
+					dWorldSetContactSurfaceLayer (x3dworld->_world, x3dworld->contactSurfaceThickness);
+				dWorldSetGravity (x3dworld->_world, x3dworld->gravity.c[0], x3dworld->gravity.c[1], x3dworld->gravity.c[2]);
+				dWorldSetERP (x3dworld->_world, x3dworld->errorCorrection);
+				dWorldSetCFM (x3dworld->_world, x3dworld->constantForceMix);
+				dWorldSetAutoDisableFlag (x3dworld->_world, x3dworld->autoDisable);
+				dWorldSetAutoDisableLinearThreshold (x3dworld->_world, x3dworld->disableLinearSpeed);
+				dWorldSetAutoDisableAngularThreshold (x3dworld->_world, x3dworld->disableAngularSpeed);
+				dWorldSetAutoDisableTime (x3dworld->_world, x3dworld->disableTime);
+				if(x3dworld->maxCorrectionSpeed > -1)
+					dWorldSetContactMaxCorrectingVel (x3dworld->_world, x3dworld->maxCorrectionSpeed);
+				MNC(x3dworld);
+			}
 
 			if(x3dworld->set_contacts.n){
 				//someone in javascript / sai sent us some extra contacts to add as contact joints
@@ -1596,9 +1611,17 @@ void rbp_run_physics(){
 			//RUN PHYSICS ENGINE
 			dSpaceCollide (space,0,&nearCallback);
 			if (!pause) {
-				double step_fraction = STEP_SIZE / (double)x3dworld->iterations;
-				for(int kstep=0;kstep<nstep*x3dworld->iterations;kstep++)
-					dWorldQuickStep (x3dworld->_world,step_fraction); //STEP_SIZE); //0.02);
+				if(x3dworld->preferAccuracy){
+					//PUNISHING GIANT MATRIX PUSHED ONTO C STACK FOR GIANT MATRIX SOLUTION
+					double step_fraction = STEP_SIZE;
+					dWorldStep (x3dworld->_world,step_fraction); 
+				}else{
+					//SO CALLED QUICK-STEP METHOD WHICH IS FASTER, THE NORMAL WAY TO DO IT
+					//dWorldSetQuickStepNumIterations (x3dworld->_world, x3dworld->iterations);
+					double step_fraction = STEP_SIZE / (double)x3dworld->iterations;
+					for(nstep=0;nstep<x3dworld->iterations;nstep++)
+						dWorldQuickStep (x3dworld->_world,step_fraction); 
+				}
 			}
 
 			//do eventOuts
@@ -1874,7 +1897,6 @@ void register_RigidBodyCollection(struct X3D_Node *_node){
 			space = dHashSpaceCreate (0); //default space
 		if(!world){
 			world = dWorldCreate();
-
 			dWorldSetGravity (world,node->gravity.c[0],node->gravity.c[1],node->gravity.c[2]);
 			dWorldSetCFM (world,1e-5);
 			dWorldSetAutoDisableFlag (world,1);
@@ -1897,7 +1919,7 @@ void register_RigidBodyCollection(struct X3D_Node *_node){
 			dWorldSetContactMaxCorrectingVel (world,0.1);
 			dWorldSetContactSurfaceLayer (world,0.001);
 		} 
-		node->_world = (void*)world;
+		///// we assign above node->_world = (void*)world;
 		//node->_space = (void*)space;
 		dJointGroupID groupID = dJointGroupCreate (0); //this is a contact group for joints
 		node->_group = groupID;
