@@ -375,27 +375,52 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					ct->surfaceSpeed.c[0]= surface->motion1;
 					ct->surfaceSpeed.c[1]= surface->motion2;
 					if(xsens1){
-						if(xsens1->contacts.n == 0)
-							xsens1->contacts.p = malloc((xsens1->contacts.n+1)*sizeof(void*));
-						else
-							xsens1->contacts.p = realloc(xsens1->contacts.p,(xsens1->contacts.n+1)*sizeof(void*));
+						//BOMBING - CRoutes was bombing if I was resizing contacts.p and intersections.p in there
+						//so I malloc once to 100=MAXCONTACTS
+						if(xsens1->contacts.p == NULL)
+							xsens1->contacts.p = malloc(100 * sizeof(void*));
+						//if(xsens1->contacts.n == 0)
+						//	xsens1->contacts.p = malloc((xsens1->contacts.n+1)*sizeof(void*));
+						//else
+						//	xsens1->contacts.p = realloc(xsens1->contacts.p,(xsens1->contacts.n+1)*sizeof(void*));
 						xsens1->contacts.p[xsens1->contacts.n] = X3D_NODE(ct);
 						xsens1->contacts.n++;
 						//we mark these in do_CollisionSensor if contacts.n > 0
 						//MARK_EVENT(X3D_NODE(xsens1),offsetof(struct X3D_CollisionSensor,contacts));
 						//xsens1->isActive = TRUE;
 						//MARK_EVENT(X3D_NODE(xsens1),offsetof(struct X3D_CollisionSensor,isActive));
+						if(xsens1->intersections.p == NULL)
+							xsens1->intersections.p = malloc(100 * sizeof(void*));
+						//if(xsens1->intersections.n == 0)
+						//	xsens1->intersections.p = malloc((xsens1->intersections.n+2)*sizeof(void*));
+						//else
+						//	xsens1->contacts.p = realloc(xsens1->intersections.p,(xsens1->intersections.n+1)*sizeof(void*));
+						xsens1->intersections.p[xsens1->intersections.n] = X3D_NODE(xshape1);
+						xsens1->intersections.n++;
+
 					}
 					if(xsens2 && (xsens2 != xsens1)){
-						if(xsens2->contacts.n == 0)
-							xsens2->contacts.p = malloc((xsens2->contacts.n+1)*sizeof(void*));
-						else
-							xsens2->contacts.p = realloc(xsens2->contacts.p,(xsens2->contacts.n+1)*sizeof(void*));
+						if(xsens2->contacts.p == NULL)
+							xsens2->contacts.p = malloc(100 * sizeof(void*));
+						//if(xsens2->contacts.n == 0)
+						//	xsens2->contacts.p = malloc((xsens2->contacts.n+1)*sizeof(void*));
+						//else
+						//	xsens2->contacts.p = realloc(xsens2->contacts.p,(xsens2->contacts.n+1)*sizeof(void*));
 						xsens2->contacts.p[xsens2->contacts.n] = X3D_NODE(ct);
 						xsens2->contacts.n++;
 						//MARK_EVENT(X3D_NODE(xsens2),offsetof(struct X3D_CollisionSensor,contacts));
 						//xsens2->isActive = TRUE;
 						//MARK_EVENT(X3D_NODE(xsens2),offsetof(struct X3D_CollisionSensor,isActive));
+					}
+					if(xsens2){
+						if(xsens2->intersections.p == NULL)
+							xsens2->intersections.p = malloc(100 * sizeof(void*));
+						//if(xsens2->intersections.n == 0)
+						//	xsens2->intersections.p = malloc((xsens2->intersections.n+2)*sizeof(void*));
+						//else
+						//	xsens2->contacts.p = realloc(xsens2->intersections.p,(xsens2->intersections.n+1)*sizeof(void*));
+						xsens2->intersections.p[xsens2->intersections.n] = X3D_NODE(xshape2);
+						xsens2->intersections.n++;
 					}
 				}
 			}
@@ -838,6 +863,7 @@ Issue with 2,3,4: either you need all the bitflags set on startup (to trigger al
 DECISION: we'll do the #1 __oldvalue technique.
 
 */
+int static_did_physics_since_last_Tick = FALSE;
 void rbp_run_physics(){
 	/*	called once per frame.
 		assumes we have lists of registered worlds (x3drigidbodycollections) and 
@@ -876,6 +902,8 @@ void rbp_run_physics(){
 	//printf("%d ",nstep);
 	if(nstep < 1) return;
 	//see nstep below when calling dworldquickstep we loop over nstep
+	static_did_physics_since_last_Tick = TRUE;
+
 
 	if(init_rbp()){
 		int i,j,k;
@@ -885,11 +913,11 @@ void rbp_run_physics(){
 			struct X3D_CollisionSensor *csens;
 			for(i=0;i<x3dcollisionsensors->n;i++){
 				csens = vector_get(struct X3D_CollisionSensor*,x3dcollisionsensors,i);
-				//clear contacts from last frame
-				csens->contacts.n = 0;
-				FREE_IF_NZ(csens->contacts.p);
+				//clear contacts from last frame - we do this in do_Tick below 
+				//csens->contacts.n = 0;
+				// leave at 100 FREE_IF_NZ(csens->contacts.p);
 				//clear intersections from last frame
-				csens->intersections.n = 0;
+				//csens->intersections.n = 0;
 				if(csens->collider){
 					struct X3D_CollisionCollection *ccol = (struct X3D_CollisionCollection *)csens->collider;
 					ccol->_csensor = csens;
@@ -1989,21 +2017,34 @@ void do_CollisionSensorTick0(struct X3D_CollisionSensor *node){
 	//that happens before rbp_run_phsyics() is called
 	//so in rbp_run_physics the first thing we can do is clear the contacts in any sensors
 	//then any contacts generated during physics can come out of here in the next routing session
-
+	if(!static_did_physics_since_last_Tick) return;
+	static_did_physics_since_last_Tick = 0;
 	if(node->contacts.n){
 		if(node->isActive == FALSE){
 			node->isActive = TRUE;
 			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
 		}
 		MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
+		node->contacts.n = 0;
+		// leave at 100 FREE_IF_NZ(node->contacts.p);
 	}else{
 		if(node->isActive == TRUE){
 			node->isActive = FALSE;
 			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,isActive));
 			//do I need to route n=0? 
-			node->contacts.p = NULL; //if I don't set to null and mark, then CRoutes bombs in some cleanup code.
-			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
+			//leave at 100 node->contacts.p = NULL; //if I don't set to null and mark, then CRoutes bombs in some cleanup code.
+			//MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,contacts));
 		}
+	}
+	if(node->isActive){
+		if(node->intersections.n){
+			MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,intersections));
+			node->intersections.n = 0;
+			//leave at 100 FREE_IF_NZ(node->intersections.p);
+		}
+		//else{
+		//	MARK_EVENT(X3D_NODE(node),offsetof(struct X3D_CollisionSensor,intersections));
+		//}
 	}
 }
 void do_CollisionSensorTick(void * ptr){
