@@ -999,7 +999,7 @@ void rbp_run_physics(){
 			//Collidable -> rigidbody 
 			if(!x3dworld->enabled) continue;
 			//if(!x3dworld->_world){
-			if(NNC(x3dworld)){
+			if(NNC(x3dworld) || x3dworld->_world == NULL){
 				x3dworld->_world = world;
 				if(x3dworld->contactSurfaceThickness > 0)
 					dWorldSetContactSurfaceLayer (x3dworld->_world, x3dworld->contactSurfaceThickness);

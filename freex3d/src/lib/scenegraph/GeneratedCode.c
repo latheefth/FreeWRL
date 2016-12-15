@@ -8465,7 +8465,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
 			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_collidables + (FIELDNAMES_collidable << 16);
+			tmp2->_defaultContainer = FIELDNAMES_collidables + (FIELDNAMES_geometry << 16);
 		break;
 		}
 		case NODE_CollidableShape : {
@@ -8485,7 +8485,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
 			tmp2->shape = NULL;
 			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_collidables + (FIELDNAMES_collidable << 16);
+			tmp2->_defaultContainer = FIELDNAMES_collidables + (FIELDNAMES_geometry << 16);
 		break;
 		}
 		case NODE_Collision : {
@@ -11914,7 +11914,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->geometry = NULL;
 			tmp2->metadata = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_children + (FIELDNAMES_shape << 16);
 		break;
 		}
 		case NODE_SignalPdu : {

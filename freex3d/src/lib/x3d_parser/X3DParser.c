@@ -907,7 +907,8 @@ c) look at atts containerField, and if not null and not children, use it.
 		defaultContainer[0] = (node->_defaultContainer << 16) >> 16; //Nov 2016 I sqeezed multiple defaults into an int in perl, and extract them here
 		defaultContainer[1] = node->_defaultContainer >> 16;
 		ncontainer = 1;
-		if(defaultContainer[1]) ncontainer = 2;
+		if(defaultContainer[1]) 
+			ncontainer = 2;
 		for(i=0;i<ncontainer;i++){
 			iContainer = defaultContainer[i];
 			if(iContainer == FIELDNAMES_children) iContainer = 0;
@@ -932,7 +933,8 @@ c) look at atts containerField, and if not null and not children, use it.
 					}
 				}
 			}
-			if(ok)break;
+			if(ok)
+				break;
 		}
 		//3.b)
 		//if(parentsSuggestion) {
