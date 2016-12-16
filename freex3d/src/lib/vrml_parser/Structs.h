@@ -162,7 +162,7 @@ typedef int indexT;
 #define NODE_ConeEmitter	42
 #define NODE_Contact	43
 #define NODE_Contour2D	44
-#define NODE_ContourPolyLine2D	45
+#define NODE_ContourPolyline2D	45
 #define NODE_Coordinate	46
 #define NODE_CoordinateChaser	47
 #define NODE_CoordinateDamper	48
@@ -3795,7 +3795,7 @@ struct X3D_Contour2D {
 };
 extern struct X3D_Virt virt_Contour2D;
 /***********************/
-struct X3D_ContourPolyLine2D {
+struct X3D_ContourPolyline2D {
        int _nodeType; /* unique integer for each type */ 
        int _renderFlags; /*sensitive, etc */ 
        int _hit; 
@@ -3812,8 +3812,9 @@ struct X3D_ContourPolyLine2D {
  	/*** node specific data: *****/
 	struct X3D_Node *metadata;
 	struct Multi_Vec2d controlPoint;
+	struct Multi_Vec2f point;
 };
-extern struct X3D_Virt virt_ContourPolyLine2D;
+extern struct X3D_Virt virt_ContourPolyline2D;
 /***********************/
 struct X3D_Coordinate {
        int _nodeType; /* unique integer for each type */ 

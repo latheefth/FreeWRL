@@ -2092,9 +2092,10 @@ our %Nodes = (
 		],"X3DSFNode"),
 
 
-	"ContourPolyLine2D" => new VRML::NodeType("ContourPolyline2D", [
+	"ContourPolyline2D" => new VRML::NodeType("ContourPolyline2D", [
 			metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-			controlPoint => ["MFVec2d", [], "inputOutput","(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			controlPoint => ["MFVec2d", [], "inputOutput","( SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],  #v3.1 changed to this
+			point => ["MFVec2f", [], "inputOutput","(SPEC_X3D30 )"], #from this
 		],"X3DNurbsControlCurveNode"),
 
 	"CoordinateDouble" => new VRML::NodeType("CoordinateDouble", [

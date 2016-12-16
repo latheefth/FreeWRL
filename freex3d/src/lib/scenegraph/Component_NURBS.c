@@ -249,6 +249,15 @@ int generateUniformKnotVector(int order, int ncontrol, float *knots){
 	return m;
 }
 
+void compile_ContourPolyline2D(struct X3D_ContourPolyline2D *node){
+	MARK_NODE_COMPILED;
+	if(node->point.n && !node->controlPoint.n){
+		//version v3.0 had a mfvec2f point field, version 3.1+ changed to mfvec2d controlPoint field
+		node->controlPoint.p = MALLOC(struct SFVec2d*,node->point.n * sizeof(struct SFVec2d));
+		for(int i=0;i<node->point.n;i++)
+			float2double(node->controlPoint.p[i].c,node->point.p[i].c,2);
+	}
+}
 
 void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 	MARK_NODE_COMPILED
@@ -873,14 +882,14 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						for(m=0;m<tc->children.n;m++)
 						{
 							int j,k,dim;
-							struct X3D_ContourPolyLine2D *cp2d;
+							struct X3D_ContourPolyline2D *cp2d;
 							struct X3D_NurbsCurve2D *nc2d;
 							struct X3D_Node *ctr = tc->children.p[m]; //trim->p[i];
 							GLfloat *cknot, *ctrl, *cweight;
 							cknot = ctrl = cweight = NULL;
 							switch(ctr->_nodeType){
-								case NODE_ContourPolyLine2D:
-									cp2d = (struct X3D_ContourPolyLine2D *)ctr;
+								case NODE_ContourPolyline2D:
+									cp2d = (struct X3D_ContourPolyline2D *)ctr;
 									ctrl = MALLOC(void *, cp2d->controlPoint.n * 2*sizeof(GLfloat));
 									for(j=0;j<cp2d->controlPoint.n;j++) {
 										for(k=0;k<2;k++)

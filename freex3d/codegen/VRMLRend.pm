@@ -26,7 +26,7 @@ use warnings;
 our %defaultContainerType = (
 	Proto			=>["children"],
 
-	ContourPolyLine2D	=>["children"],
+	ContourPolyline2D	=>["children"],
 	NurbsCurve		=>["geometry"],
 	NurbsCurve2D		=>["children"],
 	Contour2D 		=>["trimmingContour"],
@@ -667,6 +667,7 @@ our %CompileC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsTrimmedSurface
+	ContourPolyline2D	
 	Layout
 	
 	CollidableOffset

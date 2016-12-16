@@ -2106,7 +2106,7 @@ const int FIELDTYPES_COUNT = ARR_SIZE(FIELDTYPES);
 	"ConeEmitter",
 	"Contact",
 	"Contour2D",
-	"ContourPolyLine2D",
+	"ContourPolyline2D",
 	"Coordinate",
 	"CoordinateChaser",
 	"CoordinateDamper",
@@ -2485,7 +2485,8 @@ struct X3D_Virt virt_Contact = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NU
 
 struct X3D_Virt virt_Contour2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_ContourPolyLine2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void compile_ContourPolyline2D(struct X3D_ContourPolyline2D *);
+struct X3D_Virt virt_ContourPolyline2D = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,(void *)compile_ContourPolyline2D};
 
 struct X3D_Virt virt_Coordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -3239,7 +3240,7 @@ struct X3D_Virt* virtTable[] = {
 	 &virt_ConeEmitter,
 	 &virt_Contact,
 	 &virt_Contour2D,
-	 &virt_ContourPolyLine2D,
+	 &virt_ContourPolyline2D,
 	 &virt_Coordinate,
 	 &virt_CoordinateChaser,
 	 &virt_CoordinateDamper,
@@ -4020,9 +4021,10 @@ const int OFFSETS_Contour2D[] = {
 	(int) FIELDNAMES_removeChildren, (int) offsetof (struct X3D_Contour2D, removeChildren),  (int) FIELDTYPE_MFNode, (int) KW_inputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	-1, -1, -1, -1, -1};
 
-const int OFFSETS_ContourPolyLine2D[] = {
-	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_ContourPolyLine2D, controlPoint),  (int) FIELDTYPE_MFVec2d, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
-	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ContourPolyLine2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+const int OFFSETS_ContourPolyline2D[] = {
+	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_ContourPolyline2D, controlPoint),  (int) FIELDTYPE_MFVec2d, (int) KW_inputOutput, (int) ( SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_ContourPolyline2D, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_point, (int) offsetof (struct X3D_ContourPolyline2D, point),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOutput, (int) (SPEC_X3D30 ),
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_Coordinate[] = {
@@ -7271,7 +7273,7 @@ const int *NODE_OFFSETS[] = {
 	OFFSETS_ConeEmitter,
 	OFFSETS_Contact,
 	OFFSETS_Contour2D,
-	OFFSETS_ContourPolyLine2D,
+	OFFSETS_ContourPolyline2D,
 	OFFSETS_Coordinate,
 	OFFSETS_CoordinateChaser,
 	OFFSETS_CoordinateDamper,
@@ -7808,7 +7810,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_ConeEmitter : {tmp = MALLOC (struct X3D_ConeEmitter *, sizeof (struct X3D_ConeEmitter)); break;}
 		case NODE_Contact : {tmp = MALLOC (struct X3D_Contact *, sizeof (struct X3D_Contact)); break;}
 		case NODE_Contour2D : {tmp = MALLOC (struct X3D_Contour2D *, sizeof (struct X3D_Contour2D)); break;}
-		case NODE_ContourPolyLine2D : {tmp = MALLOC (struct X3D_ContourPolyLine2D *, sizeof (struct X3D_ContourPolyLine2D)); break;}
+		case NODE_ContourPolyline2D : {tmp = MALLOC (struct X3D_ContourPolyline2D *, sizeof (struct X3D_ContourPolyline2D)); break;}
 		case NODE_Coordinate : {tmp = MALLOC (struct X3D_Coordinate *, sizeof (struct X3D_Coordinate)); break;}
 		case NODE_CoordinateChaser : {tmp = MALLOC (struct X3D_CoordinateChaser *, sizeof (struct X3D_CoordinateChaser)); break;}
 		case NODE_CoordinateDamper : {tmp = MALLOC (struct X3D_CoordinateDamper *, sizeof (struct X3D_CoordinateDamper)); break;}
@@ -8752,11 +8754,12 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->_defaultContainer = FIELDNAMES_trimmingContour;
 		break;
 		}
-		case NODE_ContourPolyLine2D : {
-			struct X3D_ContourPolyLine2D * tmp2;
-			tmp2 = (struct X3D_ContourPolyLine2D *) tmp;
+		case NODE_ContourPolyline2D : {
+			struct X3D_ContourPolyline2D * tmp2;
+			tmp2 = (struct X3D_ContourPolyline2D *) tmp;
 			tmp2->controlPoint.n=0; tmp2->controlPoint.p=0;
 			tmp2->metadata = NULL;
+			tmp2->point.n=0; tmp2->point.p=0;
 			tmp2->_defaultContainer = FIELDNAMES_children;
 		break;
 		}
@@ -13647,15 +13650,17 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 		    }
 		    break;
 		}
-		case NODE_ContourPolyLine2D : {
-			struct X3D_ContourPolyLine2D *tmp;
-			tmp = (struct X3D_ContourPolyLine2D *) node;
+		case NODE_ContourPolyline2D : {
+			struct X3D_ContourPolyline2D *tmp;
+			tmp = (struct X3D_ContourPolyline2D *) node;
 			UNUSED(tmp); // compiler warning mitigation
 			spacer fprintf (fp," controlPoint (MFVec2d):\n");
 			for (i=0; i<tmp->controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->controlPoint.p[i]).c[0], (tmp->controlPoint.p[i]).c[1]); }
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
+			spacer fprintf (fp," point (MFVec2f):\n");
+			for (i=0; i<tmp->point.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->point.p[i]).c[0], (tmp->point.p[i]).c[1]); }
 		    break;
 		}
 		case NODE_Coordinate : {
@@ -17712,7 +17717,7 @@ int getSAI_X3DNodeType (int FreeWRLNodeType) {
 	case NODE_ConeEmitter: return X3DParticleEmitterNode; break;
 	case NODE_Contact: return X3DSFNode; break;
 	case NODE_Contour2D: return X3DSFNode; break;
-	case NODE_ContourPolyLine2D: return X3DNurbsControlCurveNode; break;
+	case NODE_ContourPolyline2D: return X3DNurbsControlCurveNode; break;
 	case NODE_Coordinate: return X3DCoordinateNode; break;
 	case NODE_CoordinateChaser: return X3DChaserNode; break;
 	case NODE_CoordinateDamper: return X3DDamperNode; break;

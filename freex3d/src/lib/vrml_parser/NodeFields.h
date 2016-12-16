@@ -521,11 +521,12 @@ EXPOSED_FIELD(Contour2D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
 EVENT_IN(Contour2D,removeChildren,mfnode,removeChildren,FIELDTYPE_MFNode)
 END_NODE(Contour2D)
 
-/* ContourPolyLine2D node */
-BEGIN_NODE(ContourPolyLine2D)
-EXPOSED_FIELD(ContourPolyLine2D,controlPoint,mfvec2d,controlPoint,FIELDTYPE_MFVec2d)
-EXPOSED_FIELD(ContourPolyLine2D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
-END_NODE(ContourPolyLine2D)
+/* ContourPolyline2D node */
+BEGIN_NODE(ContourPolyline2D)
+EXPOSED_FIELD(ContourPolyline2D,controlPoint,mfvec2d,controlPoint,FIELDTYPE_MFVec2d)
+EXPOSED_FIELD(ContourPolyline2D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EXPOSED_FIELD(ContourPolyline2D,point,mfvec2f,point,FIELDTYPE_MFVec2f)
+END_NODE(ContourPolyline2D)
 
 /* Coordinate node */
 BEGIN_NODE(Coordinate)
