@@ -230,20 +230,29 @@ void CALLBACK nurbscurveEndcb(void *ud)
 #endif
 
 int generateUniformKnotVector(int order, int ncontrol, float *knots){
+	//produced pinned uniform knot vector
 	//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
-	int j,k,m, p;
+	// http://www.saccade.com/writing/graphics/KnotVectors.pdf
+	//maximum nuber of equalvalue consecutive knots:
+	// a) in middle of knot vector: <= order-1
+	// b) at start and end of knot vector: <= order (for pinned uniform)
+	// exmple order = 4 + ncontrol = 6 => 10 knots
+	// 0 0 0 0 .33 .66 1 1 1 1
+	// example order = 3 + ncontrol = 3 => 6 knots
+	// 0 0 0 1 1 1
+	//number of knots == ncontrol + order
+	int j,k,m;
 	float uniform;
-	p = order -1;
-	m = ncontrol - p + 1;
+	m = ncontrol - order;
 	k = 0;
-	uniform = 1.0f/(float)(ncontrol-p);
-	for(j=0;j<p;k++,j++){
+	uniform = 1.0f/(float)(m + 1);
+	for(j=0;j<order;k++,j++){
 		knots[k] = 0.0f;
 	}
 	for(j=0;j<m;j++,k++){
 		knots[k] =uniform*(float)j;
 	}
-	for(j=0;j<p;j++,k++){
+	for(j=0;j<order;j++,k++){
 		knots[k] = 1.0f;
 	}
 	return m;
@@ -713,6 +722,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 		nu = node->uDimension;
 		nv = node->vDimension;
 		if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+			//could do another check: max number of consecutive equal value knots == order
+			//could do another check: knot values == or ascending
 			nku = node->uKnot.n;
 			knotsu = MALLOC(void *, nku * sizeof(GLfloat));
 			for(i=0;i<nku;i++){
@@ -728,9 +739,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
 			knotsu = MALLOC(void *, nku *sizeof(GLfloat));
 			generateUniformKnotVector(node->uOrder,nu, knotsu);
-			//printf("bad knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			printf("bad u knot vector given, replacing with:\n");
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
 			//nk = 0;
 		}
 
@@ -750,9 +761,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
 			knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
 			generateUniformKnotVector(node->vOrder,nv, knotsv);
-			//printf("bad knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			printf("bad v knot vector given, replacing with:\n");
+			for(int ii=0;ii<nkv;ii++)
+				printf("[%d]=%f \n",ii,knotsv[ii]);
 			//nk = 0;
 		}
 
@@ -766,6 +777,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 
 			if(DEBG) printf("gluNewNurbsRenderer\n");
 			theNurb = gluNewNurbsRenderer();
+			gluNurbsProperty(theNurb, GLU_NURBS_MODE, GLU_NURBS_TESSELLATOR);
 			if(0){
 				//chord length or automatic - not implemented properly nor tested thoroughly
 				//if you do chord length in pixels, you need to manually pass in sampling matrices
@@ -817,156 +829,218 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				gluNurbsProperty(theNurb,GLU_V_STEP,(GLfloat)mtessv);
 			}
 			gluNurbsProperty(theNurb, GLU_DISPLAY_MODE, GLU_FILL);
+			
 			gluNurbsCallback(theNurb, GLU_ERROR, nurbsError);
 			gluNurbsCallback(theNurb, GLU_NURBS_BEGIN_DATA, nurbssurfBegincb);
 			gluNurbsCallback(theNurb, GLU_NURBS_VERTEX_DATA, nurbssurfVertexcb);
 			gluNurbsCallback(theNurb, GLU_NURBS_NORMAL_DATA, nurbssurfNormalcb);
 			gluNurbsCallback(theNurb, GLU_NURBS_END_DATA, nurbssurfEndcb);
+			
 			free_polyrep(node->_intern);
 			node->_intern = create_polyrep();
 			struct Vector * strips = newVector(struct stripState,20);
-			gluNurbsProperty(theNurb, GLU_NURBS_MODE, GLU_NURBS_TESSELLATOR);
 			gluNurbsCallbackData(theNurb,(GLvoid*)strips);
 
 			if(DEBG) printf("gluBeginSurface \n");
 			gluBeginSurface(theNurb);
-				gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,4,4*nu,xyzw,node->uOrder,node->vOrder,GL_MAP2_VERTEX_4);
-				if(trim){
-					int i;
+			gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,4,4*nu,xyzw,node->uOrder,node->vOrder,GL_MAP2_VERTEX_4);
+			if(trim){
+				int i;
 
-					if(0){
-						if(DEBG) printf("gluBeginTrim \n");
-						gluBeginTrim (theNurb);
-						//outside border H: scene author is responsible
-						if(1){
-							// counter clockwise, simple 4 corner uv from redbook sample
-							GLfloat edgePt[5][2] = {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}};
-							if(DEBG) printf("gluPwlCurve 0\n");
-							gluPwlCurve (theNurb, 5, &edgePt[0][0], 2, GLU_MAP1_TRIM_2);
-						}else{
-							// 2 x (node.utessselation u + node.vtesselation v) + 1 edge values
-							// except I get a nurbs error with the following
-							GLfloat *edges = MALLOC(void *,  (2 * ntessu + 2 * ntessv) *2*sizeof(GLfloat));
-							GLfloat uspan, vspan;
-							uspan = 1.0/(float)(ntessu -1);
-							vspan = 1.0/(float)(ntessv -1);
-							for(i=0;i<ntessu-1;i++){
-								edges[i*2 +0] = (float)(i)*uspan;
-								edges[i*2 +1] = 0.0;
-								edges[(ntessu+ntessv+i)*2 + 0] = (float)(ntessu - 1 - i)*uspan;
-								edges[(ntessu+ntessv+i)*2 + 1] = 1.0;
-							}
-							for(i=0;i<ntessv;i++){
-								edges[(ntessu+i)*2 + 0] = 1.0;
-								edges[(ntessu+i)*2 + 1] = (float)(i)*vspan;
-								edges[(ntessu+ntessv+ntessu+i)*2 + 0] = 0.0;
-								edges[(ntessu+ntessv+ntessu+i)*2 + 1] = (float)(ntessv - 1 - i)*vspan;
-							}
-							//close curve
-							edges[((ntessu -1)*2 + (ntessv -1)*2)*2 + 0] = 0.0;
-							edges[((ntessu -1)*2 + (ntessv -1)*2)*2 + 1] = 0.0;
-							if(DEBG) printf("gluPwlCurve 1\n");
-							gluPwlCurve (theNurb, 2*(ntessu -1 + ntessv -1) +1, edges, 2, GLU_MAP1_TRIM_2);
+				if(0){
+					if(DEBG) printf("gluBeginTrim \n");
+					gluBeginTrim (theNurb);
+					//outside border H: scene author is responsible
+					if(1){
+						// counter clockwise, simple 4 corner uv from redbook sample
+						GLfloat edgePt[5][2] = {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}};
+						if(DEBG) printf("gluPwlCurve 0\n");
+						gluPwlCurve (theNurb, 5, &edgePt[0][0], 2, GLU_MAP1_TRIM_2);
+					}else{
+						// 2 x (node.utessselation u + node.vtesselation v) + 1 edge values
+						// except I get a nurbs error with the following
+						GLfloat *edges = MALLOC(void *,  (2 * ntessu + 2 * ntessv) *2*sizeof(GLfloat));
+						GLfloat uspan, vspan;
+						uspan = 1.0/(float)(ntessu -1);
+						vspan = 1.0/(float)(ntessv -1);
+						for(i=0;i<ntessu-1;i++){
+							edges[i*2 +0] = (float)(i)*uspan;
+							edges[i*2 +1] = 0.0;
+							edges[(ntessu+ntessv+i)*2 + 0] = (float)(ntessu - 1 - i)*uspan;
+							edges[(ntessu+ntessv+i)*2 + 1] = 1.0;
 						}
-						if(DEBG) printf("gluEndTrim\n");
-						gluEndTrim (theNurb);
+						for(i=0;i<ntessv;i++){
+							edges[(ntessu+i)*2 + 0] = 1.0;
+							edges[(ntessu+i)*2 + 1] = (float)(i)*vspan;
+							edges[(ntessu+ntessv+ntessu+i)*2 + 0] = 0.0;
+							edges[(ntessu+ntessv+ntessu+i)*2 + 1] = (float)(ntessv - 1 - i)*vspan;
+						}
+						//close curve
+						edges[((ntessu -1)*2 + (ntessv -1)*2)*2 + 0] = 0.0;
+						edges[((ntessu -1)*2 + (ntessv -1)*2)*2 + 1] = 0.0;
+						if(DEBG) printf("gluPwlCurve 1\n");
+						gluPwlCurve (theNurb, 2*(ntessu -1 + ntessv -1) +1, edges, 2, GLU_MAP1_TRIM_2);
 					}
+					if(DEBG) printf("gluEndTrim\n");
+					gluEndTrim (theNurb);
+				}
 
-					//interior cutouts
-					if(0){
-						//redbook example trim curves - these work
-					   GLfloat curvePt[4][2] = /* clockwise */ 
-						  {{0.25, 0.5}, {0.25, 0.75}, {0.75, 0.75}, {0.75, 0.5}};
-					   GLfloat curveKnots[8] = 
-						  {0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0};
-					   GLfloat pwlPt[4][2] = /* clockwise */ 
-						  {{0.75, 0.5}, {0.5, 0.25}, {0.25, 0.5}};
+				//interior cutouts
+				if(0){
+					//redbook example trim curves - these work
+					GLfloat curvePt[4][2] = /* clockwise */ 
+						{{0.25, 0.5}, {0.25, 0.75}, {0.75, 0.75}, {0.75, 0.5}};
+					GLfloat curveKnots[8] = 
+						{0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0};
+					GLfloat pwlPt[4][2] = /* clockwise */ 
+						{{0.75, 0.5}, {0.5, 0.25}, {0.25, 0.5}};
 
-						if(DEBG) printf("gluBeginTrim A\n");
-						gluBeginTrim (theNurb);
-						if(DEBG) printf("gluNurbsCurve A\n");
-						gluNurbsCurve (theNurb, 8, curveKnots, 2, 
-										&curvePt[0][0], 4, GLU_MAP1_TRIM_2);
-						if(DEBG) printf("gluPwlCurve A\n");
-						gluPwlCurve (theNurb, 3, &pwlPt[0][0], 2, GLU_MAP1_TRIM_2);
-						if(DEBG) printf("gluEndTrim A\n");
-						gluEndTrim (theNurb);
-					}
-					if(1)
-					for(i=0;i<trim->n;i++){
-						int m;
-						struct X3D_Contour2D * tc = (struct X3D_Contour2D *)trim->p[i];
-						if(DEBG) printf("gluBeginTrim B\n");
-						gluBeginTrim (theNurb);
-						for(m=0;m<tc->children.n;m++)
-						{
-							int j,k,dim;
-							struct X3D_ContourPolyline2D *cp2d;
-							struct X3D_NurbsCurve2D *nc2d;
-							struct X3D_Node *ctr = tc->children.p[m]; //trim->p[i];
-							GLfloat *cknot, *ctrl, *cweight;
-							cknot = ctrl = cweight = NULL;
-							switch(ctr->_nodeType){
-								case NODE_ContourPolyline2D:
-									cp2d = (struct X3D_ContourPolyline2D *)ctr;
-									ctrl = MALLOC(void *, cp2d->controlPoint.n * 2*sizeof(GLfloat));
-									for(j=0;j<cp2d->controlPoint.n;j++) {
-										for(k=0;k<2;k++)
-											ctrl[j*2 + k] = (float)cp2d->controlPoint.p[j].c[k];
+					if(DEBG) printf("gluBeginTrim A\n");
+					gluBeginTrim (theNurb);
+					if(DEBG) printf("gluNurbsCurve A\n");
+					gluNurbsCurve (theNurb, 8, curveKnots, 2, 
+									&curvePt[0][0], 4, GLU_MAP1_TRIM_2);
+					if(DEBG) printf("gluPwlCurve A\n");
+					gluPwlCurve (theNurb, 3, &pwlPt[0][0], 2, GLU_MAP1_TRIM_2);
+					if(DEBG) printf("gluEndTrim A\n");
+					gluEndTrim (theNurb);
+				}
+				if(1)
+				for(i=0;i<trim->n;i++){
+					int m;
+					struct X3D_Contour2D * tc = (struct X3D_Contour2D *)trim->p[i];
+					if(DEBG) printf("gluBeginTrim B\n");
+					gluBeginTrim (theNurb);
+					for(m=0;m<tc->children.n;m++)
+					{
+						int j,k,dim;
+						struct X3D_ContourPolyline2D *cp2d;
+						struct X3D_NurbsCurve2D *nc2d;
+						struct X3D_Node *ctr = tc->children.p[m]; //trim->p[i];
+						GLfloat *cknot, *ctrl, *cweight;
+						cknot = ctrl = cweight = NULL;
+						switch(ctr->_nodeType){
+							case NODE_ContourPolyline2D:
+								cp2d = (struct X3D_ContourPolyline2D *)ctr;
+								ctrl = MALLOC(void *, cp2d->controlPoint.n * 2*sizeof(GLfloat));
+								for(j=0;j<cp2d->controlPoint.n;j++) {
+									for(k=0;k<2;k++)
+										ctrl[j*2 + k] = (float)cp2d->controlPoint.p[j].c[k];
+								}
+								if(DEBG) printf("gluPwlCurve B\n");
+								gluPwlCurve (theNurb, cp2d->controlPoint.n, ctrl, 2, GLU_MAP1_TRIM_2);
+
+								break;
+							case NODE_NurbsCurve2D:
+								nc2d = (struct X3D_NurbsCurve2D *)ctr;
+								dim = 2;
+								int nk = nc2d->controlPoint.n + nc2d->order;
+								if(nk == nc2d->knot.n)
+
+								cknot = MALLOC(void *, nk * sizeof(GLfloat));
+								if(nc2d->weight.n){ // == 3){
+									dim = 3;
+									cweight = MALLOC(void *, nc2d->controlPoint.n * sizeof(GLfloat));
+									if(nc2d->weight.n == nc2d->controlPoint.n){
+										for(j=0;j<nc2d->weight.n;j++) cweight[j] = nc2d->weight.p[j];
+									}else{
+										for(j=0;j<nc2d->controlPoint.n;j++) cweight[j] = 1.0f;
 									}
-									if(DEBG) printf("gluPwlCurve B\n");
-									gluPwlCurve (theNurb, cp2d->controlPoint.n, ctrl, 2, GLU_MAP1_TRIM_2);
-
-									break;
-								case NODE_NurbsCurve2D:
-									nc2d = (struct X3D_NurbsCurve2D *)ctr;
-									dim = 2;
-									ctrl = MALLOC(void *, nc2d->controlPoint.n * dim*sizeof(GLfloat));
-									cknot = MALLOC(void *, nc2d->knot.n * sizeof(GLfloat));
-									if(dim == 3){
-										cweight = MALLOC(void *, nc2d->controlPoint.n * sizeof(GLfloat));
-										if(nc2d->weight.n == nc2d->controlPoint.n){
-											for(j=0;j<nc2d->weight.n;j++) cweight[j] = nc2d->weight.p[j];
-										}else{
-											for(j=0;j<nc2d->controlPoint.n;j++) cweight[j] = 1.0f;
+								}
+								ctrl = MALLOC(void *, nc2d->controlPoint.n * dim*sizeof(GLfloat));
+								for(j=0;j<nc2d->controlPoint.n;j++) {
+									for(k=0;k<2;k++){
+										ctrl[j*dim + k] = (float)nc2d->controlPoint.p[j].c[k];
+										if(dim == 3) ctrl[j*dim + k] *= cweight[j];
 										}
-									}
-									for(j=0;j<nc2d->controlPoint.n;j++) {
-										for(k=0;k<2;k++){
-											ctrl[j*dim + k] = (float)nc2d->controlPoint.p[j].c[k];
-											if(dim == 3) ctrl[j*dim + k] *= cweight[j];
-										 }
-										if(dim == 3) ctrl[j*dim + dim-1] = (float)cweight[j];
-									}
+									if(dim == 3) ctrl[j*dim + dim-1] = (float)cweight[j];
+								}
+								if(nk == nc2d->knot.n){
 									for(j=0;j<nc2d->knot.n;j++)
 										cknot[j] = (float)nc2d->knot.p[j];
-									if(DEBGC) {
-										printf("knot %d ={",nc2d->knot.n);
-										for(j=0;j<nc2d->knot.n;j++){
-											printf("%f ",cknot[j]);
-										}
-										printf("}\n");
-										printf("control %d = {\n",nc2d->controlPoint.n);
-										for(j=0;j<nc2d->controlPoint.n;j++) {
-											for(k=0;k<dim;k++) printf("%f \n",ctrl[j*dim +k]);
-											printf("\n");
-										}
-										printf("}\n");
+								}else{
+									generateUniformKnotVector(nc2d->order,nc2d->controlPoint.n,cknot);
+									printf("replacing nurbscurve2D knotvector with:\n");
+									for(j=0;j<nk;j++){
+										printf("%f ",cknot[j]);
 									}
-									if(DEBG) printf("gluNurbsCurve B\n");
-									gluNurbsCurve (theNurb, nc2d->knot.n, cknot, dim, ctrl, nc2d->order, GLU_MAP1_TRIM_2);
-									break;
-								default:
-									ConsoleMessage("%s %d","unknown trimming contour node",ctr->_nodeType);
-							}
-							FREE_IF_NZ(ctrl);
-							FREE_IF_NZ(cknot);
-							FREE_IF_NZ(cweight);
+									printf("\n");
+
+								}
+								if(DEBGC) {
+									printf("knot %d ={",nc2d->knot.n);
+									for(j=0;j<nc2d->knot.n;j++){
+										printf("%f ",cknot[j]);
+									}
+									printf("}\n");
+									printf("control %d = {\n",nc2d->controlPoint.n);
+									for(j=0;j<nc2d->controlPoint.n;j++) {
+										for(k=0;k<dim;k++) printf("%f \n",ctrl[j*dim +k]);
+										printf("\n");
+									}
+									printf("}\n");
+								}
+								if(DEBG) printf("gluNurbsCurve B\n");
+								if(1){
+									int mtess, ntess;
+									mtess = nc2d->order + 1;
+									ntess = nc2d->tessellation;
+									if(0){
+										//chord length or automatic - not implemented properly nor tested thoroughly
+										//if you do chord length in pixels, you need to manually pass in sampling matrices
+										//and somehow you need to trigger a recompile: another call to this compile_
+										// as avatar/viewer moves closer (father) from the nurbs node
+										double model[16], proj[16];
+										float modelf[16], projf[16];
+										int viewPort[10];
+										if(ntess > 0) 
+											mtess = ntess;
+										else if(ntess < 0) 
+											mtess = -ntess;
+
+										gluNurbsProperty(theNurb, GLU_SAMPLING_TOLERANCE, (float)(mtess)); //25.0);
+										if(ntess < 0)
+											gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_PATH_LENGTH); //pixels, the default
+										else
+											gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_TOLERANCE);
+										gluNurbsProperty(theNurb, GLU_AUTO_LOAD_MATRIX,GL_FALSE);
+				
+										FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, model);
+										FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+										FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
+										for(i=0;i<16;i++){
+											modelf[i] = (float)model[i];
+											projf[i] = (float)proj[i];
+										}
+										gluLoadSamplingMatrices(theNurb,modelf,projf,viewPort);
+									}
+									if(1){
+										//uniform spacing of sampling points in u (or uv) parameter space - works
+										//node must specify tesselation value. see specs for interpretation 
+										// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/nurbs.html#NurbsCurve
+										if(ntess > 0) 
+											mtess = max(mtess,ntess+1);
+										else if(ntess < 0) 
+											mtess = max(mtess,(-ntess * n) + 1);
+										else
+											mtess = max(mtess,2*n + 1);
+										gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
+										gluNurbsProperty(theNurb,GLU_U_STEP,(GLfloat)mtess);
+									}
+								}
+								gluNurbsCurve (theNurb, nk, cknot, dim, ctrl, nc2d->order, GLU_MAP1_TRIM_2);
+								break;
+							default:
+								ConsoleMessage("%s %d","unknown trimming contour node",ctr->_nodeType);
 						}
-						if(DEBG) printf("gluEndTrim B\n");
-						gluEndTrim (theNurb);
+						FREE_IF_NZ(ctrl);
+						FREE_IF_NZ(cknot);
+						FREE_IF_NZ(cweight);
 					}
+					if(DEBG) printf("gluEndTrim B\n");
+					gluEndTrim (theNurb);
 				}
+			}
 			if(DEBG) printf("gluEndSurface \n");
 			gluEndSurface(theNurb);
 			if(DEBG) printf("gluDeleteNurbsRenderer \n");

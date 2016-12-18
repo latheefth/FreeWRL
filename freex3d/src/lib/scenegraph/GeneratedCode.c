@@ -8850,7 +8850,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_CoordinateDouble *) tmp;
 			tmp2->metadata = NULL;
 			tmp2->point.n=0; tmp2->point.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_controlPoint;
 		break;
 		}
 		case NODE_CoordinateInterpolator : {
