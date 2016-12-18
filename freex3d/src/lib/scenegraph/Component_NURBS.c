@@ -257,7 +257,24 @@ int generateUniformKnotVector(int order, int ncontrol, float *knots){
 	}
 	return m;
 }
+int knotsOK(int order, int ncontrol, int nknots, double *knots){
+	int ok = TRUE;
 
+	if(nknots < 2 || nknots != ncontrol + order ) ok = FALSE;
+	if(ok){
+		int nconsec = 1;
+		double lastval = knots[0];
+		for(int i=1;i<nknots;i++){
+			if(lastval == knots[i]) nconsec++;
+			else nconsec = 1;
+			if(nconsec > order) ok = false;
+			if(knots[i] < lastval) ok = false;
+			if(!ok) break;
+			lastval = knots[i];
+		}
+	}
+	return ok;
+}
 void compile_ContourPolyline2D(struct X3D_ContourPolyline2D *node){
 	MARK_NODE_COMPILED;
 	if(node->point.n && !node->controlPoint.n){
@@ -313,7 +330,9 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 		}else{
 			for(i=0;i<n;i++) xyzw[i*4 + 3] = 1.0;
 		}
-		if(node->knot.n && node->knot.n == n + node->order ){
+		//if(node->knot.n && node->knot.n == n + node->order ){
+		if(knotsOK(node->order,n,node->knot.n,node->knot.p)){
+
 			nk = node->knot.n;
 			knots = MALLOC(void *, nk * sizeof(GLfloat));
 			for(i=0;i<nk;i++){
@@ -721,7 +740,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 		}
 		nu = node->uDimension;
 		nv = node->vDimension;
-		if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+		//int knotsOK(int order, int ncontrol, int nknots, double *knots)
+		//if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+		if(knotsOK(node->uOrder,nu,node->uKnot.n,node->uKnot.p)){
 			//could do another check: max number of consecutive equal value knots == order
 			//could do another check: knot values == or ascending
 			nku = node->uKnot.n;
@@ -745,7 +766,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			//nk = 0;
 		}
 
-		if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
+		if(knotsOK(node->vOrder,nv,node->vKnot.n,node->vKnot.p)){
+		//if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
 			nkv = node->vKnot.n;
 			knotsv = MALLOC(void *, nkv * sizeof(GLfloat));
 			for(i=0;i<nkv;i++){
@@ -955,7 +977,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 										}
 									if(dim == 3) ctrl[j*dim + dim-1] = (float)cweight[j];
 								}
-								if(nk == nc2d->knot.n){
+								if(knotsOK(nc2d->order,nc2d->controlPoint.n,nc2d->knot.n,nc2d->knot.p)){
+								//if(nk == nc2d->knot.n){
 									for(j=0;j<nc2d->knot.n;j++)
 										cknot[j] = (float)nc2d->knot.p[j];
 								}else{
