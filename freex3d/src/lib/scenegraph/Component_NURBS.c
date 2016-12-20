@@ -243,6 +243,8 @@ int generateUniformKnotVector(int order, int ncontrol, float *knots){
 	// 0 0 0 0 .33 .66 1 1 1 1
 	// example order = 3 + ncontrol = 3 => 6 knots
 	// 0 0 0 1 1 1
+	// example order = 2 + ncontrol = 2 => 4 knots
+	// 0 0 1 1
 	//number of knots == ncontrol + order
 	int j,k,m;
 	float uniform;
@@ -493,7 +495,7 @@ void CALLBACK nurbssurfBegincb(GLenum type, void *ud)
 	struct stripState ss;
 	struct Vector * strips = (struct Vector *)ud;
 	if(0) if(DEBG) printf("callback nurbsSurfaceBegin\n");
-	if(0){
+	if(1){
 		printf("nurbssurfBegin type = ");
 		switch(type){
 			case GL_QUAD_STRIP: printf("QUAD_STRIP");break;
@@ -557,6 +559,7 @@ void CALLBACK nurbssurfEndcb(void *ud)
 
 }
 void CALLBACK nurbssurfTexcoordcb(GLfloat *tCrd, void *ud){
+	static int count = 0;
 	struct stripState ss;
 	struct SFVec2f tp;
 	struct Vector * strips = (struct Vector *)ud;
@@ -564,7 +567,10 @@ void CALLBACK nurbssurfTexcoordcb(GLfloat *tCrd, void *ud){
 	memcpy(&tp,tCrd,sizeof(struct SFVec2f));
 	vector_pushBack(struct SFVec2f,&ss.tv,tp);
 	vector_set(struct stripState,strips,strips->n-1,ss);
-
+	//printf("%f %f %f\n",tCrd[0],tCrd[1],0.0f);
+	//count++;
+	//if(count % 50 == 0)
+	//	printf("\n");
 	if(0) if(DEBG) 
 		printf("callback nurbssufTexcoordcb\n");
 }
@@ -711,8 +717,9 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 		tcindex = rep_->tcindex = MALLOC(GLuint*, sizeof(GLuint)*3*(ntri));
 	//	colindex = rep_->colindex = MALLOC(GLuint *, sizeof(*(rep_->colindex))*3*(ntri));
 
-		FREE_IF_NZ(rep_->GeneratedTexCoords[0]);
-		tcoord = rep_->GeneratedTexCoords[0] = MALLOC (float *, sizeof (float) * ntri * 2 * 3); 
+		//FREE_IF_NZ(rep_->GeneratedTexCoords[0]);
+		// we'll pass a X3D_TexCoordinate node //rep_->GeneratedTexCoords[0] 
+		tcoord = MALLOC (float *, sizeof (float) * ntri * 2 * 3); 
 
     }
 
@@ -868,9 +875,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			for(i=0;i<nku;i++){
 				knotsu[i] = (GLfloat)node->uKnot.p[i];
 			}
-			//printf("good knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			printf("good u knot vector nk=%d\n",nku);
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
 
 		}else{
 			//generate uniform knot vector 
@@ -895,9 +902,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			for(i=0;i<nkv;i++){
 				knotsv[i] = (GLfloat)node->vKnot.p[i];
 			}
-			//printf("good knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			printf("good v knot vector nk=%d\n",nkv);
+			for(int ii=0;ii<nkv;ii++)
+				printf("[%d]=%f \n",ii,knotsv[ii]);
 
 		}else{
 			static int once = 0;
@@ -991,7 +998,114 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			if(DEBG) printf("gluBeginSurface \n");
 			gluBeginSurface(theNurb);
 			gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,4,4*nu,xyzw,node->uOrder,node->vOrder,GL_MAP2_VERTEX_4);
-			gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,4,4*nu,xyzw,node->uOrder,node->vOrder,GL_MAP2_TEXTURE_COORD_2);
+			/* 
+				TextureCoordinate handling 
+				https://www.opengl.org/discussion_boards/showthread.php/127668-Texture-mapping-for-NURBS
+				https://www.cs.drexel.edu/~david/Classes/ICG/Lectures/Lecture7.pdf p.56 of slides
+
+				texture coordinate hypotheses:
+				1. if regular texture coordinate node supplied, 
+					- H1a: use same order and knot vector as control, or 
+					- H1b: use linear order=2 and knot vector 
+					- specify the texturecoordinate points as control
+				2. if no texture coordinate node node supplied, 
+					H2a:
+					- compute defaults using relative spatial distance between xyz control 
+						along u (row) and v (column) directions
+					- apply #1
+					H2b:
+					- compute defaults using equal spacing 
+						along u (row) and v (column) directions
+					- apply #1
+					H2c: 
+					- leave texcoords blank and let stream_polyrep supply defaults
+				3. if nurbstexturecoordinate node supplied, 
+					- set texture surface control to 0 0 1 1
+					- use linear order 2
+					- interpret the texturecallback points as uv
+					- use uv to lookup st using piegl surface interpolator 
+						on separate surface in nurbstexturecoordinate node
+						options: a) in texture callback b) when converting to polyrep
+			*/
+			struct X3D_Node * texCoordNode = node->texCoord;
+			if(!texCoordNode){
+				//2 no texcoord node supplied 
+				switch('b'){
+					case 'a':
+						//H2a compute uniform defaults using relative spatial distance of xyz in u and v
+						break;
+					case 'b':
+						// H2b: - compute defaults using equal spacing 
+						{
+							float du, dv, uu, vv;
+							int jj;
+							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
+							du = 1.0f / (float)max(1,(nu -1));
+							dv = 1.0f / (float)max(1,(nv -1));
+							vv = 0.0f;
+							jj = 0;
+							for(int k=0;k<nv;k++){
+								if(k == nv-1) vv = 1.0f; //they like end exact on 1.0f
+								uu = 0.0f;
+								for(int j=0;j<nu;j++){
+									if(j == nu-1) uu = 1.0f;  //they like end exact on 1.0f
+									texCoord->point.p[jj].c[0] = uu;
+									texCoord->point.p[jj].c[1] = vv;
+									uu += du;
+									jj++;
+								}
+								vv += dv;
+							}
+							texCoord->point.n = jj;
+							texCoordNode = X3D_NODE(texCoord);
+						}
+						break;
+					default:
+					//H2c skip - nada
+						break;
+				}
+			}
+			if(texCoordNode){
+				//USETEXCOORD = TRUE
+				if(texCoordNode->_nodeType == NODE_TextureCoordinate){
+					//TEXCOORDTYPE = 1 //interpret nurbsurftexcoordcb coords as texture coords
+					struct X3D_TextureCoordinate *texCoord = (struct X3D_TextureCoordinate *)texCoordNode;
+					float *control2D = texCoord->point.p;
+					int nctrl = texCoord->point.n;
+					if(1){
+						//H1a: use same order and knot vector as controlPoints 
+						// except using texcoord.point as nurbscontrol
+						//CONFIRMED when using H2b 'b' above to generate missing TexCoord node
+						gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,2,2*nu,control2D,node->uOrder,node->vOrder,GL_MAP2_TEXTURE_COORD_2);
+					}else{
+						//H1b: use linear order=2 and knot vectors, order from main surface
+						//DISCONFIRMED: the texturecoord callback is never called
+						float *tknotsu, *tknotsv;
+						tknotsu = MALLOC(float *, (nu+2) *sizeof(GLfloat));
+						tknotsv = MALLOC(float *, (nv+2) *sizeof(GLfloat));
+						generateUniformKnotVector(2,nu,tknotsu);
+						generateUniformKnotVector(2,nv,tknotsv);
+						printf("tknotsu = [");
+						for(int k=0;k<nu+2;k++) printf("%f ",tknotsu[k]);
+						printf("]\ntknotsv = [");
+						for(int k=0;k<nv+2;k++) printf("%f ",tknotsv[k]);
+						printf("]\n");
+						gluNurbsSurface(theNurb,nu+2,knotsu,nv+2,knotsv,4,4*nu,control2D,2,2,GL_MAP2_TEXTURE_COORD_2);
+					}
+				} else if(texCoordNode->_nodeType == NODE_NurbsTextureCoordinate){
+					//TEXCOORDTYPE = 2 /interpret nurbsurftexcoordcb coords as uv coords, 
+					// use to lookup st via piegl interpolation of NurbsTextureCoordinate nurbs surface
+					//- set texture surface control to 0 0 1 1
+					//- use linear order 2
+					float tknots[4] = {0.0f, 0.0f, 1.0f, 1.0f}; 
+					float unit_control2D [8] = {0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f};
+					struct X3D_NurbsTextureCoordinate *texCoord = (struct X3D_NurbsTextureCoordinate *)texCoordNode;
+					
+					gluNurbsSurface(theNurb,4,tknots,4,tknots,2,2*2,unit_control2D,2,2,GL_MAP2_TEXTURE_COORD_2);
+					
+				}
+			}
 			if(trim){
 				int i;
 
