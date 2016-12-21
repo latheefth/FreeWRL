@@ -39,7 +39,7 @@ our %defaultContainerType = (
 	NurbsSurfaceInterpolator	=>["children"],
 	NurbsSweptSurface	=>["children"],
 	NurbsSwungSurface	=>["children"],
-	NurbsTextureCoordinate	=>["children"],
+	NurbsTextureCoordinate	=>["texCoord"],
 
 
 	PointPickSensor		=>["children"],

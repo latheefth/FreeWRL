@@ -228,6 +228,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_col",
 	"_colourSize",
 	"_coloursVBO",
+	"_controlPoint",
 	"_coordIndex",
 	"_csensor",
 	"_destination",
@@ -319,6 +320,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_tris",
 	"_ttex",
 	"_type",
+	"_uKnot",
+	"_vKnot",
 	"_values",
 	"_verifiedBackColor",
 	"_verifiedColor",
@@ -5758,6 +5761,9 @@ const int OFFSETS_NurbsSwungSurface[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsTextureCoordinate[] = {
+	(int) FIELDNAMES__controlPoint, (int) offsetof (struct X3D_NurbsTextureCoordinate, _controlPoint),  (int) FIELDTYPE_MFVec4f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__uKnot, (int) offsetof (struct X3D_NurbsTextureCoordinate, _uKnot),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__vKnot, (int) offsetof (struct X3D_NurbsTextureCoordinate, _vKnot),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_NurbsTextureCoordinate, controlPoint),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_NurbsTextureCoordinate, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_uDimension, (int) offsetof (struct X3D_NurbsTextureCoordinate, uDimension),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11036,6 +11042,9 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsTextureCoordinate : {
 			struct X3D_NurbsTextureCoordinate * tmp2;
 			tmp2 = (struct X3D_NurbsTextureCoordinate *) tmp;
+			tmp2->_controlPoint.n=0; tmp2->_controlPoint.p=0;
+			tmp2->_uKnot.n=0; tmp2->_uKnot.p=0;
+			tmp2->_vKnot.n=0; tmp2->_vKnot.p=0;
 			tmp2->controlPoint.n=0; tmp2->controlPoint.p=0;
 			tmp2->metadata = NULL;
 			tmp2->uDimension = 0;
@@ -11045,7 +11054,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->vKnot.n=0; tmp2->vKnot.p=0;
 			tmp2->vOrder = 3;
 			tmp2->weight.n=0; tmp2->weight.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_texCoord;
 		break;
 		}
 		case NODE_NurbsTrimmedSurface : {
@@ -15845,6 +15854,10 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_NurbsTextureCoordinate *tmp;
 			tmp = (struct X3D_NurbsTextureCoordinate *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," _controlPoint (MFVec4f):\n");
+			for (i=0; i<tmp->_controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->_controlPoint.p[i]).c[0], (tmp->_controlPoint.p[i]).c[1],(tmp->_controlPoint.p[i]).c[2],(tmp->_controlPoint.p[i]).c[3]); }
+		    }
 			spacer fprintf (fp," controlPoint (MFVec2f):\n");
 			for (i=0; i<tmp->controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f]\n",i,(tmp->controlPoint.p[i]).c[0], (tmp->controlPoint.p[i]).c[1]); }
 		    if(allFields) {

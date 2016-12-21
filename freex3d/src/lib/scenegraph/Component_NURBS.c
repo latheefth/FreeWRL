@@ -179,9 +179,230 @@ HARD PARTS:
 
 
 #ifdef NURBS_LIB
+//START MIT LIC >>>>>>>>
+//some algorithms from "The Nurbs Book", Les Piegl et al
+int uniformKnot(int n, int p, float *U){
+	int j, k, m, mm;
+	float uniform;
+	m = n + p + 1;
+	k = 0;
+	uniform = 1.0f/(float)(n-p);
+	for(j=0;j<p;k++,j++){
+		U[k] = 0.0f;
+	}
+	mm = n - p + 1;
+	for(j=0;j<mm;j++,k++){
+		U[k] = j*uniform;
+	}
+	for(j=0;j<p;j++,k++){
+		U[k] = 1.0f;
+	}
+	U[8] = 1.0f;
+	printf("U= ");
+	for(j=0;j<m+1;j++){
+		printf(" U[%d]=%f",j,U[j]);
+	}
+	return 1;
+}
+
+//ALGORITHM A2.1 p.68 Piegl
+int FindSpan(int n, int p, float u, float *U)
+{
+	/*	Determine the knot span index: where u is in U[i]
+		Input:
+			n - # of control points == m - p - 1
+			p - degree of curve = power + 1 ie linear 2, quadratic 3, cubic 4
+			U - knot vector [0 ... m-1]
+			u - scalar curve parameter in range u0 - um
+		Return:
+			knot span index ie if u is between U[i] and U[i+1] return i
+		Internal:
+			order = p + 1
+			m = number of knots = n + order
+		Algorithm:
+			limit the search range between p and m - p - 1 (2 and 4 for this example)
+			assume clamped/pinned ends
+		Example:
+		U = { 0,0,0,1,2,3,4,4,5,5,5 } m = 11
+		spnidx 0 1 2 3 4 5 6 7 8 9
+		u = 2.5        ^ span index == 4
+		u = .0001  ^ span index == 2
+		u = 0      ^ span index == 2
+		u = .4999            ^ span index = 4
+		u = 5                ^ span index = 4
+		
+	*/
+	if(1){
+		//dug9 algo, simpler linear search
+		int i, span, m, order;
+		order = p + 1;
+		m = n + order;
+		span = p;
+		for(i=p;i<n;i++){
+			span = i;
+			if(u >= U[i] && u < U[i+1])
+				break;
+		}
+		return span;
+	}else{
+		int low, high, mid;
+		//if(u == U[n+1]) return n;
+		if(u == U[n]) return n-1;  //this prevents divide by zero when u = 1
+		low = p; high = n+1; mid = (low+high)/2;
+		while(u < U[mid] || u >= U[mid+1]){
+			if(u < U[mid]) high = mid;
+			else low = mid;
+			mid = (low + high)/2;
+		}
+		return mid;
+	}
+}
+//ALGORITHM A2.2 p.70 Piegl
+int BasisFuns(int span, float u, int p, float *U, float *N){
+	/* Compute the non-vanishing Basis functions
+		Input:
+			span = knot span: which knots is this u in between: if between U[i] and U[i+1], span == i
+			u - scalar curve parameter in range u0 - um
+			p - degree of curve = power + 1 ie linear 2, quadratic 3, cubic 4
+			U - knot vector [0 ... m-1]
+		Output:
+			N - precomputed rational bernstein basis functions for a given span
+				- these are blending weights that say how much of each surrounding 
+				  control point is used in a given span
+	*/
+	int j, r;
+	float left[5], right[5], saved, temp;
+	//float testzero;
+	N[0] =1.0f;
+	for(j=1;j<=p;j++){
+		left[j] = u - U[span+1 - j];
+		right[j] = U[span+j] - u;
+		saved = 0.0f;
+		for(r=0;r<j;r++){
+			//testzero = right[r+1]+left[j-r];
+			//if(fabs(testzero) < .00001) 
+			//	printf("ouch divide by zero\n");
+			temp = N[r]/(right[r+1]+left[j-r]);
+			N[r] = saved + right[r+1]*temp;
+			saved = left[j-r]*temp;
+		}
+		N[j] = saved;
+	}
+	return 1;
+}
+
+//ALGORITHM A4.1 p.124 Piegl
+int CurvePoint(int n, int p, float* U, float *Pw, float u, float *C )
+{
+	/*	Compute point on rational B-spline curve
+		Input:
+			n - # of control points == m - p - 1
+			p - degree of curve linear 1, quadratic 2, cubic 3
+			U[] - knot vector [0 ... m], m = n + p + 1
+			Pw[] - control point vector 
+				where w means rational/homogenous: Pw[i] = {wi*xi,wi*yi,wi*zi,wi}
+			u - scalar curve parameter in range u0 - um
+		Output:
+			C - 3D point = Cw/w
+		Internal:
+			span = knot span: which knots is this u in between: if between U[i] and U[i+1], span == i
+			N[] - precomputed rational bernstein basis functions for a given span
+				- these are blending weights that say how much of each surrounding control point is used in a given span
+			w - weight, assuming it's uniform
+	*/
+	if(0){
+		 //u == 1.0f){
+		 //don't need - fixed in findspan
+		int i;
+		for(i=0;i<3;i++)
+			C[i] = Pw[(n-1)*4 + i]/Pw[(n-1)*4 + 3];
+	}else{
+		int span,i,j;
+		float N[100], w;
+		float Cw[4];
+		span = FindSpan(n,p,u,U);
+		BasisFuns(span,u,p,U,N);
+		w = 1.0f;
+		for(i=0;i<4;i++) Cw[i] = 0.0f;
+		//Cw[3] = w;
+		for(j=0;j<=p;j++){
+			for(i=0;i<4;i++){
+				Cw[i] += N[j]*Pw[(span-p+j)*4 + i];
+			}
+		}
+		for(i=0;i<3;i++)
+			C[i] = Cw[i]/Cw[3];
+	}
+	return 1;
+}
+
+//ALGORITHM A4.3 p.134 Piegl
+/* example call:
+ok = SurfacePoint(	node->uDimension,node->uOrder,node->uKnot.p, 
+					node->vDimension,node->vOrder,node->vKnot.p,
+					node->controlPoint.p,uv[0],uv[1],xyz);
+*/
+int SurfacePoint(int n,int p,float *U,
+				int m, int q,float *V,
+				float *Pw,float u,float v,float *S)
+{
+	/*	Compute point on rational B-Spline surface S(u,v)
+		Input:
+			u direction:
+				n - # of control points 
+				p - degree of curve linear 1, quadratic 2, cubic 3
+				U[] - knot vector [0 ...  n + p + 1]
+				u - scalar curve parameter 
+			v direction:
+				m - # of control points 
+				q - degree of curve linear 1, quadratic 2, cubic 3
+				V[] - knot vector [0 ... m + q + 1]
+				v - scalar curve parameter 
+			Pw[] - control point vector 
+				where w means rational/homogenous: Pw[i] = {wi*xi,wi*yi,wi*zi,wi}
+		Output:
+			S - output 3D point = Sw/w
+	*/
+	int uspan, vspan, i, l, k;
+	float Nu[100], Nv[100], temp[6][4], Sw[4];
+
+	uspan = FindSpan(n,p,u,U);
+	BasisFuns(uspan,u,p,U,Nu);
+	vspan = FindSpan(m,q,v,V);
+	BasisFuns(vspan,v,q,V,Nv);
+	for(l=0;l<=q;l++){
+		for(i=0;i<4;i++)
+			temp[l][i] = 0.0f;
+		for(k=0;k<=p;k++){
+			//temp[l] += Nu[k]*Pw[uspan-p+k][vspan-q+l];
+			for(i=0;i<4;i++)
+				temp[l][i] += Nu[k]*Pw[((uspan-p+k)*n + (vspan-q+l))*4 + i];
+
+		}
+	}
+	for(i=0;i<4;i++) Sw[i] = 0.0f;
+	for(l=0;l<=q;l++){
+		for(i=0;i<4;i++)
+			Sw[i] += Nv[l]*temp[l][i];
+	}
+	for(i=0;i<3;i++)
+		S[i] = Sw[i]/Sw[3];
+	return 1;
+}
+// <<<<< END MIT LIC
+
 #include <libnurbs2.h>
 static int DEBG = 0; //glu nurbs surface and trim calls
 static int DEBGC = 0; //curve calls
+
+//defined in Component_RigidBodyPhysics
+int NNC0(struct X3D_Node* node); 
+void MNC0(struct X3D_Node* node);
+void MNX0(struct X3D_Node* node);
+#define NNC(A) NNC0(X3D_NODE(A))  //node needs compiling
+#define MNC(A) MNC0(X3D_NODE(A))  //mark node compiled
+#define MNX(A) MNX0(X3D_NODE(A))  //mark node changed
+#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
 
 void CALLBACK nurbsError(GLenum errorCode)
 {
@@ -263,6 +484,27 @@ int generateUniformKnotVector(int order, int ncontrol, float *knots){
 	return m;
 }
 int knotsOK(int order, int ncontrol, int nknots, double *knots){
+	int ok = TRUE;
+
+	if(nknots < 2 || nknots != ncontrol + order ) 
+		ok = FALSE;
+	if(ok){
+		int nconsec = 1;
+		double lastval = knots[0];
+		for(int i=1;i<nknots;i++){
+			if(lastval == knots[i]) nconsec++;
+			else nconsec = 1;
+			if(nconsec > order) 
+				ok = false;
+			if(knots[i] < lastval) 
+				ok = false;
+			if(!ok) break;
+			lastval = knots[i];
+		}
+	}
+	return ok;
+}
+int knotsOKf(int order, int ncontrol, int nknots, float *knots){
 	int ok = TRUE;
 
 	if(nknots < 2 || nknots != ncontrol + order ) 
@@ -457,7 +699,133 @@ void render_NurbsCurve(struct X3D_NurbsCurve *node){
 	}
 }
 
+void compile_NurbsTextureCoordinate(struct X3D_NurbsTextureCoordinate *node){
+	//get knots from double to float and QC the knots
+	int nc, nu, nku, nkv, nv, i,j;
+	float *knotsu, *knotsv, *xyzw;
 
+	struct Multi_Vec2f *mff;
+	mff = &node->controlPoint;
+	nc = mff->n;
+	xyzw = MALLOC(void *, nc * 4 * sizeof(GLfloat));
+	for(i=0;i<mff->n;i++){
+		for(j=0;j<2;j++){
+			xyzw[i*4 + j] = mff->p[i].c[j];
+		}
+		xyzw[i*4 + 2] = 0.0f; //z == 0 for 2D
+		xyzw[i*4 + 3] = 1.0f; //homogenous 1
+	}
+	nu = node->uDimension;
+	nv = node->vDimension;
+	if(node->weight.n && node->weight.n == nc){
+		double w;
+		int m,im;
+		m = min(node->weight.n, nc);
+		for(i=0;i<nc;i++){
+			im = i < m ? i : m-1;
+			w = node->weight.p[im];
+			xyzw[i*4 + 3] = w;
+		}
+	}else{
+		for(i=0;i<nc;i++) xyzw[i*4 + 3] = 1.0;
+	}
+	nu = node->uDimension;
+	nv = node->vDimension;
+	//int knotsOK(int order, int ncontrol, int nknots, double *knots)
+	//if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+	if(knotsOK(node->uOrder,nu,node->uKnot.n,node->uKnot.p)){
+		//could do another check: max number of consecutive equal value knots == order
+		//could do another check: knot values == or ascending
+		nku = node->uKnot.n;
+		knotsu = MALLOC(void *, nku * sizeof(GLfloat));
+		for(i=0;i<nku;i++){
+			knotsu[i] = (GLfloat)node->uKnot.p[i];
+		}
+		if(DEBG){
+			printf("good u knot vector nk=%d\n",nku);
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
+		}
+
+	}else{
+		//generate uniform knot vector 
+		static int once = 0;
+		nku = nu + node->uOrder ;
+		//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+		knotsu = MALLOC(void *, nku *sizeof(GLfloat));
+		generateUniformKnotVector(node->uOrder,nu, knotsu);
+		if(!once){
+			printf("bad u knot vector given, replacing with:\n");
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
+			once = 1;
+		}
+		//nk = 0;
+	}
+
+	if(knotsOK(node->vOrder,nv,node->vKnot.n,node->vKnot.p)){
+	//if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
+		nkv = node->vKnot.n;
+		knotsv = MALLOC(void *, nkv * sizeof(GLfloat));
+		for(i=0;i<nkv;i++){
+			knotsv[i] = (GLfloat)node->vKnot.p[i];
+		}
+		if(DEBG){
+			printf("good v knot vector nk=%d\n",nkv);
+			for(int ii=0;ii<nkv;ii++)
+				printf("[%d]=%f \n",ii,knotsv[ii]);
+		}
+
+	}else{
+		static int once = 0;
+		//generate uniform knot vector 
+		nkv = nv + node->vOrder ;
+		//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+		knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
+		generateUniformKnotVector(node->vOrder,nv, knotsv);
+		if(!once){
+			printf("bad v knot vector given, replacing with:\n");
+			for(int ii=0;ii<nkv;ii++)
+				printf("[%d]=%f \n",ii,knotsv[ii]);
+			once = 1;
+		}
+		if(!knotsOKf(node->vOrder,nv,nkv,knotsv))
+			printf("ouch still not right knot vector\n");
+		//nk = 0;
+	}
+	node->_uKnot.p = knotsu;
+	node->_uKnot.n = nku;
+	node->_vKnot.p = knotsv;
+	node->_vKnot.n = nkv;
+	node->_controlPoint.p = (struct SFVec4f*)xyzw;
+	node->_controlPoint.n = nc;
+	MNC(node);
+	
+}
+int getNurbsSurfacePoint(struct X3D_Node *nurbsSurfaceNode, float *uv, float *xyz){
+	int ret = 0;
+	if(nurbsSurfaceNode){
+		switch(nurbsSurfaceNode->_nodeType){
+			case NODE_NurbsTextureCoordinate:
+				{
+					struct X3D_NurbsTextureCoordinate *node = (struct X3D_NurbsTextureCoordinate *)PPX(nurbsSurfaceNode);
+					if(NNC(node)) compile_NurbsTextureCoordinate(node);
+					ret = SurfacePoint(	node->uDimension,node->uOrder-1,node->_uKnot.p, 
+										node->vDimension,node->vOrder-1,node->_vKnot.p,
+										(float *)node->_controlPoint.p,uv[0],uv[1],xyz);
+				}
+				break;
+			case NODE_NurbsPatchSurface:
+				break;
+			case NODE_NurbsTrimmedSurface:
+				break;
+			default:
+				break;
+		}
+	}
+
+	return ret;
+}
 
 /* GenPolyrep functions assume a node inherits from X3DGeometryNode.
 	NurbsPatchSurface inherits from X3DParametricGeometryNode.
@@ -495,7 +863,7 @@ void CALLBACK nurbssurfBegincb(GLenum type, void *ud)
 	struct stripState ss;
 	struct Vector * strips = (struct Vector *)ud;
 	if(0) if(DEBG) printf("callback nurbsSurfaceBegin\n");
-	if(1){
+	if(0){
 		printf("nurbssurfBegin type = ");
 		switch(type){
 			case GL_QUAD_STRIP: printf("QUAD_STRIP");break;
@@ -697,7 +1065,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 	}
     if (npoints > 0)
     {
-		printf("npoints %d ntc %d\n",npoints,ntc);
+		//printf("npoints %d ntc %d\n",npoints,ntc);
         rep_->actualCoord = MALLOC(void *, npoints * 3 * sizeof(float));
         rep_->normal = MALLOC(void *, npoints * 3 * sizeof(float));
 		//if(USETXCOORD) rep->GeneratedTexCoords[0] = MALLOC(void *, npoints * 2 * sizeof(float));
@@ -728,7 +1096,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 	ntri = 0;
 	for(i=0;i<strips->n;i++){
 		ss = vector_get(struct stripState,strips,i);
-		printf("ss.pv.n=%d nv.n=%d tv.n=%d\n",ss.pv.n,ss.nv.n,ss.tv.n);
+//printf("ss.pv.n=%d nv.n=%d tv.n=%d\n",ss.pv.n,ss.nv.n,ss.tv.n);
 		memcpy(&rep_->actualCoord[np*3],ss.pv.data,ss.pv.n * 3 * sizeof(float));
 		memcpy(&rep_->normal[np*3],ss.nv.data,ss.nv.n * 3 * sizeof(float));
 		if(USETXCOORD) memcpy(&tcoord[np*2],ss.tv.data,ss.tv.n * 2 * sizeof(float));
@@ -772,6 +1140,30 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 		np += ss.pv.n;
 	}
 	rep_->ntri = ntri;
+	if(node->texCoord && node->texCoord->_nodeType == NODE_NurbsTextureCoordinate){
+		static FILE *fp = NULL;
+		for(i=0;i<np;i++){
+			float stru[4];
+			float xyz[4];
+			//treat above callback texturecoord as uv, 
+			//and do lookup on NurbsTextureCoordinate surface to get new texture coord st
+			xyz[0] = tcoord[i*2 + 1];
+			xyz[1] = tcoord[i*2 + 0]; //don't know why but I have to swap xy to match octaga
+			xyz[2] = 0.0f;
+			xyz[3] = tcoord[i*2 + 3];
+			getNurbsSurfacePoint(node->texCoord, xyz, stru);
+			//memcpy(&tcoord[i*2],stru,2*sizeof(float));
+			tcoord[i*2 + 0] = stru[0];
+			tcoord[i*2 + 1] = stru[1];
+			//if(1){
+			//	static int once = 0;
+			//	if(!once) fp= fopen("nurbstexturecoord.txt","w+");
+			//	once = 1;
+			//	fprintf(fp,"%d uv %f %f st %f %f\n",i,tcoord[i*2 +0],tcoord[i*2 + 1],stru[0],stru[1]);
+			//}
+		}
+		//if(fp) fclose(fp);
+	}
 	tcnode->point.p = (struct SFVec2f*)tcoord;
 	tcnode->point.n = np;
 	if(0) for(i=0;i<tcnode->point.n;i++){
@@ -875,9 +1267,11 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			for(i=0;i<nku;i++){
 				knotsu[i] = (GLfloat)node->uKnot.p[i];
 			}
-			printf("good u knot vector nk=%d\n",nku);
-			for(int ii=0;ii<nku;ii++)
-				printf("[%d]=%f \n",ii,knotsu[ii]);
+			if(DEBG){
+				printf("good u knot vector nk=%d\n",nku);
+				for(int ii=0;ii<nku;ii++)
+					printf("[%d]=%f \n",ii,knotsu[ii]);
+			}
 
 		}else{
 			//generate uniform knot vector 
@@ -902,9 +1296,11 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			for(i=0;i<nkv;i++){
 				knotsv[i] = (GLfloat)node->vKnot.p[i];
 			}
-			printf("good v knot vector nk=%d\n",nkv);
-			for(int ii=0;ii<nkv;ii++)
-				printf("[%d]=%f \n",ii,knotsv[ii]);
+			if(DEBG){
+				printf("good v knot vector nk=%d\n",nkv);
+				for(int ii=0;ii<nkv;ii++)
+					printf("[%d]=%f \n",ii,knotsv[ii]);
+			}
 
 		}else{
 			static int once = 0;
@@ -1020,8 +1416,12 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 					H2c: 
 					- leave texcoords blank and let stream_polyrep supply defaults
 				3. if nurbstexturecoordinate node supplied, 
+					H3a:
 					- set texture surface control to 0 0 1 1
 					- use linear order 2
+					H3b:
+					- do H2a or H2b
+					Both:
 					- interpret the texturecallback points as uv
 					- use uv to lookup st using piegl surface interpolator 
 						on separate surface in nurbstexturecoordinate node
@@ -1096,13 +1496,49 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				} else if(texCoordNode->_nodeType == NODE_NurbsTextureCoordinate){
 					//TEXCOORDTYPE = 2 /interpret nurbsurftexcoordcb coords as uv coords, 
 					// use to lookup st via piegl interpolation of NurbsTextureCoordinate nurbs surface
-					//- set texture surface control to 0 0 1 1
-					//- use linear order 2
-					float tknots[4] = {0.0f, 0.0f, 1.0f, 1.0f}; 
-					float unit_control2D [8] = {0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f};
-					struct X3D_NurbsTextureCoordinate *texCoord = (struct X3D_NurbsTextureCoordinate *)texCoordNode;
-					
-					gluNurbsSurface(theNurb,4,tknots,4,tknots,2,2*2,unit_control2D,2,2,GL_MAP2_TEXTURE_COORD_2);
+					if(0){
+						//H3a:
+						//- set texture surface control to 0 0 1 1
+						//- use linear order 2
+						float tknots[4] = {0.0f, 0.0f, 1.0f, 1.0f}; 
+						float unit_control2D [8] = {0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f};
+						struct X3D_NurbsTextureCoordinate *texCoord = (struct X3D_NurbsTextureCoordinate *)texCoordNode;
+						gluNurbsSurface(theNurb,4,tknots,4,tknots,2,2*2,unit_control2D,2,2,GL_MAP2_TEXTURE_COORD_2);
+					}else{
+						//H3b same as H2a or H2b
+						// H2b: - compute defaults using equal spacing 
+						{
+							float du, dv, uu, vv;
+							int jj;
+							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
+							du = 1.0f / (float)max(1,(nu -1));
+							dv = 1.0f / (float)max(1,(nv -1));
+							vv = 0.0f;
+							jj = 0;
+							for(int k=0;k<nv;k++){
+								if(k == nv-1) vv = 1.0f; //they like end exact on 1.0f
+								uu = 0.0f;
+								for(int j=0;j<nu;j++){
+									if(j == nu-1) uu = 1.0f;  //they like end exact on 1.0f
+									texCoord->point.p[jj].c[0] = uu;
+									texCoord->point.p[jj].c[1] = vv;
+									uu += du;
+									jj++;
+								}
+								vv += dv;
+							}
+							texCoord->point.n = jj;
+							texCoordNode = X3D_NODE(texCoord);
+							//H1a: use same order and knot vector as controlPoints 
+							// except using texcoord.point as nurbscontrol
+							//CONFIRMED when using H2b 'b' above to generate missing TexCoord node
+							float *control2D = texCoord->point.p;
+							gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,2,2*nu,control2D,node->uOrder,node->vOrder,GL_MAP2_TEXTURE_COORD_2);
+
+						}
+
+					}
 					
 				}
 			}
