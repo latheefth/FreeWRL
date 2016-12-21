@@ -310,29 +310,22 @@ int CurvePoint(int n, int p, float* U, float *Pw, float u, float *C )
 				- these are blending weights that say how much of each surrounding control point is used in a given span
 			w - weight, assuming it's uniform
 	*/
-	if(0){
-		 //u == 1.0f){
-		 //don't need - fixed in findspan
-		int i;
-		for(i=0;i<3;i++)
-			C[i] = Pw[(n-1)*4 + i]/Pw[(n-1)*4 + 3];
-	}else{
-		int span,i,j;
-		float N[100], w;
-		float Cw[4];
-		span = FindSpan(n,p,u,U);
-		BasisFuns(span,u,p,U,N);
-		w = 1.0f;
-		for(i=0;i<4;i++) Cw[i] = 0.0f;
-		//Cw[3] = w;
-		for(j=0;j<=p;j++){
-			for(i=0;i<4;i++){
-				Cw[i] += N[j]*Pw[(span-p+j)*4 + i];
-			}
+	int span,i,j;
+	float N[100], w;
+	float Cw[4];
+	span = FindSpan(n,p,u,U);
+	BasisFuns(span,u,p,U,N);
+	w = 1.0f;
+	for(i=0;i<4;i++) Cw[i] = 0.0f;
+	//Cw[3] = w;
+	for(j=0;j<=p;j++){
+		for(i=0;i<4;i++){
+			Cw[i] += N[j]*Pw[(span-p+j)*4 + i];
 		}
-		for(i=0;i<3;i++)
-			C[i] = Cw[i]/Cw[3];
 	}
+	for(i=0;i<3;i++)
+		C[i] = Cw[i]/Cw[3];
+
 	return 1;
 }
 
@@ -1471,7 +1464,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				if(texCoordNode->_nodeType == NODE_TextureCoordinate){
 					//TEXCOORDTYPE = 1 //interpret nurbsurftexcoordcb coords as texture coords
 					struct X3D_TextureCoordinate *texCoord = (struct X3D_TextureCoordinate *)texCoordNode;
-					float *control2D = texCoord->point.p;
+					float *control2D = (float*)texCoord->point.p;
 					int nctrl = texCoord->point.n;
 					if(1){
 						//H1a: use same order and knot vector as controlPoints 
@@ -1533,7 +1526,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 							//H1a: use same order and knot vector as controlPoints 
 							// except using texcoord.point as nurbscontrol
 							//CONFIRMED when using H2b 'b' above to generate missing TexCoord node
-							float *control2D = texCoord->point.p;
+							float *control2D = (float*)texCoord->point.p;
 							gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,2,2*nu,control2D,node->uOrder,node->vOrder,GL_MAP2_TEXTURE_COORD_2);
 
 						}
@@ -1746,7 +1739,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			gluDeleteNurbsRenderer(theNurb);
 
 			//convert points to polyrep
-			convert_strips_to_polyrep(strips,node);
+			convert_strips_to_polyrep(strips,(struct X3D_NurbsTrimmedSurface*)node);
 		}
 	}
 #endif
@@ -1805,44 +1798,93 @@ void render_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
 
 void do_NurbsPositionInterpolator (void *node) {
 	struct X3D_NurbsPositionInterpolator *px;
-	int kin, kvin; //, counter, tmp;
-	//struct SFVec3f *kVs; 
+	struct X3D_Coordinate *control;
+	float knotrange[2], fraction;
+	double *weight;
+	float *xyzw, cw[4];
 
 	if (!node) return;
-	px = (struct X3D_NurbsPositionInterpolator *) node;
-	kvin = kin = 0;
-	//kvin = px->controlPoint->.n;
-	//kVs = px->controlPoint.p;
+	px = (struct X3D_NurbsPositionInterpolator *) PPX(node);
+	if(NNC(px)){
+		float *knots;
+		int nk, n;
 
+		MNC(px);
+		if(!px->_OK){
+			px->_OK = FALSE;
+			if(!(px->knot.n > 1)) 
+				return;
+			if(!px->controlPoint ) 
+				return;
+			if(px->controlPoint->_nodeType != NODE_Coordinate) 
+				return;
+			control = (struct X3D_Coordinate *) px->controlPoint;
+			if(control->point.n < 2)
+				return;
+			n = control->point.n;
+			weight = NULL;
+			if(px->weight.n == n)
+				weight = px->weight.p;
+			px->_xyzw.p = MALLOC(struct SFVec4f*,control->point.n * sizeof(struct SFVec4f));
+			px->_xyzw.n = n;
+			for(int i=0;i<control->point.n;i++){
+				float xyzw[4], wt;
+				wt =  weight ? weight[i] : 1.0f;
+				veccopy3f(xyzw,control->point.p[i].c);
+				vecscale3f(xyzw,xyzw,wt);
+				xyzw[3] = wt;
+				veccopy4f(px->_xyzw.p[i].c,xyzw);
+			}
+			if(knotsOK(px->order,px->_xyzw.n,px->knot.n,px->knot.p)){
+
+				nk = px->knot.n;
+				knots = MALLOC(void *, nk * sizeof(GLfloat));
+				for(int i=0;i<nk;i++){
+					knots[i] = (GLfloat)px->knot.p[i];
+				}
+				//printf("good knot nk=%d\n",nk);
+				//for(int ii=0;ii<nk;ii++)
+				//	printf("[%d]=%f \n",ii,knots[ii]);
+
+			}else{
+				static int once = 0;
+				//generate uniform knot vector 
+				nk = n + px->order ;
+				//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
+				knots = MALLOC(void *, nk *sizeof(GLfloat));
+				generateUniformKnotVector(px->order,n, knots);
+				if(!once){
+					printf("bad knot vector, replacing with:\n");
+					for(int ii=0;ii<nk;ii++)
+						printf("[%d]=%f \n",ii,knots[ii]);
+					once = 1;
+				}
+				//nk = 0;
+			}
+			px->_knot.p = knots;
+			px->_knot.n = nk;
+			px->_knotrange.c[0] = px->_knot.p[0];
+			px->_knotrange.c[1] = px->_knot.p[px->_knot.n-1];
+
+			px->_OK = TRUE;
+		}
+	}
+	if(!px->_OK) 
+		return;
+
+	fraction = max(px->_knotrange.c[0],px->set_fraction);
+	fraction = min(px->_knotrange.c[1],px->set_fraction);
+	CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, fraction, cw );
+	veccopy3f(px->value_changed.c,cw);
 	MARK_EVENT (node, offsetof (struct X3D_NurbsPositionInterpolator, value_changed)); 
 
-	// make sure we have the keys and keyValues 
-	if ((kvin == 0) || (kin == 0)) {
-		vecset3f(px->value_changed.c,0.0f,0.0f,0.0f);
-		return;
-	}
-
-	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
-
-	// set_fraction less than or greater than keys 
-	//if (px->set_fraction <= ((px->key).p[0])) {
-	//	memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3f));
-	//} else if (px->set_fraction >= px->key.p[kin-1]) {
-	//	memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3f));
-	//} else {
-	//	// have to go through and find the key before 
-	//	counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
-	//	for (tmp=0; tmp<3; tmp++) {
-	//		px->value_changed.c[tmp] =
-	//			(px->set_fraction - px->key.p[counter-1]) /
-	//			(px->key.p[counter] - px->key.p[counter-1]) *
-	//			(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
-	//	}
-	//}
 	#ifdef SEVERBOSE
-	printf ("Pos/Col, new value (%f %f %f)\n",
-		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
+		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, px->set_fraction);
 	#endif
+
+
+
 }
 
 /* NurbsOrientationInterpolator				 		
