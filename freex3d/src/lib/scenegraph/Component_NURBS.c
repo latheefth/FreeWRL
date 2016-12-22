@@ -2195,6 +2195,20 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 	veccopy3f(node->position_changed.c,xyzw);
 	if(1){
 		//DELTA method to get normal
+		//u direction
+		float udir[3], vdir[3], normal[3], xyz1[4];
+		ok = SurfacePoint(node->uDimension,node->uOrder-1,node->_uKnot.p, 
+							node->vDimension,node->vOrder-1,node->_vKnot.p,
+							(float *)node->_controlPoint.p,uv[1],uv[0]+.01,xyz1);
+		vecdif3f(udir,xyz1,xyzw);
+		ok = SurfacePoint(node->uDimension,node->uOrder-1,node->_uKnot.p, 
+							node->vDimension,node->vOrder-1,node->_vKnot.p,
+							(float *)node->_controlPoint.p,uv[1]+.01,uv[0],xyz1);
+		vecdif3f(vdir,xyz1,xyzw);
+		veccross3f(normal,udir,vdir);
+		vecnormalize3f(normal,normal);
+		veccopy3f(node->normal_changed.c,normal);
+
 
 	}
 
