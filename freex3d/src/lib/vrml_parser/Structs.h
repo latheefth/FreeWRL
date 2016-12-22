@@ -7597,6 +7597,10 @@ struct X3D_NurbsSurfaceInterpolator {
 	struct SFVec2f set_fraction;
 	struct SFVec3f position_changed;
 	struct SFVec3f normal_changed;
+	struct Multi_Float _uKnot;
+	struct Multi_Float _vKnot;
+	struct Multi_Vec4f _controlPoint;
+	int _OK;
 };
 extern struct X3D_Virt virt_NurbsSurfaceInterpolator;
 /***********************/

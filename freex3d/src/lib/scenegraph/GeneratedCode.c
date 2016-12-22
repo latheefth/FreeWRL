@@ -5742,6 +5742,10 @@ const int OFFSETS_NurbsSet[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsSurfaceInterpolator[] = {
+	(int) FIELDNAMES__OK, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, _OK),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__controlPoint, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, _controlPoint),  (int) FIELDTYPE_MFVec4f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__uKnot, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, _uKnot),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__vKnot, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, _vKnot),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, controlPoint),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_normal_changed, (int) offsetof (struct X3D_NurbsSurfaceInterpolator, normal_changed),  (int) FIELDTYPE_SFVec3f, (int) KW_outputOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11022,6 +11026,10 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsSurfaceInterpolator : {
 			struct X3D_NurbsSurfaceInterpolator * tmp2;
 			tmp2 = (struct X3D_NurbsSurfaceInterpolator *) tmp;
+			tmp2->_OK = 0;
+			tmp2->_controlPoint.n=0; tmp2->_controlPoint.p=0;
+			tmp2->_uKnot.n=0; tmp2->_uKnot.p=0;
+			tmp2->_vKnot.n=0; tmp2->_vKnot.p=0;
 			tmp2->controlPoint = NULL;
 			tmp2->metadata = NULL;
 			tmp2->normal_changed.c[0] = 0.0f;tmp2->normal_changed.c[1] = 0.0f;tmp2->normal_changed.c[2] = 0.0f;
@@ -15858,6 +15866,13 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_NurbsSurfaceInterpolator *tmp;
 			tmp = (struct X3D_NurbsSurfaceInterpolator *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," _OK (SFInt32) \t%d\n",tmp->_OK);
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," _controlPoint (MFVec4f):\n");
+			for (i=0; i<tmp->_controlPoint.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->_controlPoint.p[i]).c[0], (tmp->_controlPoint.p[i]).c[1],(tmp->_controlPoint.p[i]).c[2],(tmp->_controlPoint.p[i]).c[3]); }
+		    }
 			spacer fprintf (fp," controlPoint (SFNode):\n"); dump_scene(fp,level+1,tmp->controlPoint); 
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 

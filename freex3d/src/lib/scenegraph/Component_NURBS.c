@@ -335,8 +335,8 @@ int CurvePoint(int n, int p, float* U, float *Pw, float u, float *C )
 
 //ALGORITHM A4.3 p.134 Piegl
 /* example call:
-ok = SurfacePoint(	node->uDimension,node->uOrder,node->uKnot.p, 
-					node->vDimension,node->vOrder,node->vKnot.p,
+ok = SurfacePoint(	node->uDimension,node->uOrder-1,node->uKnot.p, 
+					node->vDimension,node->vOrder-1,node->vKnot.p,
 					node->controlPoint.p,uv[0],uv[1],xyz);
 */
 int SurfacePoint(int n,int p,float *U,
@@ -1896,7 +1896,6 @@ void do_NurbsPositionInterpolator (void *node) {
  so this is called ONLY when there is something required to do, thus	
  there is no need to look at whether it is active or not
  */
-#include "quaternion.h"
 void do_NurbsOrientationInterpolator (void *node) {
 	struct X3D_NurbsOrientationInterpolator *px;
 	struct X3D_Coordinate *control;
@@ -2053,54 +2052,158 @@ void do_NurbsOrientationInterpolator (void *node) {
 
 }
 
-void do_NurbsSurfaceInterpolator (void *node) {
-/*
-	struct X3D_NurbsSurfaceInterpolator *px;
-	int kin, kvin, counter, tmp;
-	struct SFVec3f *kVs; 
+void do_NurbsSurfaceInterpolator (void *_node) {
 
-	if (!node) return;
-	px = (struct X3D_NurbsSurfaceInterpolator *) node;
+	struct X3D_NurbsSurfaceInterpolator *node;
 
-	kvin = px->keyValue.n;
-	kVs = px->keyValue.p;
-	kin = px->key.n;
+	if (!_node) return;
+	node = (struct X3D_NurbsSurfaceInterpolator *) _node;
+	if(node->_nodeType != NODE_NurbsSurfaceInterpolator) return;
 
-	MARK_EVENT (node, offsetof (struct X3D_NurbsSurfaceInterpolator, position_changed)); 
-	MARK_EVENT (node, offsetof (struct X3D_NurbsSurfaceInterpolator, normal_changed)); 
+	if(NNC(node)){
+		MNC(node);
+		if(node->_OK != TRUE){
+			int i,j, n, nu, nv, nku, nkv;
+			GLfloat *xyzw, *knotsu, *knotsv;
 
-	#ifdef SEVERBOSE
-		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
-			   node, kin, kvin, px->set_fraction);
-	#endif
+			nku = nkv = nu = nv = n = 0;
+			xyzw = knotsu = knotsv = NULL;
+			if(node->controlPoint){
+				if(node->controlPoint->_nodeType == NODE_CoordinateDouble){
+					struct Multi_Vec3d *mfd;
+					mfd = &((struct X3D_CoordinateDouble *)(node->controlPoint))->point;
+					n = mfd->n;
+					xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
+					for(i=0;i<mfd->n;i++){
+						for(j=0;j<3;j++){
+							xyzw[i*4 + j] = mfd->p[i].c[j];
+						}
+					}
+				}else if(node->controlPoint->_nodeType == NODE_Coordinate){
+					struct Multi_Vec3f *mff;
+					mff = &((struct X3D_Coordinate *)(node->controlPoint))->point;
+					n = mff->n;
+					xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
+					for(i=0;i<mff->n;i++){
+						for(j=0;j<3;j++){
+							xyzw[i*4 + j] = mff->p[i].c[j];
+						}
+					}
+				}
+			}else{
+				n = 0;
+			}
 
-	// make sure we have the keys and keyValues 
-	if ((kvin == 0) || (kin == 0)) {
-		vecset3f(px->position_changed.c,0.0f,0.0f,0.0f);
-		vecset3f(px->normal_changed.c,0.0f,0.0f,0.0f);
-		return;
-	}
+			if(node->weight.n && node->weight.n == n){
+				double w;
+				int m,im;
+				m = min(node->weight.n, n);
+				for(i=0;i<n;i++){
+					im = i < m ? i : m-1;
+					w = node->weight.p[im];
+					xyzw[i*4 + 3] = w;
+				}
+			}else{
+				for(i=0;i<n;i++) xyzw[i*4 + 3] = 1.0;
+			}
+			nu = node->uDimension;
+			nv = node->vDimension;
+			if(nu * nv != n) return;
+			if(nu < node->uOrder) return;
+			if(nv < node->vOrder) return;
+			//int knotsOK(int order, int ncontrol, int nknots, double *knots)
+			//if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+			if(knotsOK(node->uOrder,nu,node->uKnot.n,node->uKnot.p)){
+				//could do another check: max number of consecutive equal value knots == order
+				//could do another check: knot values == or ascending
+				nku = node->uKnot.n;
+				knotsu = MALLOC(void *, nku * sizeof(GLfloat));
+				for(i=0;i<nku;i++){
+					knotsu[i] = (GLfloat)node->uKnot.p[i];
+				}
+				if(DEBG){
+					printf("good u knot vector nk=%d\n",nku);
+					for(int ii=0;ii<nku;ii++)
+						printf("[%d]=%f \n",ii,knotsu[ii]);
+				}
 
-	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
+			}else{
+				//generate uniform knot vector 
+				static int once = 0;
+				nku = nu + node->uOrder ;
+				//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+				knotsu = MALLOC(void *, nku *sizeof(GLfloat));
+				generateUniformKnotVector(node->uOrder,nu, knotsu);
+				if(!once){
+					printf("bad u knot vector given, replacing with:\n");
+					for(int ii=0;ii<nku;ii++)
+						printf("[%d]=%f \n",ii,knotsu[ii]);
+					once = 1;
+				}
+				//nk = 0;
+			}
 
-	// set_fraction less than or greater than keys 
-	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3f));
-	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3f));
-	} else {
-		// have to go through and find the key before 
-		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
-		for (tmp=0; tmp<3; tmp++) {
-			px->value_changed.c[tmp] =
-				(px->set_fraction - px->key.p[counter-1]) /
-				(px->key.p[counter] - px->key.p[counter-1]) *
-				(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
+			if(knotsOK(node->vOrder,nv,node->vKnot.n,node->vKnot.p)){
+			//if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
+				nkv = node->vKnot.n;
+				knotsv = MALLOC(void *, nkv * sizeof(GLfloat));
+				for(i=0;i<nkv;i++){
+					knotsv[i] = (GLfloat)node->vKnot.p[i];
+				}
+				if(DEBG){
+					printf("good v knot vector nk=%d\n",nkv);
+					for(int ii=0;ii<nkv;ii++)
+						printf("[%d]=%f \n",ii,knotsv[ii]);
+				}
+
+			}else{
+				static int once = 0;
+				//generate uniform knot vector 
+				nkv = nv + node->vOrder ;
+				//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+				knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
+				generateUniformKnotVector(node->vOrder,nv, knotsv);
+				if(!once){
+					printf("bad v knot vector given, replacing with:\n");
+					for(int ii=0;ii<nkv;ii++)
+						printf("[%d]=%f \n",ii,knotsv[ii]);
+					once = 1;
+				}
+				//nk = 0;
+			}
+			node->_controlPoint.p = (struct SFVec4f*)xyzw;
+			node->_controlPoint.n = n;
+			node->_uKnot.p = knotsu;
+			node->_uKnot.n = nku;
+			node->_vKnot.p = knotsv;
+			node->_vKnot.n = nkv;
+			node->_OK = TRUE;
 		}
+
 	}
+
+	if(!node->_OK) return;
+	float uv[2], xyzw[4];
+	int ok;
+	
+	veccopy2f(uv,node->set_fraction.c);
+
+	ok = SurfacePoint(node->uDimension,node->uOrder-1,node->_uKnot.p, 
+						node->vDimension,node->vOrder-1,node->_vKnot.p,
+						(float *)node->_controlPoint.p,uv[1],uv[0],xyzw);
+
+	veccopy3f(node->position_changed.c,xyzw);
+	if(1){
+		//DELTA method to get normal
+
+	}
+
+	MARK_EVENT (_node, offsetof (struct X3D_NurbsSurfaceInterpolator, position_changed)); 
+	MARK_EVENT (_node, offsetof (struct X3D_NurbsSurfaceInterpolator, normal_changed)); 
+
 	#ifdef SEVERBOSE
 	printf ("Pos/Col, new value (%f %f %f)\n",
 		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
 	#endif
-*/
+
 }
