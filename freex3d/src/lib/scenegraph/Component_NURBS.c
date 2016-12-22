@@ -329,6 +329,10 @@ int CurvePoint(int n, int p, float* U, float *Pw, float u, float *C )
 	return 1;
 }
 
+
+
+
+
 //ALGORITHM A4.3 p.134 Piegl
 /* example call:
 ok = SurfacePoint(	node->uDimension,node->uOrder,node->uKnot.p, 
@@ -1971,9 +1975,71 @@ void do_NurbsOrientationInterpolator (void *node) {
 
 	fraction = max(px->_knotrange.c[0],px->set_fraction);
 	fraction = min(px->_knotrange.c[1],px->set_fraction);
-	if(0){
-	CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, fraction, cw );
-	veccopy3f(px->value_changed.c,cw);
+	if(1){
+		//DELTA METHOD: instead of using a piegl formula for curve derivitive,
+		//we sample 2 points near the u of interest, and take the difference
+		//to get a slope vector
+		float f1, f2, cw1[4], cw2[4],  dir[3], rot[4];
+
+
+		f1 = fraction;
+		f2 = fraction + .01f;
+		if(f2 > 1.0f){
+			f1 = fraction - .01f;
+			f2 = fraction;
+		}
+
+		CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, f1, cw1 );
+		CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, f2, cw2 );
+		vecdif3f(dir,cw2,cw1);
+		vecnormalize3f(dir,dir);
+
+		if(1){
+			//1-direction vector relative to x-axis 
+			//now have 2 direction vectors - one at start, one at end
+			//do a difference to get relative rotation from start
+			float perp[3], dirx[3], sine;
+			memset(dirx,0,3*sizeof(float));
+			dirx[0] = 1.0f;
+			veccross3f(perp,dirx,dir);
+			sine = veclength3f(perp);
+			if(sine == 0.0f){
+				//no net rotation from start
+				float default_direction [4] = {1.0f, 0.0f, 0.0f, 0.0f};
+				veccopy4f(rot,default_direction);
+			}else{
+				vecnormalize3f(perp,perp);
+				float cosine = vecdot3f(dir,dirx);
+				float angle = atan2(sine,cosine);
+				veccopy3f(rot,perp);
+				rot[3] = angle;
+			}
+		}else if(0){
+			//2-direction vector to axis angle method
+			//now have 2 direction vectors - one at start, one at end
+			//do a difference to get relative rotation from start
+			float perp[3],dir0[3];
+
+			CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, 0.0f, cw1 );
+			CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, .001f, cw2 );
+			vecdif3f(dir0,cw2,cw1);
+			vecnormalize3f(dir0,dir0);
+
+			veccross3f(perp,dir,dir0);
+			if(veclength3f(perp) == 0.0f){
+				//no net rotation from start
+				float default_direction [4] = {1.0f, 0.0f, 0.0f, 0.0f};
+				veccopy4f(rot,default_direction);
+				printf(".");
+			}else{
+				vecnormalize3f(perp,perp);
+				float cosine = vecdot3f(dir0,dir);
+				float angle = acos(cosine);
+				veccopy3f(rot,perp);
+				rot[3] = -angle;
+			}
+		}
+		veccopy4f(px->value_changed.c,rot);
 	}else{
 		float default_direction [4] = {1.0f, 0.0f, 0.0f, 0.0f};
 		veccopy4f(px->value_changed.c,default_direction);
@@ -1981,8 +2047,8 @@ void do_NurbsOrientationInterpolator (void *node) {
 	MARK_EVENT (node, offsetof (struct X3D_NurbsOrientationInterpolator, value_changed)); 
 
 	#ifdef SEVERBOSE
-		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
-			   node, kin, kvin, px->set_fraction);
+		printf("do_NurbsOrientInt: set_fraction %f value_changed %f %f %f %f\n",fraction,
+			px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2],px->value_changed.c[3] );
 	#endif
 
 }

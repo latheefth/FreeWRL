@@ -2015,7 +2015,7 @@ void *returnInterpolatorPointer (int nodeType) {
 		case NODE_SquadOrientationInterpolator: do_interp =  do_SquadOrientationInterpolator; break;
 		case NODE_GeoPositionInterpolator: do_interp = do_GeoPositionInterpolator; break;
 		case NODE_NurbsPositionInterpolator: do_interp = do_NurbsPositionInterpolator; break;
-		case NODE_NurbsOrientationInterpolator: do_interp = do_NurbsPositionInterpolator; break;
+		case NODE_NurbsOrientationInterpolator: do_interp = do_NurbsOrientationInterpolator; break;
 		case NODE_NurbsSurfaceInterpolator: do_interp = do_NurbsSurfaceInterpolator; break;
 		case NODE_BooleanFilter: do_interp = do_BooleanFilter; break;
 		case NODE_BooleanSequencer: do_interp = do_BooleanSequencer; break;
@@ -2041,7 +2041,7 @@ void *returnInterpolatorPointer (const char *x) {
 	} else if (strcmp("NormalInterpolator",x)==0) { return (void *)do_OintNormal;
 	} else if (strcmp("GeoPositionInterpolator",x)==0) { return (void *)do_GeoPositionInterpolator;
 	} else if (strcmp("NurbsPositionInterpolator",x)==0) { return (void *)do_NurbsPositionInterpolator;
-	} else if (strcmp("NurbsOrientationInterpolator",x)==0) { return (void *)do_NurbsPositionInterpolator;
+	} else if (strcmp("NurbsOrientationInterpolator",x)==0) { return (void *)do_NurbsOrienatationInterpolator;
 	} else if (strcmp("NurbsSurfaceInterpolator",x)==0) { return (void *)do_NurbsSurfaceInterpolator;
 	} else if (strcmp("BooleanFilter",x)==0) { return (void *)do_BooleanFilter;
 	} else if (strcmp("BooleanSequencer",x)==0) { return (void *)do_BooleanSequencer;
