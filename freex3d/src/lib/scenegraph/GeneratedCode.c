@@ -5686,6 +5686,10 @@ const int OFFSETS_NurbsCurve2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsOrientationInterpolator[] = {
+	(int) FIELDNAMES__OK, (int) offsetof (struct X3D_NurbsOrientationInterpolator, _OK),  (int) FIELDTYPE_SFInt32, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__knot, (int) offsetof (struct X3D_NurbsOrientationInterpolator, _knot),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__knotrange, (int) offsetof (struct X3D_NurbsOrientationInterpolator, _knotrange),  (int) FIELDTYPE_SFVec2f, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__xyzw, (int) offsetof (struct X3D_NurbsOrientationInterpolator, _xyzw),  (int) FIELDTYPE_MFVec4f, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_controlPoint, (int) offsetof (struct X3D_NurbsOrientationInterpolator, controlPoint),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_knot, (int) offsetof (struct X3D_NurbsOrientationInterpolator, knot),  (int) FIELDTYPE_MFDouble, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_NurbsOrientationInterpolator, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10950,6 +10954,10 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsOrientationInterpolator : {
 			struct X3D_NurbsOrientationInterpolator * tmp2;
 			tmp2 = (struct X3D_NurbsOrientationInterpolator *) tmp;
+			tmp2->_OK = 0;
+			tmp2->_knot.n=0; tmp2->_knot.p=0;
+			tmp2->_knotrange.c[0] = 0.0f;tmp2->_knotrange.c[1] = 0.0f;;
+			tmp2->_xyzw.n=0; tmp2->_xyzw.p=0;
 			tmp2->controlPoint = NULL;
 			tmp2->knot.n=0; tmp2->knot.p=0;
 			tmp2->metadata = NULL;
@@ -15767,6 +15775,17 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_NurbsOrientationInterpolator *tmp;
 			tmp = (struct X3D_NurbsOrientationInterpolator *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," _OK (SFInt32) \t%d\n",tmp->_OK);
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," _knot (MFFloat):\n");
+			for (i=0; i<tmp->_knot.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->_knot.p[i]); }
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," _xyzw (MFVec4f):\n");
+			for (i=0; i<tmp->_xyzw.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->_xyzw.p[i]).c[0], (tmp->_xyzw.p[i]).c[1],(tmp->_xyzw.p[i]).c[2],(tmp->_xyzw.p[i]).c[3]); }
+		    }
 			spacer fprintf (fp," controlPoint (SFNode):\n"); dump_scene(fp,level+1,tmp->controlPoint); 
 			spacer fprintf (fp," knot (MFDouble):\n");
 			for (i=0; i<tmp->knot.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->knot.p[i]); }

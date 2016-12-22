@@ -1810,7 +1810,7 @@ void do_NurbsPositionInterpolator (void *node) {
 		int nk, n;
 
 		MNC(px);
-		if(!px->_OK){
+		if(!px->_OK == TRUE){
 			px->_OK = FALSE;
 			if(!(px->knot.n > 1)) 
 				return;
@@ -1894,89 +1894,97 @@ void do_NurbsPositionInterpolator (void *node) {
  */
 #include "quaternion.h"
 void do_NurbsOrientationInterpolator (void *node) {
-/*
 	struct X3D_NurbsOrientationInterpolator *px;
-	int kin, kvin;
-	struct SFRotation *kVs;
-	int counter;
-	float interval;		// where we are between 2 values 
-	// UNUSED?? int stzero;
-	// UNUSED?? int endzero;	// starting and/or ending angles zero? 
-
-	Quaternion st, fin, final;
-	double x,y,z,a;
+	struct X3D_Coordinate *control;
+	float knotrange[2], fraction;
+	double *weight;
+	float *xyzw, cw[4];
 
 	if (!node) return;
-	px = (struct X3D_NurbsOrientationInterpolator *) node;
-	kin = ((px->key).n);
-	kvin = ((px->keyValue).n);
-	kVs = ((px->keyValue).p);
+	px = (struct X3D_NurbsOrientationInterpolator *) PPX(node);
+	if(NNC(px)){
+		float *knots;
+		int nk, n;
+
+		MNC(px);
+		if(!px->_OK == TRUE){
+			px->_OK = FALSE;
+			if(!(px->knot.n > 1)) 
+				return;
+			if(!px->controlPoint ) 
+				return;
+			if(px->controlPoint->_nodeType != NODE_Coordinate) 
+				return;
+			control = (struct X3D_Coordinate *) px->controlPoint;
+			if(control->point.n < 2)
+				return;
+			n = control->point.n;
+			weight = NULL;
+			if(px->weight.n == n)
+				weight = px->weight.p;
+			px->_xyzw.p = MALLOC(struct SFVec4f*,control->point.n * sizeof(struct SFVec4f));
+			px->_xyzw.n = n;
+			for(int i=0;i<control->point.n;i++){
+				float xyzw[4], wt;
+				wt =  weight ? weight[i] : 1.0f;
+				veccopy3f(xyzw,control->point.p[i].c);
+				vecscale3f(xyzw,xyzw,wt);
+				xyzw[3] = wt;
+				veccopy4f(px->_xyzw.p[i].c,xyzw);
+			}
+			if(knotsOK(px->order,px->_xyzw.n,px->knot.n,px->knot.p)){
+
+				nk = px->knot.n;
+				knots = MALLOC(void *, nk * sizeof(GLfloat));
+				for(int i=0;i<nk;i++){
+					knots[i] = (GLfloat)px->knot.p[i];
+				}
+				//printf("good knot nk=%d\n",nk);
+				//for(int ii=0;ii<nk;ii++)
+				//	printf("[%d]=%f \n",ii,knots[ii]);
+
+			}else{
+				static int once = 0;
+				//generate uniform knot vector 
+				nk = n + px->order ;
+				//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
+				knots = MALLOC(void *, nk *sizeof(GLfloat));
+				generateUniformKnotVector(px->order,n, knots);
+				if(!once){
+					printf("bad knot vector, replacing with:\n");
+					for(int ii=0;ii<nk;ii++)
+						printf("[%d]=%f \n",ii,knots[ii]);
+					once = 1;
+				}
+				//nk = 0;
+			}
+			px->_knot.p = knots;
+			px->_knot.n = nk;
+			px->_knotrange.c[0] = px->_knot.p[0];
+			px->_knotrange.c[1] = px->_knot.p[px->_knot.n-1];
+
+			px->_OK = TRUE;
+		}
+	}
+	if(!px->_OK) 
+		return;
+
+	fraction = max(px->_knotrange.c[0],px->set_fraction);
+	fraction = min(px->_knotrange.c[1],px->set_fraction);
+	if(0){
+	CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, fraction, cw );
+	veccopy3f(px->value_changed.c,cw);
+	}else{
+		float default_direction [4] = {1.0f, 0.0f, 0.0f, 0.0f};
+		veccopy4f(px->value_changed.c,default_direction);
+	}
+	MARK_EVENT (node, offsetof (struct X3D_NurbsOrientationInterpolator, value_changed)); 
 
 	#ifdef SEVERBOSE
-	printf ("starting do_Oint4; keyValue count %d and key count %d\n",
-				kvin, kin);
+		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, px->set_fraction);
 	#endif
 
-
-	MARK_EVENT (node, offsetof (struct X3D_NurbsOrientationInterpolator, value_changed));
-
-	// make sure we have the keys and keyValues 
-	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = (float) 0.0;
-		px->value_changed.c[1] = (float) 0.0;
-		px->value_changed.c[2] = (float) 0.0;
-		px->value_changed.c[3] = (float) 0.0;
-		return;
-	}
-	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
-
-
-	// set_fraction less than or greater than keys 
-	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed,
-				(void *)&kVs[0], sizeof (struct SFRotation));
-	} else if (px->set_fraction >= ((px->key).p[kin-1])) {
-		memcpy ((void *)&px->value_changed,
-				(void *)&kVs[kvin-1], sizeof (struct SFRotation));
-	} else {
-		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
-		interval = (px->set_fraction - px->key.p[counter-1]) /
-				(px->key.p[counter] - px->key.p[counter-1]);
-
-		
-		// are either the starting or ending angles zero? 
-		// unused? stzero = APPROX(kVs[counter-1].c[3],0.0);
-		// unused? endzero = APPROX(kVs[counter].c[3],0.0);
-		#ifdef SEVERBOSE
-			printf ("counter %d interval %f\n",counter,interval);
-			printf ("angles %f %f %f %f, %f %f %f %f\n",
-				kVs[counter-1].c[0],
-				kVs[counter-1].c[1],
-				kVs[counter-1].c[2],
-				kVs[counter-1].c[3],
-				kVs[counter].c[0],
-				kVs[counter].c[1],
-				kVs[counter].c[2],
-				kVs[counter].c[3]);
-		#endif
-		vrmlrot_to_quaternion (&st, kVs[counter-1].c[0],
-                                kVs[counter-1].c[1], kVs[counter-1].c[2], kVs[counter-1].c[3]);
-		vrmlrot_to_quaternion (&fin,kVs[counter].c[0],
-                                kVs[counter].c[1], kVs[counter].c[2], kVs[counter].c[3]);
-
-		quaternion_slerp(&final, &st, &fin, (double)interval);
-		quaternion_to_vrmlrot(&final,&x, &y, &z, &a);
-		px->value_changed.c[0] = (float) x;
-		px->value_changed.c[1] = (float) y;
-		px->value_changed.c[2] = (float) z;
-		px->value_changed.c[3] = (float) a;
-
-		#ifdef SEVERBOSE
-		printf ("Oint, new angle %f %f %f %f\n",px->value_changed.c[0],
-			px->value_changed.c[1],px->value_changed.c[2], px->value_changed.c[3]);
-		#endif
-	}
-*/
 }
 
 void do_NurbsSurfaceInterpolator (void *node) {

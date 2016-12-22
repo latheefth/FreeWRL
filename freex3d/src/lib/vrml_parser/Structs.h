@@ -7476,6 +7476,10 @@ struct X3D_NurbsOrientationInterpolator {
 	int order;
 	float set_fraction;
 	struct SFRotation value_changed;
+	struct Multi_Float _knot;
+	struct Multi_Vec4f _xyzw;
+	int _OK;
+	struct SFVec2f _knotrange;
 };
 extern struct X3D_Virt virt_NurbsOrientationInterpolator;
 /***********************/
