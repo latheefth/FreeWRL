@@ -2222,6 +2222,7 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 
 }
 
+//SWUNG
 
 void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
 	MARK_NODE_COMPILED
@@ -2313,4 +2314,131 @@ void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
 		patch = node->_patch;
 		CULL_FACE(patch->solid)
 		render_polyrep(patch);
+}
+
+
+//SWEPT
+
+void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
+	MARK_NODE_COMPILED
+	//strategy: construct 3D control net from 2 curves, delegate to nurbspatch 
+	//Swept: 
+	struct X3D_NurbsPatchSurface *patch;
+	struct X3D_Coordinate *controlPoint;
+	if(!node->_patch){
+		patch = node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
+		controlPoint = patch->controlPoint = createNewX3DNode(NODE_Coordinate);
+	}else{
+		patch = node->_patch;
+		controlPoint = patch->controlPoint;
+	}
+	struct X3D_NurbsCurve *trajectory = (struct X3D_NurbsCurve *)node->trajectoryCurve;
+	struct X3D_Coordinate *tcoord = (struct X3D_Coordinate*) trajectory->controlPoint;
+	struct X3D_NurbsCurve2D *xsection = (struct X3D_NurbsCurve2D *)node->crossSectionCurve;
+	int nt, np;
+	double *xyzx;
+	float *xyzt;
+
+	nt = tcoord->point.n;
+	np = xsection->controlPoint.n;
+	xyzx = (double*)xsection->controlPoint.p;
+	xyzt = (float*)tcoord->point.p;
+	float *xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
+	controlPoint->point.p = xyz;
+	controlPoint->point.n = nt * np;
+
+	//ALGO Method 1.
+	//piegl p.472 swept surfaces method 1. S(u,v) = T(v) + C(u)
+	// - has a precise NURBS definition 
+	// - (no need for spine, B up vector, planes, skinning)
+	// - just set up the Suv control net and delegate to Patch
+	// - but piegl Figure 10.11 p.474 shows the results of this sweep:
+	//    * its good for nearly linear trajectories
+	//    x but not good if you turn a 90 corner 
+	//      - the profile isn't rotated with the trajectory
+	//      - so the 'tube' will flatten
+	//ALGO Method 2.
+	// if you want the tube to stay open ie profile rotates with trajectory curve,
+	// then you need to implement method 2. and for that
+	// 1. compute tesselation points along trajectory curve (use piegl CurvePoint)
+	//		- get direction vector of curve using Delta or Derivs, as xsection normal
+	//		- project up vector from last profile (1st profile up is arbitrary)
+	// 2. comupte tesselated cross section aka xsection aka profile (use piegl CurvePoint)
+	// 3. for each trajectory tesselation point:
+	//		a) insert up- and tangent- oriented xsection points
+	//		b) skin: join current xsection points with last with triangles
+	// 
+	node->_method = 1;
+	if(node->_method == 1){
+		//ALGO 1 Suv = T(v) + C(u)
+		int ic = 0;
+		for(int j=0;j<nt;j++){
+			float pt[3];
+			veccopy3f(pt,&xyzt[j*3]);
+			for(int i=0;i<np;i++){
+				float pp[3];
+				double2float(pp,&xyzx[2*i],2);
+				xyz[ic*3 + 0] = pt[0] + pp[0];
+				xyz[ic*3 + 1] = pt[1] + pp[1];
+				xyz[ic*3 + 2] = pt[2];
+				ic++;
+			}
+		}
+
+		patch->solid = node->solid;
+		//u will be profile, 
+		patch->uDimension = np;
+		patch->uKnot.p = malloc(xsection->knot.n * sizeof(double));
+		memcpy(patch->uKnot.p,xsection->knot.p,xsection->knot.n * sizeof(double));
+		patch->uKnot.n = xsection->knot.n;
+		patch->uOrder = xsection->order;
+		patch->uTessellation = xsection->tessellation;
+		//v will be trajectory
+		patch->vDimension = nt;
+		patch->vKnot.p = malloc(xsection->knot.n * sizeof(double));
+		memcpy(patch->vKnot.p,trajectory->knot.p,trajectory->knot.n * sizeof(double));
+		patch->vKnot.n = trajectory->knot.n;
+		patch->vOrder = trajectory->order;
+		patch->vTessellation = trajectory->tessellation;
+		if(0){
+			int ic = 0;
+			for(int j=0;j<nt;j++){
+				for(int k=0;k<np;k++){
+					printf("%f %f %f,",xyz[ic*3 + 0], xyz[ic*3 +1], xyz[ic*3 +2]);
+					ic++;
+				}
+				printf("\n");
+			}
+			printf("uDimension=%d vDimension=%d nc=%d\n",np,nt,ic);
+		}
+		compile_NurbsPatchSurface(node->_patch);
+	} //end method == 1
+
+}
+void rendray_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
+	COMPILE_IF_REQUIRED
+	if(node->_method == 1){
+		if (!node->_intern) return;
+		render_ray_polyrep(node->_patch);
+	}
+}
+
+void collide_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
+	COMPILE_IF_REQUIRED
+	if(node->_method == 1){
+		if (!node->_intern) return;
+		collide_genericfaceset(node->_patch);
+	}
+}
+
+void render_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
+	COMPILE_IF_REQUIRED
+	if(node->_method == 1){
+		struct X3D_NurbsPatchSurface *patch;
+		if (!node->_patch->_intern) 
+			return;
+		patch = node->_patch;
+		CULL_FACE(patch->solid)
+		render_polyrep(patch);
+	}
 }

@@ -413,6 +413,7 @@ our %RendC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsSwungSurface
+	NurbsSweptSurface	
 	NurbsTrimmedSurface
 	ComposedTexture3D
 	PixelTexture3D
@@ -668,6 +669,7 @@ our %CompileC = map {($_=>1)} qw/
 	NurbsCurve
 	NurbsPatchSurface
 	NurbsSwungSurface
+	NurbsSweptSurface	
 	NurbsTrimmedSurface
 	ContourPolyline2D	
 	Layout
@@ -776,6 +778,7 @@ our %CollisionC = map {($_=>1)} qw/
 	GeoElevationGrid
 	NurbsPatchSurface
 	NurbsSwungSurface
+	NurbsSweptSurface	
 	NurbsTrimmedSurface	
 /;
 
@@ -871,6 +874,7 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleStripSet
 	NurbsPatchSurface
 	NurbsSwungSurface
+	NurbsSweptSurface	
 	NurbsTrimmedSurface
 /;
 

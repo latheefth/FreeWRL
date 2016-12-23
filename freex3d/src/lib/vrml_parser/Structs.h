@@ -7626,6 +7626,7 @@ struct X3D_NurbsSweptSurface {
 	int ccw;
 	int solid;
 	struct X3D_Node *_patch;
+	int _method;
 };
 extern struct X3D_Virt virt_NurbsSweptSurface;
 /***********************/

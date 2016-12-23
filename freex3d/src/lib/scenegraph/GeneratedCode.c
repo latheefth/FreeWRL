@@ -2916,7 +2916,11 @@ struct X3D_Virt virt_NurbsSet = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,N
 
 struct X3D_Virt virt_NurbsSurfaceInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_NurbsSweptSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_NurbsSweptSurface(struct X3D_NurbsSweptSurface *);
+void rendray_NurbsSweptSurface(struct X3D_NurbsSweptSurface *);
+void collide_NurbsSweptSurface(struct X3D_NurbsSweptSurface *);
+void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *);
+struct X3D_Virt virt_NurbsSweptSurface = { NULL,(void *)render_NurbsSweptSurface,NULL,NULL,(void *)rendray_NurbsSweptSurface,NULL,NULL,NULL,(void *)collide_NurbsSweptSurface,(void *)compile_NurbsSweptSurface};
 
 void render_NurbsSwungSurface(struct X3D_NurbsSwungSurface *);
 void rendray_NurbsSwungSurface(struct X3D_NurbsSwungSurface *);
@@ -5766,6 +5770,7 @@ const int OFFSETS_NurbsSurfaceInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsSweptSurface[] = {
+	(int) FIELDNAMES__method, (int) offsetof (struct X3D_NurbsSweptSurface, _method),  (int) FIELDTYPE_SFInt32, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES__patch, (int) offsetof (struct X3D_NurbsSweptSurface, _patch),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_ccw, (int) offsetof (struct X3D_NurbsSweptSurface, ccw),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_crossSectionCurve, (int) offsetof (struct X3D_NurbsSweptSurface, crossSectionCurve),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11055,6 +11060,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsSweptSurface : {
 			struct X3D_NurbsSweptSurface * tmp2;
 			tmp2 = (struct X3D_NurbsSweptSurface *) tmp;
+			tmp2->_method = 1;
 			tmp2->_patch = NULL;
 			tmp2->ccw = TRUE;
 			tmp2->crossSectionCurve = NULL;
