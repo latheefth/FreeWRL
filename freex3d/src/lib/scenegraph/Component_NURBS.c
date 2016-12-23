@@ -2281,19 +2281,6 @@ void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
 	patch->vOrder = trajectoryxz->order;
 	patch->vTessellation = trajectoryxz->tessellation;
 	if(0){
-		FILE *fp = fopen("nurbsswung_dump.txt","w+");
-		int ic = 0;
-		for(int j=0;j<nt;j++){
-			for(int k=0;k<np;k++){
-				fprintf(fp,"%f %f %f,",xyz[ic*3 + 0], xyz[ic*3 +1], xyz[ic*3 +2]);
-				ic++;
-			}
-			printf("\n");
-		}
-		fprintf(fp,"uDimension=%d vDimension=%d nc=%d\n",np,nt,ic);
-		fclose(fp);
-	}
-	if(0){
 		int ic = 0;
 		for(int j=0;j<nt;j++){
 			for(int k=0;k<np;k++){
@@ -2319,9 +2306,11 @@ void collide_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
 }
 
 void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
+	struct X3D_NurbsPatchSurface *patch;
 		COMPILE_IF_REQUIRED
 		if (!node->_patch->_intern) 
 			return;
-//		CULL_FACE(node->solid)
-		render_polyrep(node->_patch);
+		patch = node->_patch;
+		CULL_FACE(patch->solid)
+		render_polyrep(patch);
 }
