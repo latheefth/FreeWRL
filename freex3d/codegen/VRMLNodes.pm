@@ -2205,6 +2205,7 @@ our %Nodes = (
 			trajectoryCurve => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			ccw => ["SFBool", "TRUE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			solid => ["SFBool", "TRUE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_patch => ["SFNode", "NULL", "initializeOnly", 0],
 		],"X3DParametricGeometryNode"),
 
 	"NurbsSwungSurface" => new VRML::NodeType("NurbsSwungSurface", [
@@ -2213,6 +2214,7 @@ our %Nodes = (
 			trajectoryCurve => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			ccw => ["SFBool", "TRUE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			solid => ["SFBool", "TRUE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_patch => ["SFNode", "NULL", "initializeOnly", 0],
 		],"X3DParametricGeometryNode"),
 
 	"NurbsTextureCoordinate" => new VRML::NodeType("NurbsTextureCoordinate", [

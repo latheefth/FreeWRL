@@ -2221,3 +2221,107 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 	#endif
 
 }
+
+
+void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
+	MARK_NODE_COMPILED
+	//strategy: generate 3D control net from curves, 
+	// then delegate to NurbsPatchSurface
+	//Swung: 
+	struct X3D_NurbsPatchSurface *patch;
+	struct X3D_Coordinate *controlPoint;
+	if(!node->_patch){
+		patch = node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
+		controlPoint = patch->controlPoint = createNewX3DNode(NODE_Coordinate);
+	}else{
+		patch = node->_patch;
+		controlPoint = patch->controlPoint;
+	}
+	struct X3D_NurbsCurve2D *trajectoryxz = (struct X3D_NurbsCurve2D *)node->trajectoryCurve;
+	struct X3D_NurbsCurve2D *profileyz = (struct X3D_NurbsCurve2D *)node->profileCurve;
+	int nt, np;
+	double *xyzp, *xyzt;
+	nt = trajectoryxz->controlPoint.n;
+	np = profileyz->controlPoint.n;
+	xyzp = (double*)profileyz->controlPoint.p;
+	xyzt = (double*)trajectoryxz->controlPoint.p;
+	float *xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
+	controlPoint->point.p = xyz;
+	controlPoint->point.n = nt * np;
+	int ic = 0;
+	for(int j=0;j<nt;j++){
+		float pt[3];
+		double2float(pt,&xyzt[j*2],2);
+		for(int i=0;i<np;i++){
+			float pp[3];
+			double2float(pp,&xyzp[2*i],2);
+			float cosine, sine, swingangle;
+			swingangle = atan2(pt[1],pt[0]);
+			cosine = cos(swingangle);
+			sine = sin(swingangle);
+			xyz[ic*3 + 0] = pt[0] + cosine * pp[0];
+			xyz[ic*3 + 1] = pp[1];
+			xyz[ic*3 + 2] = pt[1] + sine * pp[0];
+			ic++;
+		}
+	}
+	patch->solid = node->solid;
+	//u will be profile, 
+	patch->uDimension = np;
+	patch->uKnot.p = malloc(profileyz->knot.n * sizeof(double));
+	memcpy(patch->uKnot.p,profileyz->knot.p,profileyz->knot.n * sizeof(double));
+	patch->uKnot.n = profileyz->knot.n;
+	patch->uOrder = profileyz->order;
+	patch->uTessellation = profileyz->tessellation;
+	//v will be trajectory
+	patch->vDimension = nt;
+	patch->vKnot.p = malloc(trajectoryxz->knot.n * sizeof(double));
+	memcpy(patch->vKnot.p,trajectoryxz->knot.p,trajectoryxz->knot.n * sizeof(double));
+	patch->vKnot.n = trajectoryxz->knot.n;
+	patch->vOrder = trajectoryxz->order;
+	patch->vTessellation = trajectoryxz->tessellation;
+	if(0){
+		FILE *fp = fopen("nurbsswung_dump.txt","w+");
+		int ic = 0;
+		for(int j=0;j<nt;j++){
+			for(int k=0;k<np;k++){
+				fprintf(fp,"%f %f %f,",xyz[ic*3 + 0], xyz[ic*3 +1], xyz[ic*3 +2]);
+				ic++;
+			}
+			printf("\n");
+		}
+		fprintf(fp,"uDimension=%d vDimension=%d nc=%d\n",np,nt,ic);
+		fclose(fp);
+	}
+	if(0){
+		int ic = 0;
+		for(int j=0;j<nt;j++){
+			for(int k=0;k<np;k++){
+				printf("%f %f %f,",xyz[ic*3 + 0], xyz[ic*3 +1], xyz[ic*3 +2]);
+				ic++;
+			}
+			printf("\n");
+		}
+		printf("uDimension=%d vDimension=%d nc=%d\n",np,nt,ic);
+	}
+	compile_NurbsPatchSurface(node->_patch);
+}
+void rendray_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
+		COMPILE_IF_REQUIRED
+		if (!node->_intern) return;
+		render_ray_polyrep(node->_patch);
+}
+
+void collide_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
+		COMPILE_IF_REQUIRED
+		if (!node->_intern) return;
+		collide_genericfaceset(node->_patch);
+}
+
+void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
+		COMPILE_IF_REQUIRED
+		if (!node->_patch->_intern) 
+			return;
+//		CULL_FACE(node->solid)
+		render_polyrep(node->_patch);
+}

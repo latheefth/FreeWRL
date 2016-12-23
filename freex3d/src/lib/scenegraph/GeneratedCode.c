@@ -289,6 +289,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_p",
 	"_parentResource",
 	"_particles",
+	"_patch",
 	"_phaseFunction",
 	"_pointsVBO",
 	"_portions",
@@ -2917,7 +2918,11 @@ struct X3D_Virt virt_NurbsSurfaceInterpolator = { NULL,NULL,NULL,NULL,NULL,NULL,
 
 struct X3D_Virt virt_NurbsSweptSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-struct X3D_Virt virt_NurbsSwungSurface = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+void render_NurbsSwungSurface(struct X3D_NurbsSwungSurface *);
+void rendray_NurbsSwungSurface(struct X3D_NurbsSwungSurface *);
+void collide_NurbsSwungSurface(struct X3D_NurbsSwungSurface *);
+void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *);
+struct X3D_Virt virt_NurbsSwungSurface = { NULL,(void *)render_NurbsSwungSurface,NULL,NULL,(void *)rendray_NurbsSwungSurface,NULL,NULL,NULL,(void *)collide_NurbsSwungSurface,(void *)compile_NurbsSwungSurface};
 
 struct X3D_Virt virt_NurbsTextureCoordinate = { NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
@@ -5761,6 +5766,7 @@ const int OFFSETS_NurbsSurfaceInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsSweptSurface[] = {
+	(int) FIELDNAMES__patch, (int) offsetof (struct X3D_NurbsSweptSurface, _patch),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_ccw, (int) offsetof (struct X3D_NurbsSweptSurface, ccw),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_crossSectionCurve, (int) offsetof (struct X3D_NurbsSweptSurface, crossSectionCurve),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_NurbsSweptSurface, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -5769,6 +5775,7 @@ const int OFFSETS_NurbsSweptSurface[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_NurbsSwungSurface[] = {
+	(int) FIELDNAMES__patch, (int) offsetof (struct X3D_NurbsSwungSurface, _patch),  (int) FIELDTYPE_SFNode, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_ccw, (int) offsetof (struct X3D_NurbsSwungSurface, ccw),  (int) FIELDTYPE_SFBool, (int) KW_initializeOnly, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_NurbsSwungSurface, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_profileCurve, (int) offsetof (struct X3D_NurbsSwungSurface, profileCurve),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -11048,23 +11055,25 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_NurbsSweptSurface : {
 			struct X3D_NurbsSweptSurface * tmp2;
 			tmp2 = (struct X3D_NurbsSweptSurface *) tmp;
+			tmp2->_patch = NULL;
 			tmp2->ccw = TRUE;
 			tmp2->crossSectionCurve = NULL;
 			tmp2->metadata = NULL;
 			tmp2->solid = TRUE;
 			tmp2->trajectoryCurve = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_NurbsSwungSurface : {
 			struct X3D_NurbsSwungSurface * tmp2;
 			tmp2 = (struct X3D_NurbsSwungSurface *) tmp;
+			tmp2->_patch = NULL;
 			tmp2->ccw = TRUE;
 			tmp2->metadata = NULL;
 			tmp2->profileCurve = NULL;
 			tmp2->solid = TRUE;
 			tmp2->trajectoryCurve = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children;
+			tmp2->_defaultContainer = FIELDNAMES_geometry;
 		break;
 		}
 		case NODE_NurbsTextureCoordinate : {

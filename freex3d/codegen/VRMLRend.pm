@@ -37,8 +37,8 @@ our %defaultContainerType = (
 	NurbsPatchSurface	=>["geometry"],
 	NurbsSet		=>["children"],
 	NurbsSurfaceInterpolator	=>["children"],
-	NurbsSweptSurface	=>["children"],
-	NurbsSwungSurface	=>["children"],
+	NurbsSweptSurface	=>["geometry"],
+	NurbsSwungSurface	=>["geometry"],
 	NurbsTextureCoordinate	=>["texCoord"],
 
 
@@ -412,6 +412,7 @@ our %RendC = map {($_=>1)} qw/
 	QuadSet
 	NurbsCurve
 	NurbsPatchSurface
+	NurbsSwungSurface
 	NurbsTrimmedSurface
 	ComposedTexture3D
 	PixelTexture3D
@@ -666,6 +667,7 @@ our %CompileC = map {($_=>1)} qw/
 	DirectionalLight
 	NurbsCurve
 	NurbsPatchSurface
+	NurbsSwungSurface
 	NurbsTrimmedSurface
 	ContourPolyline2D	
 	Layout
@@ -773,6 +775,7 @@ our %CollisionC = map {($_=>1)} qw/
 	Text
 	GeoElevationGrid
 	NurbsPatchSurface
+	NurbsSwungSurface
 	NurbsTrimmedSurface	
 /;
 
@@ -867,6 +870,7 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleFanSet
 	TriangleStripSet
 	NurbsPatchSurface
+	NurbsSwungSurface
 	NurbsTrimmedSurface
 /;
 
