@@ -2321,43 +2321,58 @@ void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
 
 void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 	MARK_NODE_COMPILED
-	//strategy: construct 3D control net from 2 curves, delegate to nurbspatch 
 	//Swept: 
-	struct X3D_NurbsPatchSurface *patch;
-	struct X3D_Coordinate *controlPoint;
-	if(!node->_patch){
-		patch = node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
-		controlPoint = patch->controlPoint = createNewX3DNode(NODE_Coordinate);
-	}else{
-		patch = node->_patch;
-		controlPoint = patch->controlPoint;
-	}
-	struct X3D_NurbsCurve *trajectory = (struct X3D_NurbsCurve *)node->trajectoryCurve;
-	struct X3D_Coordinate *tcoord = (struct X3D_Coordinate*) trajectory->controlPoint;
-	struct X3D_NurbsCurve2D *xsection = (struct X3D_NurbsCurve2D *)node->crossSectionCurve;
 	int nt, np;
 	double *xyzx;
-	float *xyzt;
+	double *xyzt;
 
-	nt = tcoord->point.n;
+	struct X3D_NurbsCurve *trajectory = (struct X3D_NurbsCurve *)node->trajectoryCurve;
+	xyzt = NULL;
+	nt = 0;
+	switch(trajectory->controlPoint->_nodeType){
+		case NODE_Coordinate:
+		{
+			struct X3D_Coordinate *tcoord = (struct X3D_Coordinate*) trajectory->controlPoint;
+			nt = tcoord->point.n;
+			xyzt = MALLOC(double *,nt * sizeof(double));
+			for(int i=0;i<tcoord->point.n;i++)
+				float2double(&xyzt[i*3],tcoord->point.p[i].c,3);
+		}
+		break;
+		case NODE_CoordinateDouble:
+		{
+			struct X3D_CoordinateDouble *tcoord = (struct X3D_CoordinateDouble *)trajectory->controlPoint;
+			nt = tcoord->point.n;
+			xyzt = MALLOC(double *,nt * sizeof(double));
+			for(int i=0;i<tcoord->point.n;i++)
+				veccopyd(&xyzt[i*3],tcoord->point.p[i].c);
+
+		}
+		break;
+		default:
+		break;
+	}
+
+	struct X3D_NurbsCurve2D *xsection = (struct X3D_NurbsCurve2D *)node->crossSectionCurve;
+
 	np = xsection->controlPoint.n;
 	xyzx = (double*)xsection->controlPoint.p;
-	xyzt = (float*)tcoord->point.p;
-	float *xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
-	controlPoint->point.p = xyz;
-	controlPoint->point.n = nt * np;
 
+	// "The Nurbs Book", Les Piegl, Wayne Tiller, 2nd, 1997, Springer
+	// piegl p.472 10.4 Swept Surfaces
 	//ALGO Method 1.
-	//piegl p.472 swept surfaces method 1. S(u,v) = T(v) + C(u)
+	// method 1. S(u,v) = T(v) + C(u)
 	// - has a precise NURBS definition 
 	// - (no need for spine, B up vector, planes, skinning)
-	// - just set up the Suv control net and delegate to Patch
+	// - just set up the Suv control net and weights, and delegate to Patch
+	//		P(i,j) = Tj + Qi  (control points)
+	//		w(i,j) = wT(j) x wC(i)  (weights)
 	// - but piegl Figure 10.11 p.474 shows the results of this sweep:
 	//    * its good for nearly linear trajectories
 	//    x but not good if you turn a 90 corner 
 	//      - the profile isn't rotated with the trajectory
 	//      - so the 'tube' will flatten
-	//ALGO Method 2.
+	//ALGO 2 Method 2.
 	// if you want the tube to stay open ie profile rotates with trajectory curve,
 	// then you need to implement method 2. and for that
 	// 1. compute tesselation points along trajectory curve (use piegl CurvePoint)
@@ -2371,10 +2386,23 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 	node->_method = 1;
 	if(node->_method == 1){
 		//ALGO 1 Suv = T(v) + C(u)
+		struct X3D_NurbsPatchSurface *patch;
+		struct X3D_Coordinate *controlPoint;
+		if(!node->_patch){
+			patch = node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
+			controlPoint = patch->controlPoint = createNewX3DNode(NODE_Coordinate);
+		}else{
+			patch = node->_patch;
+			controlPoint = patch->controlPoint;
+		}
+		float *xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
+		controlPoint->point.p = xyz;
+		controlPoint->point.n = nt * np;
+
 		int ic = 0;
 		for(int j=0;j<nt;j++){
 			float pt[3];
-			veccopy3f(pt,&xyzt[j*3]);
+			double2float(pt,&xyzt[j*3],3);
 			for(int i=0;i<np;i++){
 				float pp[3];
 				double2float(pp,&xyzx[2*i],2);
@@ -2385,6 +2413,24 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 			}
 		}
 
+		double *weight = NULL;
+		if((trajectory->weight.n && trajectory->weight.n == nt) || 
+			(xsection->weight.n  &&  xsection->weight.n  == np)){
+			//we have some non-default weights, so apply the piegl formula p.473
+			// w(i,j) = wT(j) x wC(i)  (weights)
+			weight = MALLOC(double*,nt * np * sizeof(double));
+			for(int j=0;j<nt;j++){
+				double wtTj = trajectory->weight.p[j];
+				for(int i=0;i<np;i++)
+					weight[j*np + i] = wtTj * xsection->weight.p[i];
+			}
+		}
+
+
+		if(weight){
+			patch->weight.p = weight;
+			patch->weight.n = nt * np;
+		}
 		patch->solid = node->solid;
 		//u will be profile, 
 		patch->uDimension = np;
