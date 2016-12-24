@@ -2035,6 +2035,7 @@ END_NODE(NormalInterpolator)
 
 /* NurbsCurve node */
 BEGIN_NODE(NurbsCurve)
+FIELD(NurbsCurve,closed,sfbool,closed,FIELDTYPE_SFBool)
 EXPOSED_FIELD(NurbsCurve,controlPoint,sfnode,controlPoint,FIELDTYPE_SFNode)
 FIELD(NurbsCurve,knot,mfdouble,knot,FIELDTYPE_MFDouble)
 EXPOSED_FIELD(NurbsCurve,metadata,sfnode,metadata,FIELDTYPE_SFNode)
@@ -2045,6 +2046,7 @@ END_NODE(NurbsCurve)
 
 /* NurbsCurve2D node */
 BEGIN_NODE(NurbsCurve2D)
+FIELD(NurbsCurve2D,closed,sfbool,closed,FIELDTYPE_SFBool)
 EXPOSED_FIELD(NurbsCurve2D,controlPoint,mfvec2d,controlPoint,FIELDTYPE_MFVec2d)
 FIELD(NurbsCurve2D,knot,mfdouble,knot,FIELDTYPE_MFDouble)
 EXPOSED_FIELD(NurbsCurve2D,metadata,sfnode,metadata,FIELDTYPE_SFNode)
@@ -2126,6 +2128,7 @@ BEGIN_NODE(NurbsSweptSurface)
 FIELD(NurbsSweptSurface,ccw,sfbool,ccw,FIELDTYPE_SFBool)
 EXPOSED_FIELD(NurbsSweptSurface,crossSectionCurve,sfnode,crossSectionCurve,FIELDTYPE_SFNode)
 EXPOSED_FIELD(NurbsSweptSurface,metadata,sfnode,metadata,FIELDTYPE_SFNode)
+EVENT_IN(NurbsSweptSurface,method,sfstring,method,FIELDTYPE_SFString)
 FIELD(NurbsSweptSurface,solid,sfbool,solid,FIELDTYPE_SFBool)
 EXPOSED_FIELD(NurbsSweptSurface,trajectoryCurve,sfnode,trajectoryCurve,FIELDTYPE_SFNode)
 END_NODE(NurbsSweptSurface)

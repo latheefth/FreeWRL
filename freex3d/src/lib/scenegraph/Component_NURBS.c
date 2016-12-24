@@ -175,6 +175,60 @@ HARD PARTS:
 
 
 */
+void free_polyrep(struct X3D_PolyRep *rep){
+	//see also delete_polyrep - did dug9 duplicate the function or is it different?
+	if(rep){
+		rep->ntri = 0;
+		rep->transparency = 0;
+		//Q. are any of these added to GC tables? If not..
+		glDeleteBuffers(VBO_COUNT, rep->VBO_buffers);
+		FREE_IF_NZ(rep->actualCoord);
+		FREE_IF_NZ(rep->cindex);
+		FREE_IF_NZ(rep->colindex);
+		FREE_IF_NZ(rep->GeneratedTexCoords[0]);
+		FREE_IF_NZ(rep->norindex);
+		FREE_IF_NZ(rep->normal);
+		FREE_IF_NZ(rep->tcindex);
+		FREE_IF_NZ(rep);
+	}
+}
+struct X3D_PolyRep * create_polyrep(){
+	int i;
+	struct X3D_PolyRep *polyrep;
+
+	polyrep = MALLOC(struct X3D_PolyRep *, sizeof(struct X3D_PolyRep));
+	memset(polyrep,0,sizeof(struct X3D_PolyRep));
+	polyrep->ntri = -1;
+	//polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
+	//polyrep->norindex = 0; polyrep->normal = 0; polyrep->flat_normal = 0; polyrep->GeneratedTexCoords = 0;
+	//polyrep->tri_indices = 0; polyrep->wire_indices = 0; polyrep->actualFog = 0;
+	//polyrep->tcindex = 0; 
+	//polyrep->tcoordtype = 0;
+	//polyrep->last_index_type = 0; polyrep->last_normal_type = 0;
+	polyrep->streamed = FALSE;
+
+	/* for Collision, default texture generation */
+	polyrep->minVals[0] =  999999.9f;
+	polyrep->minVals[1] =  999999.9f;
+	polyrep->minVals[2] =  999999.9f;
+	polyrep->maxVals[0] =  -999999.9f;
+	polyrep->maxVals[1] =  -999999.9f;
+	polyrep->maxVals[2] =  -999999.9f;
+
+	for (i=0; i<VBO_COUNT; i++) 
+		polyrep->VBO_buffers[i] = 0;
+
+	/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
+	glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
+	glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
+	//glGenBuffers(1,&polyrep->VBO_buffers[NORMAL_VBO]);
+	//glGenBuffers(1,&polyrep->VBO_buffers[TEXTURE_VBO0+0]);
+
+
+
+	/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
+	return polyrep;
+}
 
 
 
@@ -448,7 +502,7 @@ void CALLBACK nurbscurveEndcb(void *ud)
 	if(DEBGC) printf("nurbscurveEnd\n");
 }
 
-#endif
+
 
 int generateUniformKnotVector(int order, int ncontrol, float *knots){
 	//produced pinned uniform knot vector
@@ -534,7 +588,6 @@ void compile_ContourPolyline2D(struct X3D_ContourPolyline2D *node){
 
 void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 	MARK_NODE_COMPILED
-#ifdef NURBS_LIB
 	{
 		int i,j, n, nk;
 		GLfloat *xyzw, *knots;
@@ -673,7 +726,6 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 			node->__points.n = node->__numPoints;
 		}
 	}
-#endif
 }
 
 void render_NurbsCurve(struct X3D_NurbsCurve *node){
@@ -849,7 +901,6 @@ compile - custom: we will convert our parametric surface to a polyrep in here
 	struct Vector tv; //vector of texcoords
 };
 
- #ifdef NURBS_LIB
 //surface
 // strategy: on begin, we'll store the gl_ type, and zero __points
 // then accumulate the __points
@@ -939,65 +990,11 @@ void CALLBACK nurbssurfTexcoordcb(GLfloat *tCrd, void *ud){
 	if(0) if(DEBG) 
 		printf("callback nurbssufTexcoordcb\n");
 }
-#endif
-
-void free_polyrep(struct X3D_PolyRep *rep){
-	//see also delete_polyrep - did dug9 duplicate the function or is it different?
-	if(rep){
-		rep->ntri = 0;
-		rep->transparency = 0;
-		//Q. are any of these added to GC tables? If not..
-		glDeleteBuffers(VBO_COUNT, rep->VBO_buffers);
-		FREE_IF_NZ(rep->actualCoord);
-		FREE_IF_NZ(rep->cindex);
-		FREE_IF_NZ(rep->colindex);
-		FREE_IF_NZ(rep->GeneratedTexCoords[0]);
-		FREE_IF_NZ(rep->norindex);
-		FREE_IF_NZ(rep->normal);
-		FREE_IF_NZ(rep->tcindex);
-		FREE_IF_NZ(rep);
-	}
-}
-struct X3D_PolyRep * create_polyrep(){
-	int i;
-	struct X3D_PolyRep *polyrep;
-
-	polyrep = MALLOC(struct X3D_PolyRep *, sizeof(struct X3D_PolyRep));
-	memset(polyrep,0,sizeof(struct X3D_PolyRep));
-	polyrep->ntri = -1;
-	//polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
-	//polyrep->norindex = 0; polyrep->normal = 0; polyrep->flat_normal = 0; polyrep->GeneratedTexCoords = 0;
-	//polyrep->tri_indices = 0; polyrep->wire_indices = 0; polyrep->actualFog = 0;
-	//polyrep->tcindex = 0; 
-	//polyrep->tcoordtype = 0;
-	//polyrep->last_index_type = 0; polyrep->last_normal_type = 0;
-	polyrep->streamed = FALSE;
-
-	/* for Collision, default texture generation */
-	polyrep->minVals[0] =  999999.9f;
-	polyrep->minVals[1] =  999999.9f;
-	polyrep->minVals[2] =  999999.9f;
-	polyrep->maxVals[0] =  -999999.9f;
-	polyrep->maxVals[1] =  -999999.9f;
-	polyrep->maxVals[2] =  -999999.9f;
-
-	for (i=0; i<VBO_COUNT; i++) 
-		polyrep->VBO_buffers[i] = 0;
-
-	/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
-	glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
-	glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
-	//glGenBuffers(1,&polyrep->VBO_buffers[NORMAL_VBO]);
-	//glGenBuffers(1,&polyrep->VBO_buffers[TEXTURE_VBO0+0]);
 
 
 
-	/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
-	return polyrep;
-}
-#ifndef NURBS_LIB
 #define GL_QUAD_STRIP				0x0008
-#endif
+
 static int USETXCOORD = 1;
 void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSurface *node){
 	//this is a bit like compile_polyrep, except the virt_make is below
@@ -1201,7 +1198,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 
 void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node *trim){
 	MARK_NODE_COMPILED
-#ifdef NURBS_LIB
+
 	{
 		int i,j, n, nu, nv, nku, nkv;
 		GLfloat *xyzw, *knotsu, *knotsv;
@@ -1746,7 +1743,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			convert_strips_to_polyrep(strips,(struct X3D_NurbsTrimmedSurface*)node);
 		}
 	}
-#endif
+
 }
 
 void render_ray_polyrep(void *node);
@@ -2610,7 +2607,10 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 	//		a) insert up- and tangent- oriented xsection points
 	//		b) skin: join current xsection points with last with triangles
 	// 
-	node->_method = 2;
+	if(!strcmp(node->method->strptr,"FULL"))
+		node->_method = 2;
+	if(!strcmp(node->method->strptr,"TRANSLATE"))
+		node->_method = 1;
 	if(node->_method == 1){
 		//ALGO 1 Suv = T(v) + C(u)
 		struct X3D_NurbsPatchSurface *patch;
@@ -2915,3 +2915,99 @@ void render_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
 
 	}
 }
+void compile_NurbsSet(struct X3D_NurbsSet *node){
+	MARK_NODE_COMPILED
+	//tessellationScale
+	for(int i=0;i<node->geometry.n;i++){
+		struct X3D_Node *gn = (struct X3D_Node*)node->geometry.p[i];
+		switch(gn->_nodeType){
+			case NODE_NurbsCurve:
+			{
+				struct X3D_NurbsCurve* g = (struct X3D_NurbsCurve*)gn;
+				g->_tscale = node->tessellationScale;
+				MNX(g);
+			}
+			break;
+			case NODE_NurbsCurve2D:
+			{
+				struct X3D_NurbsCurve2D* g = (struct X3D_NurbsCurve2D*)gn;
+				g->_tscale = node->tessellationScale;
+				MNX(g);
+			}
+			break;
+			case NODE_NurbsPatchSurface:
+			{
+				struct X3D_NurbsPatchSurface* g = (struct X3D_NurbsPatchSurface*)gn;
+				g->_tscale = node->tessellationScale;
+				MNX(g);
+			}
+			break;
+			case NODE_NurbsTrimmedSurface:
+			{
+				struct X3D_NurbsTrimmedSurface* g = (struct X3D_NurbsTrimmedSurface*)gn;
+				g->_tscale = node->tessellationScale;
+				MNX(g);
+			}
+			break;
+			case NODE_NurbsSweptSurface:
+			{
+				struct X3D_NurbsSweptSurface* g = (struct X3D_NurbsSweptSurface*)gn;
+				if(g->_method == 1){
+					if(g->_patch){
+						struct X3D_NurbsPatchSurface *patch = (struct X3D_NurbsPatchSurface *)g->_patch;
+						patch->_tscale = node->tessellationScale;
+						MNX(g);
+					}
+				}
+				if(g->_method == 2){
+					struct X3D_NurbsCurve2D *curve = (struct X3D_NurbsCurve2D *)g->crossSectionCurve;
+					curve->_tscale = node->tessellationScale;
+					MNX(g->crossSectionCurve);
+					curve = (struct X3D_NurbsCurve2D *)g->trajectoryCurve;
+					curve->_tscale = node->tessellationScale;
+					MNX(g->trajectoryCurve);
+				}
+			}
+			break;
+			case NODE_NurbsSwungSurface:
+			{
+				struct X3D_NurbsSwungSurface* g = (struct X3D_NurbsSwungSurface*)gn;
+				if(g->_patch){
+					struct X3D_NurbsPatchSurface *patch = (struct X3D_NurbsPatchSurface *)g->_patch;
+					patch->_tscale = node->tessellationScale;
+					MNX(g);
+				}
+			}
+			break;
+		}
+	}
+}
+void render_NurbsSet(struct X3D_NurbsSet *node){
+	COMPILE_IF_REQUIRED
+}
+#else //LIB_NURBS
+void compile_ContourPolyline2D(struct X3D_ContourPolyline2D *node){}
+void compile_NurbsCurve(struct X3D_NurbsCurve *node){}
+void render_NurbsCurve(struct X3D_NurbsCurve *node){}
+void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){}
+void rendray_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {}
+void collide_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {}
+void render_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {}
+void compile_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *node){}
+void rendray_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {}
+void collide_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {}
+void render_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {}
+void do_NurbsPositionInterpolator (void *node) {}
+void do_NurbsOrientationInterpolator (void *node){}
+void do_NurbsSurfaceInterpolator (void *_node){}
+void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){}
+void rendray_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {}
+void collide_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {}
+void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {}
+void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){}
+void rendray_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {}
+void collide_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {}
+void render_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node){}
+void compile_NurbsSet(struct X3D_NurbsSet *node){}
+void render_NurbsSet(struct X3D_NurbsSet *node){}
+#endif //LIB_NURBS

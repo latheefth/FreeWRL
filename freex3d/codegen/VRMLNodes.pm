@@ -2110,6 +2110,8 @@ our %Nodes = (
 			knot => ["MFDouble",[],"initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			order => ["SFInt32",3,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tessellation => ["SFInt32",0,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			closed => ["SFBool", "FALSE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_tscale => ["SFFloat",1.0,"initializeOnly", 0],
 			__points  =>["MFVec3f",[],"initializeOnly", 0],
 			__numPoints =>["SFInt32",0,"initializeOnly", 0],
 		],"X3DParametricGeometryNode"),
@@ -2121,6 +2123,8 @@ our %Nodes = (
 			knot => ["MFDouble",[],"initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			order => ["SFInt32",3,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			tessellation => ["SFInt32",0,"inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			closed => ["SFBool", "FALSE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_tscale => ["SFFloat",1.0,"initializeOnly", 0],
 		],"X3DNurbsControlCurveNode"),
 
 
@@ -2154,6 +2158,7 @@ our %Nodes = (
 			vClosed => ["SFBool", "FALSE","initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			texCoord => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			solid => ["SFBool", "TRUE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_tscale => ["SFFloat",1.0,"initializeOnly", 0],
 		],"X3DNurbsSurfaceGeometryNode"),
 
 	"NurbsPositionInterpolator" => new VRML::NodeType("NurbsPositionInterpolator", [
@@ -2205,8 +2210,9 @@ our %Nodes = (
 			trajectoryCurve => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			ccw => ["SFBool", "TRUE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			solid => ["SFBool", "TRUE", "initializeOnly", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			method => ["SFString", "FULL", "inputOnly", 0], #TRANSLATE / FULL
 			_patch => ["SFNode", "NULL", "initializeOnly", 0],
-			_method => ["SFInt32",1,"initializeOnly",0], #1. Suv = Tv + Cu and delegate to patch 2. insert xsection at each profile tess point, and skin
+			_method => ["SFInt32",2,"initializeOnly",0], #1. Suv = Tv + Cu and delegate to patch 2. insert xsection at each profile tess point, and skin
 		],"X3DParametricGeometryNode"),
 
 	"NurbsSwungSurface" => new VRML::NodeType("NurbsSwungSurface", [
@@ -2253,6 +2259,7 @@ our %Nodes = (
 			addTrimmingContour => ["MFNode",[],"inputOnly","(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			removeTrimmingContour => ["MFNode",[],"inputOnly","(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 			trimmingContour =>["MFNode",[], "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+			_tscale => ["SFFloat",1.0,"initializeOnly", 0],
 		], "X3DNurbsSurfaceGeometryNode"),
 
 
