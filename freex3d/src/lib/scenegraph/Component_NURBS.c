@@ -707,6 +707,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 					mtess = max(mtess,(-ntess * n) + 1);
 				else
 					mtess = max(mtess,2*n + 1);
+				mtess *= node->_tscale;
 				node->__points.p = MALLOC(void *, sizeof(struct SFVec3f)*mtess+1);
 				node->__points.n = mtess;  //.n will be used for realloc test in callbacks
 				gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
@@ -1362,12 +1363,15 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 					mtessu = max(mtessu,(-ntessu * nu) + 1);
 				else
 					mtessu = max(mtessu,2*nu + 1);
+
 				if(ntessv > 0) 
 					mtessv = max(mtessv,ntessv+1);
 				else if(ntessv < 0) 
 					mtessv = max(mtessv,(-ntessv * nv) + 1);
 				else
 					mtessv = max(mtessv,2*nv + 1);
+				mtessu *= node->_tscale;
+				mtessv *= node->_tscale;
 
 				gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
 				gluNurbsProperty(theNurb,GLU_U_STEP,(GLfloat)mtessu);
@@ -2270,14 +2274,14 @@ void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
 	memcpy(patch->uKnot.p,profileyz->knot.p,profileyz->knot.n * sizeof(double));
 	patch->uKnot.n = profileyz->knot.n;
 	patch->uOrder = profileyz->order;
-	patch->uTessellation = profileyz->tessellation;
+	patch->uTessellation = profileyz->tessellation * profileyz->_tscale;
 	//v will be trajectory
 	patch->vDimension = nt;
 	patch->vKnot.p = malloc(trajectoryxz->knot.n * sizeof(double));
 	memcpy(patch->vKnot.p,trajectoryxz->knot.p,trajectoryxz->knot.n * sizeof(double));
 	patch->vKnot.n = trajectoryxz->knot.n;
 	patch->vOrder = trajectoryxz->order;
-	patch->vTessellation = trajectoryxz->tessellation;
+	patch->vTessellation = trajectoryxz->tessellation * profileyz->_tscale;
 	if(0){
 		int ic = 0;
 		for(int j=0;j<nt;j++){
@@ -2665,14 +2669,14 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		memcpy(patch->uKnot.p,xsection->knot.p,xsection->knot.n * sizeof(double));
 		patch->uKnot.n = xsection->knot.n;
 		patch->uOrder = xsection->order;
-		patch->uTessellation = xsection->tessellation;
+		patch->uTessellation = xsection->tessellation * xsection->_tscale;
 		//v will be trajectory
 		patch->vDimension = nt;
 		patch->vKnot.p = malloc(xsection->knot.n * sizeof(double));
 		memcpy(patch->vKnot.p,trajectory->knot.p,trajectory->knot.n * sizeof(double));
 		patch->vKnot.n = trajectory->knot.n;
 		patch->vOrder = trajectory->order;
-		patch->vTessellation = trajectory->tessellation;
+		patch->vTessellation = trajectory->tessellation * trajectory->_tscale;
 		if(0){
 			int ic = 0;
 			for(int j=0;j<nt;j++){
@@ -2691,7 +2695,9 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		int mtessv, mtessu, nku, nkv;
 		float *knotsu,*knotsv,*xyzwu,*xyzwv, urange[2],vrange[2];
 		mtessu = compute_tessellation(xsection->tessellation,xsection->order,np);
+		mtessu *= xsection->_tscale;
 		mtessv = compute_tessellation(trajectory->tessellation,trajectory->order,nt);
+		mtessv *= trajectory->_tscale;
 		compute_knotvector(xsection->order,np,xsection->knot.n,xsection->knot.p,&nku,&knotsu,urange);
 		compute_knotvector(trajectory->order,nt,trajectory->knot.n,trajectory->knot.p,&nkv,&knotsv,vrange);
 		compute_weightedcontrol(xyzt,3,nt, trajectory->weight.n, trajectory->weight.p, &xyzwv);
