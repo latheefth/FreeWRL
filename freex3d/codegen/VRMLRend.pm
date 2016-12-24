@@ -26,20 +26,20 @@ use warnings;
 our %defaultContainerType = (
 	Proto			=>["children"],
 
-	ContourPolyLine2D	=>["children"],
+	ContourPolyline2D	=>["children"],
 	NurbsCurve		=>["geometry"],
 	NurbsCurve2D		=>["children"],
 	Contour2D 		=>["trimmingContour"],
 	NurbsPositionInterpolator	=>["children"],
 	NurbsTrimmedSurface	=>["geometry"],
-	CoordinateDouble	=>["children"],
+	CoordinateDouble	=>["controlPoint"],
 	NurbsOrientationInterpolator	=>["children"],
 	NurbsPatchSurface	=>["geometry"],
 	NurbsSet		=>["children"],
 	NurbsSurfaceInterpolator	=>["children"],
-	NurbsSweptSurface	=>["children"],
-	NurbsSwungSurface	=>["children"],
-	NurbsTextureCoordinate	=>["children"],
+	NurbsSweptSurface	=>["geometry"],
+	NurbsSwungSurface	=>["geometry"],
+	NurbsTextureCoordinate	=>["texCoord"],
 
 
 	PointPickSensor		=>["children"],
@@ -146,7 +146,7 @@ our %defaultContainerType = (
 	ScalarInterpolator 	=>["children"],
 	Scene 			=>["children"],
 	Script 			=>["children"],
-	Shape 			=>["children"],
+	Shape 			=>["children","shape"],
 	Sound 			=>["children"],
 	Sphere 			=>["geometry"],
 	SphereSensor 		=>["children"],
@@ -202,8 +202,8 @@ our %defaultContainerType = (
 	ScreenGroup		=>["children"],
 
 	BallJoint		=>["joints"],
-	CollidableOffset	=>["collidables","collidable"],
-	CollidableShape		=>["collidables","collidable"],
+	CollidableOffset	=>["collidables","geometry"], #collidable
+	CollidableShape		=>["collidables","geometry"], #collidable
 	CollisionCollection	=>["collider"],
 	CollisionSensor		=>["children"],
 	CollisionSpace		=>["collidables"],
@@ -412,6 +412,8 @@ our %RendC = map {($_=>1)} qw/
 	QuadSet
 	NurbsCurve
 	NurbsPatchSurface
+	NurbsSwungSurface
+	NurbsSweptSurface	
 	NurbsTrimmedSurface
 	ComposedTexture3D
 	PixelTexture3D
@@ -666,7 +668,10 @@ our %CompileC = map {($_=>1)} qw/
 	DirectionalLight
 	NurbsCurve
 	NurbsPatchSurface
+	NurbsSwungSurface
+	NurbsSweptSurface	
 	NurbsTrimmedSurface
+	ContourPolyline2D	
 	Layout
 	
 	CollidableOffset
@@ -772,6 +777,8 @@ our %CollisionC = map {($_=>1)} qw/
 	Text
 	GeoElevationGrid
 	NurbsPatchSurface
+	NurbsSwungSurface
+	NurbsSweptSurface	
 	NurbsTrimmedSurface	
 /;
 
@@ -866,6 +873,8 @@ our %RendRayC = map {($_=>1)} qw/
 	TriangleFanSet
 	TriangleStripSet
 	NurbsPatchSurface
+	NurbsSwungSurface
+	NurbsSweptSurface	
 	NurbsTrimmedSurface
 /;
 

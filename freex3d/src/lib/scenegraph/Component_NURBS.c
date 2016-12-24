@@ -46,7 +46,7 @@
 #include "Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../vrml_parser/CRoutes.h"
-
+#include "Polyrep.h"
 #include <float.h>
 #if defined(_MSC_VER) && _MSC_VER < 1500
 #define cosf cos
@@ -175,11 +175,286 @@ HARD PARTS:
 
 
 */
+void free_polyrep(struct X3D_PolyRep *rep){
+	//see also delete_polyrep - did dug9 duplicate the function or is it different?
+	if(rep){
+		rep->ntri = 0;
+		rep->transparency = 0;
+		//Q. are any of these added to GC tables? If not..
+		glDeleteBuffers(VBO_COUNT, rep->VBO_buffers);
+		FREE_IF_NZ(rep->actualCoord);
+		FREE_IF_NZ(rep->cindex);
+		FREE_IF_NZ(rep->colindex);
+		FREE_IF_NZ(rep->GeneratedTexCoords[0]);
+		FREE_IF_NZ(rep->norindex);
+		FREE_IF_NZ(rep->normal);
+		FREE_IF_NZ(rep->tcindex);
+		FREE_IF_NZ(rep);
+	}
+}
+struct X3D_PolyRep * create_polyrep(){
+	int i;
+	struct X3D_PolyRep *polyrep;
+
+	polyrep = MALLOC(struct X3D_PolyRep *, sizeof(struct X3D_PolyRep));
+	memset(polyrep,0,sizeof(struct X3D_PolyRep));
+	polyrep->ntri = -1;
+	//polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
+	//polyrep->norindex = 0; polyrep->normal = 0; polyrep->flat_normal = 0; polyrep->GeneratedTexCoords = 0;
+	//polyrep->tri_indices = 0; polyrep->wire_indices = 0; polyrep->actualFog = 0;
+	//polyrep->tcindex = 0; 
+	//polyrep->tcoordtype = 0;
+	//polyrep->last_index_type = 0; polyrep->last_normal_type = 0;
+	polyrep->streamed = FALSE;
+
+	/* for Collision, default texture generation */
+	polyrep->minVals[0] =  999999.9f;
+	polyrep->minVals[1] =  999999.9f;
+	polyrep->minVals[2] =  999999.9f;
+	polyrep->maxVals[0] =  -999999.9f;
+	polyrep->maxVals[1] =  -999999.9f;
+	polyrep->maxVals[2] =  -999999.9f;
+
+	for (i=0; i<VBO_COUNT; i++) 
+		polyrep->VBO_buffers[i] = 0;
+
+	/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
+	glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
+	glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
+	//glGenBuffers(1,&polyrep->VBO_buffers[NORMAL_VBO]);
+	//glGenBuffers(1,&polyrep->VBO_buffers[TEXTURE_VBO0+0]);
+
+
+
+	/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
+	return polyrep;
+}
 
 
 
 #ifdef NURBS_LIB
+//START MIT LIC >>>>>>>>
+//some algorithms from "The Nurbs Book", Les Piegl et al
+int uniformKnot(int n, int p, float *U){
+	int j, k, m, mm;
+	float uniform;
+	m = n + p + 1;
+	k = 0;
+	uniform = 1.0f/(float)(n-p);
+	for(j=0;j<p;k++,j++){
+		U[k] = 0.0f;
+	}
+	mm = n - p + 1;
+	for(j=0;j<mm;j++,k++){
+		U[k] = j*uniform;
+	}
+	for(j=0;j<p;j++,k++){
+		U[k] = 1.0f;
+	}
+	U[8] = 1.0f;
+	printf("U= ");
+	for(j=0;j<m+1;j++){
+		printf(" U[%d]=%f",j,U[j]);
+	}
+	return 1;
+}
+
+//ALGORITHM A2.1 p.68 Piegl
+int FindSpan(int n, int p, float u, float *U)
+{
+	/*	Determine the knot span index: where u is in U[i]
+		Input:
+			n - # of control points == m - p - 1
+			p - degree of curve = power + 1 ie linear 2, quadratic 3, cubic 4
+			U - knot vector [0 ... m-1]
+			u - scalar curve parameter in range u0 - um
+		Return:
+			knot span index ie if u is between U[i] and U[i+1] return i
+		Internal:
+			order = p + 1
+			m = number of knots = n + order
+		Algorithm:
+			limit the search range between p and m - p - 1 (2 and 4 for this example)
+			assume clamped/pinned ends
+		Example:
+		U = { 0,0,0,1,2,3,4,4,5,5,5 } m = 11
+		spnidx 0 1 2 3 4 5 6 7 8 9
+		u = 2.5        ^ span index == 4
+		u = .0001  ^ span index == 2
+		u = 0      ^ span index == 2
+		u = .4999            ^ span index = 4
+		u = 5                ^ span index = 4
+		
+	*/
+	if(1){
+		//dug9 algo, simpler linear search
+		int i, span, m, order;
+		order = p + 1;
+		m = n + order;
+		span = p;
+		for(i=p;i<n;i++){
+			span = i;
+			if(u >= U[i] && u < U[i+1])
+				break;
+		}
+		return span;
+	}else{
+		int low, high, mid;
+		//if(u == U[n+1]) return n;
+		if(u == U[n]) return n-1;  //this prevents divide by zero when u = 1
+		low = p; high = n+1; mid = (low+high)/2;
+		while(u < U[mid] || u >= U[mid+1]){
+			if(u < U[mid]) high = mid;
+			else low = mid;
+			mid = (low + high)/2;
+		}
+		return mid;
+	}
+}
+//ALGORITHM A2.2 p.70 Piegl
+int BasisFuns(int span, float u, int p, float *U, float *N){
+	/* Compute the non-vanishing Basis functions
+		Input:
+			span = knot span: which knots is this u in between: if between U[i] and U[i+1], span == i
+			u - scalar curve parameter in range u0 - um
+			p - degree of curve = power + 1 ie linear 2, quadratic 3, cubic 4
+			U - knot vector [0 ... m-1]
+		Output:
+			N - precomputed rational bernstein basis functions for a given span
+				- these are blending weights that say how much of each surrounding 
+				  control point is used in a given span
+	*/
+	int j, r;
+	float left[5], right[5], saved, temp;
+	//float testzero;
+	N[0] =1.0f;
+	for(j=1;j<=p;j++){
+		left[j] = u - U[span+1 - j];
+		right[j] = U[span+j] - u;
+		saved = 0.0f;
+		for(r=0;r<j;r++){
+			//testzero = right[r+1]+left[j-r];
+			//if(fabs(testzero) < .00001) 
+			//	printf("ouch divide by zero\n");
+			temp = N[r]/(right[r+1]+left[j-r]);
+			N[r] = saved + right[r+1]*temp;
+			saved = left[j-r]*temp;
+		}
+		N[j] = saved;
+	}
+	return 1;
+}
+
+//ALGORITHM A4.1 p.124 Piegl
+int CurvePoint(int n, int p, float* U, float *Pw, float u, float *C )
+{
+	/*	Compute point on rational B-spline curve
+		Input:
+			n - # of control points == m - p - 1
+			p - degree of curve linear 1, quadratic 2, cubic 3
+			U[] - knot vector [0 ... m], m = n + p + 1
+			Pw[] - control point vector 
+				where w means rational/homogenous: Pw[i] = {wi*xi,wi*yi,wi*zi,wi}
+			u - scalar curve parameter in range u0 - um
+		Output:
+			C - 3D point = Cw/w
+		Internal:
+			span = knot span: which knots is this u in between: if between U[i] and U[i+1], span == i
+			N[] - precomputed rational bernstein basis functions for a given span
+				- these are blending weights that say how much of each surrounding control point is used in a given span
+			w - weight, assuming it's uniform
+	*/
+	int span,i,j;
+	float N[100], w;
+	float Cw[4];
+	span = FindSpan(n,p,u,U);
+	BasisFuns(span,u,p,U,N);
+	w = 1.0f;
+	for(i=0;i<4;i++) Cw[i] = 0.0f;
+	//Cw[3] = w;
+	for(j=0;j<=p;j++){
+		for(i=0;i<4;i++){
+			Cw[i] += N[j]*Pw[(span-p+j)*4 + i];
+		}
+	}
+	for(i=0;i<3;i++)
+		C[i] = Cw[i]/Cw[3];
+
+	return 1;
+}
+
+
+
+
+
+//ALGORITHM A4.3 p.134 Piegl
+/* example call:
+ok = SurfacePoint(	node->uDimension,node->uOrder-1,node->uKnot.p, 
+					node->vDimension,node->vOrder-1,node->vKnot.p,
+					node->controlPoint.p,uv[0],uv[1],xyz);
+*/
+int SurfacePoint(int n,int p,float *U,
+				int m, int q,float *V,
+				float *Pw,float u,float v,float *S)
+{
+	/*	Compute point on rational B-Spline surface S(u,v)
+		Input:
+			u direction:
+				n - # of control points 
+				p - degree of curve linear 1, quadratic 2, cubic 3
+				U[] - knot vector [0 ...  n + p + 1]
+				u - scalar curve parameter 
+			v direction:
+				m - # of control points 
+				q - degree of curve linear 1, quadratic 2, cubic 3
+				V[] - knot vector [0 ... m + q + 1]
+				v - scalar curve parameter 
+			Pw[] - control point vector 
+				where w means rational/homogenous: Pw[i] = {wi*xi,wi*yi,wi*zi,wi}
+		Output:
+			S - output 3D point = Sw/w
+	*/
+	int uspan, vspan, i, l, k;
+	float Nu[100], Nv[100], temp[6][4], Sw[4];
+
+	uspan = FindSpan(n,p,u,U);
+	BasisFuns(uspan,u,p,U,Nu);
+	vspan = FindSpan(m,q,v,V);
+	BasisFuns(vspan,v,q,V,Nv);
+	for(l=0;l<=q;l++){
+		for(i=0;i<4;i++)
+			temp[l][i] = 0.0f;
+		for(k=0;k<=p;k++){
+			//temp[l] += Nu[k]*Pw[uspan-p+k][vspan-q+l];
+			for(i=0;i<4;i++)
+				temp[l][i] += Nu[k]*Pw[((uspan-p+k)*n + (vspan-q+l))*4 + i];
+
+		}
+	}
+	for(i=0;i<4;i++) Sw[i] = 0.0f;
+	for(l=0;l<=q;l++){
+		for(i=0;i<4;i++)
+			Sw[i] += Nv[l]*temp[l][i];
+	}
+	for(i=0;i<3;i++)
+		S[i] = Sw[i]/Sw[3];
+	return 1;
+}
+// <<<<< END MIT LIC
+
 #include <libnurbs2.h>
+static int DEBG = 0; //glu nurbs surface and trim calls
+static int DEBGC = 0; //curve calls
+
+//defined in Component_RigidBodyPhysics
+int NNC0(struct X3D_Node* node); 
+void MNC0(struct X3D_Node* node);
+void MNX0(struct X3D_Node* node);
+#define NNC(A) NNC0(X3D_NODE(A))  //node needs compiling
+#define MNC(A) MNC0(X3D_NODE(A))  //mark node compiled
+#define MNX(A) MNX0(X3D_NODE(A))  //mark node changed
+#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
+
 void CALLBACK nurbsError(GLenum errorCode)
 {
    const GLubyte *estring;
@@ -194,7 +469,7 @@ void CALLBACK nurbsError(GLenum errorCode)
 void CALLBACK nurbscurveBegincb(GLenum type, void *ud)
 {
 	struct X3D_NurbsCurve *node = (struct X3D_NurbsCurve *)ud;
-	printf("nurbscurveBegin\n");
+	if(DEBGC) printf("nurbscurveBegin\n");
 }
 void CALLBACK nurbscurveVertexcb(GLfloat *vertex, void *ud)
 {
@@ -213,46 +488,106 @@ void CALLBACK nurbscurveVertexcb(GLfloat *vertex, void *ud)
 		pp->c[i] = vertex[i];
 	node->__numPoints ++;
 	//node->__points.n++;
-	printf("nurbscurveVertex\n");
+	if(DEBGC) printf("nurbscurveVertex\n");
 }
 void CALLBACK nurbscurveNormalcb(GLfloat *nml, void *ud)
 {
 	struct X3D_NurbsCurve *node = (struct X3D_NurbsCurve *)ud;
-	printf("nurbscurveNormal\n");
+	if(DEBGC) printf("nurbscurveNormal\n");
 }
 void CALLBACK nurbscurveEndcb(void *ud)
 {
 	struct X3D_NurbsCurve *node = (struct X3D_NurbsCurve *)ud;
 	//node->__numPoints = node->__points.n;
-	printf("nurbscurveEnd\n");
+	if(DEBGC) printf("nurbscurveEnd\n");
 }
 
-#endif
+
 
 int generateUniformKnotVector(int order, int ncontrol, float *knots){
+	//produced pinned uniform knot vector
 	//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
-	int j,k,m, p;
+	// http://www.saccade.com/writing/graphics/KnotVectors.pdf
+	//maximum nuber of equalvalue consecutive knots:
+	// a) in middle of knot vector: <= order-1
+	// b) at start and end of knot vector: <= order (for pinned uniform)
+	// exmple order = 4 + ncontrol = 6 => 10 knots
+	// 0 0 0 0 .33 .66 1 1 1 1
+	// example order = 3 + ncontrol = 3 => 6 knots
+	// 0 0 0 1 1 1
+	// example order = 2 + ncontrol = 2 => 4 knots
+	// 0 0 1 1
+	//number of knots == ncontrol + order
+	int j,k,m;
 	float uniform;
-	p = order -1;
-	m = ncontrol - p + 1;
+	m = ncontrol - order;
 	k = 0;
-	uniform = 1.0f/(float)(ncontrol-p);
-	for(j=0;j<p;k++,j++){
+	uniform = 1.0f/(float)(m + 1);
+	for(j=0;j<order;k++,j++){
 		knots[k] = 0.0f;
 	}
 	for(j=0;j<m;j++,k++){
-		knots[k] =uniform*(float)j;
+		knots[k] =uniform*(float)(j+1);
 	}
-	for(j=0;j<p;j++,k++){
+	for(j=0;j<order;j++,k++){
 		knots[k] = 1.0f;
 	}
 	return m;
 }
+int knotsOK(int order, int ncontrol, int nknots, double *knots){
+	int ok = TRUE;
 
+	if(nknots < 2 || nknots != ncontrol + order ) 
+		ok = FALSE;
+	if(ok){
+		int nconsec = 1;
+		double lastval = knots[0];
+		for(int i=1;i<nknots;i++){
+			if(lastval == knots[i]) nconsec++;
+			else nconsec = 1;
+			if(nconsec > order) 
+				ok = false;
+			if(knots[i] < lastval) 
+				ok = false;
+			if(!ok) break;
+			lastval = knots[i];
+		}
+	}
+	return ok;
+}
+int knotsOKf(int order, int ncontrol, int nknots, float *knots){
+	int ok = TRUE;
+
+	if(nknots < 2 || nknots != ncontrol + order ) 
+		ok = FALSE;
+	if(ok){
+		int nconsec = 1;
+		double lastval = knots[0];
+		for(int i=1;i<nknots;i++){
+			if(lastval == knots[i]) nconsec++;
+			else nconsec = 1;
+			if(nconsec > order) 
+				ok = false;
+			if(knots[i] < lastval) 
+				ok = false;
+			if(!ok) break;
+			lastval = knots[i];
+		}
+	}
+	return ok;
+}
+void compile_ContourPolyline2D(struct X3D_ContourPolyline2D *node){
+	MARK_NODE_COMPILED;
+	if(node->point.n && !node->controlPoint.n){
+		//version v3.0 had a mfvec2f point field, version 3.1+ changed to mfvec2d controlPoint field
+		node->controlPoint.p = MALLOC(struct SFVec2d*,node->point.n * sizeof(struct SFVec2d));
+		for(int i=0;i<node->point.n;i++)
+			float2double(node->controlPoint.p[i].c,node->point.p[i].c,2);
+	}
+}
 
 void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 	MARK_NODE_COMPILED
-#ifdef NURBS_LIB
 	{
 		int i,j, n, nk;
 		GLfloat *xyzw, *knots;
@@ -295,7 +630,9 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 		}else{
 			for(i=0;i<n;i++) xyzw[i*4 + 3] = 1.0;
 		}
-		if(node->knot.n && node->knot.n == n + node->order ){
+		//if(node->knot.n && node->knot.n == n + node->order ){
+		if(knotsOK(node->order,n,node->knot.n,node->knot.p)){
+
 			nk = node->knot.n;
 			knots = MALLOC(void *, nk * sizeof(GLfloat));
 			for(i=0;i<nk;i++){
@@ -306,14 +643,18 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 			//	printf("[%d]=%f \n",ii,knots[ii]);
 
 		}else{
+			static int once = 0;
 			//generate uniform knot vector 
 			nk = n + node->order ;
 			//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
 			knots = MALLOC(void *, nk *sizeof(GLfloat));
 			generateUniformKnotVector(node->order,n, knots);
-			//printf("bad knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			if(!once){
+				printf("bad knot vector, replacing with:\n");
+				for(int ii=0;ii<nk;ii++)
+					printf("[%d]=%f \n",ii,knots[ii]);
+				once = 1;
+			}
 			//nk = 0;
 		}
 
@@ -366,6 +707,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 					mtess = max(mtess,(-ntess * n) + 1);
 				else
 					mtess = max(mtess,2*n + 1);
+				mtess *= node->_tscale;
 				node->__points.p = MALLOC(void *, sizeof(struct SFVec3f)*mtess+1);
 				node->__points.n = mtess;  //.n will be used for realloc test in callbacks
 				gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
@@ -385,7 +727,6 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 			node->__points.n = node->__numPoints;
 		}
 	}
-#endif
 }
 
 void render_NurbsCurve(struct X3D_NurbsCurve *node){
@@ -408,7 +749,133 @@ void render_NurbsCurve(struct X3D_NurbsCurve *node){
 	}
 }
 
+void compile_NurbsTextureCoordinate(struct X3D_NurbsTextureCoordinate *node){
+	//get knots from double to float and QC the knots
+	int nc, nu, nku, nkv, nv, i,j;
+	float *knotsu, *knotsv, *xyzw;
 
+	struct Multi_Vec2f *mff;
+	mff = &node->controlPoint;
+	nc = mff->n;
+	xyzw = MALLOC(void *, nc * 4 * sizeof(GLfloat));
+	for(i=0;i<mff->n;i++){
+		for(j=0;j<2;j++){
+			xyzw[i*4 + j] = mff->p[i].c[j];
+		}
+		xyzw[i*4 + 2] = 0.0f; //z == 0 for 2D
+		xyzw[i*4 + 3] = 1.0f; //homogenous 1
+	}
+	nu = node->uDimension;
+	nv = node->vDimension;
+	if(node->weight.n && node->weight.n == nc){
+		double w;
+		int m,im;
+		m = min(node->weight.n, nc);
+		for(i=0;i<nc;i++){
+			im = i < m ? i : m-1;
+			w = node->weight.p[im];
+			xyzw[i*4 + 3] = w;
+		}
+	}else{
+		for(i=0;i<nc;i++) xyzw[i*4 + 3] = 1.0;
+	}
+	nu = node->uDimension;
+	nv = node->vDimension;
+	//int knotsOK(int order, int ncontrol, int nknots, double *knots)
+	//if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+	if(knotsOK(node->uOrder,nu,node->uKnot.n,node->uKnot.p)){
+		//could do another check: max number of consecutive equal value knots == order
+		//could do another check: knot values == or ascending
+		nku = node->uKnot.n;
+		knotsu = MALLOC(void *, nku * sizeof(GLfloat));
+		for(i=0;i<nku;i++){
+			knotsu[i] = (GLfloat)node->uKnot.p[i];
+		}
+		if(DEBG){
+			printf("good u knot vector nk=%d\n",nku);
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
+		}
+
+	}else{
+		//generate uniform knot vector 
+		static int once = 0;
+		nku = nu + node->uOrder ;
+		//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+		knotsu = MALLOC(void *, nku *sizeof(GLfloat));
+		generateUniformKnotVector(node->uOrder,nu, knotsu);
+		if(!once){
+			printf("bad u knot vector given, replacing with:\n");
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
+			once = 1;
+		}
+		//nk = 0;
+	}
+
+	if(knotsOK(node->vOrder,nv,node->vKnot.n,node->vKnot.p)){
+	//if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
+		nkv = node->vKnot.n;
+		knotsv = MALLOC(void *, nkv * sizeof(GLfloat));
+		for(i=0;i<nkv;i++){
+			knotsv[i] = (GLfloat)node->vKnot.p[i];
+		}
+		if(DEBG){
+			printf("good v knot vector nk=%d\n",nkv);
+			for(int ii=0;ii<nkv;ii++)
+				printf("[%d]=%f \n",ii,knotsv[ii]);
+		}
+
+	}else{
+		static int once = 0;
+		//generate uniform knot vector 
+		nkv = nv + node->vOrder ;
+		//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+		knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
+		generateUniformKnotVector(node->vOrder,nv, knotsv);
+		if(!once){
+			printf("bad v knot vector given, replacing with:\n");
+			for(int ii=0;ii<nkv;ii++)
+				printf("[%d]=%f \n",ii,knotsv[ii]);
+			once = 1;
+		}
+		if(!knotsOKf(node->vOrder,nv,nkv,knotsv))
+			printf("ouch still not right knot vector\n");
+		//nk = 0;
+	}
+	node->_uKnot.p = knotsu;
+	node->_uKnot.n = nku;
+	node->_vKnot.p = knotsv;
+	node->_vKnot.n = nkv;
+	node->_controlPoint.p = (struct SFVec4f*)xyzw;
+	node->_controlPoint.n = nc;
+	MNC(node);
+	
+}
+int getNurbsSurfacePoint(struct X3D_Node *nurbsSurfaceNode, float *uv, float *xyz){
+	int ret = 0;
+	if(nurbsSurfaceNode){
+		switch(nurbsSurfaceNode->_nodeType){
+			case NODE_NurbsTextureCoordinate:
+				{
+					struct X3D_NurbsTextureCoordinate *node = (struct X3D_NurbsTextureCoordinate *)PPX(nurbsSurfaceNode);
+					if(NNC(node)) compile_NurbsTextureCoordinate(node);
+					ret = SurfacePoint(	node->uDimension,node->uOrder-1,node->_uKnot.p, 
+										node->vDimension,node->vOrder-1,node->_vKnot.p,
+										(float *)node->_controlPoint.p,uv[0],uv[1],xyz);
+				}
+				break;
+			case NODE_NurbsPatchSurface:
+				break;
+			case NODE_NurbsTrimmedSurface:
+				break;
+			default:
+				break;
+		}
+	}
+
+	return ret;
+}
 
 /* GenPolyrep functions assume a node inherits from X3DGeometryNode.
 	NurbsPatchSurface inherits from X3DParametricGeometryNode.
@@ -422,13 +889,19 @@ compile - custom: we will convert our parametric surface to a polyrep in here
 
  */
 
+ //stripstate - used for capturing the callback data when using gluNurbs in TESSELATOR mode
+ //we use TESSELATOR mode instead of RENDER mode because we use GLES2, not desktop GL.
+ //the libnurbs we have has the GL rendering stuff ifdefed out.
+ //so we capture the data in the callbacks, and then we can do what we normally do with
+ //mesh data in GLES2
+
  struct stripState{
 	int type;
-	struct Vector pv;
-	struct Vector nv;
+	struct Vector pv; //vector of vertex points
+	struct Vector nv; //vector of normals
+	struct Vector tv; //vector of texcoords
 };
 
- #ifdef NURBS_LIB
 //surface
 // strategy: on begin, we'll store the gl_ type, and zero __points
 // then accumulate the __points
@@ -438,24 +911,30 @@ void CALLBACK nurbssurfBegincb(GLenum type, void *ud)
 {
 	struct stripState ss;
 	struct Vector * strips = (struct Vector *)ud;
-	printf("nurbssurfBegin type = ");
-	switch(type){
-		case GL_QUAD_STRIP: printf("QUAD_STRIP");break;
-		case GL_TRIANGLE_STRIP: printf("TRIANGLE_STRIP");break;
-		case GL_TRIANGLE_FAN: printf("TRIANGLE_FAN");break;
-		case GL_TRIANGLES: printf("TRIANGLES");break;
-		default:
-			printf("not sure %x %d",type,type);
+	if(0) if(DEBG) printf("callback nurbsSurfaceBegin\n");
+	if(0){
+		printf("nurbssurfBegin type = ");
+		switch(type){
+			case GL_QUAD_STRIP: printf("QUAD_STRIP");break;
+			case GL_TRIANGLE_STRIP: printf("TRIANGLE_STRIP");break;
+			case GL_TRIANGLE_FAN: printf("TRIANGLE_FAN");break;
+			case GL_TRIANGLES: printf("TRIANGLES");break;
+			default:
+				printf("not sure %x %d",type,type);
+		}
+		printf("\n");
 	}
 	ss.nv.n = 0;
 	ss.nv.allocn = 0;
 	ss.nv.data = NULL;
+	ss.tv.n = 0;
+	ss.tv.allocn = 0;
+	ss.tv.data = NULL;
 	ss.pv.n = 0;
 	ss.pv.allocn = 0;
 	ss.pv.data = NULL;
 	ss.type = type;
 	vector_pushBack(struct stripState,strips,ss);
-	printf("\n");
 }
 void CALLBACK nurbssurfVertexcb(GLfloat *vertex, void *ud)
 {
@@ -467,7 +946,7 @@ void CALLBACK nurbssurfVertexcb(GLfloat *vertex, void *ud)
 	vector_pushBack(struct SFVec3f,&ss.pv,pp);
 	vector_set(struct stripState,strips,strips->n-1,ss);
 
-	if(0) printf("nurbssurfVertex %f %f %f\n",vertex[0],vertex[1],vertex[2]);
+	if(0) printf("callback nurbssurfVertex %f %f %f\n",vertex[0],vertex[1],vertex[2]);
 }
 void CALLBACK nurbssurfNormalcb(GLfloat *nml, void *ud)
 {
@@ -479,7 +958,7 @@ void CALLBACK nurbssurfNormalcb(GLfloat *nml, void *ud)
 	vector_pushBack(struct SFVec3f,&ss.nv,pp);
 	vector_set(struct stripState,strips,strips->n-1,ss);
 
-	if(0) printf("nurbssurfNormal\n");
+	if(0) printf("callback nurbssurfNormal\n");
 }
 void CALLBACK nurbssurfEndcb(void *ud)
 {
@@ -493,71 +972,83 @@ void CALLBACK nurbssurfEndcb(void *ud)
 			printf("%f %f %f\n",pp.c[0],pp.c[1],pp.c[2]);
 		}
 	}
+	if(0) if(DEBG) printf("callback nurbsSurfaceEnd\n");
 
 }
-#endif
-
-void free_polyrep(struct X3D_PolyRep *rep){
-	//see also delete_polyrep - did dug9 duplicate the function or is it different?
-	if(rep){
-		rep->ntri = 0;
-		rep->transparency = 0;
-		//Q. are any of these added to GC tables? If not..
-		glDeleteBuffers(VBO_COUNT, rep->VBO_buffers);
-		FREE_IF_NZ(rep->actualCoord);
-		FREE_IF_NZ(rep->cindex);
-		FREE_IF_NZ(rep->colindex);
-		FREE_IF_NZ(rep->GeneratedTexCoords[0]);
-		FREE_IF_NZ(rep->norindex);
-		FREE_IF_NZ(rep->normal);
-		FREE_IF_NZ(rep->tcindex);
-		FREE_IF_NZ(rep);
-	}
-}
-struct X3D_PolyRep * create_polyrep(){
-	int i;
-	struct X3D_PolyRep *polyrep;
-
-	polyrep = MALLOC(struct X3D_PolyRep *, sizeof(struct X3D_PolyRep));
-	memset(polyrep,0,sizeof(struct X3D_PolyRep));
-	polyrep->ntri = -1;
-	//polyrep->cindex = 0; polyrep->actualCoord = 0; polyrep->colindex = 0; polyrep->color = 0;
-	//polyrep->norindex = 0; polyrep->normal = 0; polyrep->flat_normal = 0; polyrep->GeneratedTexCoords = 0;
-	//polyrep->tri_indices = 0; polyrep->wire_indices = 0; polyrep->actualFog = 0;
-	//polyrep->tcindex = 0; 
-	//polyrep->tcoordtype = 0;
-	//polyrep->last_index_type = 0; polyrep->last_normal_type = 0;
-	polyrep->streamed = FALSE;
-
-	/* for Collision, default texture generation */
-	polyrep->minVals[0] =  999999.9f;
-	polyrep->minVals[1] =  999999.9f;
-	polyrep->minVals[2] =  999999.9f;
-	polyrep->maxVals[0] =  -999999.9f;
-	polyrep->maxVals[1] =  -999999.9f;
-	polyrep->maxVals[2] =  -999999.9f;
-
-	for (i=0; i<VBO_COUNT; i++) 
-		polyrep->VBO_buffers[i] = 0;
-
-	/* printf ("generating buffers for node %p, type %s\n",p,stringNodeType(p->_nodeType)); */
-	glGenBuffers(1,&polyrep->VBO_buffers[VERTEX_VBO]);
-	glGenBuffers(1,&polyrep->VBO_buffers[INDEX_VBO]);
-
-	/* printf ("they are %u %u %u %u\n",polyrep->VBO_buffers[0],polyrep->VBO_buffers[1],polyrep->VBO_buffers[2],polyrep->VBO_buffers[3]); */
-	return polyrep;
-}
-#ifndef NURBS_LIB
-#define GL_QUAD_STRIP				0x0008
-#endif
-void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
-	int i, j, npoints, np, ni, ntri, nindex;
+void CALLBACK nurbssurfTexcoordcb(GLfloat *tCrd, void *ud){
+	static int count = 0;
 	struct stripState ss;
+	struct SFVec2f tp;
+	struct Vector * strips = (struct Vector *)ud;
+	ss = vector_get(struct stripState,strips,strips->n -1);
+	memcpy(&tp,tCrd,sizeof(struct SFVec2f));
+	vector_pushBack(struct SFVec2f,&ss.tv,tp);
+	vector_set(struct stripState,strips,strips->n-1,ss);
+	//printf("%f %f %f\n",tCrd[0],tCrd[1],0.0f);
+	//count++;
+	//if(count % 50 == 0)
+	//	printf("\n");
+	if(0) if(DEBG) 
+		printf("callback nurbssufTexcoordcb\n");
+}
 
-	npoints = nindex = 0;
+
+
+#define GL_QUAD_STRIP				0x0008
+
+static int USETXCOORD = 1;
+void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSurface *node){
+	//this is a bit like compile_polyrep, except the virt_make is below
+
+	int i, j, npoints, np, ni, ntri, nindex, ntc;
+	struct stripState ss;
+	struct X3D_PolyRep *rep_, *polyrep;
+	struct X3D_TextureCoordinate * tcnode = NULL;
+	GLuint *cindex, *norindex, *tcindex;
+	float *tcoord;
+
+	//from compile_polyrep:
+	//node = X3D_NODE(innode);
+	//virt = virtTable[node->_nodeType];
+
+	/* first time through; make the intern structure for this polyrep node */
+	if(node->_intern){
+		polyrep = node->_intern;
+		FREE_IF_NZ(polyrep->cindex);
+		FREE_IF_NZ(polyrep->actualCoord);
+		FREE_IF_NZ(polyrep->GeneratedTexCoords[0]);
+		FREE_IF_NZ(polyrep->colindex);
+		FREE_IF_NZ(polyrep->color);
+		FREE_IF_NZ(polyrep->norindex);
+		FREE_IF_NZ(polyrep->normal);
+		FREE_IF_NZ(polyrep->flat_normal);
+		FREE_IF_NZ(polyrep->tcindex);
+	}
+	if(!node->_intern) 
+		node->_intern = create_polyrep();
+
+	rep_ = polyrep = node->_intern;
+
+
+	/* if multithreading, tell the rendering loop that we are regenning this one */
+	/* if singlethreading, this'll be set to TRUE before it is tested	     */
+
+	//<< END FROM Compile_polyrep
+
+	// Start Virt_make_polyrep section >>>
+	//texcoord
+	if(USETXCOORD){
+		rep_->ntexdim[0] = 2;
+		rep_->tcoordtype = NODE_TextureCoordinate; //??
+		rep_->ntcoord = 1;
+		tcnode =  createNewX3DNode(NODE_TextureCoordinate);
+	}
+
+	npoints = nindex = ntc = 0;
 	for(i=0;i<strips->n;i++){
 		ss = vector_get(struct stripState,strips,i);
 		npoints += ss.pv.n;
+		ntc += ss.tv.n;
 		switch(ss.type){
 			case GL_QUAD_STRIP: nindex += (ss.pv.n -2)/2 * 5;break;
 			case GL_TRIANGLE_STRIP: nindex += (ss.pv.n -2);break;
@@ -569,35 +1060,55 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 	}
     if (npoints > 0)
     {
-        rep->actualCoord = MALLOC(void *, npoints * 3 * sizeof(float));
-        rep->normal = MALLOC(void *, npoints * 3 * sizeof(float));
+		//printf("npoints %d ntc %d\n",npoints,ntc);
+        rep_->actualCoord = MALLOC(void *, npoints * 3 * sizeof(float));
+        rep_->normal = MALLOC(void *, npoints * 3 * sizeof(float));
+		//if(USETXCOORD) rep->GeneratedTexCoords[0] = MALLOC(void *, npoints * 2 * sizeof(float));
+		if(USETXCOORD){
+			 tcnode->point.p = MALLOC(void *, npoints * 2 * sizeof(float));
+			 tcnode->point.n = npoints;
+		}
+		//rep->t
     }
-	rep->ntri = nindex;
-    if (rep->ntri > 0)
+	rep_->ntri = ntri = nindex; //we'll over-malloc
+
+    if (rep_->ntri > 0)
     {
-        rep->cindex = MALLOC(void *, rep->ntri * 4 * sizeof(GLuint));
-        rep->norindex = MALLOC(void *, rep->ntri * 4 * sizeof(GLuint));
+		cindex = rep_->cindex = MALLOC(GLuint *, sizeof(GLuint)*3*(ntri));
+		norindex = rep_->norindex = MALLOC(GLuint *,sizeof(GLuint)*3*ntri);
+		//if(USETXCOORD) rep_->tcindex = MALLOC(void *, ntri * 4 * sizeof(GLuint));
+		tcindex = rep_->tcindex = MALLOC(GLuint*, sizeof(GLuint)*3*(ntri));
+	//	colindex = rep_->colindex = MALLOC(GLuint *, sizeof(*(rep_->colindex))*3*(ntri));
+
+		//FREE_IF_NZ(rep_->GeneratedTexCoords[0]);
+		// we'll pass a X3D_TexCoordinate node //rep_->GeneratedTexCoords[0] 
+		tcoord = MALLOC (float *, sizeof (float) * ntri * 2 * 3); 
+
     }
+
 	np = 0;
 	ni = 0;
 	ntri = 0;
 	for(i=0;i<strips->n;i++){
 		ss = vector_get(struct stripState,strips,i);
-		memcpy(&rep->actualCoord[np*3],ss.pv.data,ss.pv.n * 3 * sizeof(float));
-		memcpy(&rep->normal[np*3],ss.nv.data,ss.nv.n * 3 * sizeof(float));
+//printf("ss.pv.n=%d nv.n=%d tv.n=%d\n",ss.pv.n,ss.nv.n,ss.tv.n);
+		memcpy(&rep_->actualCoord[np*3],ss.pv.data,ss.pv.n * 3 * sizeof(float));
+		memcpy(&rep_->normal[np*3],ss.nv.data,ss.nv.n * 3 * sizeof(float));
+		if(USETXCOORD) memcpy(&tcoord[np*2],ss.tv.data,ss.tv.n * 2 * sizeof(float));
 		switch(ss.type){
 			case GL_QUAD_STRIP: 
 				for(j=0;j<ss.pv.n -2;j+=2){
-					rep->cindex[ni++] = np+j;
-					rep->cindex[ni++] = np+j+1;
-					rep->cindex[ni++] = np+j+3;
+					rep_->cindex[ni++] = np+j;
+					rep_->cindex[ni++] = np+j+1;
+					rep_->cindex[ni++] = np+j+3;
 					//rep->cindex[ni++] = -1;
-					rep->cindex[ni++] = np+j+3;
-					rep->cindex[ni++] = np+j+2;
-					rep->cindex[ni++] = np+j;
+					rep_->cindex[ni++] = np+j+3;
+					rep_->cindex[ni++] = np+j+2;
+					rep_->cindex[ni++] = np+j;
 					//rep->cindex[ni++] = -1;
 					//memcpy(&rep->norindex[ntri*4],&rep->cindex[ntri*4],2*4*sizeof(int));
-					memcpy(&rep->norindex[ntri*3],&rep->cindex[ntri*3],2*3*sizeof(int));
+					memcpy(&rep_->norindex[ntri*3],&rep_->cindex[ntri*3],2*3*sizeof(int));
+					if(USETXCOORD) memcpy(&rep_->tcindex[ntri*3],&rep_->cindex[ntri*3],2*3*sizeof(int));
 					ntri += 2;
 				}
 				break;
@@ -607,10 +1118,11 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 			case GL_TRIANGLE_FAN: 
 				//nindex += (ss.pv.n -2);
 				for(j=0;j<ss.pv.n -2;j+=1){
-					rep->cindex[ni++] = np;
-					rep->cindex[ni++] = np+j+1;
-					rep->cindex[ni++] = np+j+2;
-					memcpy(&rep->norindex[ntri*3],&rep->cindex[ntri*3],3*sizeof(int));
+					rep_->cindex[ni++] = np;
+					rep_->cindex[ni++] = np+j+1;
+					rep_->cindex[ni++] = np+j+2;
+					memcpy(&rep_->norindex[ntri*3],&rep_->cindex[ntri*3],3*sizeof(int));
+					if(USETXCOORD) memcpy(&rep_->tcindex[ntri*3],&rep_->cindex[ntri*3],3*sizeof(int));
 					ntri += 1;
 				}
 				break;
@@ -622,7 +1134,50 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 		}
 		np += ss.pv.n;
 	}
-	rep->ntri = ntri;
+	rep_->ntri = ntri;
+	if(node->texCoord && node->texCoord->_nodeType == NODE_NurbsTextureCoordinate){
+		static FILE *fp = NULL;
+		for(i=0;i<np;i++){
+			float stru[4];
+			float xyz[4];
+			//treat above callback texturecoord as uv, 
+			//and do lookup on NurbsTextureCoordinate surface to get new texture coord st
+			xyz[0] = tcoord[i*2 + 1];
+			xyz[1] = tcoord[i*2 + 0]; //don't know why but I have to swap xy to match octaga
+			xyz[2] = 0.0f;
+			xyz[3] = tcoord[i*2 + 3];
+			getNurbsSurfacePoint(node->texCoord, xyz, stru);
+			//memcpy(&tcoord[i*2],stru,2*sizeof(float));
+			tcoord[i*2 + 0] = stru[0];
+			tcoord[i*2 + 1] = stru[1];
+			//if(1){
+			//	static int once = 0;
+			//	if(!once) fp= fopen("nurbstexturecoord.txt","w+");
+			//	once = 1;
+			//	fprintf(fp,"%d uv %f %f st %f %f\n",i,tcoord[i*2 +0],tcoord[i*2 + 1],stru[0],stru[1]);
+			//}
+		}
+		//if(fp) fclose(fp);
+	}
+	tcnode->point.p = (struct SFVec2f*)tcoord;
+	tcnode->point.n = np;
+	if(0) for(i=0;i<tcnode->point.n;i++){
+		printf("%d %f %f\n",i,tcnode->point.p[i].c[0],tcnode->point.p[i].c[1]);
+		if(i % 50 == 0)
+			printf("\n");
+	}
+
+	//END virt_make_polyrep section <<<<<<
+
+	//FROM Compile_polyrep
+	if (polyrep->ntri != 0) {
+		//float *fogCoord = NULL;
+		stream_polyrep(node, NULL,NULL,NULL,NULL, tcnode);
+		/* and, tell the rendering process that this shape is now compiled */
+	}
+	//else wait for set_coordIndex to be converted to coordIndex
+	polyrep->irep_change = node->_change;
+
 	/*
 	// dump then can copy and paste to x3d or wrl IndexedFaceSet.coordIndex and Coordinate.point fields
 	FILE * fp = fopen("IFS_DUMP.txt","w+");
@@ -639,12 +1194,12 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_PolyRep *rep){
 	fprintf(fp,"\n");
 	fclose(fp);
 	*/
+
 }
 
-void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode);
 void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node *trim){
 	MARK_NODE_COMPILED
-#ifdef NURBS_LIB
+
 	{
 		int i,j, n, nu, nv, nku, nkv;
 		GLfloat *xyzw, *knotsu, *knotsv;
@@ -697,47 +1252,64 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 		}
 		nu = node->uDimension;
 		nv = node->vDimension;
-		if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+		//int knotsOK(int order, int ncontrol, int nknots, double *knots)
+		//if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+		if(knotsOK(node->uOrder,nu,node->uKnot.n,node->uKnot.p)){
+			//could do another check: max number of consecutive equal value knots == order
+			//could do another check: knot values == or ascending
 			nku = node->uKnot.n;
 			knotsu = MALLOC(void *, nku * sizeof(GLfloat));
 			for(i=0;i<nku;i++){
 				knotsu[i] = (GLfloat)node->uKnot.p[i];
 			}
-			//printf("good knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			if(DEBG){
+				printf("good u knot vector nk=%d\n",nku);
+				for(int ii=0;ii<nku;ii++)
+					printf("[%d]=%f \n",ii,knotsu[ii]);
+			}
 
 		}else{
 			//generate uniform knot vector 
+			static int once = 0;
 			nku = nu + node->uOrder ;
 			//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
 			knotsu = MALLOC(void *, nku *sizeof(GLfloat));
 			generateUniformKnotVector(node->uOrder,nu, knotsu);
-			//printf("bad knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			if(!once){
+				printf("bad u knot vector given, replacing with:\n");
+				for(int ii=0;ii<nku;ii++)
+					printf("[%d]=%f \n",ii,knotsu[ii]);
+				once = 1;
+			}
 			//nk = 0;
 		}
 
-		if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
+		if(knotsOK(node->vOrder,nv,node->vKnot.n,node->vKnot.p)){
+		//if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
 			nkv = node->vKnot.n;
 			knotsv = MALLOC(void *, nkv * sizeof(GLfloat));
 			for(i=0;i<nkv;i++){
 				knotsv[i] = (GLfloat)node->vKnot.p[i];
 			}
-			//printf("good knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			if(DEBG){
+				printf("good v knot vector nk=%d\n",nkv);
+				for(int ii=0;ii<nkv;ii++)
+					printf("[%d]=%f \n",ii,knotsv[ii]);
+			}
 
 		}else{
+			static int once = 0;
 			//generate uniform knot vector 
 			nkv = nv + node->vOrder ;
 			//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
 			knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
 			generateUniformKnotVector(node->vOrder,nv, knotsv);
-			//printf("bad knot nk=%d\n",nk);
-			//for(int ii=0;ii<nk;ii++)
-			//	printf("[%d]=%f \n",ii,knots[ii]);
+			if(!once){
+				printf("bad v knot vector given, replacing with:\n");
+				for(int ii=0;ii<nkv;ii++)
+					printf("[%d]=%f \n",ii,knotsv[ii]);
+				once = 1;
+			}
 			//nk = 0;
 		}
 
@@ -749,7 +1321,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			mtessv = node->vOrder + 1;
 			ntessv = node->vTessellation;
 
+			if(DEBG) printf("gluNewNurbsRenderer\n");
 			theNurb = gluNewNurbsRenderer();
+			gluNurbsProperty(theNurb, GLU_NURBS_MODE, GLU_NURBS_TESSELLATOR);
 			if(0){
 				//chord length or automatic - not implemented properly nor tested thoroughly
 				//if you do chord length in pixels, you need to manually pass in sampling matrices
@@ -789,39 +1363,195 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 					mtessu = max(mtessu,(-ntessu * nu) + 1);
 				else
 					mtessu = max(mtessu,2*nu + 1);
+
 				if(ntessv > 0) 
 					mtessv = max(mtessv,ntessv+1);
 				else if(ntessv < 0) 
 					mtessv = max(mtessv,(-ntessv * nv) + 1);
 				else
 					mtessv = max(mtessv,2*nv + 1);
+				mtessu *= node->_tscale;
+				mtessv *= node->_tscale;
 
 				gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
 				gluNurbsProperty(theNurb,GLU_U_STEP,(GLfloat)mtessu);
 				gluNurbsProperty(theNurb,GLU_V_STEP,(GLfloat)mtessv);
 			}
 			gluNurbsProperty(theNurb, GLU_DISPLAY_MODE, GLU_FILL);
+			
 			gluNurbsCallback(theNurb, GLU_ERROR, nurbsError);
 			gluNurbsCallback(theNurb, GLU_NURBS_BEGIN_DATA, nurbssurfBegincb);
 			gluNurbsCallback(theNurb, GLU_NURBS_VERTEX_DATA, nurbssurfVertexcb);
 			gluNurbsCallback(theNurb, GLU_NURBS_NORMAL_DATA, nurbssurfNormalcb);
 			gluNurbsCallback(theNurb, GLU_NURBS_END_DATA, nurbssurfEndcb);
-			free_polyrep(node->_intern);
-			node->_intern = create_polyrep();
+			gluNurbsCallback(theNurb, GLU_NURBS_TEXTURE_COORD_DATA, nurbssurfTexcoordcb);
+			
 			struct Vector * strips = newVector(struct stripState,20);
-			gluNurbsProperty(theNurb, GLU_NURBS_MODE, GLU_NURBS_TESSELLATOR);
 			gluNurbsCallbackData(theNurb,(GLvoid*)strips);
 
+			if(DEBG) printf("gluBeginSurface \n");
 			gluBeginSurface(theNurb);
-				gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,4,4*nu,xyzw,node->uOrder,node->vOrder,GL_MAP2_VERTEX_4);
-				if(trim){
-					int i;
-					gluBeginTrim (theNurb);
+			gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,4,4*nu,xyzw,node->uOrder,node->vOrder,GL_MAP2_VERTEX_4);
+			/* 
+				TextureCoordinate handling 
+				https://www.opengl.org/discussion_boards/showthread.php/127668-Texture-mapping-for-NURBS
+				https://www.cs.drexel.edu/~david/Classes/ICG/Lectures/Lecture7.pdf p.56 of slides
 
-					//outside border
+				texture coordinate hypotheses:
+				1. if regular texture coordinate node supplied, 
+					- H1a: use same order and knot vector as control, or 
+					- H1b: use linear order=2 and knot vector 
+					- specify the texturecoordinate points as control
+				2. if no texture coordinate node node supplied, 
+					H2a:
+					- compute defaults using relative spatial distance between xyz control 
+						along u (row) and v (column) directions
+					- apply #1
+					H2b:
+					- compute defaults using equal spacing 
+						along u (row) and v (column) directions
+					- apply #1
+					H2c: 
+					- leave texcoords blank and let stream_polyrep supply defaults
+				3. if nurbstexturecoordinate node supplied, 
+					H3a:
+					- set texture surface control to 0 0 1 1
+					- use linear order 2
+					H3b:
+					- do H2a or H2b
+					Both:
+					- interpret the texturecallback points as uv
+					- use uv to lookup st using piegl surface interpolator 
+						on separate surface in nurbstexturecoordinate node
+						options: a) in texture callback b) when converting to polyrep
+			*/
+			struct X3D_Node * texCoordNode = node->texCoord;
+			if(!texCoordNode){
+				//2 no texcoord node supplied 
+				switch('b'){
+					case 'a':
+						//H2a compute uniform defaults using relative spatial distance of xyz in u and v
+						break;
+					case 'b':
+						// H2b: - compute defaults using equal spacing 
+						{
+							float du, dv, uu, vv;
+							int jj;
+							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
+							du = 1.0f / (float)max(1,(nu -1));
+							dv = 1.0f / (float)max(1,(nv -1));
+							vv = 0.0f;
+							jj = 0;
+							for(int k=0;k<nv;k++){
+								if(k == nv-1) vv = 1.0f; //they like end exact on 1.0f
+								uu = 0.0f;
+								for(int j=0;j<nu;j++){
+									if(j == nu-1) uu = 1.0f;  //they like end exact on 1.0f
+									texCoord->point.p[jj].c[0] = uu;
+									texCoord->point.p[jj].c[1] = vv;
+									uu += du;
+									jj++;
+								}
+								vv += dv;
+							}
+							texCoord->point.n = jj;
+							texCoordNode = X3D_NODE(texCoord);
+						}
+						break;
+					default:
+					//H2c skip - nada
+						break;
+				}
+			}
+			if(texCoordNode){
+				//USETEXCOORD = TRUE
+				if(texCoordNode->_nodeType == NODE_TextureCoordinate){
+					//TEXCOORDTYPE = 1 //interpret nurbsurftexcoordcb coords as texture coords
+					struct X3D_TextureCoordinate *texCoord = (struct X3D_TextureCoordinate *)texCoordNode;
+					float *control2D = (float*)texCoord->point.p;
+					int nctrl = texCoord->point.n;
+					if(1){
+						//H1a: use same order and knot vector as controlPoints 
+						// except using texcoord.point as nurbscontrol
+						//CONFIRMED when using H2b 'b' above to generate missing TexCoord node
+						gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,2,2*nu,control2D,node->uOrder,node->vOrder,GL_MAP2_TEXTURE_COORD_2);
+					}else{
+						//H1b: use linear order=2 and knot vectors, order from main surface
+						//DISCONFIRMED: the texturecoord callback is never called
+						float *tknotsu, *tknotsv;
+						tknotsu = MALLOC(float *, (nu+2) *sizeof(GLfloat));
+						tknotsv = MALLOC(float *, (nv+2) *sizeof(GLfloat));
+						generateUniformKnotVector(2,nu,tknotsu);
+						generateUniformKnotVector(2,nv,tknotsv);
+						printf("tknotsu = [");
+						for(int k=0;k<nu+2;k++) printf("%f ",tknotsu[k]);
+						printf("]\ntknotsv = [");
+						for(int k=0;k<nv+2;k++) printf("%f ",tknotsv[k]);
+						printf("]\n");
+						gluNurbsSurface(theNurb,nu+2,knotsu,nv+2,knotsv,4,4*nu,control2D,2,2,GL_MAP2_TEXTURE_COORD_2);
+					}
+				} else if(texCoordNode->_nodeType == NODE_NurbsTextureCoordinate){
+					//TEXCOORDTYPE = 2 /interpret nurbsurftexcoordcb coords as uv coords, 
+					// use to lookup st via piegl interpolation of NurbsTextureCoordinate nurbs surface
+					if(0){
+						//H3a:
+						//- set texture surface control to 0 0 1 1
+						//- use linear order 2
+						float tknots[4] = {0.0f, 0.0f, 1.0f, 1.0f}; 
+						float unit_control2D [8] = {0.0f, 0.0f,  1.0f, 0.0f,  1.0f, 1.0f,  0.0f, 1.0f};
+						struct X3D_NurbsTextureCoordinate *texCoord = (struct X3D_NurbsTextureCoordinate *)texCoordNode;
+						gluNurbsSurface(theNurb,4,tknots,4,tknots,2,2*2,unit_control2D,2,2,GL_MAP2_TEXTURE_COORD_2);
+					}else{
+						//H3b same as H2a or H2b
+						// H2b: - compute defaults using equal spacing 
+						{
+							float du, dv, uu, vv;
+							int jj;
+							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							FREE_IF_NZ(texCoord->point.p);
+							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
+							du = 1.0f / (float)max(1,(nu -1));
+							dv = 1.0f / (float)max(1,(nv -1));
+							vv = 0.0f;
+							jj = 0;
+							for(int k=0;k<nv;k++){
+								if(k == nv-1) vv = 1.0f; //they like end exact on 1.0f
+								uu = 0.0f;
+								for(int j=0;j<nu;j++){
+									if(j == nu-1) uu = 1.0f;  //they like end exact on 1.0f
+									texCoord->point.p[jj].c[0] = uu;
+									texCoord->point.p[jj].c[1] = vv;
+									uu += du;
+									jj++;
+								}
+								vv += dv;
+							}
+							texCoord->point.n = jj;
+							texCoordNode = X3D_NODE(texCoord);
+							//H1a: use same order and knot vector as controlPoints 
+							// except using texcoord.point as nurbscontrol
+							//CONFIRMED when using H2b 'b' above to generate missing TexCoord node
+							float *control2D = (float*)texCoord->point.p;
+							gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,2,2*nu,control2D,node->uOrder,node->vOrder,GL_MAP2_TEXTURE_COORD_2);
+
+						}
+
+					}
+					
+				}
+			}
+			if(trim){
+				int i;
+
+				if(0){
+					if(DEBG) printf("gluBeginTrim \n");
+					gluBeginTrim (theNurb);
+					//outside border H: scene author is responsible
 					if(1){
 						// counter clockwise, simple 4 corner uv from redbook sample
 						GLfloat edgePt[5][2] = {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}, {0.0, 0.0}};
+						if(DEBG) printf("gluPwlCurve 0\n");
 						gluPwlCurve (theNurb, 5, &edgePt[0][0], 2, GLU_MAP1_TRIM_2);
 					}else{
 						// 2 x (node.utessselation u + node.vtesselation v) + 1 edge values
@@ -845,73 +1575,99 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						//close curve
 						edges[((ntessu -1)*2 + (ntessv -1)*2)*2 + 0] = 0.0;
 						edges[((ntessu -1)*2 + (ntessv -1)*2)*2 + 1] = 0.0;
+						if(DEBG) printf("gluPwlCurve 1\n");
 						gluPwlCurve (theNurb, 2*(ntessu -1 + ntessv -1) +1, edges, 2, GLU_MAP1_TRIM_2);
 					}
+					if(DEBG) printf("gluEndTrim\n");
 					gluEndTrim (theNurb);
+				}
 
-					//interior cutouts
-					if(0){
-						//redbook example trim curves - these work
-					   GLfloat curvePt[4][2] = /* clockwise */ 
-						  {{0.25, 0.5}, {0.25, 0.75}, {0.75, 0.75}, {0.75, 0.5}};
-					   GLfloat curveKnots[8] = 
-						  {0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0};
-					   GLfloat pwlPt[4][2] = /* clockwise */ 
-						  {{0.75, 0.5}, {0.5, 0.25}, {0.25, 0.5}};
+				//interior cutouts
+				if(0){
+					//redbook example trim curves - these work
+					GLfloat curvePt[4][2] = /* clockwise */ 
+						{{0.25, 0.5}, {0.25, 0.75}, {0.75, 0.75}, {0.75, 0.5}};
+					GLfloat curveKnots[8] = 
+						{0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0};
+					GLfloat pwlPt[4][2] = /* clockwise */ 
+						{{0.75, 0.5}, {0.5, 0.25}, {0.25, 0.5}};
 
-						gluBeginTrim (theNurb);
-						gluNurbsCurve (theNurb, 8, curveKnots, 2, 
-										&curvePt[0][0], 4, GLU_MAP1_TRIM_2);
-						gluPwlCurve (theNurb, 3, &pwlPt[0][0], 2, GLU_MAP1_TRIM_2);
-						gluEndTrim (theNurb);
-					}
-					if(1)
-					for(i=0;i<trim->n;i++){
-						int m;
-						struct X3D_Contour2D * tc = (struct X3D_Contour2D *)trim->p[i];
-						gluBeginTrim (theNurb);
-						for(m=0;m<tc->children.n;m++)
-						{
-							int j,k,dim;
-							struct X3D_ContourPolyLine2D *cp2d;
-							struct X3D_NurbsCurve2D *nc2d;
-							struct X3D_Node *ctr = tc->children.p[m]; //trim->p[i];
-							GLfloat *cknot, *ctrl, *cweight;
-							cknot = ctrl = cweight = NULL;
-							switch(ctr->_nodeType){
-								case NODE_ContourPolyLine2D:
-									cp2d = (struct X3D_ContourPolyLine2D *)ctr;
-									ctrl = MALLOC(void *, cp2d->controlPoint.n * 2*sizeof(GLfloat));
-									for(j=0;j<cp2d->controlPoint.n;j++) {
-										for(k=0;k<2;k++)
-											ctrl[j*2 + k] = (float)cp2d->controlPoint.p[j].c[k];
+					if(DEBG) printf("gluBeginTrim A\n");
+					gluBeginTrim (theNurb);
+					if(DEBG) printf("gluNurbsCurve A\n");
+					gluNurbsCurve (theNurb, 8, curveKnots, 2, 
+									&curvePt[0][0], 4, GLU_MAP1_TRIM_2);
+					if(DEBG) printf("gluPwlCurve A\n");
+					gluPwlCurve (theNurb, 3, &pwlPt[0][0], 2, GLU_MAP1_TRIM_2);
+					if(DEBG) printf("gluEndTrim A\n");
+					gluEndTrim (theNurb);
+				}
+				if(1)
+				for(i=0;i<trim->n;i++){
+					int m;
+					struct X3D_Contour2D * tc = (struct X3D_Contour2D *)trim->p[i];
+					if(DEBG) printf("gluBeginTrim B\n");
+					gluBeginTrim (theNurb);
+					for(m=0;m<tc->children.n;m++)
+					{
+						int j,k,dim;
+						struct X3D_ContourPolyline2D *cp2d;
+						struct X3D_NurbsCurve2D *nc2d;
+						struct X3D_Node *ctr = tc->children.p[m]; //trim->p[i];
+						GLfloat *cknot, *ctrl, *cweight;
+						cknot = ctrl = cweight = NULL;
+						switch(ctr->_nodeType){
+							case NODE_ContourPolyline2D:
+								cp2d = (struct X3D_ContourPolyline2D *)ctr;
+								ctrl = MALLOC(void *, cp2d->controlPoint.n * 2*sizeof(GLfloat));
+								for(j=0;j<cp2d->controlPoint.n;j++) {
+									for(k=0;k<2;k++)
+										ctrl[j*2 + k] = (float)cp2d->controlPoint.p[j].c[k];
+								}
+								if(DEBG) printf("gluPwlCurve B\n");
+								gluPwlCurve (theNurb, cp2d->controlPoint.n, ctrl, 2, GLU_MAP1_TRIM_2);
+								FREE_IF_NZ(ctrl);
+								break;
+							case NODE_NurbsCurve2D:
+								nc2d = (struct X3D_NurbsCurve2D *)ctr;
+								dim = 2;
+								int nk = nc2d->controlPoint.n + nc2d->order;
+								if(nk == nc2d->knot.n)
+
+								cknot = MALLOC(void *, nk * sizeof(GLfloat));
+								if(nc2d->weight.n){ // == 3){
+									dim = 3;
+									cweight = MALLOC(void *, nc2d->controlPoint.n * sizeof(GLfloat));
+									if(nc2d->weight.n == nc2d->controlPoint.n){
+										for(j=0;j<nc2d->weight.n;j++) cweight[j] = nc2d->weight.p[j];
+									}else{
+										for(j=0;j<nc2d->controlPoint.n;j++) cweight[j] = 1.0f;
 									}
-									gluPwlCurve (theNurb, cp2d->controlPoint.n, ctrl, 2, GLU_MAP1_TRIM_2);
-
-									break;
-								case NODE_NurbsCurve2D:
-									nc2d = (struct X3D_NurbsCurve2D *)ctr;
-									dim = 2;
-									ctrl = MALLOC(void *, nc2d->controlPoint.n * dim*sizeof(GLfloat));
-									cknot = MALLOC(void *, nc2d->knot.n * sizeof(GLfloat));
-									if(dim == 3){
-										cweight = MALLOC(void *, nc2d->controlPoint.n * sizeof(GLfloat));
-										if(nc2d->weight.n == nc2d->controlPoint.n){
-											for(j=0;j<nc2d->weight.n;j++) cweight[j] = nc2d->weight.p[j];
-										}else{
-											for(j=0;j<nc2d->controlPoint.n;j++) cweight[j] = 1.0f;
+								}
+								ctrl = MALLOC(void *, nc2d->controlPoint.n * dim*sizeof(GLfloat));
+								for(j=0;j<nc2d->controlPoint.n;j++) {
+									for(k=0;k<2;k++){
+										ctrl[j*dim + k] = (float)nc2d->controlPoint.p[j].c[k];
+										if(dim == 3) ctrl[j*dim + k] *= cweight[j];
 										}
+									if(dim == 3) ctrl[j*dim + dim-1] = (float)cweight[j];
+								}
+								if(knotsOK(nc2d->order,nc2d->controlPoint.n,nc2d->knot.n,nc2d->knot.p)){
+								//if(nk == nc2d->knot.n){
+									for(j=0;j<nc2d->knot.n;j++)
+										cknot[j] = (float)nc2d->knot.p[j];
+								}else{
+									generateUniformKnotVector(nc2d->order,nc2d->controlPoint.n,cknot);
+									printf("replacing nurbscurve2D knotvector with:\n");
+									for(j=0;j<nk;j++){
+										printf("%f ",cknot[j]);
 									}
-									for(j=0;j<nc2d->controlPoint.n;j++) {
-										for(k=0;k<2;k++){
-											ctrl[j*dim + k] = (float)nc2d->controlPoint.p[j].c[k];
-											if(dim == 3) ctrl[j*dim + k] *= cweight[j];
-										 }
-										if(dim == 3) ctrl[j*dim + dim-1] = (float)cweight[j];
-									}
+									printf("\n");
+
+								}
+								if(DEBGC) {
 									printf("knot %d ={",nc2d->knot.n);
 									for(j=0;j<nc2d->knot.n;j++){
-										cknot[j] = (float)nc2d->knot.p[j];
 										printf("%f ",cknot[j]);
 									}
 									printf("}\n");
@@ -921,34 +1677,82 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 										printf("\n");
 									}
 									printf("}\n");
-									gluNurbsCurve (theNurb, nc2d->knot.n, cknot, dim, ctrl, nc2d->order, GLU_MAP1_TRIM_2);
-									break;
-								default:
-									ConsoleMessage("%s %d","unknown trimming contour node",ctr->_nodeType);
-							}
-							FREE_IF_NZ(ctrl);
-							FREE_IF_NZ(cknot);
-							FREE_IF_NZ(cweight);
+								}
+								if(DEBG) printf("gluNurbsCurve B\n");
+								if(1){
+									int mtess, ntess;
+									mtess = nc2d->order + 1;
+									ntess = nc2d->tessellation;
+									if(0){
+										//chord length or automatic - not implemented properly nor tested thoroughly
+										//if you do chord length in pixels, you need to manually pass in sampling matrices
+										//and somehow you need to trigger a recompile: another call to this compile_
+										// as avatar/viewer moves closer (father) from the nurbs node
+										double model[16], proj[16];
+										float modelf[16], projf[16];
+										int viewPort[10];
+										if(ntess > 0) 
+											mtess = ntess;
+										else if(ntess < 0) 
+											mtess = -ntess;
+
+										gluNurbsProperty(theNurb, GLU_SAMPLING_TOLERANCE, (float)(mtess)); //25.0);
+										if(ntess < 0)
+											gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_PATH_LENGTH); //pixels, the default
+										else
+											gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_PARAMETRIC_TOLERANCE);
+										gluNurbsProperty(theNurb, GLU_AUTO_LOAD_MATRIX,GL_FALSE);
+				
+										FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, model);
+										FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, proj);
+										FW_GL_GETINTEGERV(GL_VIEWPORT, viewPort);
+										for(i=0;i<16;i++){
+											modelf[i] = (float)model[i];
+											projf[i] = (float)proj[i];
+										}
+										gluLoadSamplingMatrices(theNurb,modelf,projf,viewPort);
+									}
+									if(1){
+										//uniform spacing of sampling points in u (or uv) parameter space - works
+										//node must specify tesselation value. see specs for interpretation 
+										// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/nurbs.html#NurbsCurve
+										if(ntess > 0) 
+											mtess = max(mtess,ntess+1);
+										else if(ntess < 0) 
+											mtess = max(mtess,(-ntess * n) + 1);
+										else
+											mtess = max(mtess,2*n + 1);
+										gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
+										gluNurbsProperty(theNurb,GLU_U_STEP,(GLfloat)mtess);
+									}
+								}
+								gluNurbsCurve (theNurb, nk, cknot, dim, ctrl, nc2d->order, GLU_MAP1_TRIM_2);
+								break;
+							default:
+								ConsoleMessage("%s %d","unknown trimming contour node",ctr->_nodeType);
 						}
-						gluEndTrim (theNurb);
+						FREE_IF_NZ(ctrl);
+						FREE_IF_NZ(cknot);
+						FREE_IF_NZ(cweight);
 					}
+					if(DEBG) printf("gluEndTrim B\n");
+					gluEndTrim (theNurb);
 				}
+			}
+			if(DEBG) printf("gluEndSurface \n");
 			gluEndSurface(theNurb);
+			if(DEBG) printf("gluDeleteNurbsRenderer \n");
 			gluDeleteNurbsRenderer(theNurb);
 
 			//convert points to polyrep
-			convert_strips_to_polyrep(strips,node->_intern);
-			if(node->_intern->ntri != 0){
-				//void stream_polyrep(void *innode, void *coord, void *color, void *normal, struct X3D_TextureCoordinate *texCoordNode)
-				stream_polyrep(node, NULL, NULL, NULL, NULL, NULL);
-			}
-			/* and, tell the rendering process that this shape is now compiled */
-			node->_intern->irep_change = node->_change;
+			convert_strips_to_polyrep(strips,(struct X3D_NurbsTrimmedSurface*)node);
+			FREE_IF_NZ(knotsv);
+			FREE_IF_NZ(knotsu);
+			FREE_IF_NZ(xyzw);
 		}
 	}
-#endif
-}
 
+}
 
 void render_ray_polyrep(void *node);
 void collide_genericfaceset(void *node);
@@ -1003,44 +1807,93 @@ void render_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
 
 void do_NurbsPositionInterpolator (void *node) {
 	struct X3D_NurbsPositionInterpolator *px;
-	int kin, kvin; //, counter, tmp;
-	//struct SFVec3f *kVs; 
+	struct X3D_Coordinate *control;
+	float knotrange[2], fraction;
+	double *weight;
+	float *xyzw, cw[4];
 
 	if (!node) return;
-	px = (struct X3D_NurbsPositionInterpolator *) node;
-	kvin = kin = 0;
-	//kvin = px->controlPoint->.n;
-	//kVs = px->controlPoint.p;
+	px = (struct X3D_NurbsPositionInterpolator *) PPX(node);
+	if(NNC(px)){
+		float *knots;
+		int nk, n;
 
+		MNC(px);
+		if(!px->_OK == TRUE){
+			px->_OK = FALSE;
+			if(!(px->knot.n > 1)) 
+				return;
+			if(!px->controlPoint ) 
+				return;
+			if(px->controlPoint->_nodeType != NODE_Coordinate) 
+				return;
+			control = (struct X3D_Coordinate *) px->controlPoint;
+			if(control->point.n < 2)
+				return;
+			n = control->point.n;
+			weight = NULL;
+			if(px->weight.n == n)
+				weight = px->weight.p;
+			px->_xyzw.p = MALLOC(struct SFVec4f*,control->point.n * sizeof(struct SFVec4f));
+			px->_xyzw.n = n;
+			for(int i=0;i<control->point.n;i++){
+				float xyzw[4], wt;
+				wt =  weight ? weight[i] : 1.0f;
+				veccopy3f(xyzw,control->point.p[i].c);
+				vecscale3f(xyzw,xyzw,wt);
+				xyzw[3] = wt;
+				veccopy4f(px->_xyzw.p[i].c,xyzw);
+			}
+			if(knotsOK(px->order,px->_xyzw.n,px->knot.n,px->knot.p)){
+
+				nk = px->knot.n;
+				knots = MALLOC(void *, nk * sizeof(GLfloat));
+				for(int i=0;i<nk;i++){
+					knots[i] = (GLfloat)px->knot.p[i];
+				}
+				//printf("good knot nk=%d\n",nk);
+				//for(int ii=0;ii<nk;ii++)
+				//	printf("[%d]=%f \n",ii,knots[ii]);
+
+			}else{
+				static int once = 0;
+				//generate uniform knot vector 
+				nk = n + px->order ;
+				//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
+				knots = MALLOC(void *, nk *sizeof(GLfloat));
+				generateUniformKnotVector(px->order,n, knots);
+				if(!once){
+					printf("bad knot vector, replacing with:\n");
+					for(int ii=0;ii<nk;ii++)
+						printf("[%d]=%f \n",ii,knots[ii]);
+					once = 1;
+				}
+				//nk = 0;
+			}
+			px->_knot.p = knots;
+			px->_knot.n = nk;
+			px->_knotrange.c[0] = px->_knot.p[0];
+			px->_knotrange.c[1] = px->_knot.p[px->_knot.n-1];
+
+			px->_OK = TRUE;
+		}
+	}
+	if(!px->_OK) 
+		return;
+
+	fraction = max(px->_knotrange.c[0],px->set_fraction);
+	fraction = min(px->_knotrange.c[1],px->set_fraction);
+	CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, fraction, cw );
+	veccopy3f(px->value_changed.c,cw);
 	MARK_EVENT (node, offsetof (struct X3D_NurbsPositionInterpolator, value_changed)); 
 
-	// make sure we have the keys and keyValues 
-	if ((kvin == 0) || (kin == 0)) {
-		vecset3f(px->value_changed.c,0.0f,0.0f,0.0f);
-		return;
-	}
-
-	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
-
-	// set_fraction less than or greater than keys 
-	//if (px->set_fraction <= ((px->key).p[0])) {
-	//	memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3f));
-	//} else if (px->set_fraction >= px->key.p[kin-1]) {
-	//	memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3f));
-	//} else {
-	//	// have to go through and find the key before 
-	//	counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
-	//	for (tmp=0; tmp<3; tmp++) {
-	//		px->value_changed.c[tmp] =
-	//			(px->set_fraction - px->key.p[counter-1]) /
-	//			(px->key.p[counter] - px->key.p[counter-1]) *
-	//			(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
-	//	}
-	//}
 	#ifdef SEVERBOSE
-	printf ("Pos/Col, new value (%f %f %f)\n",
-		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
+		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
+			   node, kin, kvin, px->set_fraction);
 	#endif
+
+
+
 }
 
 /* NurbsOrientationInterpolator				 		
@@ -1048,141 +1901,1123 @@ void do_NurbsPositionInterpolator (void *node) {
  so this is called ONLY when there is something required to do, thus	
  there is no need to look at whether it is active or not
  */
-#include "quaternion.h"
 void do_NurbsOrientationInterpolator (void *node) {
-/*
 	struct X3D_NurbsOrientationInterpolator *px;
-	int kin, kvin;
-	struct SFRotation *kVs;
-	int counter;
-	float interval;		// where we are between 2 values 
-	// UNUSED?? int stzero;
-	// UNUSED?? int endzero;	// starting and/or ending angles zero? 
-
-	Quaternion st, fin, final;
-	double x,y,z,a;
+	struct X3D_Coordinate *control;
+	float knotrange[2], fraction;
+	double *weight;
+	float *xyzw, cw[4];
 
 	if (!node) return;
-	px = (struct X3D_NurbsOrientationInterpolator *) node;
-	kin = ((px->key).n);
-	kvin = ((px->keyValue).n);
-	kVs = ((px->keyValue).p);
+	px = (struct X3D_NurbsOrientationInterpolator *) PPX(node);
+	if(NNC(px)){
+		float *knots;
+		int nk, n;
 
-	#ifdef SEVERBOSE
-	printf ("starting do_Oint4; keyValue count %d and key count %d\n",
-				kvin, kin);
-	#endif
+		MNC(px);
+		if(!px->_OK == TRUE){
+			px->_OK = FALSE;
+			if(!(px->knot.n > 1)) 
+				return;
+			if(!px->controlPoint ) 
+				return;
+			if(px->controlPoint->_nodeType != NODE_Coordinate) 
+				return;
+			control = (struct X3D_Coordinate *) px->controlPoint;
+			if(control->point.n < 2)
+				return;
+			n = control->point.n;
+			weight = NULL;
+			if(px->weight.n == n)
+				weight = px->weight.p;
+			px->_xyzw.p = MALLOC(struct SFVec4f*,control->point.n * sizeof(struct SFVec4f));
+			px->_xyzw.n = n;
+			for(int i=0;i<control->point.n;i++){
+				float xyzw[4], wt;
+				wt =  weight ? weight[i] : 1.0f;
+				veccopy3f(xyzw,control->point.p[i].c);
+				vecscale3f(xyzw,xyzw,wt);
+				xyzw[3] = wt;
+				veccopy4f(px->_xyzw.p[i].c,xyzw);
+			}
+			if(knotsOK(px->order,px->_xyzw.n,px->knot.n,px->knot.p)){
 
+				nk = px->knot.n;
+				knots = MALLOC(void *, nk * sizeof(GLfloat));
+				for(int i=0;i<nk;i++){
+					knots[i] = (GLfloat)px->knot.p[i];
+				}
+				//printf("good knot nk=%d\n",nk);
+				//for(int ii=0;ii<nk;ii++)
+				//	printf("[%d]=%f \n",ii,knots[ii]);
 
-	MARK_EVENT (node, offsetof (struct X3D_NurbsOrientationInterpolator, value_changed));
+			}else{
+				static int once = 0;
+				//generate uniform knot vector 
+				nk = n + px->order ;
+				//caller: please malloc knots = malloc( (ncontrol + order ) * sizeof(float))
+				knots = MALLOC(void *, nk *sizeof(GLfloat));
+				generateUniformKnotVector(px->order,n, knots);
+				if(!once){
+					printf("bad knot vector, replacing with:\n");
+					for(int ii=0;ii<nk;ii++)
+						printf("[%d]=%f \n",ii,knots[ii]);
+					once = 1;
+				}
+				//nk = 0;
+			}
+			px->_knot.p = knots;
+			px->_knot.n = nk;
+			px->_knotrange.c[0] = px->_knot.p[0];
+			px->_knotrange.c[1] = px->_knot.p[px->_knot.n-1];
 
-	// make sure we have the keys and keyValues 
-	if ((kvin == 0) || (kin == 0)) {
-		px->value_changed.c[0] = (float) 0.0;
-		px->value_changed.c[1] = (float) 0.0;
-		px->value_changed.c[2] = (float) 0.0;
-		px->value_changed.c[3] = (float) 0.0;
-		return;
-	}
-	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
-
-
-	// set_fraction less than or greater than keys 
-	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed,
-				(void *)&kVs[0], sizeof (struct SFRotation));
-	} else if (px->set_fraction >= ((px->key).p[kin-1])) {
-		memcpy ((void *)&px->value_changed,
-				(void *)&kVs[kvin-1], sizeof (struct SFRotation));
-	} else {
-		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
-		interval = (px->set_fraction - px->key.p[counter-1]) /
-				(px->key.p[counter] - px->key.p[counter-1]);
-
-		
-		// are either the starting or ending angles zero? 
-		// unused? stzero = APPROX(kVs[counter-1].c[3],0.0);
-		// unused? endzero = APPROX(kVs[counter].c[3],0.0);
-		#ifdef SEVERBOSE
-			printf ("counter %d interval %f\n",counter,interval);
-			printf ("angles %f %f %f %f, %f %f %f %f\n",
-				kVs[counter-1].c[0],
-				kVs[counter-1].c[1],
-				kVs[counter-1].c[2],
-				kVs[counter-1].c[3],
-				kVs[counter].c[0],
-				kVs[counter].c[1],
-				kVs[counter].c[2],
-				kVs[counter].c[3]);
-		#endif
-		vrmlrot_to_quaternion (&st, kVs[counter-1].c[0],
-                                kVs[counter-1].c[1], kVs[counter-1].c[2], kVs[counter-1].c[3]);
-		vrmlrot_to_quaternion (&fin,kVs[counter].c[0],
-                                kVs[counter].c[1], kVs[counter].c[2], kVs[counter].c[3]);
-
-		quaternion_slerp(&final, &st, &fin, (double)interval);
-		quaternion_to_vrmlrot(&final,&x, &y, &z, &a);
-		px->value_changed.c[0] = (float) x;
-		px->value_changed.c[1] = (float) y;
-		px->value_changed.c[2] = (float) z;
-		px->value_changed.c[3] = (float) a;
-
-		#ifdef SEVERBOSE
-		printf ("Oint, new angle %f %f %f %f\n",px->value_changed.c[0],
-			px->value_changed.c[1],px->value_changed.c[2], px->value_changed.c[3]);
-		#endif
-	}
-*/
-}
-
-void do_NurbsSurfaceInterpolator (void *node) {
-/*
-	struct X3D_NurbsSurfaceInterpolator *px;
-	int kin, kvin, counter, tmp;
-	struct SFVec3f *kVs; 
-
-	if (!node) return;
-	px = (struct X3D_NurbsSurfaceInterpolator *) node;
-
-	kvin = px->keyValue.n;
-	kVs = px->keyValue.p;
-	kin = px->key.n;
-
-	MARK_EVENT (node, offsetof (struct X3D_NurbsSurfaceInterpolator, position_changed)); 
-	MARK_EVENT (node, offsetof (struct X3D_NurbsSurfaceInterpolator, normal_changed)); 
-
-	#ifdef SEVERBOSE
-		printf("do_PositionInt: Position/Vec3f interp, node %u kin %d kvin %d set_fraction %f\n",
-			   node, kin, kvin, px->set_fraction);
-	#endif
-
-	// make sure we have the keys and keyValues 
-	if ((kvin == 0) || (kin == 0)) {
-		vecset3f(px->position_changed.c,0.0f,0.0f,0.0f);
-		vecset3f(px->normal_changed.c,0.0f,0.0f,0.0f);
-		return;
-	}
-
-	if (kin>kvin) kin=kvin; // means we don't use whole of keyValue, but... 
-
-	// set_fraction less than or greater than keys 
-	if (px->set_fraction <= ((px->key).p[0])) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[0], sizeof (struct SFVec3f));
-	} else if (px->set_fraction >= px->key.p[kin-1]) {
-		memcpy ((void *)&px->value_changed, (void *)&kVs[kvin-1], sizeof (struct SFVec3f));
-	} else {
-		// have to go through and find the key before 
-		counter = find_key(kin,((float)(px->set_fraction)),px->key.p);
-		for (tmp=0; tmp<3; tmp++) {
-			px->value_changed.c[tmp] =
-				(px->set_fraction - px->key.p[counter-1]) /
-				(px->key.p[counter] - px->key.p[counter-1]) *
-				(kVs[counter].c[tmp] - kVs[counter-1].c[tmp]) + kVs[counter-1].c[tmp];
+			px->_OK = TRUE;
 		}
 	}
+	if(!px->_OK) 
+		return;
+
+	fraction = max(px->_knotrange.c[0],px->set_fraction);
+	fraction = min(px->_knotrange.c[1],px->set_fraction);
+	if(1){
+		//DELTA METHOD: instead of using a piegl formula for curve derivitive,
+		//we sample 2 points near the u of interest, and take the difference
+		//to get a slope vector
+		float f1, f2, cw1[4], cw2[4],  dir[3], rot[4];
+
+
+		f1 = fraction;
+		f2 = fraction + .01f;
+		if(f2 > 1.0f){
+			f1 = fraction - .01f;
+			f2 = fraction;
+		}
+
+		CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, f1, cw1 );
+		CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, f2, cw2 );
+		vecdif3f(dir,cw2,cw1);
+		vecnormalize3f(dir,dir);
+
+		if(1){
+			//1-direction vector relative to x-axis 
+			//now have 2 direction vectors - one at start, one at end
+			//do a difference to get relative rotation from start
+			float perp[3], dirx[3], sine;
+			memset(dirx,0,3*sizeof(float));
+			dirx[0] = 1.0f;
+			veccross3f(perp,dirx,dir);
+			sine = veclength3f(perp);
+			if(sine == 0.0f){
+				//no net rotation from start
+				float default_direction [4] = {1.0f, 0.0f, 0.0f, 0.0f};
+				veccopy4f(rot,default_direction);
+			}else{
+				vecnormalize3f(perp,perp);
+				float cosine = vecdot3f(dir,dirx);
+				float angle = atan2(sine,cosine);
+				veccopy3f(rot,perp);
+				rot[3] = angle;
+			}
+		}else if(0){
+			//2-direction vector to axis angle method
+			//now have 2 direction vectors - one at start, one at end
+			//do a difference to get relative rotation from start
+			float perp[3],dir0[3];
+
+			CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, 0.0f, cw1 );
+			CurvePoint(px->_xyzw.n, px->order-1, px->_knot.p, (float*)px->_xyzw.p, .001f, cw2 );
+			vecdif3f(dir0,cw2,cw1);
+			vecnormalize3f(dir0,dir0);
+
+			veccross3f(perp,dir,dir0);
+			if(veclength3f(perp) == 0.0f){
+				//no net rotation from start
+				float default_direction [4] = {1.0f, 0.0f, 0.0f, 0.0f};
+				veccopy4f(rot,default_direction);
+				printf(".");
+			}else{
+				vecnormalize3f(perp,perp);
+				float cosine = vecdot3f(dir0,dir);
+				float angle = acos(cosine);
+				veccopy3f(rot,perp);
+				rot[3] = -angle;
+			}
+		}
+		veccopy4f(px->value_changed.c,rot);
+	}else{
+		float default_direction [4] = {1.0f, 0.0f, 0.0f, 0.0f};
+		veccopy4f(px->value_changed.c,default_direction);
+	}
+	MARK_EVENT (node, offsetof (struct X3D_NurbsOrientationInterpolator, value_changed)); 
+
+	#ifdef SEVERBOSE
+		printf("do_NurbsOrientInt: set_fraction %f value_changed %f %f %f %f\n",fraction,
+			px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2],px->value_changed.c[3] );
+	#endif
+
+}
+
+void do_NurbsSurfaceInterpolator (void *_node) {
+
+	struct X3D_NurbsSurfaceInterpolator *node;
+
+	if (!_node) return;
+	node = (struct X3D_NurbsSurfaceInterpolator *) _node;
+	if(node->_nodeType != NODE_NurbsSurfaceInterpolator) return;
+
+	if(NNC(node)){
+		MNC(node);
+		if(node->_OK != TRUE){
+			int i,j, n, nu, nv, nku, nkv;
+			GLfloat *xyzw, *knotsu, *knotsv;
+
+			nku = nkv = nu = nv = n = 0;
+			xyzw = knotsu = knotsv = NULL;
+			if(node->controlPoint){
+				if(node->controlPoint->_nodeType == NODE_CoordinateDouble){
+					struct Multi_Vec3d *mfd;
+					mfd = &((struct X3D_CoordinateDouble *)(node->controlPoint))->point;
+					n = mfd->n;
+					xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
+					for(i=0;i<mfd->n;i++){
+						for(j=0;j<3;j++){
+							xyzw[i*4 + j] = mfd->p[i].c[j];
+						}
+					}
+				}else if(node->controlPoint->_nodeType == NODE_Coordinate){
+					struct Multi_Vec3f *mff;
+					mff = &((struct X3D_Coordinate *)(node->controlPoint))->point;
+					n = mff->n;
+					xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
+					for(i=0;i<mff->n;i++){
+						for(j=0;j<3;j++){
+							xyzw[i*4 + j] = mff->p[i].c[j];
+						}
+					}
+				}
+			}else{
+				n = 0;
+			}
+
+			if(node->weight.n && node->weight.n == n){
+				double w;
+				int m,im;
+				m = min(node->weight.n, n);
+				for(i=0;i<n;i++){
+					im = i < m ? i : m-1;
+					w = node->weight.p[im];
+					xyzw[i*4 + 3] = w;
+				}
+			}else{
+				for(i=0;i<n;i++) xyzw[i*4 + 3] = 1.0;
+			}
+			nu = node->uDimension;
+			nv = node->vDimension;
+			if(nu * nv != n) return;
+			if(nu < node->uOrder) return;
+			if(nv < node->vOrder) return;
+			//int knotsOK(int order, int ncontrol, int nknots, double *knots)
+			//if(node->uKnot.n && node->uKnot.n == nu + node->uOrder ){
+			if(knotsOK(node->uOrder,nu,node->uKnot.n,node->uKnot.p)){
+				//could do another check: max number of consecutive equal value knots == order
+				//could do another check: knot values == or ascending
+				nku = node->uKnot.n;
+				knotsu = MALLOC(void *, nku * sizeof(GLfloat));
+				for(i=0;i<nku;i++){
+					knotsu[i] = (GLfloat)node->uKnot.p[i];
+				}
+				if(DEBG){
+					printf("good u knot vector nk=%d\n",nku);
+					for(int ii=0;ii<nku;ii++)
+						printf("[%d]=%f \n",ii,knotsu[ii]);
+				}
+
+			}else{
+				//generate uniform knot vector 
+				static int once = 0;
+				nku = nu + node->uOrder ;
+				//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+				knotsu = MALLOC(void *, nku *sizeof(GLfloat));
+				generateUniformKnotVector(node->uOrder,nu, knotsu);
+				if(!once){
+					printf("bad u knot vector given, replacing with:\n");
+					for(int ii=0;ii<nku;ii++)
+						printf("[%d]=%f \n",ii,knotsu[ii]);
+					once = 1;
+				}
+				//nk = 0;
+			}
+
+			if(knotsOK(node->vOrder,nv,node->vKnot.n,node->vKnot.p)){
+			//if(node->vKnot.n && node->vKnot.n == nv + node->vOrder ){
+				nkv = node->vKnot.n;
+				knotsv = MALLOC(void *, nkv * sizeof(GLfloat));
+				for(i=0;i<nkv;i++){
+					knotsv[i] = (GLfloat)node->vKnot.p[i];
+				}
+				if(DEBG){
+					printf("good v knot vector nk=%d\n",nkv);
+					for(int ii=0;ii<nkv;ii++)
+						printf("[%d]=%f \n",ii,knotsv[ii]);
+				}
+
+			}else{
+				static int once = 0;
+				//generate uniform knot vector 
+				nkv = nv + node->vOrder ;
+				//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+				knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
+				generateUniformKnotVector(node->vOrder,nv, knotsv);
+				if(!once){
+					printf("bad v knot vector given, replacing with:\n");
+					for(int ii=0;ii<nkv;ii++)
+						printf("[%d]=%f \n",ii,knotsv[ii]);
+					once = 1;
+				}
+				//nk = 0;
+			}
+			node->_controlPoint.p = (struct SFVec4f*)xyzw;
+			node->_controlPoint.n = n;
+			node->_uKnot.p = knotsu;
+			node->_uKnot.n = nku;
+			node->_vKnot.p = knotsv;
+			node->_vKnot.n = nkv;
+			node->_OK = TRUE;
+		}
+
+	}
+
+	if(!node->_OK) return;
+	float uv[2], xyzw[4];
+	int ok;
+	
+	veccopy2f(uv,node->set_fraction.c);
+
+	ok = SurfacePoint(node->uDimension,node->uOrder-1,node->_uKnot.p, 
+						node->vDimension,node->vOrder-1,node->_vKnot.p,
+						(float *)node->_controlPoint.p,uv[1],uv[0],xyzw);
+
+	veccopy3f(node->position_changed.c,xyzw);
+	if(1){
+		//DELTA method to get normal
+		//u direction
+		float udir[3], vdir[3], normal[3], xyz1[4];
+		ok = SurfacePoint(node->uDimension,node->uOrder-1,node->_uKnot.p, 
+							node->vDimension,node->vOrder-1,node->_vKnot.p,
+							(float *)node->_controlPoint.p,uv[1],uv[0]+.01,xyz1);
+		vecdif3f(udir,xyz1,xyzw);
+		ok = SurfacePoint(node->uDimension,node->uOrder-1,node->_uKnot.p, 
+							node->vDimension,node->vOrder-1,node->_vKnot.p,
+							(float *)node->_controlPoint.p,uv[1]+.01,uv[0],xyz1);
+		vecdif3f(vdir,xyz1,xyzw);
+		veccross3f(normal,udir,vdir);
+		vecnormalize3f(normal,normal);
+		veccopy3f(node->normal_changed.c,normal);
+
+
+	}
+
+	MARK_EVENT (_node, offsetof (struct X3D_NurbsSurfaceInterpolator, position_changed)); 
+	MARK_EVENT (_node, offsetof (struct X3D_NurbsSurfaceInterpolator, normal_changed)); 
+
 	#ifdef SEVERBOSE
 	printf ("Pos/Col, new value (%f %f %f)\n",
 		px->value_changed.c[0],px->value_changed.c[1],px->value_changed.c[2]);
 	#endif
-*/
+
 }
+
+//SWUNG
+
+void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
+	MARK_NODE_COMPILED
+	//strategy: generate 3D control net from curves, 
+	// then delegate to NurbsPatchSurface
+	//Swung: 
+	struct X3D_NurbsPatchSurface *patch;
+	struct X3D_Coordinate *controlPoint;
+	if(!node->_patch){
+		patch = node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
+		controlPoint = patch->controlPoint = createNewX3DNode(NODE_Coordinate);
+	}else{
+		patch = node->_patch;
+		controlPoint = patch->controlPoint;
+	}
+	struct X3D_NurbsCurve2D *trajectoryxz = (struct X3D_NurbsCurve2D *)node->trajectoryCurve;
+	struct X3D_NurbsCurve2D *profileyz = (struct X3D_NurbsCurve2D *)node->profileCurve;
+	int nt, np;
+	double *xyzp, *xyzt;
+	nt = trajectoryxz->controlPoint.n;
+	np = profileyz->controlPoint.n;
+	xyzp = (double*)profileyz->controlPoint.p;
+	xyzt = (double*)trajectoryxz->controlPoint.p;
+	float *xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
+	controlPoint->point.p = xyz;
+	controlPoint->point.n = nt * np;
+	int ic = 0;
+	for(int j=0;j<nt;j++){
+		float pt[3];
+		double2float(pt,&xyzt[j*2],2);
+		for(int i=0;i<np;i++){
+			float pp[3];
+			double2float(pp,&xyzp[2*i],2);
+			float cosine, sine, swingangle;
+			swingangle = atan2(pt[1],pt[0]);
+			cosine = cos(swingangle);
+			sine = sin(swingangle);
+			xyz[ic*3 + 0] = pt[0] + cosine * pp[0];
+			xyz[ic*3 + 1] = pp[1];
+			xyz[ic*3 + 2] = pt[1] + sine * pp[0];
+			ic++;
+		}
+	}
+	patch->solid = node->solid;
+	//u will be profile, 
+	patch->uDimension = np;
+	patch->uKnot.p = malloc(profileyz->knot.n * sizeof(double));
+	memcpy(patch->uKnot.p,profileyz->knot.p,profileyz->knot.n * sizeof(double));
+	patch->uKnot.n = profileyz->knot.n;
+	patch->uOrder = profileyz->order;
+	patch->uTessellation = profileyz->tessellation * profileyz->_tscale;
+	//v will be trajectory
+	patch->vDimension = nt;
+	patch->vKnot.p = malloc(trajectoryxz->knot.n * sizeof(double));
+	memcpy(patch->vKnot.p,trajectoryxz->knot.p,trajectoryxz->knot.n * sizeof(double));
+	patch->vKnot.n = trajectoryxz->knot.n;
+	patch->vOrder = trajectoryxz->order;
+	patch->vTessellation = trajectoryxz->tessellation * profileyz->_tscale;
+	if(0){
+		int ic = 0;
+		for(int j=0;j<nt;j++){
+			for(int k=0;k<np;k++){
+				printf("%f %f %f,",xyz[ic*3 + 0], xyz[ic*3 +1], xyz[ic*3 +2]);
+				ic++;
+			}
+			printf("\n");
+		}
+		printf("uDimension=%d vDimension=%d nc=%d\n",np,nt,ic);
+	}
+	compile_NurbsPatchSurface(node->_patch);
+}
+void rendray_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
+		COMPILE_IF_REQUIRED
+		if (!node->_intern) return;
+		render_ray_polyrep(node->_patch);
+}
+
+void collide_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
+		COMPILE_IF_REQUIRED
+		if (!node->_intern) return;
+		collide_genericfaceset(node->_patch);
+}
+
+void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
+	struct X3D_NurbsPatchSurface *patch;
+		COMPILE_IF_REQUIRED
+		if (!node->_patch->_intern) 
+			return;
+		patch = node->_patch;
+		CULL_FACE(patch->solid)
+		render_polyrep(patch);
+}
+
+
+//SWEPT
+int compute_tessellation(int tessellation, int order, int ncontrol ){
+	/* for a given axis on a nurbs surface or nurbs curve,
+		and given the node->tesselation value, order and nDimension or ncontrol for the axis
+		return a computed tesselation value
+	*/
+	int mtessv, ntessv, mtessu, ntessu;
+	mtessu = order + 1;
+	ntessu = tessellation;
+				
+	if(ntessu > 0) 
+		mtessu = max(mtessu,ntessu+1);
+	else if(ntessu < 0) 
+		mtessu = max(mtessu,(-ntessu * ncontrol) + 1);
+	else
+		mtessu = max(mtessu,2*ncontrol + 1);
+	return mtessu;
+}
+void compute_knotvector(int order, int ncontrol, int nknots, double *knots, int *newnknots, float **newknots, float *range){
+	//for a given axis, QCs the knot vector, and replaces if necessary
+	//will malloc the necessary newknot vector - caller responsible
+	//range: pass in float[2] already allocated
+	int nku;
+	float *knotsu;
+	if(knotsOK(order,ncontrol,nknots,knots)){
+		//could do another check: max number of consecutive equal value knots == order
+		//could do another check: knot values == or ascending
+		nku = nknots;
+		knotsu = MALLOC(void *, nku * sizeof(GLfloat));
+		for(int i=0;i<nku;i++){
+			knotsu[i] = (GLfloat)knots[i];
+		}
+		if(DEBG){
+			printf("good u knot vector nk=%d\n",nku);
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
+		}
+		*newknots = knotsu;
+		*newnknots = nku;
+	}else{
+		//generate uniform knot vector 
+		static int once = 0;
+		nku = ncontrol + order ;
+		//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+		knotsu = MALLOC(void *, nku *sizeof(GLfloat));
+		generateUniformKnotVector(order,ncontrol, knotsu);
+		if(!once){
+			printf("bad u knot vector given, replacing with:\n");
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
+			once = 1;
+		}
+		*newknots = knotsu;
+		*newnknots= nku;
+		//nk = 0;
+	}
+	range[0] = knotsu[0];
+	range[1] = knotsu[nku-1];
+}
+void compute_weightedcontrol(double *xyz, int dim, int nc, int nweight, double *weights, float **cxyzw){
+/*	will malloc xyzw the right size, and return, caller responsible
+	the opengl and piegl functions take floats
+	dim = 3 for incoming xyz control
+	dim = 2 for incoming xy (2D) control
+	outgoing is [w*x,w*y,w*z,w]
+*/
+	float *xyzw;
+
+	xyzw = MALLOC(float *, nc * 4 * sizeof(GLfloat));
+	for(int i=0;i<nc;i++)
+		xyzw[i*4 +0] = xyzw[i*4 +1] =xyzw[i*4 +2] =xyzw[i*4 +3] = 0.0f;
+	for(int i=0;i<nc;i++){
+		for(int j=0;j<dim;j++){
+			xyzw[i*4 + j] = (float)xyz[i*dim + j];
+		}
+		xyzw[i*4 + 3] = 1.0f;
+	}
+	if(nweight && nweight == nc ){
+		for(int i=0;i<nc;i++){
+			float wt = (float)weights[i];
+			xyzw[i*4 + 3] = wt;
+			vecscale3f(&xyzw[i*4],&xyzw[i*4],wt);
+		}
+	}
+	*cxyzw = xyzw;
+}
+void compute_doublecontrol(struct X3D_Node *controlPoint, int *nc, double** xyz ){
+	/*  rather than switch-casing elsewhere in the code, we'll get both types into double here
+	
+	*/
+	int n;
+	double *xyzd = NULL;
+	n = 0;
+	switch(controlPoint->_nodeType){
+		case NODE_Coordinate:
+		{
+			struct X3D_Coordinate *tcoord = (struct X3D_Coordinate*) controlPoint;
+			n = tcoord->point.n;
+			xyzd = MALLOC(double *,n * 3 * sizeof(double));
+			for(int i=0;i<tcoord->point.n;i++)
+				float2double(&xyzd[i*3],tcoord->point.p[i].c,3);
+		}
+		break;
+		case NODE_CoordinateDouble:
+		{
+			struct X3D_CoordinateDouble *tcoord = (struct X3D_CoordinateDouble *)controlPoint;
+			n = tcoord->point.n;
+			xyzd = MALLOC(double *,n * 3 * sizeof(double));
+			for(int i=0;i<tcoord->point.n;i++)
+				veccopyd(&xyzd[i*3],tcoord->point.p[i].c);
+
+		}
+		break;
+		default:
+		break;
+	}
+	*nc = n;
+	*xyz = xyzd;
+
+}
+float *vecabs3f(float *res, float *p){
+	for(int i=0;i<3;i++)
+		res[i] = fabs(p[i]);
+	return res;
+}
+int	ivecdominantdirection3f(int *irank, float *p){
+	float rmax, rmin, vabs[3];
+	int iret = 0;
+	vecabs3f(vabs,p);
+	rmax = max(vabs[0],max(vabs[1],vabs[2]));
+	rmin = min(vabs[0],min(vabs[1],vabs[2]));
+	for(int i=0;i<3;i++){
+		irank[i] = 1;
+		if(vabs[i] == rmax) {
+			irank[i] = 2;
+			iret = i;
+		}
+		if(vabs[i] == rmin) irank[i] = 0;
+	}
+	return iret;
+}
+void convert_mesh_to_polyrep(float *xyz, int npts, float *nxyz, int* tindex, int ntri, struct X3D_Node *node){
+	//this is a bit like compile_polyrep, except the virt_make is below
+
+	struct X3D_PolyRep *rep_, *polyrep;
+	GLuint *cindex, *norindex;
+
+	//from compile_polyrep:
+	//node = X3D_NODE(innode);
+	//virt = virtTable[node->_nodeType];
+
+	/* first time through; make the intern structure for this polyrep node */
+	if(node->_intern){
+		polyrep = node->_intern;
+		FREE_IF_NZ(polyrep->cindex);
+		FREE_IF_NZ(polyrep->actualCoord);
+		FREE_IF_NZ(polyrep->GeneratedTexCoords[0]);
+		FREE_IF_NZ(polyrep->colindex);
+		FREE_IF_NZ(polyrep->color);
+		FREE_IF_NZ(polyrep->norindex);
+		FREE_IF_NZ(polyrep->normal);
+		FREE_IF_NZ(polyrep->flat_normal);
+		FREE_IF_NZ(polyrep->tcindex);
+	}
+	if(!node->_intern) 
+		node->_intern = create_polyrep();
+
+	rep_ = polyrep = node->_intern;
+
+
+	/* if multithreading, tell the rendering loop that we are regenning this one */
+	/* if singlethreading, this'll be set to TRUE before it is tested	     */
+
+	//<< END FROM Compile_polyrep
+
+	// Start Virt_make_polyrep section >>>
+
+    if (npts > 0)
+    {
+		//printf("npoints %d ntc %d\n",npoints,ntc);
+        rep_->actualCoord = xyz;
+        rep_->normal = nxyz;
+    }
+	rep_->ntri = ntri; 
+
+    if (rep_->ntri > 0)
+    {
+		rep_->cindex = tindex;
+		norindex = rep_->norindex = MALLOC(GLuint *,sizeof(GLuint)*3*ntri);
+		memcpy(norindex,tindex,sizeof(GLuint)*3*ntri);
+    }
+
+
+	//END virt_make_polyrep section <<<<<<
+
+	//FROM Compile_polyrep
+	if (polyrep->ntri != 0) {
+		//float *fogCoord = NULL;
+		stream_polyrep(node, NULL,NULL,NULL,NULL, NULL);
+		/* and, tell the rendering process that this shape is now compiled */
+	}
+	//else wait for set_coordIndex to be converted to coordIndex
+	polyrep->irep_change = node->_change;
+
+	/*
+	// dump then can copy and paste to x3d or wrl IndexedFaceSet.coordIndex and Coordinate.point fields
+	FILE * fp = fopen("IFS_DUMP.txt","w+");
+	fprintf(fp,"#vertices %d\n",np);
+	for(i=0;i<np;i++){
+		fprintf(fp,"%f %f %f\n",rep->actualCoord[i*3 +0],rep->actualCoord[i*3 +1],rep->actualCoord[i*3 +2]);
+	}
+	fprintf(fp,"#face indices %d\n",ni);
+	for(i=0;i<ni;i++){
+		fprintf(fp,"%d ",rep->cindex[i]);
+		if((ni+1) % 3 == 0)
+			fprintf(fp,"%d ",-1);
+	}
+	fprintf(fp,"\n");
+	fclose(fp);
+	*/
+
+}
+void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
+	MARK_NODE_COMPILED
+	//Swept: 
+	int nt, np;
+	double *xyzx;
+	double *xyzt;
+
+	struct X3D_NurbsCurve *trajectory = (struct X3D_NurbsCurve *)node->trajectoryCurve;
+	xyzt = NULL;
+	nt = 0;
+	/*
+	switch(trajectory->controlPoint->_nodeType){
+		case NODE_Coordinate:
+		{
+			struct X3D_Coordinate *tcoord = (struct X3D_Coordinate*) trajectory->controlPoint;
+			nt = tcoord->point.n;
+			xyzt = MALLOC(double *,nt * sizeof(double));
+			for(int i=0;i<tcoord->point.n;i++)
+				float2double(&xyzt[i*3],tcoord->point.p[i].c,3);
+		}
+		break;
+		case NODE_CoordinateDouble:
+		{
+			struct X3D_CoordinateDouble *tcoord = (struct X3D_CoordinateDouble *)trajectory->controlPoint;
+			nt = tcoord->point.n;
+			xyzt = MALLOC(double *,nt * sizeof(double));
+			for(int i=0;i<tcoord->point.n;i++)
+				veccopyd(&xyzt[i*3],tcoord->point.p[i].c);
+
+		}
+		break;
+		default:
+		break;
+	}
+	*/
+	compute_doublecontrol(trajectory->controlPoint,&nt,&xyzt);
+	struct X3D_NurbsCurve2D *xsection = (struct X3D_NurbsCurve2D *)node->crossSectionCurve;
+
+	np = xsection->controlPoint.n;
+	xyzx = (double*)xsection->controlPoint.p;
+
+	// "The Nurbs Book", Les Piegl, Wayne Tiller, 2nd, 1997, Springer
+	// piegl p.472 10.4 Swept Surfaces
+	//ALGO Method 1.
+	// method 1. S(u,v) = T(v) + C(u)
+	// - has a precise NURBS definition 
+	// - (no need for spine, B up vector, planes, skinning)
+	// - just set up the Suv control net and weights, and delegate to Patch
+	//		P(i,j) = Tj + Qi  (control points)
+	//		w(i,j) = wT(j) x wC(i)  (weights)
+	// - but piegl Figure 10.11 p.474 shows the results of this sweep:
+	//    * its good for nearly linear trajectories
+	//    x but not good if you turn a 90 corner 
+	//      - the profile isn't rotated with the trajectory
+	//      - so the 'tube' will flatten
+	//ALGO 2 Method 2.
+	// if you want the tube to stay open ie profile rotates with trajectory curve,
+	// then you need to implement method 2. and for that
+	// 1. compute tesselation points along trajectory curve (use piegl CurvePoint)
+	//		- get direction vector aka Tangent T of curve using Delta or Derivs, as xsection normal
+	//		- project up vector from last profile (1st profile up is arbitrary)
+	//			Piegl p.483 formula 10.27:
+	//				B0 - arbitrary unit vector perpendicular/orthogonal to trajectory tangent vector at v0
+	//				Ti = T'(vi)/|T'(vi)| //get the tangent vector along the trajectory curve, can use delta or Derivs 	
+	//				bi = Bi-1 - (Bi-1 * Ti)Ti
+	//				Bi = bi/|bi|			
+	// 2. comupte tesselated cross section aka xsection aka profile (use piegl CurvePoint)
+	// 3. for each trajectory tesselation point:
+	//		a) insert up- and tangent- oriented xsection points
+	//		b) skin: join current xsection points with last with triangles
+	// 
+	if(!strcmp(node->method->strptr,"FULL"))
+		node->_method = 2;
+	if(!strcmp(node->method->strptr,"TRANSLATE"))
+		node->_method = 1;
+	if(node->_method == 1){
+		//ALGO 1 Suv = T(v) + C(u)
+		struct X3D_NurbsPatchSurface *patch;
+		struct X3D_Coordinate *controlPoint;
+		if(!node->_patch){
+			patch = node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
+			controlPoint = patch->controlPoint = createNewX3DNode(NODE_Coordinate);
+		}else{
+			patch = node->_patch;
+			controlPoint = patch->controlPoint;
+		}
+		float *xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
+		controlPoint->point.p = xyz;
+		controlPoint->point.n = nt * np;
+
+		int ic = 0;
+		for(int j=0;j<nt;j++){
+			float pt[3];
+			double2float(pt,&xyzt[j*3],3);
+			for(int i=0;i<np;i++){
+				float pp[3];
+				double2float(pp,&xyzx[2*i],2);
+				xyz[ic*3 + 0] = pt[0] + pp[0];
+				xyz[ic*3 + 1] = pt[1] + pp[1];
+				xyz[ic*3 + 2] = pt[2];
+				ic++;
+			}
+		}
+
+		double *weight = NULL;
+		if((trajectory->weight.n && trajectory->weight.n == nt) || 
+			(xsection->weight.n  &&  xsection->weight.n  == np)){
+			//we have some non-default weights, so apply the piegl formula p.473
+			// w(i,j) = wT(j) x wC(i)  (weights)
+			weight = MALLOC(double*,nt * np * sizeof(double));
+			for(int j=0;j<nt;j++){
+				double wtTj = trajectory->weight.p[j];
+				for(int i=0;i<np;i++)
+					weight[j*np + i] = wtTj * xsection->weight.p[i];
+			}
+		}
+
+
+		if(weight){
+			patch->weight.p = weight;
+			patch->weight.n = nt * np;
+		}
+		patch->solid = node->solid;
+		//u will be profile, 
+		patch->uDimension = np;
+		patch->uKnot.p = malloc(xsection->knot.n * sizeof(double));
+		memcpy(patch->uKnot.p,xsection->knot.p,xsection->knot.n * sizeof(double));
+		patch->uKnot.n = xsection->knot.n;
+		patch->uOrder = xsection->order;
+		patch->uTessellation = xsection->tessellation * xsection->_tscale;
+		//v will be trajectory
+		patch->vDimension = nt;
+		patch->vKnot.p = malloc(xsection->knot.n * sizeof(double));
+		memcpy(patch->vKnot.p,trajectory->knot.p,trajectory->knot.n * sizeof(double));
+		patch->vKnot.n = trajectory->knot.n;
+		patch->vOrder = trajectory->order;
+		patch->vTessellation = trajectory->tessellation * trajectory->_tscale;
+		if(0){
+			int ic = 0;
+			for(int j=0;j<nt;j++){
+				for(int k=0;k<np;k++){
+					printf("%f %f %f,",xyz[ic*3 + 0], xyz[ic*3 +1], xyz[ic*3 +2]);
+					ic++;
+				}
+				printf("\n");
+			}
+			printf("uDimension=%d vDimension=%d nc=%d\n",np,nt,ic);
+		}
+		compile_NurbsPatchSurface(node->_patch);
+	} //end method == 1
+	if(node->_method == 2){
+		//ALGO 2 skinning like extrusion
+		int mtessv, mtessu, nku, nkv;
+		float *knotsu,*knotsv,*xyzwu,*xyzwv, urange[2],vrange[2];
+		mtessu = compute_tessellation(xsection->tessellation,xsection->order,np);
+		mtessu *= xsection->_tscale;
+		mtessv = compute_tessellation(trajectory->tessellation,trajectory->order,nt);
+		mtessv *= trajectory->_tscale;
+		compute_knotvector(xsection->order,np,xsection->knot.n,xsection->knot.p,&nku,&knotsu,urange);
+		compute_knotvector(trajectory->order,nt,trajectory->knot.n,trajectory->knot.p,&nkv,&knotsv,vrange);
+		compute_weightedcontrol(xyzt,3,nt, trajectory->weight.n, trajectory->weight.p, &xyzwv);
+		compute_weightedcontrol(xyzx,2,np, xsection->weight.n, xsection->weight.p, &xyzwu);
+		int DBGSW = FALSE;
+		if(DBGSW){
+			printf("np %d mtessu %d nku %d, nt %d mtessv %d, nkv %d",np,mtessu,nku,nt,mtessv,nkv);
+			printf("trajectory nt %d points:\n",nt);
+			for(int i=0;i<nt;i++)
+				printf("%d %f %f %f %f\n",i,xyzwv[i*4 + 0],xyzwv[i*4 + 1],xyzwv[i*4 + 2],xyzwv[i*4 + 3]);
+			printf("xsection np %d points:\n",np);
+			for(int i=0;i<np;i++)
+				printf("%d %f %f %f %f\n",i,xyzwu[i*4 + 0],xyzwu[i*4 + 1],xyzwu[i*4 + 2],xyzwu[i*4 + 3]);
+		}
+		// 1. compute tesselation points along trajectory curve (use piegl CurvePoint)
+		//		- get direction vector aka Tangent T of curve using Delta or Derivs, as xsection normal
+		//		- project up-vector from last profile (1st profile up is arbitrary)
+		//			Piegl p.483 formula 10.27:
+		//				B0 - arbitrary unit vector perpendicular/orthogonal to trajectory tangent vector at v0
+		//				Ti = T'(vi)/|T'(vi)| //get the tangent vector Tangentv along the trajectory curve, can use delta or Derivs 	
+		//				bi = Bi-1 - (Bi-1 dot Ti)Ti  //where dot is the dot product
+		//				Bi = bi/|bi|
+		float *Tv, *Tangentv, *Bup, *pts;
+		int mtessu1, mtessv1;
+		mtessu1 = mtessu + 1;
+		mtessv1 = mtessv + 1;
+		Tv = MALLOC(float*,(mtessv1)*3*sizeof(float));
+		Tangentv = MALLOC(float*,(mtessv1)*3*sizeof(float));
+		Bup = MALLOC(float*,(mtessv1)*3*sizeof(float));
+		for(int i=0;i<mtessv1;i++){
+			float cw[4], cw1[4], delta[3], v;
+			v = (float)i*(vrange[1]-vrange[0])/(float)mtessv;
+			CurvePoint(nt, trajectory->order-1, knotsv, xyzwv, v, cw );
+			veccopy3f(&Tv[i*3],cw);
+			//- get direction vector aka Tangent T of curve using Delta or Derivs, as xsection normal
+			CurvePoint(nt, trajectory->order-1, knotsv, xyzwv, v+.01, cw1 );
+			vecdif3f(delta,cw1,cw);
+			//	Ti = T'(vi)/|T'(vi)| //get the tangent vector Tangentv along the trajectory curve, can use delta or Derivs 	
+			vecnormalize3f(delta,delta);
+			veccopy3f(&Tangentv[i*3],delta);
+			//- project up-vector from last profile (1st profile up is arbitrary)
+			if(i==0){
+				//	B0 - arbitrary unit vector perpendicular/orthogonal to trajectory tangent vector at v0
+				int irank[3],idom, inondom;
+				float perp[3], perp2[3];
+				idom = ivecdominantdirection3f(irank,delta);
+				inondom = idom + 1 > 2 ? 0 : idom + 1;
+				for(int k=0;k<3;k++) if(irank[k] == 0) inondom = k;
+				memset(perp,0,3*sizeof(float));
+				perp[inondom] = 1.0;  //close to perpendicular, but not quite
+				veccross3f(perp2,delta,perp); //perp2 perpendicular to perp and delta
+				veccross3f(perp,perp2,delta); //another cross to get perp exactly perpendicular
+				//perp should be perpendicular to delta[0]
+				veccopy3f(&Bup[i*3],perp);
+			}else{
+				//	bi = Bi-1 - (Bi-1 dot Ti)Ti
+				//	Bi = bi/|bi|
+				float bi[3], bi1dotti, tiscaled[3];
+				bi1dotti = vecdot3f(&Bup[(i-1)*3],&Tangentv[i*3]);
+				vecdif3f(bi,&Bup[(i-1)*3],vecscale3f(tiscaled,&Tangentv[i*3],bi1dotti));
+				vecnormalize3f(&Bup[i*3],bi);
+			}
+		}
+		if(DBGSW){
+			printf("trajectory T:\n");
+			for(int i=0;i<mtessv1;i++){
+				printf("%d [%f %f %f] \n",i,
+					Tv[i*3 +0],Tv[i*3 +1],Tv[i*3 +2]);
+			}
+			printf("trajectory T', B:\n");
+			for(int i=0;i<mtessv1;i++){
+				printf("%d [%f %f %f] [%f %f %f] \n",i,
+					Tangentv[i*3 +0],Tangentv[i*3 +1],Tangentv[i*3 +2],
+					Bup[i*3 +0],Bup[i*3 +1],Bup[i*3 +2]);
+			}
+
+		}
+		//if(trajectory->closed){
+		//	//compute backward Bup, and average fore and aft Bup
+		//}
+		// 2. comupte tesselated cross section aka xsection aka profile (use piegl CurvePoint)
+		float *Qu = MALLOC(float*,(mtessu+1)*3*sizeof(float));  //cross section points
+		float *Nu = MALLOC(float*,(mtessu+1)*3*sizeof(float));  //cross section normals
+		if(DBGSW) printf("Xsection tess pts:\n");
+		for(int i=0;i<mtessu1;i++){
+			float u, cw[4], cw1[4], delta[3], normal[3];
+			float zzz[3] = {0.0f,0.0f,1.0f};
+			u = (float)i*(urange[1]-urange[0])/(float)mtessu;
+			CurvePoint(np, xsection->order-1, knotsu, xyzwu, u, cw );
+			veccopy3f(&Qu[i*3],cw);
+			CurvePoint(np, xsection->order-1, knotsu, xyzwu, u+.01, cw1 );
+			vecdif3f(delta,cw1,cw);
+			vecnormalize3f(delta,delta);
+			veccross3f(normal,zzz,delta);
+			veccopy3f(&Nu[i*3],normal);
+			if(DBGSW) printf("%d %f %f %f\n",i,Qu[i*3 +0],Qu[i*3 +1],Qu[i*3 +2]);
+
+		}
+		// 3. for each trajectory tesselation point:
+		//		a) insert up- and tangent- oriented xsection points
+		//		b) skin: join current xsection points with last with triangles
+		pts = MALLOC(float*,mtessu1 * mtessv1 * 3 * sizeof(float));
+		float *normals = MALLOC(float*,mtessu1 * mtessv1 * 3 * sizeof(float));
+		int *idx = MALLOC(int *, mtessu * mtessv * 2 * 3 * sizeof(int));
+		int ic = 0;
+		int it = 0;
+		float matB0[9];
+		for(int i=0;i<mtessv1;i++){
+			//insert oriented xsection at T(v)
+			float mat [9], matt[9];
+			//set up 3x3 rotation by using 3 perpendicular local unit vectors as rot mat rows
+			//http://renderdan.blogspot.ca/2006/05/rotation-matrix-from-axis-vectors.html
+
+			veccross3f(&mat[0],&Bup[i*3],&Tangentv[i*3]);
+			veccopy3f(&mat[3],&Bup[i*3]);
+			veccopy3f(&mat[6],&Tangentv[i*3]);
+			mattranspose3f(matt,mat); //seems like I need columns, not rows, by experimentation
+			if(i==0){
+				//not sure but I think we should take off the 
+				//arbitrary rotation of the first crossection from all subsequent
+				//so first xsection not rotated (you need to design with 
+				//your crosssection plane perpendicular to the start of your trajectory)
+				//and subsequent are rotated with respect to first
+				//Looks good
+				memcpy(matB0,mat,9*sizeof(float));
+			}
+			matmultiply3f(mat,matt,matB0);
+			for(int j=0;j<mtessu1;j++){
+				float pp[3], norm[3];
+				matmultvec3f(pp, mat, &Qu[j*3] ); //orient profile point
+				vecadd3f(pp,pp,&Tv[i*3]); //add on trajectory point
+				veccopy3f(&pts[ic*3],pp);
+				matmultvec3f(norm,mat,&Nu[j*3]);
+				veccopy3f(&normals[ic*3],norm);
+				ic++;
+			}
+			//connect to last xsection with triangles
+			if(i > 0){
+				int kk = (i-1)*mtessu1;
+				int mm = i*mtessu1;
+				for(int j=0;j<mtessu;j++){
+					// 1     1  3
+					// 0  2     2
+					//first triangle
+					idx[it++] = kk+j;
+					idx[it++] = mm+j;
+					idx[it++] = kk+j+1;
+					//second triangle
+					idx[it++] = kk+j+1;
+					idx[it++] = mm+j;
+					idx[it++] = mm+j+1;
+				}
+			}
+		}
+		//assign to something 
+		int ntri = it/3;
+		if(DBGSW){
+			printf("ntri %d triangle indexes:\n",ntri);
+			for(int i=0;i<ntri;i++){
+				printf("%d [",i);
+				for(int j=0;j<3;j++){
+					printf("%d ",idx[i*3 +j]);
+				}
+				printf("\n");
+			}
+			printf("triangle vertices:\n");
+			for(int i=0;i<ntri;i++){
+				for(int j=0;j<3;j++){
+					float pt[3];
+					int ix = idx[i*3 +j];
+					veccopy3f(pt,&pts[ix*3]);
+					printf("%d %d %f %f %f\n",i,ix,pt[0],pt[1],pt[2]);
+				}
+			}
+		}
+
+		//send to polyrep
+		convert_mesh_to_polyrep(pts,ic,normals,idx,ntri,node);
+	}
+
+}
+void rendray_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
+	COMPILE_IF_REQUIRED
+	if(node->_method == 1){
+		if (!node->_patch) return;
+		render_ray_polyrep(node->_patch);
+	}
+	if(node->_method == 2){
+		if(!node->_intern) return;
+		render_ray_polyrep(node);
+	}
+}
+
+void collide_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
+	COMPILE_IF_REQUIRED
+	if(node->_method == 1){
+		if (!node->_patch) return;
+		collide_genericfaceset(node->_patch);
+	}
+	if(node->_method == 2){
+		if (!node->_intern) return;
+		collide_genericfaceset(node);
+	}
+}
+
+void render_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
+	COMPILE_IF_REQUIRED
+	if(node->_method == 1){
+		struct X3D_NurbsPatchSurface *patch;
+		if (!node->_patch->_intern) 
+			return;
+		patch = node->_patch;
+		CULL_FACE(patch->solid)
+		render_polyrep(patch);
+	}
+	if(node->_method == 2){
+		if (!node->_intern) 
+			return;
+		//CULL_FACE(node->solid)
+		render_polyrep(node);
+
+	}
+}
+void compile_NurbsSet(struct X3D_NurbsSet *node){
+	MARK_NODE_COMPILED
+	//tessellationScale
+	for(int i=0;i<node->geometry.n;i++){
+		struct X3D_Node *gn = (struct X3D_Node*)node->geometry.p[i];
+		switch(gn->_nodeType){
+			case NODE_NurbsCurve:
+			{
+				struct X3D_NurbsCurve* g = (struct X3D_NurbsCurve*)gn;
+				g->_tscale = node->tessellationScale;
+				MNX(g);
+			}
+			break;
+			case NODE_NurbsCurve2D:
+			{
+				struct X3D_NurbsCurve2D* g = (struct X3D_NurbsCurve2D*)gn;
+				g->_tscale = node->tessellationScale;
+				MNX(g);
+			}
+			break;
+			case NODE_NurbsPatchSurface:
+			{
+				struct X3D_NurbsPatchSurface* g = (struct X3D_NurbsPatchSurface*)gn;
+				g->_tscale = node->tessellationScale;
+				MNX(g);
+			}
+			break;
+			case NODE_NurbsTrimmedSurface:
+			{
+				struct X3D_NurbsTrimmedSurface* g = (struct X3D_NurbsTrimmedSurface*)gn;
+				g->_tscale = node->tessellationScale;
+				MNX(g);
+			}
+			break;
+			case NODE_NurbsSweptSurface:
+			{
+				struct X3D_NurbsSweptSurface* g = (struct X3D_NurbsSweptSurface*)gn;
+				if(g->_method == 1){
+					if(g->_patch){
+						struct X3D_NurbsPatchSurface *patch = (struct X3D_NurbsPatchSurface *)g->_patch;
+						patch->_tscale = node->tessellationScale;
+						MNX(g);
+					}
+				}
+				if(g->_method == 2){
+					struct X3D_NurbsCurve2D *curve = (struct X3D_NurbsCurve2D *)g->crossSectionCurve;
+					curve->_tscale = node->tessellationScale;
+					MNX(g->crossSectionCurve);
+					curve = (struct X3D_NurbsCurve2D *)g->trajectoryCurve;
+					curve->_tscale = node->tessellationScale;
+					MNX(g->trajectoryCurve);
+				}
+			}
+			break;
+			case NODE_NurbsSwungSurface:
+			{
+				struct X3D_NurbsSwungSurface* g = (struct X3D_NurbsSwungSurface*)gn;
+				if(g->_patch){
+					struct X3D_NurbsPatchSurface *patch = (struct X3D_NurbsPatchSurface *)g->_patch;
+					patch->_tscale = node->tessellationScale;
+					MNX(g);
+				}
+			}
+			break;
+		}
+	}
+}
+void render_NurbsSet(struct X3D_NurbsSet *node){
+	COMPILE_IF_REQUIRED
+}
+#else //LIB_NURBS
+void compile_ContourPolyline2D(struct X3D_ContourPolyline2D *node){}
+void compile_NurbsCurve(struct X3D_NurbsCurve *node){}
+void render_NurbsCurve(struct X3D_NurbsCurve *node){}
+void compile_NurbsPatchSurface(struct X3D_NurbsPatchSurface *node){}
+void rendray_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {}
+void collide_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {}
+void render_NurbsPatchSurface (struct X3D_NurbsPatchSurface *node) {}
+void compile_NurbsTrimmedSurface(struct X3D_NurbsTrimmedSurface *node){}
+void rendray_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {}
+void collide_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {}
+void render_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {}
+void do_NurbsPositionInterpolator (void *node) {}
+void do_NurbsOrientationInterpolator (void *node){}
+void do_NurbsSurfaceInterpolator (void *_node){}
+void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){}
+void rendray_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {}
+void collide_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {}
+void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {}
+void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){}
+void rendray_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {}
+void collide_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {}
+void render_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node){}
+void compile_NurbsSet(struct X3D_NurbsSet *node){}
+void render_NurbsSet(struct X3D_NurbsSet *node){}
+#endif //LIB_NURBS

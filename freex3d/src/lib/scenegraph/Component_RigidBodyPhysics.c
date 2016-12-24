@@ -460,6 +460,7 @@ void MNX0(struct X3D_Node* node){
 #define NNC(A) NNC0(X3D_NODE(A))
 #define MNC(A) MNC0(X3D_NODE(A))
 #define MNX(A) MNX0(X3D_NODE(A))
+#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
 
 static int init_rbp_once = 0;
 //static dThreadingImplementationID threading;
@@ -999,7 +1000,7 @@ void rbp_run_physics(){
 			//Collidable -> rigidbody 
 			if(!x3dworld->enabled) continue;
 			//if(!x3dworld->_world){
-			if(NNC(x3dworld)){
+			if(NNC(x3dworld) || x3dworld->_world == NULL){
 				x3dworld->_world = world;
 				if(x3dworld->contactSurfaceThickness > 0)
 					dWorldSetContactSurfaceLayer (x3dworld->_world, x3dworld->contactSurfaceThickness);
