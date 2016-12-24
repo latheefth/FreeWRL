@@ -46,7 +46,7 @@
 #include "Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
 #include "../vrml_parser/CRoutes.h"
-
+#include "Polyrep.h"
 #include <float.h>
 #if defined(_MSC_VER) && _MSC_VER < 1500
 #define cosf cos
@@ -2318,7 +2318,227 @@ void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
 
 
 //SWEPT
+int compute_tessellation(int tessellation, int order, int ncontrol ){
+	/* for a given axis on a nurbs surface or nurbs curve,
+		and given the node->tesselation value, order and nDimension or ncontrol for the axis
+		return a computed tesselation value
+	*/
+	int mtessv, ntessv, mtessu, ntessu;
+	mtessu = order + 1;
+	ntessu = tessellation;
+				
+	if(ntessu > 0) 
+		mtessu = max(mtessu,ntessu+1);
+	else if(ntessu < 0) 
+		mtessu = max(mtessu,(-ntessu * ncontrol) + 1);
+	else
+		mtessu = max(mtessu,2*ncontrol + 1);
+	return mtessu;
+}
+void compute_knotvector(int order, int ncontrol, int nknots, double *knots, int *newnknots, float **newknots, float *range){
+	//for a given axis, QCs the knot vector, and replaces if necessary
+	//will malloc the necessary newknot vector - caller responsible
+	//range: pass in float[2] already allocated
+	int nku;
+	float *knotsu;
+	if(knotsOK(order,ncontrol,nknots,knots)){
+		//could do another check: max number of consecutive equal value knots == order
+		//could do another check: knot values == or ascending
+		nku = nknots;
+		knotsu = MALLOC(void *, nku * sizeof(GLfloat));
+		for(int i=0;i<nku;i++){
+			knotsu[i] = (GLfloat)knots[i];
+		}
+		if(DEBG){
+			printf("good u knot vector nk=%d\n",nku);
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
+		}
+		*newknots = knotsu;
+		*newnknots = nku;
+	}else{
+		//generate uniform knot vector 
+		static int once = 0;
+		nku = ncontrol + order ;
+		//caller: please malloc knots = MALLOC(void *,  (ncontrol + order ) * sizeof(float))
+		knotsu = MALLOC(void *, nku *sizeof(GLfloat));
+		generateUniformKnotVector(order,ncontrol, knotsu);
+		if(!once){
+			printf("bad u knot vector given, replacing with:\n");
+			for(int ii=0;ii<nku;ii++)
+				printf("[%d]=%f \n",ii,knotsu[ii]);
+			once = 1;
+		}
+		*newknots = knotsu;
+		*newnknots= nku;
+		//nk = 0;
+	}
+	range[0] = knotsu[0];
+	range[1] = knotsu[nku-1];
+}
+void compute_weightedcontrol(double *xyz, int dim, int nc, int nweight, double *weights, float **cxyzw){
+/*	will malloc xyzw the right size, and return, caller responsible
+	the opengl and piegl functions take floats
+	dim = 3 for incoming xyz control
+	dim = 2 for incoming xy (2D) control
+	outgoing is [w*x,w*y,w*z,w]
+*/
+	float *xyzw;
 
+	xyzw = MALLOC(float *, nc * 4 * sizeof(GLfloat));
+	for(int i=0;i<nc;i++)
+		xyzw[i*4 +0] = xyzw[i*4 +1] =xyzw[i*4 +2] =xyzw[i*4 +3] = 0.0f;
+	for(int i=0;i<nc;i++){
+		for(int j=0;j<dim;j++){
+			xyzw[i*4 + j] = (float)xyz[i*dim + j];
+		}
+		xyzw[i*4 + 3] = 1.0f;
+	}
+	if(nweight && nweight == nc ){
+		for(int i=0;i<nc;i++){
+			float wt = (float)weights[i];
+			xyzw[i*4 + 3] = wt;
+			vecscale3f(&xyzw[i*4],&xyzw[i*4],wt);
+		}
+	}
+	*cxyzw = xyzw;
+}
+void compute_doublecontrol(struct X3D_Node *controlPoint, int *nc, double** xyz ){
+	/*  rather than switch-casing elsewhere in the code, we'll get both types into double here
+	
+	*/
+	int n;
+	double *xyzd = NULL;
+	n = 0;
+	switch(controlPoint->_nodeType){
+		case NODE_Coordinate:
+		{
+			struct X3D_Coordinate *tcoord = (struct X3D_Coordinate*) controlPoint;
+			n = tcoord->point.n;
+			xyzd = MALLOC(double *,n * 3 * sizeof(double));
+			for(int i=0;i<tcoord->point.n;i++)
+				float2double(&xyzd[i*3],tcoord->point.p[i].c,3);
+		}
+		break;
+		case NODE_CoordinateDouble:
+		{
+			struct X3D_CoordinateDouble *tcoord = (struct X3D_CoordinateDouble *)controlPoint;
+			n = tcoord->point.n;
+			xyzd = MALLOC(double *,n * 3 * sizeof(double));
+			for(int i=0;i<tcoord->point.n;i++)
+				veccopyd(&xyzd[i*3],tcoord->point.p[i].c);
+
+		}
+		break;
+		default:
+		break;
+	}
+	*nc = n;
+	*xyz = xyzd;
+
+}
+float *vecabs3f(float *res, float *p){
+	for(int i=0;i<3;i++)
+		res[i] = fabs(p[i]);
+	return res;
+}
+int	ivecdominantdirection3f(int *irank, float *p){
+	float rmax, rmin, vabs[3];
+	int iret = 0;
+	vecabs3f(vabs,p);
+	rmax = max(vabs[0],max(vabs[1],vabs[2]));
+	rmin = min(vabs[0],min(vabs[1],vabs[2]));
+	for(int i=0;i<3;i++){
+		irank[i] = 1;
+		if(vabs[i] == rmax) {
+			irank[i] = 2;
+			iret = i;
+		}
+		if(vabs[i] == rmin) irank[i] = 0;
+	}
+	return iret;
+}
+void convert_mesh_to_polyrep(float *xyz, int npts, float *nxyz, int* tindex, int ntri, struct X3D_Node *node){
+	//this is a bit like compile_polyrep, except the virt_make is below
+
+	struct X3D_PolyRep *rep_, *polyrep;
+	GLuint *cindex, *norindex;
+
+	//from compile_polyrep:
+	//node = X3D_NODE(innode);
+	//virt = virtTable[node->_nodeType];
+
+	/* first time through; make the intern structure for this polyrep node */
+	if(node->_intern){
+		polyrep = node->_intern;
+		FREE_IF_NZ(polyrep->cindex);
+		FREE_IF_NZ(polyrep->actualCoord);
+		FREE_IF_NZ(polyrep->GeneratedTexCoords[0]);
+		FREE_IF_NZ(polyrep->colindex);
+		FREE_IF_NZ(polyrep->color);
+		FREE_IF_NZ(polyrep->norindex);
+		FREE_IF_NZ(polyrep->normal);
+		FREE_IF_NZ(polyrep->flat_normal);
+		FREE_IF_NZ(polyrep->tcindex);
+	}
+	if(!node->_intern) 
+		node->_intern = create_polyrep();
+
+	rep_ = polyrep = node->_intern;
+
+
+	/* if multithreading, tell the rendering loop that we are regenning this one */
+	/* if singlethreading, this'll be set to TRUE before it is tested	     */
+
+	//<< END FROM Compile_polyrep
+
+	// Start Virt_make_polyrep section >>>
+
+    if (npts > 0)
+    {
+		//printf("npoints %d ntc %d\n",npoints,ntc);
+        rep_->actualCoord = xyz;
+        rep_->normal = nxyz;
+    }
+	rep_->ntri = ntri; 
+
+    if (rep_->ntri > 0)
+    {
+		rep_->cindex = tindex;
+		norindex = rep_->norindex = MALLOC(GLuint *,sizeof(GLuint)*3*ntri);
+		memcpy(norindex,tindex,sizeof(GLuint)*3*ntri);
+    }
+
+
+	//END virt_make_polyrep section <<<<<<
+
+	//FROM Compile_polyrep
+	if (polyrep->ntri != 0) {
+		//float *fogCoord = NULL;
+		stream_polyrep(node, NULL,NULL,NULL,NULL, NULL);
+		/* and, tell the rendering process that this shape is now compiled */
+	}
+	//else wait for set_coordIndex to be converted to coordIndex
+	polyrep->irep_change = node->_change;
+
+	/*
+	// dump then can copy and paste to x3d or wrl IndexedFaceSet.coordIndex and Coordinate.point fields
+	FILE * fp = fopen("IFS_DUMP.txt","w+");
+	fprintf(fp,"#vertices %d\n",np);
+	for(i=0;i<np;i++){
+		fprintf(fp,"%f %f %f\n",rep->actualCoord[i*3 +0],rep->actualCoord[i*3 +1],rep->actualCoord[i*3 +2]);
+	}
+	fprintf(fp,"#face indices %d\n",ni);
+	for(i=0;i<ni;i++){
+		fprintf(fp,"%d ",rep->cindex[i]);
+		if((ni+1) % 3 == 0)
+			fprintf(fp,"%d ",-1);
+	}
+	fprintf(fp,"\n");
+	fclose(fp);
+	*/
+
+}
 void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 	MARK_NODE_COMPILED
 	//Swept: 
@@ -2329,6 +2549,7 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 	struct X3D_NurbsCurve *trajectory = (struct X3D_NurbsCurve *)node->trajectoryCurve;
 	xyzt = NULL;
 	nt = 0;
+	/*
 	switch(trajectory->controlPoint->_nodeType){
 		case NODE_Coordinate:
 		{
@@ -2352,7 +2573,8 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		default:
 		break;
 	}
-
+	*/
+	compute_doublecontrol(trajectory->controlPoint,&nt,&xyzt);
 	struct X3D_NurbsCurve2D *xsection = (struct X3D_NurbsCurve2D *)node->crossSectionCurve;
 
 	np = xsection->controlPoint.n;
@@ -2376,14 +2598,19 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 	// if you want the tube to stay open ie profile rotates with trajectory curve,
 	// then you need to implement method 2. and for that
 	// 1. compute tesselation points along trajectory curve (use piegl CurvePoint)
-	//		- get direction vector of curve using Delta or Derivs, as xsection normal
+	//		- get direction vector aka Tangent T of curve using Delta or Derivs, as xsection normal
 	//		- project up vector from last profile (1st profile up is arbitrary)
+	//			Piegl p.483 formula 10.27:
+	//				B0 - arbitrary unit vector perpendicular/orthogonal to trajectory tangent vector at v0
+	//				Ti = T'(vi)/|T'(vi)| //get the tangent vector along the trajectory curve, can use delta or Derivs 	
+	//				bi = Bi-1 - (Bi-1 * Ti)Ti
+	//				Bi = bi/|bi|			
 	// 2. comupte tesselated cross section aka xsection aka profile (use piegl CurvePoint)
 	// 3. for each trajectory tesselation point:
 	//		a) insert up- and tangent- oriented xsection points
 	//		b) skin: join current xsection points with last with triangles
 	// 
-	node->_method = 1;
+	node->_method = 2;
 	if(node->_method == 1){
 		//ALGO 1 Suv = T(v) + C(u)
 		struct X3D_NurbsPatchSurface *patch;
@@ -2459,21 +2686,214 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		}
 		compile_NurbsPatchSurface(node->_patch);
 	} //end method == 1
+	if(node->_method == 2){
+		//ALGO 2 skinning like extrusion
+		int mtessv, mtessu, nku, nkv;
+		float *knotsu,*knotsv,*xyzwu,*xyzwv, urange[2],vrange[2];
+		mtessu = compute_tessellation(xsection->tessellation,xsection->order,np);
+		mtessv = compute_tessellation(trajectory->tessellation,trajectory->order,nt);
+		compute_knotvector(xsection->order,np,xsection->knot.n,xsection->knot.p,&nku,&knotsu,urange);
+		compute_knotvector(trajectory->order,nt,trajectory->knot.n,trajectory->knot.p,&nkv,&knotsv,vrange);
+		compute_weightedcontrol(xyzt,3,nt, trajectory->weight.n, trajectory->weight.p, &xyzwv);
+		compute_weightedcontrol(xyzx,2,np, xsection->weight.n, xsection->weight.p, &xyzwu);
+		int DBGSW = FALSE;
+		if(DBGSW){
+			printf("np %d mtessu %d nku %d, nt %d mtessv %d, nkv %d",np,mtessu,nku,nt,mtessv,nkv);
+			printf("trajectory nt %d points:\n",nt);
+			for(int i=0;i<nt;i++)
+				printf("%d %f %f %f %f\n",i,xyzwv[i*4 + 0],xyzwv[i*4 + 1],xyzwv[i*4 + 2],xyzwv[i*4 + 3]);
+			printf("xsection np %d points:\n",np);
+			for(int i=0;i<np;i++)
+				printf("%d %f %f %f %f\n",i,xyzwu[i*4 + 0],xyzwu[i*4 + 1],xyzwu[i*4 + 2],xyzwu[i*4 + 3]);
+		}
+		// 1. compute tesselation points along trajectory curve (use piegl CurvePoint)
+		//		- get direction vector aka Tangent T of curve using Delta or Derivs, as xsection normal
+		//		- project up-vector from last profile (1st profile up is arbitrary)
+		//			Piegl p.483 formula 10.27:
+		//				B0 - arbitrary unit vector perpendicular/orthogonal to trajectory tangent vector at v0
+		//				Ti = T'(vi)/|T'(vi)| //get the tangent vector Tangentv along the trajectory curve, can use delta or Derivs 	
+		//				bi = Bi-1 - (Bi-1 dot Ti)Ti  //where dot is the dot product
+		//				Bi = bi/|bi|
+		float *Tv, *Tangentv, *Bup, *pts;
+		int mtessu1, mtessv1;
+		mtessu1 = mtessu + 1;
+		mtessv1 = mtessv + 1;
+		Tv = MALLOC(float*,(mtessv1)*3*sizeof(float));
+		Tangentv = MALLOC(float*,(mtessv1)*3*sizeof(float));
+		Bup = MALLOC(float*,(mtessv1)*3*sizeof(float));
+		for(int i=0;i<mtessv1;i++){
+			float cw[4], cw1[4], delta[3], v;
+			v = (float)i*(vrange[1]-vrange[0])/(float)mtessv;
+			CurvePoint(nt, trajectory->order-1, knotsv, xyzwv, v, cw );
+			veccopy3f(&Tv[i*3],cw);
+			//- get direction vector aka Tangent T of curve using Delta or Derivs, as xsection normal
+			CurvePoint(nt, trajectory->order-1, knotsv, xyzwv, v+.01, cw1 );
+			vecdif3f(delta,cw1,cw);
+			//	Ti = T'(vi)/|T'(vi)| //get the tangent vector Tangentv along the trajectory curve, can use delta or Derivs 	
+			vecnormalize3f(delta,delta);
+			veccopy3f(&Tangentv[i*3],delta);
+			//- project up-vector from last profile (1st profile up is arbitrary)
+			if(i==0){
+				//	B0 - arbitrary unit vector perpendicular/orthogonal to trajectory tangent vector at v0
+				int irank[3],idom, inondom;
+				float perp[3], perp2[3];
+				idom = ivecdominantdirection3f(irank,delta);
+				inondom = idom + 1 > 2 ? 0 : idom + 1;
+				for(int k=0;k<3;k++) if(irank[k] == 0) inondom = k;
+				memset(perp,0,3*sizeof(float));
+				perp[inondom] = 1.0;  //close to perpendicular, but not quite
+				veccross3f(perp2,delta,perp); //perp2 perpendicular to perp and delta
+				veccross3f(perp,perp2,delta); //another cross to get perp exactly perpendicular
+				//perp should be perpendicular to delta[0]
+				veccopy3f(&Bup[i*3],perp);
+			}else{
+				//	bi = Bi-1 - (Bi-1 dot Ti)Ti
+				//	Bi = bi/|bi|
+				float bi[3], bi1dotti, tiscaled[3];
+				bi1dotti = vecdot3f(&Bup[(i-1)*3],&Tangentv[i*3]);
+				vecdif3f(bi,&Bup[(i-1)*3],vecscale3f(tiscaled,&Tangentv[i*3],bi1dotti));
+				vecnormalize3f(&Bup[i*3],bi);
+			}
+		}
+		if(DBGSW){
+			printf("trajectory T:\n");
+			for(int i=0;i<mtessv1;i++){
+				printf("%d [%f %f %f] \n",i,
+					Tv[i*3 +0],Tv[i*3 +1],Tv[i*3 +2]);
+			}
+			printf("trajectory T', B:\n");
+			for(int i=0;i<mtessv1;i++){
+				printf("%d [%f %f %f] [%f %f %f] \n",i,
+					Tangentv[i*3 +0],Tangentv[i*3 +1],Tangentv[i*3 +2],
+					Bup[i*3 +0],Bup[i*3 +1],Bup[i*3 +2]);
+			}
+
+		}
+		//if(trajectory->closed){
+		//	//compute backward Bup, and average fore and aft Bup
+		//}
+		// 2. comupte tesselated cross section aka xsection aka profile (use piegl CurvePoint)
+		float *Qu = MALLOC(float*,(mtessu+1)*3*sizeof(float));  //cross section points
+		float *Nu = MALLOC(float*,(mtessu+1)*3*sizeof(float));  //cross section normals
+		if(DBGSW) printf("Xsection tess pts:\n");
+		for(int i=0;i<mtessu1;i++){
+			float u, cw[4], cw1[4], delta[3], normal[3];
+			float zzz[3] = {0.0f,0.0f,1.0f};
+			u = (float)i*(urange[1]-urange[0])/(float)mtessu;
+			CurvePoint(np, xsection->order-1, knotsu, xyzwu, u, cw );
+			veccopy3f(&Qu[i*3],cw);
+			CurvePoint(np, xsection->order-1, knotsu, xyzwu, u+.01, cw1 );
+			vecdif3f(delta,cw1,cw);
+			vecnormalize3f(delta,delta);
+			veccross3f(normal,zzz,delta);
+			veccopy3f(&Nu[i*3],normal);
+			if(DBGSW) printf("%d %f %f %f\n",i,Qu[i*3 +0],Qu[i*3 +1],Qu[i*3 +2]);
+
+		}
+		// 3. for each trajectory tesselation point:
+		//		a) insert up- and tangent- oriented xsection points
+		//		b) skin: join current xsection points with last with triangles
+		pts = MALLOC(float*,mtessu1 * mtessv1 * 3 * sizeof(float));
+		float *normals = MALLOC(float*,mtessu1 * mtessv1 * 3 * sizeof(float));
+		int *idx = MALLOC(int *, mtessu * mtessv * 2 * 3 * sizeof(int));
+		int ic = 0;
+		int it = 0;
+		float matB0[9];
+		for(int i=0;i<mtessv1;i++){
+			//insert oriented xsection at T(v)
+			float mat [9], matt[9];
+			//set up 3x3 rotation by using 3 perpendicular local unit vectors as rot mat rows
+			//http://renderdan.blogspot.ca/2006/05/rotation-matrix-from-axis-vectors.html
+
+			veccross3f(&mat[0],&Bup[i*3],&Tangentv[i*3]);
+			veccopy3f(&mat[3],&Bup[i*3]);
+			veccopy3f(&mat[6],&Tangentv[i*3]);
+			mattranspose3f(matt,mat); //seems like I need columns, not rows, by experimentation
+			if(i==0){
+				//not sure but I think we should take off the 
+				//arbitrary rotation of the first crossection from all subsequent
+				//so first xsection not rotated (you need to design with 
+				//your crosssection plane perpendicular to the start of your trajectory)
+				//and subsequent are rotated with respect to first
+				//Looks good
+				memcpy(matB0,mat,9*sizeof(float));
+			}
+			matmultiply3f(mat,matt,matB0);
+			for(int j=0;j<mtessu1;j++){
+				float pp[3], norm[3];
+				matmultvec3f(pp, mat, &Qu[j*3] ); //orient profile point
+				vecadd3f(pp,pp,&Tv[i*3]); //add on trajectory point
+				veccopy3f(&pts[ic*3],pp);
+				matmultvec3f(norm,mat,&Nu[j*3]);
+				veccopy3f(&normals[ic*3],norm);
+				ic++;
+			}
+			//connect to last xsection with triangles
+			if(i > 0){
+				int kk = (i-1)*mtessu1;
+				int mm = i*mtessu1;
+				for(int j=0;j<mtessu;j++){
+					// 1     1  3
+					// 0  2     2
+					//first triangle
+					idx[it++] = kk+j;
+					idx[it++] = mm+j;
+					idx[it++] = kk+j+1;
+					//second triangle
+					idx[it++] = kk+j+1;
+					idx[it++] = mm+j;
+					idx[it++] = mm+j+1;
+				}
+			}
+		}
+		//assign to something 
+		int ntri = it/3;
+		if(DBGSW){
+			printf("ntri %d triangle indexes:\n",ntri);
+			for(int i=0;i<ntri;i++){
+				printf("%d [",i);
+				for(int j=0;j<3;j++){
+					printf("%d ",idx[i*3 +j]);
+				}
+				printf("\n");
+			}
+			printf("triangle vertices:\n");
+			for(int i=0;i<ntri;i++){
+				for(int j=0;j<3;j++){
+					float pt[3];
+					int ix = idx[i*3 +j];
+					veccopy3f(pt,&pts[ix*3]);
+					printf("%d %d %f %f %f\n",i,ix,pt[0],pt[1],pt[2]);
+				}
+			}
+		}
+
+		//send to polyrep
+		convert_mesh_to_polyrep(pts,ic,normals,idx,ntri,node);
+	}
 
 }
 void rendray_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
 	COMPILE_IF_REQUIRED
 	if(node->_method == 1){
-		if (!node->_intern) return;
+		if (!node->_patch) return;
 		render_ray_polyrep(node->_patch);
+	}
+	if(node->_method == 2){
+		if(!node->_intern) return;
+		render_ray_polyrep(node);
 	}
 }
 
 void collide_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
 	COMPILE_IF_REQUIRED
 	if(node->_method == 1){
-		if (!node->_intern) return;
+		if (!node->_patch) return;
 		collide_genericfaceset(node->_patch);
+	}
+	if(node->_method == 2){
+		if (!node->_intern) return;
+		collide_genericfaceset(node);
 	}
 }
 
@@ -2486,5 +2906,12 @@ void render_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
 		patch = node->_patch;
 		CULL_FACE(patch->solid)
 		render_polyrep(patch);
+	}
+	if(node->_method == 2){
+		if (!node->_intern) 
+			return;
+		//CULL_FACE(node->solid)
+		render_polyrep(node);
+
 	}
 }
