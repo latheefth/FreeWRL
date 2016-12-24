@@ -1509,6 +1509,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 							float du, dv, uu, vv;
 							int jj;
 							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							FREE_IF_NZ(texCoord->point.p);
 							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
 							du = 1.0f / (float)max(1,(nu -1));
 							dv = 1.0f / (float)max(1,(nv -1));
@@ -1625,7 +1626,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 								}
 								if(DEBG) printf("gluPwlCurve B\n");
 								gluPwlCurve (theNurb, cp2d->controlPoint.n, ctrl, 2, GLU_MAP1_TRIM_2);
-
+								FREE_IF_NZ(ctrl);
 								break;
 							case NODE_NurbsCurve2D:
 								nc2d = (struct X3D_NurbsCurve2D *)ctr;
@@ -1745,6 +1746,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 
 			//convert points to polyrep
 			convert_strips_to_polyrep(strips,(struct X3D_NurbsTrimmedSurface*)node);
+			FREE_IF_NZ(knotsv);
+			FREE_IF_NZ(knotsu);
+			FREE_IF_NZ(xyzw);
 		}
 	}
 
