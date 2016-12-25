@@ -68,6 +68,45 @@ void MNX0(struct X3D_Node* node);
 
 void do_EaseInEaseOut(void *node){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html#EaseInEaseOut
+
+	/* ScalarInterpolator - store final value in px->value_changed */
+	struct X3D_EaseInEaseOut *px;
+	int kin, kvin;
+	float *kVs;
+	int counter;
+
+	if (!node) return;
+	px = (struct X3D_EaseInEaseOut *) node;
+	kin = px->key.n;
+
+	MARK_EVENT (node, offsetof (struct X3D_EaseInEaseOut, modifiedFraction_changed));
+
+	float fraction = min(px->set_fraction,px->key.p[kin-1]);
+	fraction = max(px->set_fraction,px->key.p[0]);
+	/* have to go through and find the key before */
+	int ispan =find_key(kin,fraction,px->key.p);
+	float u = (fraction - px->key.p[ispan-1]) / (px->key.p[ispan] - px->key.p[ispan-1]);
+	float eout = px->easeInEaseOut.p[ispan].c[1]; //y
+	float ein  = px->easeInEaseOut.p[ispan+1].c[0]; //x
+	float S = eout + ein;
+
+	if(S < 0.0f){
+		px->modifiedFraction_changed = u;
+	}else{
+		if(S > 1.0f){
+			ein /= S;
+			eout /= S;
+		}
+		float t = 1.0f / (2.0f - eout - ein);
+		if(u < eout){
+			px->modifiedFraction_changed = (t/eout) * u*u;
+		}else if(u < 1.0f - ein){
+			px->modifiedFraction_changed = (t*(2*u - eout));
+		}else{
+			px->modifiedFraction_changed = 1.0f - (t*(1.0f - u)*(1.0f - u))/ein;
+		}
+	}
+		
 	
 }
 
