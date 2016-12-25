@@ -76,6 +76,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_OK",
 	"_PVI",
 	"_PVW",
+	"_T0",
+	"_T1",
 	"__DEFnames",
 	"__EXPORTS",
 	"__GC",
@@ -6669,6 +6671,8 @@ const int OFFSETS_SphereSensor[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SplinePositionInterpolator[] = {
+	(int) FIELDNAMES__T0, (int) offsetof (struct X3D_SplinePositionInterpolator, _T0),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__T1, (int) offsetof (struct X3D_SplinePositionInterpolator, _T1),  (int) FIELDTYPE_MFVec3f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_closed, (int) offsetof (struct X3D_SplinePositionInterpolator, closed),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_key, (int) offsetof (struct X3D_SplinePositionInterpolator, key),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_keyValue, (int) offsetof (struct X3D_SplinePositionInterpolator, keyValue),  (int) FIELDTYPE_MFVec3f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6680,6 +6684,8 @@ const int OFFSETS_SplinePositionInterpolator[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SplinePositionInterpolator2D[] = {
+	(int) FIELDNAMES__T0, (int) offsetof (struct X3D_SplinePositionInterpolator2D, _T0),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__T1, (int) offsetof (struct X3D_SplinePositionInterpolator2D, _T1),  (int) FIELDTYPE_MFVec2f, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_closed, (int) offsetof (struct X3D_SplinePositionInterpolator2D, closed),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_key, (int) offsetof (struct X3D_SplinePositionInterpolator2D, key),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_keyValue, (int) offsetof (struct X3D_SplinePositionInterpolator2D, keyValue),  (int) FIELDTYPE_MFVec2f, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6691,6 +6697,8 @@ const int OFFSETS_SplinePositionInterpolator2D[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SplineScalarInterpolator[] = {
+	(int) FIELDNAMES__T0, (int) offsetof (struct X3D_SplineScalarInterpolator, _T0),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) 0,
+	(int) FIELDNAMES__T1, (int) offsetof (struct X3D_SplineScalarInterpolator, _T1),  (int) FIELDTYPE_MFFloat, (int) KW_initializeOnly, (int) 0,
 	(int) FIELDNAMES_closed, (int) offsetof (struct X3D_SplineScalarInterpolator, closed),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_key, (int) offsetof (struct X3D_SplineScalarInterpolator, key),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_keyValue, (int) offsetof (struct X3D_SplineScalarInterpolator, keyValue),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -12144,6 +12152,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SplinePositionInterpolator : {
 			struct X3D_SplinePositionInterpolator * tmp2;
 			tmp2 = (struct X3D_SplinePositionInterpolator *) tmp;
+			tmp2->_T0.n=0; tmp2->_T0.p=0;
+			tmp2->_T1.n=0; tmp2->_T1.p=0;
 			tmp2->closed = FALSE;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
@@ -12158,6 +12168,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SplinePositionInterpolator2D : {
 			struct X3D_SplinePositionInterpolator2D * tmp2;
 			tmp2 = (struct X3D_SplinePositionInterpolator2D *) tmp;
+			tmp2->_T0.n=0; tmp2->_T0.p=0;
+			tmp2->_T1.n=0; tmp2->_T1.p=0;
 			tmp2->closed = FALSE;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
@@ -12172,6 +12184,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SplineScalarInterpolator : {
 			struct X3D_SplineScalarInterpolator * tmp2;
 			tmp2 = (struct X3D_SplineScalarInterpolator *) tmp;
+			tmp2->_T0.n=0; tmp2->_T0.p=0;
+			tmp2->_T1.n=0; tmp2->_T1.p=0;
 			tmp2->closed = FALSE;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;

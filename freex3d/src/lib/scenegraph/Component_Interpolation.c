@@ -54,6 +54,14 @@
 
 #include "../input/SensInterps.h"
 
+//defined in Component_RigidBodyPhysics
+int NNC0(struct X3D_Node* node); 
+void MNC0(struct X3D_Node* node);
+void MNX0(struct X3D_Node* node);
+#define NNC(A) NNC0(X3D_NODE(A))  //node needs compiling
+#define MNC(A) MNC0(X3D_NODE(A))  //mark node compiled
+#define MNX(A) MNX0(X3D_NODE(A))  //mark node changed
+#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html
 // see also SenseInterps.c for other interpolator componenent implementations
@@ -84,10 +92,194 @@ void do_EaseInEaseOut(void *node){
 	- and in general {answer, val*, vel*} are vectors or types ie SFVec3f, SFRotation, SFfloat
 
 */
+void spline_interp(int dim, float *result, float s, float *val0, float *val1, float *T00, float *T11){
+	// dim - dimension of val and vel ie 3 for xyz
+	// interpolates one value, given the span values
+	float S[4], *C[4], SH[4];
+	static float H[16] = {
+	2.0f, -2.0f, 1.0f, 1.0f,
+	-3.0f,  3.0f,-2.0f,-1.0f,
+	0.0f,  0.0f, 1.0f, 0.0f,
+	1.0f,  0.0f, 0.0f, 0.0f};
+
+	S[0] = s*s*s;
+	S[1] = s*s;
+	S[2] = s;
+	S[3] = 1.0f;
+	vecmultmat4f(SH,S,H);
+
+	C[0] = val0; //vi
+	C[1] = val1; //vi+1
+	C[2] = T00; //T0i
+	C[3] = T11; //T1i+1
+		
+	for(int i=0;i<dim;i++){
+		result[i] = 0.0f;
+		for(int j=0;j<4;j++){
+			result[i] += SH[j]*C[j][i];
+		}
+	}
+}
+
+//for xyz dim =3, for xy dim=2 for scalar dim=1
+void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti ){
+	//please malloc Ti = malloc(nval*dim*sizeof(float)) before calling
+	if(nvel && vel && nvel == nval){
+		if(!normalize){
+			//If the velocity vector is specified, and the normalizeVelocity flag has value FALSE, 
+			//the velocity at the key is set to the corresponding value of the keyVelocity field:
+			//Ti = keyVelocity[ i ]
+			memcpy(Ti,vel,dim*nval*sizeof(float));
+		}else{
+			//If the velocity vector is specified, and the normalizeVelocity flag is TRUE,
+			// the velocity at the key is set using the corresponding value of the keyVelocity field:
+			//Ti = keyVelocity[i] × ( Dtot / |keyVelocity[i]| )
+
+			//Dtot = SUM{i=0, i < n-1}(|vi - vi+1|)
+			float Dtot = 0.0f;
+			for(int i=0;i<nval-1;i++){
+				float Di = 0.0f;
+				for(int j=0;j<dim;j++){
+					Di += (val[i+1] - val[i])*(val[i+1] - val[i]); //euclidean distance d= sqrt(x**2 + y**2)
+				}
+				Dtot += sqrt(Di);
+			}
+			for(int i=0;i<nval;i++){
+				float veli = 0.0f;
+				for(int j=0;j<dim;j++)
+					veli = veli + (vel[i*dim + j]*vel[i*dim + j]); //euclidean distance d= sqrt(x**2 + y**2)
+				veli = sqrt(veli);
+				for(int j=0;j<dim;j++){
+					if(veli != 0.0f)
+						Ti[i*dim + j] = Dtot * vel[i*dim + j] / veli;
+					else
+						Ti[i*dim + j] = 0.0f;
+				}
+			}
+		}
+	}else{
+		//If the velocity vector is not specified, (or just start & end,) it is calculated as follows:
+		//Ti = (vi+1 - vi-1) / 2
+		if(nvel == 2){
+			for(int j=0;j<dim;j++){
+				Ti[       0*dim + j] = vel[0*dim + j];
+				Ti[(nval-1)*dim + j] = vel[1*dim + j];
+			}
+
+		}else{
+			for(int j=0;j<dim;j++){
+				Ti[       0*dim + j] = 0.0f;
+				Ti[(nval-1)*dim + j] = 0.0f;
+			}
+		}
+		//skip start and end vels here
+		for(int i=1;i<nval-1;i++)
+			for(int j=0;j<dim;j++)
+				Ti[i*dim + j] = (val[(i+1)*dim +j] - val[(i-1)*dim +j]) * .5f;
+
+	}
+}
+int iwrap(int i, int istart, int iend){
+	// normally istart = 0, iend = n
+	// 6 = iwrap(-1,0,7)
+	// 0 = iwrap(7,0,7)
+	int iret = i;
+	if(iret < istart) iret = iend - (istart - iret);
+	if(iret >= iend ) iret = istart + (iret - iend);
+	return iret;
+}
+void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1){
+	//before calling please malloc T0 and T1 = malloc(nval * dim * sizeof(float))
+	float Fp, Fm;
+	int istart, iend;
+	istart = 1;
+	iend = nval-1;
+	if(closed){
+		istart = 0;
+		iend = nval;
+	}else{
+		//take first and last values from Ti which were either 0 or start/end
+		int l = nval-1;
+		for(int j=0;j<dim;j++){
+			T1[0*dim +j] = T0[0*dim +j] = Ti[0*dim +j];
+			T1[l*dim +j] = T0[l*dim +j] = Ti[l*dim +j];
+		}
+	}
+	for(int i=istart;i<iend;i++){
+		int ip, im;
+		ip = iwrap(i+1,0,nval);
+		im = iwrap(i-1,0,nval);
+		Fm = 2.0f*(key[ip] - key[i])/(key[ip]-key[im]);
+		Fp = 2.0f*(key[i] - key[im])/(key[ip]-key[im]);
+		for(int j=0;j<dim;j++){
+			T0[i*dim +j] = Fp*Ti[i*dim +j];
+			T1[i*dim +j] = Fm*Ti[i*dim +j];
+		}
+	}
+}
+
 
 void do_SplinePositionInterpolator(void *node){
 	//	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html#SplinePositionInterpolator
+	struct X3D_SplinePositionInterpolator* px = (struct X3D_SplinePositionInterpolator*)node;
+	if(NNC(px)){
+		
+		//void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti )
+		int n = px->key.n;
+		float *Ti = MALLOC(float*,n*3*sizeof(float));
+		compute_spline_velocity_Ti(3,px->normalizeVelocity,n,(float*)px->keyValue.p,
+			px->keyVelocity.n,(float*)px->keyVelocity.p,Ti);
+		float *T0 = MALLOC(float*,n*3*sizeof(float));
+		float *T1 = MALLOC(float*,n*3*sizeof(float));
+		//spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1)
+		spline_velocity_adjust_for_keyspan(3,px->closed,n,px->key.p,Ti,T0,T1);
+		FREE_IF_NZ(px->_T0.p);
+		FREE_IF_NZ(px->_T1.p);
+		px->_T0.p = (struct SFVec3f*)T0;
+		px->_T0.n = n;
+		px->_T1.p = (struct SFVec3f*)T1;
+		px->_T1.n = n;
 
+		MNC(px);
+	}
+	//void spline_interp(int dim, float *result, float s, float *val0, float *val1, float *T00, float *T11)
+	int kin, kvin;
+	int counter;
+
+	if (!node) return;
+	kin = px->key.n;
+	kvin = px->keyValue.n;
+
+	MARK_EVENT (node, offsetof (struct X3D_SplinePositionInterpolator, value_changed));
+
+	/* make sure we have the keys and keyValues */
+	if ((kvin == 0) || (kin == 0)) {
+		vecset3f(px->value_changed.c,0.0f,0.0f,0.0f);
+		return;
+	}
+	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
+
+	#ifdef SEVERBOSE
+		printf ("ScalarInterpolator, kin %d kvin %d, vc %f\n",kin,kvin,px->value_changed);
+	#endif
+
+	/* set_fraction less than or greater than keys */
+	float fraction = min(px->set_fraction,px->key.p[kin-1]);
+	fraction = max(px->set_fraction,px->key.p[0]);
+	/* have to go through and find the key before */
+	int ispan =find_key(kin,fraction,px->key.p);
+
+	// INTERPOLATION FUNCTION - change this from linear to spline
+	// fraction s = fraction_interp(t,t0,t1);
+	// answer = linear_interp(s,key0,val0,key1,val1)
+	// answer = spline_interp(s,key0,val0,vel0,key1,val1,vel1)  
+	//  where vel is velocity or more generally slope/first-derivitive of value at key. 
+	//  First derivitive would be with respect to key ie d(Value)/d(key) evaluated at key
+	// in general answer, val*, vel* are vectors or types.
+
+	spline_interp(3, (float*)&px->value_changed, fraction,
+		px->keyValue.p[ispan].c, px->keyValue.p[ispan+1].c, 
+		px->_T0.p[ispan].c, px->_T1.p[ispan].c);
 }
 void do_SplinePositionInterpolator2D(void *node){
 }
@@ -198,7 +390,7 @@ void do_SquadOrientationInterpolator(void *node){
 	//						remember from trig cos**2 + sin**2 = 1, or cos = sqrt(1 - sin**2)
 	//						can probably take sine from sint*v ie sint = veclength(sint*v)
 	//	July 19, 2016 - code below copied from orientationInterpolator and node caste changed, but no other changes
-	//  - feel free to implement squad in here
+	//  Dec 25, 2016 - squad coded
 
 
 	struct X3D_SquadOrientationInterpolator *px;
