@@ -321,7 +321,7 @@ void do_SplinePositionInterpolator2D(void *node){
 
 	/* make sure we have the keys and keyValues */
 	if ((kvin == 0) || (kin == 0)) {
-		vecset2f(px->value_changed.c,0.0f,0.0f,0.0f);
+		vecset2f(px->value_changed.c,0.0f,0.0f);
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
