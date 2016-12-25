@@ -141,8 +141,43 @@ void do_SplineScalarInterpolator(void *node){
 	}
 
 }
+
+void compute_si(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim1){
+	//		si = qi * exp( - (log(inv(qi)*qi+1) + log(inv(qi)*qi-1)) / 4 )
+	//		and qi+1 means q[i+1] and qi-1 means q[i-1] ie that's an indexer, not a quat + scalar
+	//	p. 15 shows log(q) if q=[cost,sint*v] then 
+	//			log(q) = [0, sint*v] (non-unit)
+	//			exp(q) = [cost, sint*v] (puts cos(t) back in scalar part, inverting log)
+
+	Quaternion qiinv, qiinv_qip1, qiinv_qim1,qadded,qexp;
+	double xyz[3],sine,cosine;
+
+	quaternion_inverse(&qiinv,qi);
+	quaternion_multiply(&qiinv_qip1,&qiinv,qip1);
+	qiinv_qip1.w = 0.0; //log
+	quaternion_multiply(&qiinv_qim1,&qiinv,qim1);
+	qiinv_qim1.w = 0.0; //log
+	quaternion_add(&qadded,&qiinv_qip1,&qiinv_qim1);
+	qadded.x /= 4.0;
+	qadded.y /= 4.0;
+	qadded.z /= 4.0;
+	// remember from trig cos**2 + sin**2 = 1, or cos = sqrt(1 - sin**2)
+	// can probably take sine from sint*v ie sint = veclength(sint*v)
+	xyz[0] = qadded.x;
+	xyz[1] = qadded.y;
+	xyz[2] = qadded.z;
+	sine = veclengthd(xyz);
+	cosine = sqrt(1.0 - sine*sine);
+	qexp = qadded;
+	qexp.w = cosine;
+	quaternion_multiply(si,qi,&qexp);
+}
+
 void do_SquadOrientationInterpolator(void *node){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html#SquadOrientationInterpolator
+	// EXCEPT: specs seem to have a few things wrong
+	//   1. there's no 'velocity' stuff needed
+	//   2. no relation to the spine interpolators
 	// Squad research:
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/bb281656(v=vs.85).aspx
 	// - Squad interp using slerps
@@ -230,12 +265,38 @@ void do_SquadOrientationInterpolator(void *node){
 				kVs[counter].c[2],
 				kVs[counter].c[3]);
 		#endif
-		vrmlrot_to_quaternion (&st, kVs[counter-1].c[0],
-                                kVs[counter-1].c[1], kVs[counter-1].c[2], kVs[counter-1].c[3]);
-		vrmlrot_to_quaternion (&fin,kVs[counter].c[0],
-                                kVs[counter].c[1], kVs[counter].c[2], kVs[counter].c[3]);
+		if(0){
+			//regular slerp code from orientaiton interpolator
+			vrmlrot_to_quaternion (&st, kVs[counter-1].c[0],
+									kVs[counter-1].c[1], kVs[counter-1].c[2], kVs[counter-1].c[3]);
+			vrmlrot_to_quaternion (&fin,kVs[counter].c[0],
+									kVs[counter].c[1], kVs[counter].c[2], kVs[counter].c[3]);
 
-		quaternion_slerp(&final, &st, &fin, (double)interval);
+			quaternion_slerp(&final, &st, &fin, (double)interval);
+		}else{
+			//squad
+			// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
+
+			Quaternion qi,qip1,qip2,qim1,si,sip1,qs,ss;
+			double h;
+			int ip1, ip2, im1, i;
+			i = counter -1;
+			vrmlrot_to_quaternion (&qi,   kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
+			ip1 = i+1;
+			vrmlrot_to_quaternion (&qip1, kVs[ip1].c[0],kVs[ip1].c[1], kVs[ip1].c[2], kVs[ip1].c[3]);
+			ip2 = i+2;
+			vrmlrot_to_quaternion (&qip1, kVs[ip2].c[0],kVs[ip2].c[1], kVs[ip2].c[2], kVs[ip2].c[3]);
+			im1 = i-1;
+			vrmlrot_to_quaternion (&qim1, kVs[im1].c[0],kVs[im1].c[1], kVs[im1].c[2], kVs[im1].c[3]);
+			//si
+			compute_si(&si,&qi, &qip1, &qim1);
+			compute_si(&sip1,&qip1,&qip2,&qi);
+			h = (double) interval;
+			quaternion_slerp(&qs,&qi,&qip1,h);
+			quaternion_slerp(&ss,&si,&sip1,h);
+			quaternion_slerp(&final, &qs, &ss, 2*h*(1.0 -h));
+
+		}
 		quaternion_to_vrmlrot(&final,&x, &y, &z, &a);
 		px->value_changed.c[0] = (float) x;
 		px->value_changed.c[1] = (float) y;
