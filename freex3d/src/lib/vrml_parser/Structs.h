@@ -9499,6 +9499,7 @@ struct X3D_SquadOrientationInterpolator {
 	struct Multi_Rotation keyValue;
 	struct X3D_Node *metadata;
 	int normalizeVelocity;
+	int closed;
 	struct SFRotation value_changed;
 };
 extern struct X3D_Virt virt_SquadOrientationInterpolator;

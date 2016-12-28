@@ -219,6 +219,8 @@ void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, in
 	}
 }
 int iwrap(int i, int istart, int iend){
+	//if they don't duplicate - the last point != first point - then iend = n
+	//if they duplicate last point == first point, then iend = n-1
 	// normally istart = 0, iend = n
 	// 6 = iwrap(-1,0,7)
 	// 0 = iwrap(7,0,7)
@@ -456,37 +458,270 @@ void do_SplineScalarInterpolator(void *node){
 
 }
 
+
+
+
+double *quaternion2double(double *xyzw, Quaternion *q){
+	xyzw[0] = q->x;
+	xyzw[1] = q->y;
+	xyzw[2] = q->z;
+	xyzw[3] = q->w;
+	return xyzw;
+}
+Quaternion *double2quaternion(Quaternion *q, double* xyzw){
+	q->x = xyzw[0];
+	q->y = xyzw[1];
+	q->z = xyzw[2];
+	q->w = xyzw[3];
+	return q;
+}
+void quaternion_addition(Quaternion *ret, const Quaternion *q1, const Quaternion *q2){
+	//the quaternion_add in Quanternions.c seems too complicated. 
+	// supposed to be q+q' = [s+s',v+v']
+	double xyzw1[4],xyzw2[4],xyzw[4];
+	quaternion2double(xyzw1,q1);
+	quaternion2double(xyzw2,q2);
+	vecaddd(xyzw,xyzw1,xyzw2);
+	xyzw[3] = xyzw1[3] + xyzw2[3];
+	double2quaternion(ret,xyzw);
+}
+void quaternion_subtraction(Quaternion *ret, const Quaternion *q1, const Quaternion *q2){
+	// supposed to be q-q' = [s-s',v-v']
+	double xyzw1[4],xyzw2[4],xyzw[4];
+	quaternion2double(xyzw1,q1);
+	quaternion2double(xyzw2,q2);
+	vecdifd(xyzw,xyzw1,xyzw2);
+	xyzw[3] = xyzw1[3] - xyzw2[3];
+	double2quaternion(ret,xyzw);
+}
+double clampd(double val, double low, double hi){
+	double ret = val;
+	ret = min(ret,hi);
+	ret = max(ret,low);
+	return ret;
+}
+void quaternion_log(Quaternion *ret, Quaternion *q){
+	double angle, angle_over_sine, xyzw[4];
+
+	quaternion2double(xyzw,q);
+	angle = acos( clampd(xyzw[3],-1.0,1.0));
+	//cosine = xyzw[3];
+	//sine = veclengthd(xyzw);
+	//angle = atan2(sine,cosine);
+	angle_over_sine = 0.0;
+	if(angle != 0.0) angle_over_sine = angle/sin(angle);
+	vecscaled(xyzw,xyzw,angle_over_sine);
+	xyzw[3]=0.0;
+	double2quaternion(ret,xyzw);
+}
+void quaternion_exp(Quaternion *ret, Quaternion *q){
+	double angle, xyzw[4], sine, sine_over_angle;
+
+	quaternion2double(xyzw,q);
+	angle = veclengthd(xyzw);
+	sine_over_angle = 0.0;
+	if(angle != 0.0) sine_over_angle = sin(angle) / angle;
+	vecscaled(xyzw,xyzw,sine_over_angle);
+	xyzw[3] = cos(angle);
+	double2quaternion(ret,xyzw);
+}
 void compute_si(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim1){
+	//si is like the (quaternion-space) slope at point qi, or like a bezier tangent control point
+	//and is supposed to be the average from either side of (quaternion-space) point qi
+	//or more precisely, the 2 slopes / 1st derivitives are set equal
+	// http://web.mit.edu/2.998/www/QuaternionReport1.pdf  
 	//		si = qi * exp( - (log(inv(qi)*qi+1) + log(inv(qi)*qi-1)) / 4 )
 	//		and qi+1 means q[i+1] and qi-1 means q[i-1] ie that's an indexer, not a quat + scalar
 	//	p. 15 shows log(q) if q=[cost,sint*v] then 
-	//			log(q) = [0, sint*v] (non-unit)
+	//			log(q) = [0, t*v] (non-unit-sphere in quaternion space, not in H1)
 	//			exp(q) = [cost, sint*v] (puts cos(t) back in scalar part, inverting log)
+	// http://www.cs.ucr.edu/~vbz/resources/quatut.pdf
+	// p.10 "the logarithm of a unit quaternion q = [vˆ sin O, cos O] is just vˆO, a pure vector of length O."
 
 	Quaternion qiinv, qiinv_qip1, qiinv_qim1,qadded,qexp;
-	double xyz[3],sine,cosine;
+	double xyzw[4],sine,cosine,angle, angle_over_sine;
 
 	quaternion_inverse(&qiinv,qi);
 	quaternion_multiply(&qiinv_qip1,&qiinv,qip1);
-	qiinv_qip1.w = 0.0; //log
+	/*
+	//quaternion_normalize(&qiinv_qip1);
+	//compute log(qiiv_qip1)
+	quaternion2double(xyzw,&qiinv_qip1);
+	angle = acos( clampd(xyzw[3],-1.0,1.0));
+	//cosine = xyzw[3];
+	//sine = veclengthd(xyzw);
+	//angle = atan2(sine,cosine);
+	angle_over_sine = 0.0;
+	if(angle != 0.0) angle_over_sine = angle/sin(angle);
+	vecscaled(xyzw,xyzw,angle_over_sine);
+	xyzw[3]=0.0;
+	double2quaternion(&qiinv_qip1,xyzw);
+	*/
+	quaternion_log(&qiinv_qip1,&qiinv_qip1);
+
+
 	quaternion_multiply(&qiinv_qim1,&qiinv,qim1);
-	qiinv_qim1.w = 0.0; //log
-	quaternion_add(&qadded,&qiinv_qip1,&qiinv_qim1);
-	qadded.x /= 4.0;
-	qadded.y /= 4.0;
-	qadded.z /= 4.0;
+	/*
+	angle = acos( clampd(xyzw[3],-1.0,1.0));
+	//cosine = xyzw[3];
+	//sine = veclengthd(xyzw);
+	//angle = atan2(sine,cosine);
+	angle_over_sine = 0.0;
+	if(angle != 0.0) angle_over_sine = angle/sin(angle);
+	vecscaled(xyzw,xyzw,angle_over_sine);
+	xyzw[3]=0.0;
+	double2quaternion(&qiinv_qim1,xyzw);
+	*/
+	quaternion_log(&qiinv_qim1,&qiinv_qim1);
+
+//	quaternion_add(&qadded,&qiinv_qip1,&qiinv_qim1);
+	quaternion_addition(&qadded,&qiinv_qip1,&qiinv_qim1); //don't normalize - its still a log, which aren't H1
+	quaternion2double(xyzw,&qadded);
+	vecscaled(xyzw,xyzw,-.25); // -ve and /4
+	xyzw[3] *= -.25;  //I think this will still be 0 after adding 2 logs
+
+	//compute exp
 	// remember from trig cos**2 + sin**2 = 1, or cos = sqrt(1 - sin**2)
 	// can probably take sine from sint*v ie sint = veclength(sint*v)
-	xyz[0] = qadded.x;
-	xyz[1] = qadded.y;
-	xyz[2] = qadded.z;
-	sine = veclengthd(xyz);
-	cosine = sqrt(1.0 - sine*sine);
-	qexp = qadded;
-	qexp.w = cosine;
+	//sine = veclengthd(xyzw);
+	if(0){
+		angle = veclengthd(xyzw);
+		sine = sin(angle);
+		if(angle == 0.0)
+			vecscaled(xyzw,xyzw,0.0);
+		else
+			vecscaled(xyzw,xyzw,sine/angle);
+		cosine = cos(angle);
+		//cosine = sqrt(1.0 - sine*sine);
+		xyzw[3] = cosine;
+	}else{
+		double2quaternion(&qexp,xyzw);
+		quaternion_exp(&qexp,&qexp);
+	}
+	quaternion_normalize(&qexp); //can normalize now, back to H1
 	quaternion_multiply(si,qi,&qexp);
 }
+void compute_si_via_delta_slerp(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim1){
+	//do a little slerp away from qi in both directions, 
+	//difference to get 'slope', and average the 2 slopes
+	Quaternion qa, qb, qdeltap1, qdeltam1, qdeltasum, qdeltaaverage;
+	quaternion_slerp(&qb, qi, qip1, (double).01);
+	quaternion_subtraction(&qdeltap1,&qb,qi);
 
+	quaternion_slerp(&qa, qi, qim1,(double).01);
+	quaternion_subtraction(&qdeltam1,qi,&qa);
+	quaternion_slerp(&qdeltaaverage,&qdeltam1,&qdeltap1,.5);
+	//quaternion_addition(&qdeltasum,&qdeltap1,&qdeltam1);
+	//quaternion_scalar_multiply(&qdeltasum,.5);
+	quaternion_normalize(&qdeltaaverage);
+	*si = qdeltaaverage;
+}
+void debug_SquadOrientationInterpolator(struct X3D_SquadOrientationInterpolator *px){
+	// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
+	//in theory, the vrmlrot_to_quaternion and compute_si can be done in a compile_squadorientationinterpolator step
+	//and the si and quats for each keyvalue cached
+	Quaternion qi,qip1,qip2,qim1,si,sip1,di,dip1,qs,ss;
+	double h, xyzw1[4],xyzw2[4];
+	int ip1, ip2, im1, kin, iend;
+	struct SFRotation *kVs = px->keyValue.p;
+	static int once_debug = 0;
+	if(once_debug != 0) return;
+	once_debug = 1;
+	kin = px->key.n;
+
+	//for wrap-around if closed, adjust the wrap around end value based on 
+	//whether the scene author duplicated the first keyvalue in the last.
+	iend = kin;
+	if(vecsame4f(px->keyValue.p[0].c,px->keyValue.p[kin-1].c)) iend = kin -1;
+
+	//there are 1 fewer spans than key/values
+	//we'll iterate over key/values here
+	for(int i=0;i<kin;i++){
+		printf("%d ri   [%f %f %f, %f]\n",i,kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
+		vrmlrot_to_quaternion (&qi,   kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
+		ip1 = i+1;
+		ip1 = px->closed ? iwrap(ip1,0,iend) : min(max(ip1,0),kin-2);
+		vrmlrot_to_quaternion (&qip1, kVs[ip1].c[0],kVs[ip1].c[1], kVs[ip1].c[2], kVs[ip1].c[3]);
+		ip2 =i+2;
+		ip2 = px->closed ? iwrap(ip2,0,iend) : min(max(ip2,0),kin-1);
+		vrmlrot_to_quaternion (&qip2, kVs[ip2].c[0],kVs[ip2].c[1], kVs[ip2].c[2], kVs[ip2].c[3]);
+		im1 = i-1;
+		im1 = px->closed ? iwrap(im1,0,iend) : min(max(im1,0),kin-3);
+		vrmlrot_to_quaternion (&qim1, kVs[im1].c[0],kVs[im1].c[1], kVs[im1].c[2], kVs[im1].c[3]);
+		//si
+		compute_si(&si,&qi, &qip1, &qim1);
+		compute_si(&sip1,&qip1,&qip2,&qi);
+		printf("%d qi   [%lf, %lf %lf %lf]\n",i,qi.w,qi.x,qi.y,qi.z);
+		printf("%d qi+1 [%lf, %lf %lf %lf]\n",i,qip1.w,qip1.x,qip1.y,qip1.z);
+		printf("%d si   [%lf, %lf %lf %lf]\n",i,si.w,si.x,si.y,si.z);
+		compute_si_via_delta_slerp(&di,&qi, &qip1, &qim1);
+		printf("%d di   [%lf, %lf %lf %lf]\n",i,di.w,di.x,di.y,di.z);
+		printf("%d si+1 [%lf, %lf %lf %lf]\n",i,sip1.w,sip1.x,sip1.y,sip1.z);
+		compute_si_via_delta_slerp(&dip1,&qip1,&qip2,&qi);
+		printf("%d di+1 [%lf, %lf %lf %lf]\n",i,dip1.w,dip1.x,dip1.y,dip1.z);
+		quaternion2double(xyzw1,&si);
+		quaternion2double(xyzw2,&di);
+		double dot1 = vecdotd(xyzw1,xyzw2);
+		quaternion2double(xyzw1,&sip1);
+		quaternion2double(xyzw2,&dip1);
+		double dot2 = vecdotd(xyzw1,xyzw2);
+		printf("di dot si %lf, dip1 dot sip1 %lf\n",dot1,dot2 );
+
+
+	}
+
+}
+double quaternion_dot(Quaternion *q1, Quaternion *q2){
+	double xyzw1[4], xyzw2[4], dot;
+	quaternion2double(xyzw1,q1);
+	quaternion2double(xyzw2,q1);
+	dot = 0.0;
+	for(int i=0;i<4;i++)
+		dot += xyzw1[i]*xyzw2[i];
+	return dot; 
+}
+void quaternion_negate(Quaternion *q){
+	double xyzw[4];
+	quaternion2double(xyzw,q);
+	for(int i=0;i<4;i++)
+		xyzw[i] = -xyzw[i];
+	double2quaternion(q,xyzw);
+}
+void quaternion_lerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t){
+	Quaternion t1, t2;
+	t1 = *q1;
+	t2 = *q2;
+	quaternion_scalar_multiply(&t2,t);
+	quaternion_scalar_multiply(&t1,1.0 -t);
+	quaternion_addition(ret,&t1,&t2);
+}
+void quaternion_slerp2(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t){
+	double dot, dn1,dn2;
+	Quaternion r;
+
+	dn1 = quaternion_norm(q1);
+	dn2 = quaternion_norm(q2);
+	dot = quaternion_dot(q1,q2);
+	if(dn1 != 0.0 && dn2 != 0.0) dot = dot /(dn1*dn2);
+	r = *q2;
+	if(dot < 0.0){
+		dot = -dot;
+		quaternion_negate(&r);
+	}
+	if(1.0 - dot < .001){
+		quaternion_lerp(ret,q1,&r,t);
+	}else{
+		Quaternion t1, t2;
+		double angle = acos(dot);
+		t1 = *q1;
+		t2 = r;
+		quaternion_scalar_multiply(&t1,sin((1.0-t)*angle));
+		quaternion_scalar_multiply(&t2,sin(t*angle));
+		quaternion_addition(ret,&t1,&t2);
+		quaternion_scalar_multiply(ret,1.0/sin(angle));
+	}
+
+}
 void do_SquadOrientationInterpolator(void *node){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html#SquadOrientationInterpolator
 	// EXCEPT: specs seem to have a few things wrong
@@ -500,7 +735,7 @@ void do_SquadOrientationInterpolator(void *node){
 	// - Also squad via slerp
 	//   squad(b0, S1, S2, b3, u) = slerp( slerp(b0,b3,u), slerp(S1, S2, u), 2u(1-u))
 	// http://run.usc.edu/cs520-s13/assign2/p245-shoemake.pdf
-	// - SHOE paper refered to by web3d specs, 'un-readable jibberish' (dug9)
+	// - SHOE paper refered to by web3d specs, no mention of squad, uses bezier slerps.
 	// http://web.mit.edu/2.998/www/QuaternionReport1.pdf  
 	// - page 51 explains SHOE, 
 	// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
@@ -511,6 +746,8 @@ void do_SquadOrientationInterpolator(void *node){
 	//			exp(q) = [cost, sint*v] (puts cos(t) back in scalar part, inverting log)
 	//						remember from trig cos**2 + sin**2 = 1, or cos = sqrt(1 - sin**2)
 	//						can probably take sine from sint*v ie sint = veclength(sint*v)
+	// http://www.cs.ucr.edu/~vbz/resources/quatut.pdf
+	// p.10 "the logarithm of a unit quaternion q = [vˆ sin O, cos O] is just vˆO, a pure vector of length O."
 	//	July 19, 2016 - code below copied from orientationInterpolator and node caste changed, but no other changes
 	//  Dec 25, 2016 - squad coded
 
@@ -518,7 +755,7 @@ void do_SquadOrientationInterpolator(void *node){
 	struct X3D_SquadOrientationInterpolator *px;
 	int kin, kvin;
 	struct SFRotation *kVs;
-	int counter;
+	int counter, iend;
 	float interval;		/* where we are between 2 values */
 	// UNUSED?? int stzero;
 	// UNUSED?? int endzero;	/* starting and/or ending angles zero? */
@@ -532,11 +769,12 @@ void do_SquadOrientationInterpolator(void *node){
 	kvin = ((px->keyValue).n);
 	kVs = ((px->keyValue).p);
 
+
 	#ifdef SEVERBOSE
 	printf ("starting do_Oint4; keyValue count %d and key count %d\n",
 				kvin, kin);
 	#endif
-
+	if(1) debug_SquadOrientationInterpolator(px);
 
 	MARK_EVENT (node, offsetof (struct X3D_SquadOrientationInterpolator, value_changed));
 
@@ -549,6 +787,10 @@ void do_SquadOrientationInterpolator(void *node){
 		return;
 	}
 	if (kin>kvin) kin=kvin; /* means we don't use whole of keyValue, but... */
+	//for wrap-around if closed, adjust the wrap around end value based on 
+	//whether the scene author duplicated the first keyvalue in the last.
+	iend = kin;
+	if(vecsame4f(px->keyValue.p[0].c,px->keyValue.p[kin-1].c)) iend = kin -1;
 
 
 	/* set_fraction less than or greater than keys */
@@ -590,25 +832,42 @@ void do_SquadOrientationInterpolator(void *node){
 		}else{
 			//squad
 			// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
-
+			//in theory, the vrmlrot_to_quaternion and compute_si can be done in a compile_squadorientationinterpolator step
+			//then just quaternion_slerps here
 			Quaternion qi,qip1,qip2,qim1,si,sip1,qs,ss;
 			double h;
 			int ip1, ip2, im1, i;
 			i = counter -1;
 			vrmlrot_to_quaternion (&qi,   kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
+			quaternion_normalize(&qi);
 			ip1 = i+1;
+			ip1 = px->closed ? iwrap(ip1,0,iend) : min(max(ip1,0),kin-2);
 			vrmlrot_to_quaternion (&qip1, kVs[ip1].c[0],kVs[ip1].c[1], kVs[ip1].c[2], kVs[ip1].c[3]);
-			ip2 = i+2;
-			vrmlrot_to_quaternion (&qip1, kVs[ip2].c[0],kVs[ip2].c[1], kVs[ip2].c[2], kVs[ip2].c[3]);
+			quaternion_normalize(&qip1);
+			ip2 =i+2;
+			ip2 = px->closed ? iwrap(ip2,0,iend) : min(max(ip2,0),kin-1);
+			vrmlrot_to_quaternion (&qip2, kVs[ip2].c[0],kVs[ip2].c[1], kVs[ip2].c[2], kVs[ip2].c[3]);
+			quaternion_normalize(&qip2);
 			im1 = i-1;
+			im1 = px->closed ? iwrap(im1,0,iend) : min(max(im1,0),kin-3);
 			vrmlrot_to_quaternion (&qim1, kVs[im1].c[0],kVs[im1].c[1], kVs[im1].c[2], kVs[im1].c[3]);
+			quaternion_normalize(&qim1);
 			//si
 			compute_si(&si,&qi, &qip1, &qim1);
 			compute_si(&sip1,&qip1,&qip2,&qi);
 			h = (double) interval;
-			quaternion_slerp(&qs,&qi,&qip1,h);
-			quaternion_slerp(&ss,&si,&sip1,h);
-			quaternion_slerp(&final, &qs, &ss, 2*h*(1.0 -h));
+
+			if(0){
+				//old and tested slerp - but it jumps with our data
+				quaternion_slerp(&qs,&qi,&qip1,h);
+				quaternion_slerp(&ss,&si,&sip1,h);
+				quaternion_slerp(&final, &qs, &ss, 2.0*h*(1.0 -h));
+			}else{
+				//test slper2 - see if it maches: seems different, doesn't jump
+				quaternion_slerp2(&qs,&qi,&qip1,h);
+				quaternion_slerp2(&ss,&si,&sip1,h);
+				quaternion_slerp2(&final, &qs, &ss, 2.0*h*(1.0 -h));
+			}
 
 		}
 		quaternion_to_vrmlrot(&final,&x, &y, &z, &a);

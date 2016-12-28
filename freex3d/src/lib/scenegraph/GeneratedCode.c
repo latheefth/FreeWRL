@@ -6729,6 +6729,7 @@ const int OFFSETS_SpotLight[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SquadOrientationInterpolator[] = {
+	(int) FIELDNAMES_closed, (int) offsetof (struct X3D_SquadOrientationInterpolator, closed),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_key, (int) offsetof (struct X3D_SquadOrientationInterpolator, key),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_keyValue, (int) offsetof (struct X3D_SquadOrientationInterpolator, keyValue),  (int) FIELDTYPE_MFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_SquadOrientationInterpolator, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -12222,6 +12223,7 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SquadOrientationInterpolator : {
 			struct X3D_SquadOrientationInterpolator * tmp2;
 			tmp2 = (struct X3D_SquadOrientationInterpolator *) tmp;
+			tmp2->closed = FALSE;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
 			tmp2->metadata = NULL;
@@ -17028,6 +17030,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_SquadOrientationInterpolator *tmp;
 			tmp = (struct X3D_SquadOrientationInterpolator *) node;
 			UNUSED(tmp); // compiler warning mitigation
+			spacer fprintf (fp," closed (SFBool) \t%d\n",tmp->closed);
 			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
 			spacer fprintf (fp," keyValue (MFRotation):\n");

@@ -2915,6 +2915,7 @@ END_NODE(SpotLight)
 
 /* SquadOrientationInterpolator node */
 BEGIN_NODE(SquadOrientationInterpolator)
+EXPOSED_FIELD(SquadOrientationInterpolator,closed,sfbool,closed,FIELDTYPE_SFBool)
 EXPOSED_FIELD(SquadOrientationInterpolator,key,mffloat,key,FIELDTYPE_MFFloat)
 EXPOSED_FIELD(SquadOrientationInterpolator,keyValue,mfrotation,keyValue,FIELDTYPE_MFRotation)
 EXPOSED_FIELD(SquadOrientationInterpolator,metadata,sfnode,metadata,FIELDTYPE_SFNode)
