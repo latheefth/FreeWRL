@@ -133,13 +133,15 @@ void do_EaseInEaseOut(void *node){
 */
 void spline_interp(int dim, float *result, float s, float *val0, float *val1, float *T00, float *T11){
 	// dim - dimension of val and vel ie 3 for xyz
+	// s - span fraction 0-1
 	// interpolates one value, given the span values
 	float S[4], *C[4], SH[4];
 	static float H[16] = {
-	2.0f, -2.0f, 1.0f, 1.0f,
-	-3.0f,  3.0f,-2.0f,-1.0f,
-	0.0f,  0.0f, 1.0f, 0.0f,
-	1.0f,  0.0f, 0.0f, 0.0f};
+	 2.0f, -3.0f, 0.0f, 1.0f, 
+	-2.0f,  3.0f, 0.0f, 0.0f, 
+	 1.0f, -2.0f, 1.0f, 0.0f,
+	 1.0f, -1.0f, 0.0f, 0.0f};
+	
 
 	S[0] = s*s*s;
 	S[1] = s*s;
@@ -232,12 +234,14 @@ int iwrap(int i, int istart, int iend){
 void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1){
 	//before calling please malloc T0 and T1 = malloc(nval * dim * sizeof(float))
 	float Fp, Fm;
-	int istart, iend;
+	int istart, iend, jend;
 	istart = 1;
 	iend = nval-1;
+	jend = nval;
 	if(closed){
 		istart = 0;
-		iend = nval;
+		iend = nval; 
+		jend = nval-1; //the first and last point are duplicates, so when wrapping, skip the last
 	}else{
 		//take first and last values from Ti which were either 0 or start/end
 		int l = nval-1;
@@ -248,8 +252,8 @@ void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *ke
 	}
 	for(int i=istart;i<iend;i++){
 		int ip, im;
-		ip = iwrap(i+1,0,nval);
-		im = iwrap(i-1,0,nval);
+		ip = iwrap(i+1,0,jend);
+		im = iwrap(i-1,0,jend);
 		Fm = 2.0f*(key[ip] - key[i])/(key[ip]-key[im]);
 		Fp = 2.0f*(key[i] - key[im])/(key[ip]-key[im]);
 		for(int j=0;j<dim;j++){
@@ -259,7 +263,11 @@ void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *ke
 	}
 }
 
-
+float span_fraction(float t, float t0, float t1){
+	float ret;
+	ret = (t - t0) /(t1 - t0);
+	return ret;
+}
 void do_SplinePositionInterpolator(void *node){
 	//	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html#SplinePositionInterpolator
 	int dim;
@@ -268,6 +276,7 @@ void do_SplinePositionInterpolator(void *node){
 	if(NNC(px)){
 		
 		//void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti )
+		int isclosed;
 		int n = px->key.n;
 		float *Ti = MALLOC(float*,n*dim*sizeof(float));
 		compute_spline_velocity_Ti(dim,px->normalizeVelocity,n,(float*)px->keyValue.p,
@@ -275,7 +284,8 @@ void do_SplinePositionInterpolator(void *node){
 		float *T0 = MALLOC(float*,n*dim*sizeof(float));
 		float *T1 = MALLOC(float*,n*dim*sizeof(float));
 		//spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1)
-		spline_velocity_adjust_for_keyspan(dim,px->closed,n,px->key.p,Ti,T0,T1);
+		isclosed = px->closed && vecsame3f(px->keyValue.p[0].c,px->keyValue.p[n-1].c);
+		spline_velocity_adjust_for_keyspan(dim,isclosed,n,px->key.p,Ti,T0,T1);
 		FREE_IF_NZ(px->_T0.p);
 		FREE_IF_NZ(px->_T1.p);
 		px->_T0.p = (struct SFVec3f*)T0;
@@ -311,7 +321,7 @@ void do_SplinePositionInterpolator(void *node){
 	float fraction = min(px->set_fraction,px->key.p[kin-1]);
 	fraction = max(px->set_fraction,px->key.p[0]);
 	/* have to go through and find the key before */
-	int ispan =find_key(kin,fraction,px->key.p);
+	int ispan =find_key(kin,fraction,px->key.p) -1;
 
 	// INTERPOLATION FUNCTION - change this from linear to spline
 	// fraction s = fraction_interp(t,t0,t1);
@@ -320,10 +330,10 @@ void do_SplinePositionInterpolator(void *node){
 	//  where vel is velocity or more generally slope/first-derivitive of value at key. 
 	//  First derivitive would be with respect to key ie d(Value)/d(key) evaluated at key
 	// in general answer, val*, vel* are vectors or types.
-
-	spline_interp(dim, px->value_changed.c, fraction,
+	float sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
+	spline_interp(dim, px->value_changed.c, sfraction,
 		px->keyValue.p[ispan].c, px->keyValue.p[ispan+1].c, 
-		px->_T0.p[ispan].c, px->_T1.p[ispan].c);
+		px->_T0.p[ispan].c, px->_T1.p[ispan+1].c);
 }
 void do_SplinePositionInterpolator2D(void *node){
 	int dim;
@@ -332,6 +342,7 @@ void do_SplinePositionInterpolator2D(void *node){
 	if(NNC(px)){
 		
 		//void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti )
+		int isclosed;
 		int n = px->key.n;
 		float *Ti = MALLOC(float*,n*dim*sizeof(float));
 		compute_spline_velocity_Ti(dim,px->normalizeVelocity,n,(float*)px->keyValue.p,
@@ -339,7 +350,8 @@ void do_SplinePositionInterpolator2D(void *node){
 		float *T0 = MALLOC(float*,n*dim*sizeof(float));
 		float *T1 = MALLOC(float*,n*dim*sizeof(float));
 		//spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1)
-		spline_velocity_adjust_for_keyspan(dim,px->closed,n,px->key.p,Ti,T0,T1);
+		isclosed = px->closed && vecsame2f(px->keyValue.p[0].c,px->keyValue.p[n-1].c);
+		spline_velocity_adjust_for_keyspan(dim,isclosed,n,px->key.p,Ti,T0,T1);
 		FREE_IF_NZ(px->_T0.p);
 		FREE_IF_NZ(px->_T1.p);
 		px->_T0.p = (struct SFVec2f*)T0;
@@ -375,7 +387,7 @@ void do_SplinePositionInterpolator2D(void *node){
 	float fraction = min(px->set_fraction,px->key.p[kin-1]);
 	fraction = max(px->set_fraction,px->key.p[0]);
 	/* have to go through and find the key before */
-	int ispan =find_key(kin,fraction,px->key.p);
+	int ispan =find_key(kin,fraction,px->key.p) -1;
 
 	// INTERPOLATION FUNCTION - change this from linear to spline
 	// fraction s = fraction_interp(t,t0,t1);
@@ -384,10 +396,10 @@ void do_SplinePositionInterpolator2D(void *node){
 	//  where vel is velocity or more generally slope/first-derivitive of value at key. 
 	//  First derivitive would be with respect to key ie d(Value)/d(key) evaluated at key
 	// in general answer, val*, vel* are vectors or types.
-
-	spline_interp(dim, px->value_changed.c, fraction,
+	float sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
+	spline_interp(dim, px->value_changed.c, sfraction,
 		px->keyValue.p[ispan].c, px->keyValue.p[ispan+1].c, 
-		px->_T0.p[ispan].c, px->_T1.p[ispan].c);
+		px->_T0.p[ispan].c, px->_T1.p[ispan+1].c);
 
 }
 void do_SplineScalarInterpolator(void *node){
@@ -399,14 +411,23 @@ void do_SplineScalarInterpolator(void *node){
 	if(NNC(px)){
 		
 		//void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti )
+		int isclosed;
 		int n = px->key.n;
 		float *Ti = MALLOC(float*,n*dim*sizeof(float));
 		compute_spline_velocity_Ti(dim,px->normalizeVelocity,n,(float*)px->keyValue.p,
 			px->keyVelocity.n,(float*)px->keyVelocity.p,Ti);
+		printf("\nvelocities\n");
+		for(int i=0;i<n;i++)
+			printf("%f ",Ti[i]);
+		printf("\n");
 		float *T0 = MALLOC(float*,n*dim*sizeof(float));
 		float *T1 = MALLOC(float*,n*dim*sizeof(float));
 		//spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1)
-		spline_velocity_adjust_for_keyspan(1,px->closed,n,px->key.p,Ti,T0,T1);
+		isclosed = px->closed && px->keyValue.p[0] == px->keyValue.p[n-1];
+		spline_velocity_adjust_for_keyspan(1,isclosed,n,px->key.p,Ti,T0,T1);
+		for(int i=0;i<n;i++)
+			printf("%f ",Ti[i]);
+		printf("\n");
 		FREE_IF_NZ(px->_T0.p);
 		FREE_IF_NZ(px->_T1.p);
 		px->_T0.p = T0;
@@ -442,7 +463,7 @@ void do_SplineScalarInterpolator(void *node){
 	float fraction = min(px->set_fraction,px->key.p[kin-1]);
 	fraction = max(px->set_fraction,px->key.p[0]);
 	/* have to go through and find the key before */
-	int ispan =find_key(kin,fraction,px->key.p);
+	int ispan =find_key(kin,fraction,px->key.p) -1;
 
 	// INTERPOLATION FUNCTION - change this from linear to spline
 	// fraction s = fraction_interp(t,t0,t1);
@@ -451,10 +472,10 @@ void do_SplineScalarInterpolator(void *node){
 	//  where vel is velocity or more generally slope/first-derivitive of value at key. 
 	//  First derivitive would be with respect to key ie d(Value)/d(key) evaluated at key
 	// in general answer, val*, vel* are vectors or types.
-
-	spline_interp(dim, (float*)&px->value_changed, fraction,
+	float sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
+	spline_interp(dim, (float*)&px->value_changed, sfraction,
 		&px->keyValue.p[ispan], &px->keyValue.p[ispan+1], 
-		&px->_T0.p[ispan], &px->_T1.p[ispan]);
+		&px->_T0.p[ispan], &px->_T1.p[ispan+1]);
 
 }
 
@@ -724,7 +745,7 @@ void do_SquadOrientationInterpolator(void *node){
 	// http://run.usc.edu/cs520-s13/assign2/p245-shoemake.pdf
 	// - SHOE paper refered to by web3d specs, no mention of squad, uses bezier slerps.
 	// http://web.mit.edu/2.998/www/QuaternionReport1.pdf  
-	// - page 51 explains SHOE, 
+	// - page 51 explains SHOE
 	// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
 	//		where si = qi * exp( - (log(inv(qi)*qi+1) + log(inv(qi)*qi-1)) / 4 )
 	//		and qi+1 means q[i+1] and qi-1 means q[i-1] ie that's an indexer, not a quat + scalar
