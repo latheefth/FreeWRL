@@ -193,7 +193,11 @@ float *veccopy2f(float *b, float *a)
 	b[1] = a[1];
 	return b;
 }
-
+float *vecset2f(float *b, float x, float y)
+{
+	b[0] = x; b[1] = y;
+	return b;
+}
 double * veccrossd(double *c, double *a, double *b)
 {
 	double aa[3], bb[3];

@@ -1189,6 +1189,8 @@ our %Nodes = (
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		normalizeVelocity => ["SFBool", "FALSE", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		value_changed => ["SFVec3f", [0,0,0], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_T0 => ["MFVec3f", [], "initializeOnly", 0],
+		_T1 => ["MFVec3f", [], "initializeOnly", 0],
 	],"X3DInterpolatorNode"),
 
 	"SplinePositionInterpolator2D" => new VRML::NodeType("SplinePositionInterpolator2D", [
@@ -1200,6 +1202,8 @@ our %Nodes = (
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		normalizeVelocity => ["SFBool", "FALSE", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		value_changed => ["SFVec2f", [0,0], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_T0 => ["MFVec2f", [], "initializeOnly", 0],
+		_T1 => ["MFVec2f", [], "initializeOnly", 0],
 	],"X3DInterpolatorNode"),
 
 	"SplineScalarInterpolator" => new VRML::NodeType("SplineScalarInterpolator", [
@@ -1211,6 +1215,8 @@ our %Nodes = (
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		normalizeVelocity => ["SFBool", "FALSE", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		value_changed => ["SFFloat", 0.0, "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_T0 => ["MFFloat", [], "initializeOnly", 0],
+		_T1 => ["MFFloat", [], "initializeOnly", 0],
 	],"X3DInterpolatorNode"),
 
 	"SquadOrientationInterpolator" => new VRML::NodeType("SquadOrientationInterpolator", [
@@ -1219,8 +1225,11 @@ our %Nodes = (
 		keyValue => ["MFRotation", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
                 metadata => ["SFNode", "NULL", "inputOutput", "(SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
 		normalizeVelocity => ["SFBool", "FALSE", "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		closed => ["SFBool", "FALSE", "inputOutput", 0], #H: the specs made a mistake it should be 'closed' not 'normalizeVelocity' -dug9
 		value_changed => ["SFRotation", [0,0,1,0], "outputOnly", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
-	],"X3DInterpolatorNode"),
+		_normkey => ["MFFloat", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+		_normkeyValue => ["MFRotation", [], "inputOutput", "(SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33)"],
+  	],"X3DInterpolatorNode"),
 
 	###################################################################################
 
