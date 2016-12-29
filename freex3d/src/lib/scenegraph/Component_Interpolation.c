@@ -729,6 +729,129 @@ void quaternion_squad(Quaternion *final,Quaternion *q1,Quaternion *q2, Quaternio
 	quaternion_slerp2(final, &qs, &ss, 2.0*t*(1.0 -t));
 	quaternion_normalize(final);
 }
+void quaternion_diff(Quaternion *qdiff, Quaternion *q2, Quaternion *q1){
+	// diff * q1 = q2  --->  diff = q2 * inverse(q1)
+	//where:  inverse(q1) = conjugate(q1) / abs(q1)}
+	Quaternion q1inv, qd1, qd2;
+	quaternion_inverse(&q1inv,q1);
+	quaternion_multiply(qdiff,q2,&q1inv);
+	if(qdiff->w < 0.0){
+		quaternion_negate(&q1inv);
+		quaternion_multiply(qdiff,q2,&q1inv);
+	}
+
+}
+void squad_compute_velocity_normalized_key_keyvalue(int closed, 
+			int n,		float *keys, float *values,
+			int *nnorm, float **normkeys, float **normvals)
+{
+	//velocity is in radians per fraction
+	//the idea is to adjust the keys, or the values, so that all spans have the same velocity
+	//methods:
+	//1. equal keys method: decide on keys per radian, and malloc round_up(total radians) * keys per radian
+	//   then find the value that goes with each key
+	//	 a) closest from precalculated fine mini-spans (and take the key that goes with it)
+	//   b) iterate with guess, compute, closer guess, compute until cumulative angle matches cumulative fraction
+	//2. adjusted keys method: 
+	//   adjust current keys so current spans have the same velocity
+	//   problem: discontiniutiy in velocity / abrupt change of velocity at key/value points
+	//problem with both 1 and 2:
+	//   the angular velocity includes yaw, pitch and roll. If you are wanting 
+	///   constant velocity on a subset -ie yaw, pitch- this won't do it - good luck
+	//algorithm: (dug9, made up)
+	//1. iterate over all spans, 10 or 1000 fractions per span, summing up the angular distance for each span
+	//2. compute how much each span gets fraction-wise
+	//3. malloc new keys and values
+	//4. compute new keys and or values
+	Quaternion qlast;
+	float * mkeys = MALLOC(float*,n*100*sizeof(float));
+	Quaternion * mvals = MALLOC(Quaternion*,n*100*sizeof(Quaternion));
+	float * cumangle = MALLOC(float*,n*100*sizeof(float));
+	float * spanangle = MALLOC(float*,n*sizeof(float));
+	struct SFRotation *kVs = (struct SFRotation *)values;
+	int iend, nspan = n-1;
+	iend = n;
+	if(vecsame4f(kVs[0].c,kVs[n-1].c)) iend = n -1;
+	double totalangle, angle;
+	totalangle = 0.0;
+	int k = 0;
+	if(0){
+		printf("key vals before:\n");
+		for(int i=0;i<n;i++){
+			printf("%d %f %f %f %f %f\n",i,keys[i],values[i*4 +0],values[i*4 +1],values[i*4 +2],values[i*4 +3]);
+		}
+	}
+	for(int i=0;i<nspan;i++){
+		Quaternion qi,qip1,qip2,qim1,si,sip1,qs,ss;
+		double h;
+		int ip1, ip2, im1;
+		//i = ispan; //counter -1;
+		vrmlrot_to_quaternion (&qi,   kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
+		quaternion_normalize(&qi);
+		ip1 = i+1;
+		ip1 = closed ? iwrap(ip1,0,iend) : min(max(ip1,0),n-2);
+		vrmlrot_to_quaternion (&qip1, kVs[ip1].c[0],kVs[ip1].c[1], kVs[ip1].c[2], kVs[ip1].c[3]);
+		quaternion_normalize(&qip1);
+		ip2 =i+2;
+		ip2 = closed ? iwrap(ip2,0,iend) : min(max(ip2,0),n-1);
+		vrmlrot_to_quaternion (&qip2, kVs[ip2].c[0],kVs[ip2].c[1], kVs[ip2].c[2], kVs[ip2].c[3]);
+		quaternion_normalize(&qip2);
+		im1 = i-1;
+		im1 = closed ? iwrap(im1,0,iend) : min(max(im1,0),n-3);
+		vrmlrot_to_quaternion (&qim1, kVs[im1].c[0],kVs[im1].c[1], kVs[im1].c[2], kVs[im1].c[3]);
+		quaternion_normalize(&qim1);
+		
+		if(k==0) qlast = qi;
+		//quaternion_squad_prepare(qim1,qi,qip1,qip2,s1,s2,q2);
+		//si
+		Quaternion qc, qfinal, qdiff;
+		quaternion_squad_prepare(&qim1,&qi,&qip1,&qip2,&si,&sip1,&qc);
+		
+		spanangle[i] = 0.0f;
+		for(int j=0;j<10;j++){
+			float sfraction = j*.1;
+
+			h = (double) sfraction; //interval;
+
+			quaternion_squad(&qfinal,&qi,&qc,&si,&sip1,h);
+			quaternion_normalize(&qfinal);
+			quaternion_diff(&qdiff,&qfinal,&qlast);
+			quaternion_normalize(&qdiff);
+			angle = acos(clampd(qdiff.w,-1.0,1.0))*2.0;
+			spanangle[i] += angle;
+			mkeys[k] = keys[i] + sfraction * (keys[i+1] - keys[i]);
+			mvals[k] = qfinal;
+			totalangle += angle;
+			cumangle[k] = totalangle;
+			if(0) printf("i %d j %d angle %lf\n",i,j,angle);
+			qlast = qfinal;
+			
+		}
+	}
+	if(1) printf("total angle=%lf\n",totalangle);
+	double velocity = totalangle / (keys[n-1] - keys[0]);
+
+	//method 2 adjust span keys
+	float *nkey = *normkeys = MALLOC(float*, n*sizeof(float));
+	float *nvals = *normvals = MALLOC(float*,n*sizeof(struct SFRotation));
+	memcpy(*normkeys,keys,n*sizeof(float));
+	memcpy(*normvals,values,n*sizeof(struct SFRotation));
+	float cumkey = 0.0f;
+	cumkey = nkey[0] = keys[0];
+	for(int i=0;i<nspan;i++){
+		float newspanfraction = spanangle[i]/velocity;
+		nkey[i+1] = newspanfraction + cumkey;
+		cumkey += newspanfraction;
+	}
+	*nnorm = n;
+	if(0){
+		printf("key vals after:\n");
+		for(int i=0;i<*nnorm;i++){
+			printf("%d %f %f %f %f %f\n",i,nkey[i],nvals[i*4 +0],nvals[i*4 +1],nvals[i*4 +2],nvals[i*4 +3]);
+		}
+		printf("\n");
+	}
+}
 
 void do_SquadOrientationInterpolator(void *node){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html#SquadOrientationInterpolator
@@ -763,20 +886,37 @@ void do_SquadOrientationInterpolator(void *node){
 	struct X3D_SquadOrientationInterpolator *px;
 	int kin, kvin;
 	struct SFRotation *kVs;
+	float *keys;
 	int counter, iend;
 	float interval;		/* where we are between 2 values */
 	// UNUSED?? int stzero;
 	// UNUSED?? int endzero;	/* starting and/or ending angles zero? */
 
-	Quaternion st, fin, final;
+	Quaternion st, fin, qfinal;
 	double x,y,z,a;
 
 	if (!node) return;
 	px = (struct X3D_SquadOrientationInterpolator *) node;
+	keys = px->key.p;
 	kin = ((px->key).n);
 	kvin = ((px->keyValue).n);
 	kVs = ((px->keyValue).p);
 
+	if(px->normalizeVelocity){
+		if(!px->_normkey.n){
+			float *normkeys, *normvals;
+			int nnorm;
+			squad_compute_velocity_normalized_key_keyvalue(px->closed,kin,keys,(float*)kVs,&nnorm,&normkeys,&normvals);
+			px->_normkey.n = nnorm;
+			px->_normkey.p = normkeys;
+			px->_normkeyValue.p = (struct SFRotation*)normvals;
+			px->_normkeyValue.n = nnorm;
+		}
+		kin = px->_normkey.n;
+		kvin = kin;
+		keys = px->_normkey.p;
+		kVs = px->_normkeyValue.p;
+	}
 
 	#ifdef SEVERBOSE
 	printf ("starting do_Oint4; keyValue count %d and key count %d\n",
@@ -798,21 +938,24 @@ void do_SquadOrientationInterpolator(void *node){
 	//for wrap-around if closed, adjust the wrap around end value based on 
 	//whether the scene author duplicated the first keyvalue in the last.
 	iend = kin;
-	if(vecsame4f(px->keyValue.p[0].c,px->keyValue.p[kin-1].c)) iend = kin -1;
+	if(vecsame4f(kVs[0].c,kVs[kin-1].c)) iend = kin -1;
 
 
 	/* set_fraction less than or greater than keys */
-	if (px->set_fraction <= ((px->key).p[0])) {
+	if (px->set_fraction <= keys[0]) {
 		memcpy ((void *)&px->value_changed,
 				(void *)&kVs[0], sizeof (struct SFRotation));
-	} else if (px->set_fraction >= ((px->key).p[kin-1])) {
+	} else if (px->set_fraction >= keys[kin-1]) {
 		memcpy ((void *)&px->value_changed,
 				(void *)&kVs[kvin-1], sizeof (struct SFRotation));
 	} else {
-		counter = find_key(kin,(float)(px->set_fraction),px->key.p);
-		interval = (px->set_fraction - px->key.p[counter-1]) /
-				(px->key.p[counter] - px->key.p[counter-1]);
+		int ispan;
+		float sfraction;
 
+		ispan = find_key(kin,(float)(px->set_fraction),keys) -1;
+		//interval = (px->set_fraction - keys[counter-1]) /
+		//		(keys[counter] - keys[counter-1]);
+		sfraction = span_fraction(px->set_fraction,keys[ispan],keys[ispan+1]);
 		
 		/* are either the starting or ending angles zero? */
 		// unused? stzero = APPROX(kVs[counter-1].c[3],0.0);
@@ -836,7 +979,7 @@ void do_SquadOrientationInterpolator(void *node){
 		Quaternion qi,qip1,qip2,qim1,si,sip1,qs,ss;
 		double h;
 		int ip1, ip2, im1, i;
-		i = counter -1;
+		i = ispan; //counter -1;
 		vrmlrot_to_quaternion (&qi,   kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
 		quaternion_normalize(&qi);
 		ip1 = i+1;
@@ -854,15 +997,15 @@ void do_SquadOrientationInterpolator(void *node){
 
 		//quaternion_squad_prepare(qim1,qi,qip1,qip2,s1,s2,q2);
 		//si
-		compute_si(&si,&qi, &qip1, &qim1);
-		compute_si(&sip1,&qip1,&qip2,&qi);
-		h = (double) interval;
+		//compute_si(&si,&qi, &qip1, &qim1);
+		//compute_si(&sip1,&qip1,&qip2,&qi);
+		h = (double) sfraction; //interval;
 
 		Quaternion qc;
 		quaternion_squad_prepare(&qim1,&qi,&qip1,&qip2,&si,&sip1,&qc);
-		quaternion_squad(&final,&qi,&qc,&si,&sip1,h);
-
-		quaternion_to_vrmlrot(&final,&x, &y, &z, &a);
+		quaternion_squad(&qfinal,&qi,&qc,&si,&sip1,h);
+		quaternion_normalize(&qfinal);
+		quaternion_to_vrmlrot(&qfinal,&x, &y, &z, &a);
 		px->value_changed.c[0] = (float) x;
 		px->value_changed.c[1] = (float) y;
 		px->value_changed.c[2] = (float) z;

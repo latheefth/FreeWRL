@@ -271,6 +271,8 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"_motor1",
 	"_motor2",
 	"_needs_gradient",
+	"_normkey",
+	"_normkeyValue",
 	"_npoints",
 	"_nseg",
 	"_offsetUnits",
@@ -6729,6 +6731,8 @@ const int OFFSETS_SpotLight[] = {
 	-1, -1, -1, -1, -1};
 
 const int OFFSETS_SquadOrientationInterpolator[] = {
+	(int) FIELDNAMES__normkey, (int) offsetof (struct X3D_SquadOrientationInterpolator, _normkey),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES__normkeyValue, (int) offsetof (struct X3D_SquadOrientationInterpolator, _normkeyValue),  (int) FIELDTYPE_MFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_closed, (int) offsetof (struct X3D_SquadOrientationInterpolator, closed),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) 0,
 	(int) FIELDNAMES_key, (int) offsetof (struct X3D_SquadOrientationInterpolator, key),  (int) FIELDTYPE_MFFloat, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_keyValue, (int) offsetof (struct X3D_SquadOrientationInterpolator, keyValue),  (int) FIELDTYPE_MFRotation, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -12223,6 +12227,8 @@ void *createNewX3DNode0 (int nt) {
 		case NODE_SquadOrientationInterpolator : {
 			struct X3D_SquadOrientationInterpolator * tmp2;
 			tmp2 = (struct X3D_SquadOrientationInterpolator *) tmp;
+			tmp2->_normkey.n=0; tmp2->_normkey.p=0;
+			tmp2->_normkeyValue.n=0; tmp2->_normkeyValue.p=0;
 			tmp2->closed = FALSE;
 			tmp2->key.n=0; tmp2->key.p=0;
 			tmp2->keyValue.n=0; tmp2->keyValue.p=0;
@@ -17030,6 +17036,14 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			struct X3D_SquadOrientationInterpolator *tmp;
 			tmp = (struct X3D_SquadOrientationInterpolator *) node;
 			UNUSED(tmp); // compiler warning mitigation
+		    if(allFields) {
+			spacer fprintf (fp," _normkey (MFFloat):\n");
+			for (i=0; i<tmp->_normkey.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->_normkey.p[i]); }
+		    }
+		    if(allFields) {
+			spacer fprintf (fp," _normkeyValue (MFRotation):\n");
+			for (i=0; i<tmp->_normkeyValue.n; i++) { spacer fprintf (fp,"			%d: \t[%4.3f, %4.3f, %4.3f, %4.3f]\n",i,(tmp->_normkeyValue.p[i]).c[0], (tmp->_normkeyValue.p[i]).c[1],(tmp->_normkeyValue.p[i]).c[2],(tmp->_normkeyValue.p[i]).c[3]); }
+		    }
 			spacer fprintf (fp," closed (SFBool) \t%d\n",tmp->closed);
 			spacer fprintf (fp," key (MFFloat):\n");
 			for (i=0; i<tmp->key.n; i++) { spacer fprintf (fp,"			%d: \t%4.3f\n",i,tmp->key.p[i]); }
