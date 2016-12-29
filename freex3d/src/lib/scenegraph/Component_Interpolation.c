@@ -459,7 +459,7 @@ void do_SplineScalarInterpolator(void *node){
 }
 
 
-
+// START MIT LIC >>>>
 
 double *quaternion2double(double *xyzw, Quaternion *q){
 	xyzw[0] = q->x;
@@ -561,7 +561,6 @@ void compute_si(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim
 	quaternion_multiply(&qiinv_qim1,&qiinv,qim1);
 	quaternion_log(&qiinv_qim1,&qiinv_qim1);
 
-//	quaternion_add(&qadded,&qiinv_qip1,&qiinv_qim1);
 	quaternion_addition(&qadded,&qiinv_qip1,&qiinv_qim1); //don't normalize - its still a log, which aren't H1
 	quaternion2double(xyzw,&qadded);
 	vecscaled(xyzw,xyzw,-.25); // -ve and /4
@@ -575,22 +574,9 @@ void compute_si(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim
 	quaternion_multiply(si,qi,&qexp);
 
 }
-void compute_si_via_delta_slerp(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim1){
-	//do a little slerp away from qi in both directions, 
-	//difference to get 'slope', and average the 2 slopes
-	Quaternion qa, qb, qdeltap1, qdeltam1, qdeltasum, qdeltaaverage;
-	quaternion_slerp(&qb, qi, qip1, (double).01);
-	quaternion_subtraction(&qdeltap1,&qb,qi);
 
-	quaternion_slerp(&qa, qi, qim1,(double).01);
-	quaternion_subtraction(&qdeltam1,qi,&qa);
-	quaternion_slerp(&qdeltaaverage,&qdeltam1,&qdeltap1,.5);
-	//quaternion_addition(&qdeltasum,&qdeltap1,&qdeltam1);
-	//quaternion_scalar_multiply(&qdeltasum,.5);
-	quaternion_normalize(&qdeltaaverage);
-	*si = qdeltaaverage;
-}
 void debug_SquadOrientationInterpolator(struct X3D_SquadOrientationInterpolator *px){
+	//just a mess of crap, plus: normalization of axisangle axis
 	// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
 	//in theory, the vrmlrot_to_quaternion and compute_si can be done in a compile_squadorientationinterpolator step
 	//and the si and quats for each keyvalue cached
@@ -638,18 +624,7 @@ void debug_SquadOrientationInterpolator(struct X3D_SquadOrientationInterpolator 
 			printf("%d qi   [%lf, %lf %lf %lf]\n",i,qi.w,qi.x,qi.y,qi.z);
 			printf("%d qi+1 [%lf, %lf %lf %lf]\n",i,qip1.w,qip1.x,qip1.y,qip1.z);
 			printf("%d si   [%lf, %lf %lf %lf]\n",i,si.w,si.x,si.y,si.z);
-			compute_si_via_delta_slerp(&di,&qi, &qip1, &qim1);
-			printf("%d di   [%lf, %lf %lf %lf]\n",i,di.w,di.x,di.y,di.z);
 			printf("%d si+1 [%lf, %lf %lf %lf]\n",i,sip1.w,sip1.x,sip1.y,sip1.z);
-			compute_si_via_delta_slerp(&dip1,&qip1,&qip2,&qi);
-			printf("%d di+1 [%lf, %lf %lf %lf]\n",i,dip1.w,dip1.x,dip1.y,dip1.z);
-			quaternion2double(xyzw1,&si);
-			quaternion2double(xyzw2,&di);
-			double dot1 = vecdotd(xyzw1,xyzw2);
-			quaternion2double(xyzw1,&sip1);
-			quaternion2double(xyzw2,&dip1);
-			double dot2 = vecdotd(xyzw1,xyzw2);
-			printf("di dot si %lf, dip1 dot sip1 %lf\n",dot1,dot2 );
 		}else{
 			double xyza[4];
 			quaternion_to_vrmlrot(&si,&xyza[0],&xyza[1],&xyza[2],&xyza[3] );
@@ -700,15 +675,14 @@ void quaternion_slerp2(Quaternion *ret, const Quaternion *q1, const Quaternion *
 
 void quaternion_squad_prepare(Quaternion *qim1,Quaternion *qi,Quaternion *qip1,Quaternion *qip2,
 	Quaternion *s1,Quaternion *s2,Quaternion *qc){
-	//si
-
 	Quaternion qp,qm, q0,q1,q2,q3;
 	q0 = *qim1;
 	q1 = *qi;
 	q2 = *qip1;
 	q3 = *qip2;
 
-	//microsoft directx squad does something like this before computing si
+	//microsoft directx squad does something like this before computing si, 
+	//to avoid round-the-world problems
 	//q0 = |q0 + q1| < |q0 - q1| ? -q0 : q0
 	//q2 = |q1 + q2| < |q1 - q2| ? -q2 : q2
 	//q3 = |q2 + q3| < |q2 - q3| ? -q3 : q3
@@ -726,6 +700,13 @@ void quaternion_squad_prepare(Quaternion *qim1,Quaternion *qi,Quaternion *qip1,Q
 	compute_si(s2,&q2,&q3,&q1);
 	*qc = q2; //qip1 could have changed sign, use the sign-changed version in squad slerping
 
+}
+void quaternion_squad(Quaternion *final,Quaternion *q1,Quaternion *q2, Quaternion *s1,Quaternion *s2,double t){
+	Quaternion qs, ss;
+	quaternion_slerp2(&qs,q1,q2,t); //qip1 replaceed with possibly negated qc, helps test D
+	quaternion_slerp2(&ss,s1,s2,t);
+	quaternion_slerp2(final, &qs, &ss, 2.0*t*(1.0 -t));
+	quaternion_normalize(final);
 }
 
 void do_SquadOrientationInterpolator(void *node){
@@ -780,7 +761,7 @@ void do_SquadOrientationInterpolator(void *node){
 	printf ("starting do_Oint4; keyValue count %d and key count %d\n",
 				kvin, kin);
 	#endif
-	if(1) debug_SquadOrientationInterpolator(px);
+	if(0) debug_SquadOrientationInterpolator(px);
 
 	MARK_EVENT (node, offsetof (struct X3D_SquadOrientationInterpolator, value_changed));
 
@@ -827,64 +808,39 @@ void do_SquadOrientationInterpolator(void *node){
 				kVs[counter].c[2],
 				kVs[counter].c[3]);
 		#endif
-		if(0){
-			//regular slerp code from orientaiton interpolator
-			vrmlrot_to_quaternion (&st, kVs[counter-1].c[0],
-									kVs[counter-1].c[1], kVs[counter-1].c[2], kVs[counter-1].c[3]);
-			vrmlrot_to_quaternion (&fin,kVs[counter].c[0],
-									kVs[counter].c[1], kVs[counter].c[2], kVs[counter].c[3]);
+		//squad
+		// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
+		//in theory, the vrmlrot_to_quaternion and compute_si can be done in a compile_squadorientationinterpolator step
+		//then just quaternion_slerps here
+		Quaternion qi,qip1,qip2,qim1,si,sip1,qs,ss;
+		double h;
+		int ip1, ip2, im1, i;
+		i = counter -1;
+		vrmlrot_to_quaternion (&qi,   kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
+		quaternion_normalize(&qi);
+		ip1 = i+1;
+		ip1 = px->closed ? iwrap(ip1,0,iend) : min(max(ip1,0),kin-2);
+		vrmlrot_to_quaternion (&qip1, kVs[ip1].c[0],kVs[ip1].c[1], kVs[ip1].c[2], kVs[ip1].c[3]);
+		quaternion_normalize(&qip1);
+		ip2 =i+2;
+		ip2 = px->closed ? iwrap(ip2,0,iend) : min(max(ip2,0),kin-1);
+		vrmlrot_to_quaternion (&qip2, kVs[ip2].c[0],kVs[ip2].c[1], kVs[ip2].c[2], kVs[ip2].c[3]);
+		quaternion_normalize(&qip2);
+		im1 = i-1;
+		im1 = px->closed ? iwrap(im1,0,iend) : min(max(im1,0),kin-3);
+		vrmlrot_to_quaternion (&qim1, kVs[im1].c[0],kVs[im1].c[1], kVs[im1].c[2], kVs[im1].c[3]);
+		quaternion_normalize(&qim1);
 
-			quaternion_slerp(&final, &st, &fin, (double)interval);
-		}else{
-			//squad
-			// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
-			//in theory, the vrmlrot_to_quaternion and compute_si can be done in a compile_squadorientationinterpolator step
-			//then just quaternion_slerps here
-			Quaternion qi,qip1,qip2,qim1,si,sip1,qs,ss;
-			double h;
-			int ip1, ip2, im1, i;
-			i = counter -1;
-			vrmlrot_to_quaternion (&qi,   kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
-			quaternion_normalize(&qi);
-			ip1 = i+1;
-			ip1 = px->closed ? iwrap(ip1,0,iend) : min(max(ip1,0),kin-2);
-			vrmlrot_to_quaternion (&qip1, kVs[ip1].c[0],kVs[ip1].c[1], kVs[ip1].c[2], kVs[ip1].c[3]);
-			quaternion_normalize(&qip1);
-			ip2 =i+2;
-			ip2 = px->closed ? iwrap(ip2,0,iend) : min(max(ip2,0),kin-1);
-			vrmlrot_to_quaternion (&qip2, kVs[ip2].c[0],kVs[ip2].c[1], kVs[ip2].c[2], kVs[ip2].c[3]);
-			quaternion_normalize(&qip2);
-			im1 = i-1;
-			im1 = px->closed ? iwrap(im1,0,iend) : min(max(im1,0),kin-3);
-			vrmlrot_to_quaternion (&qim1, kVs[im1].c[0],kVs[im1].c[1], kVs[im1].c[2], kVs[im1].c[3]);
-			quaternion_normalize(&qim1);
+		//quaternion_squad_prepare(qim1,qi,qip1,qip2,s1,s2,q2);
+		//si
+		compute_si(&si,&qi, &qip1, &qim1);
+		compute_si(&sip1,&qip1,&qip2,&qi);
+		h = (double) interval;
 
-			//quaternion_squad_prepare(qim1,qi,qip1,qip2,s1,s2,q2);
-			//si
-			compute_si(&si,&qi, &qip1, &qim1);
-			compute_si(&sip1,&qip1,&qip2,&qi);
-			h = (double) interval;
+		Quaternion qc;
+		quaternion_squad_prepare(&qim1,&qi,&qip1,&qip2,&si,&sip1,&qc);
+		quaternion_squad(&final,&qi,&qc,&si,&sip1,h);
 
-			if(0){
-				//old and tested slerp - but it jumps with our data
-				quaternion_slerp(&qs,&qi,&qip1,h);
-				quaternion_slerp(&ss,&si,&sip1,h);
-				quaternion_slerp(&final, &qs, &ss, 2.0*h*(1.0 -h));
-			}else if(0){
-				//quaternion_squad(qi,s1,s2,q2,h);
-				//test slper2 - see if it maches: seems different, doesn't jump
-				quaternion_slerp2(&qs,&qi,&qip1,h);
-				quaternion_slerp2(&ss,&si,&sip1,h);
-				quaternion_slerp2(&final, &qs, &ss, 2.0*h*(1.0 -h));
-			} else {
-				Quaternion qc;
-				quaternion_squad_prepare(&qim1,&qi,&qip1,&qip2,&si,&sip1,&qc);
-				quaternion_slerp2(&qs,&qi,&qc,h); //qip1 replaceed with possibly negated qc, helps test D
-				quaternion_slerp2(&ss,&si,&sip1,h);
-				quaternion_slerp2(&final, &qs, &ss, 2.0*h*(1.0 -h));
-			}
-
-		}
 		quaternion_to_vrmlrot(&final,&x, &y, &z, &a);
 		px->value_changed.c[0] = (float) x;
 		px->value_changed.c[1] = (float) y;
@@ -898,3 +854,5 @@ void do_SquadOrientationInterpolator(void *node){
 	}
 
 }
+
+//END MIT LIC <<<<<<<
