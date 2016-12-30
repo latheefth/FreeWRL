@@ -574,10 +574,33 @@ void remove_picksensor(struct X3D_Node * node) {}
 void other_PointPickSensor (struct X3D_PointPickSensor *node) {}
 void other_PickableGroup (struct X3D_Group *node) {}
 void other_Sphere (struct X3D_Sphere *node) {}
-void child_PickableGroup (struct X3D_Group *node) {}
+//void child_PickableGroup (struct X3D_Group *node) {}
 void prep_PickableGroup (struct X3D_Group *node) {}
 void add_picksensor(struct X3D_Node * node) {}
 void remove_picksensor(struct X3D_Node * node) {}
+
+void push_pickablegroupdata(void *userdata);
+void pop_pickablegroupdata();
+void child_PickableGroup (struct X3D_Group *node) {
+	CHILDREN_COUNT
+	RETURN_FROM_CHILD_IF_NOT_FOR_ME
+	/* printf("%s:%d child_PickableGroup\n",__FILE__,__LINE__); */
+
+	prep_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+
+
+	//PUSH OBJECTTYPE
+	//PUSH PICKABLE == TRUE/FALSE
+	push_pickablegroupdata(node);
+	
+	normalChildren(node->children);
+
+	//POP PICKABLE == TRUE/FALSE
+	//POP OBJECTTTYPE
+	pop_pickablegroupdata();
+	fin_sibAffectors((struct X3D_Node*)node,&node->__sibAffectors);
+}
+
 
 #endif // DJTRACK_PICKSENSORS
 
@@ -597,8 +620,10 @@ A. Q. Should we even bother to implement Picking component? Few others are:
 B. New theory of operation for PickSensors (July 2016, dug9):
 1. like the new do_TransformSensor - all you need is do_PickSensorTick and VF_USE and usehit_ functions.
 	- picksensor and target nodes are flagged here with VF_USE
-	- then on next frame/tick the picksensor and targets are recovered here with usehit_ functions, including their modelview transform
+	- then on next frame/tick the picksensor and targets are recovered here with usehit_ functions, 
+		including their modelview transform
 	- and all the work is done here in do_PickSensorTick
+	- (no need for compile_ other_ etc, not yet)
 2. we could simplify by doing BOUNDS only:
 	- if target is geom, then can do BOUNDS or GEOMETRY intersection
 	- if target is 'chunk of scenegraph' ie Group, Transform or PickableGroup, then 
@@ -624,14 +649,29 @@ B. New theory of operation for PickSensors (July 2016, dug9):
 HARD PARTS:
 	1. picking against a partial transform hierarchy of objects
 		- can use the USEUSE approach to get the starting transform stack for target node
-		- need to modify render_node() and/or normalChildren for picking partial pass
+		- need to modify render_node() and/or normalChildren and/or render(node0 for picking partial pass
 	2. geom-geom intersections
 		- bounding box easy
 		- we do ray-geom for touchsensors
 		- we do 'avatar brush' (bunch of line segments) vs geom in collision
 		- RBP will do geom-geom collisions, but the geoms are simplifications: box, sphere
+		- if transform pickee into picker space, then simple math formulas 
+			ie cone if bottomRadius is R, and height is H, and and a point is between bottom and top
+			at hieght h from bottom, then cone r = f(h,R,H) = R*(1-h/H)
+		- convex hull - particlephysics we did that for polyrep
 	
 */
+int objecttypes_overlap(struct Multi_String * list1, struct Multi_String * list2){
+	int iret = FALSE;
+	for(int i=0;i<list1->n;i++){
+		if(!strcmp(list1->p[i]->strptr,"ALL")) iret = TRUE;
+		for(int j=0;j<list2->n;j++){
+			if(!strcmp(list1->p[i]->strptr,list2->p[j]->strptr)) iret = TRUE;
+		}
+	}
+	return iret;
+}
+
 void do_PickSensorTick(void *ptr){
 	//heavy borrowing from do_TransformSensor
 	int ishit,i,j;
@@ -671,10 +711,13 @@ void do_PickSensorTick(void *ptr){
 	unodes = &node->pickTarget;
 	menode = (struct X3D_Node*)node; //upcaste
 	pnode = node->pickingGeometry;
+	//naming: 
+	//'me' is the pickingsensor node
+	//'u' is a pick target node
 	if(unodes->n && pnode){
 		//check all USE-USE combinations of this node and pickTargets
 		//find next this
-		while(mehit = usehit_next(menode,mehit)){
+		while(mehit = usehit_next(menode,mehit)){  //hopefully there's only one instance of me/picksensor node in the scenegraph
 			int iret;
 			double meinv[16],memin[3],memax[3];
 			float emin[3], emax[3], halfsize[3];
@@ -712,36 +755,48 @@ void do_PickSensorTick(void *ptr){
 				memax[i] = node->_extent[i*2];
 			}
 
-			//find next target
+			//find next target/pickable
 			uhit = NULL;
 			for(j=0;j<unodes->n;j++){
 				unode = unodes->p[j];
 				while(uhit = usehit_next(unode,uhit)){
 					//see if they intersect, if so do something about it
 					//-prepare matrixTarget2this
+					int intypes,pickable;
 					double u2me[16], umin[3],umax[3],uumin[3],uumax[3];
-					matmultiplyAFFINE(u2me,uhit->mvm,meinv);
-					//-transform target AABB/MBB from target space to this space
-					for(i=0;i<3;i++)
-					{
-						umin[i] = unode->_extent[i*2 + 1];
-						umax[i] = unode->_extent[i*2];
+
+					struct X3D_PickableGroup *pgroup;
+					pgroup = (struct X3D_PickableGroup *) uhit->userdata;
+					intypes = TRUE;
+					pickable = TRUE;
+					if(pgroup){
+						pickable = pgroup->pickable;
+						intypes = objecttypes_overlap(&node->objectType,&pgroup->objectType);
 					}
-					transformMBB(uumin,uumax,u2me,umin,umax); 
-					//-see if AABB intersect
-					if( overlapMBBs(memin, memax, uumin, uumax) ){
+					if(intypes && pickable){
+						matmultiplyAFFINE(u2me,uhit->mvm,meinv);
+						//-transform target AABB/MBB from target space to this space
+						for(i=0;i<3;i++)
+						{
+							umin[i] = unode->_extent[i*2 + 1];
+							umax[i] = unode->_extent[i*2];
+						}
+						transformMBB(uumin,uumax,u2me,umin,umax); 
+						//-see if AABB intersect
+						if( overlapMBBs(memin, memax, uumin, uumax) ){
 						
-						//-if so take further action:
-						//(not implemented july 17, 2016 - end of day, no time left, 
-						// ..but it does get in here, showing the above plumbing is working)
-						//picknode-specific intersections with various targetnode types
-						// - accumulate list of pickedGeometry (all picksensor types)
-						// - accumulate list of pickpoints (line and point)
-						// - accumulate list of normal (line)
-						// - accumulate list of texturecoord (line)
-						//if further testing shows they intersect, then ishit++:
-						ishit++;
-					} //if overlap
+							//-if so take further action:
+							//(not implemented july 17, 2016 - end of day, no time left, 
+							// ..but it does get in here, showing the above plumbing is working)
+							//picknode-specific intersections with various targetnode types
+							// - accumulate list of pickedGeometry (all picksensor types)
+							// - accumulate list of pickpoints (line and point)
+							// - accumulate list of normal (line)
+							// - accumulate list of texturecoord (line)
+							//if further testing shows they intersect, then ishit++:
+							ishit++;
+						} //if overlap
+					} //if intypes and pickable
 				}  //while uhit
 			} //for unodes
 		} //while mehit
