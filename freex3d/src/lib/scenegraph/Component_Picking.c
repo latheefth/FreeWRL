@@ -661,14 +661,34 @@ HARD PARTS:
 		- convex hull - particlephysics we did that for polyrep
 	
 */
-int objecttypes_overlap(struct Multi_String * list1, struct Multi_String * list2){
+int objecttypes_overlap(struct Multi_String * list1, struct Multi_String * list2, struct Uni_String * criterion){
+	int ntries, nmatches, iallsensor, ialltarget,inonetarget;
 	int iret = FALSE;
+	//hope I got this logic right
+	ntries = nmatches = iallsensor = ialltarget = inonetarget = 0;
+	for(int j=0;j<list2->n;j++){
+		if(!strcmp(list2->p[j]->strptr,"ALL")) ialltarget = TRUE;
+		if(!strcmp(list2->p[j]->strptr,"NONE")) inonetarget = TRUE;
+	}
+
 	for(int i=0;i<list1->n;i++){
-		if(!strcmp(list1->p[i]->strptr,"ALL")) iret = TRUE;
+		if(!strcmp(list1->p[i]->strptr,"ALL")) iallsensor = TRUE;
 		for(int j=0;j<list2->n;j++){
-			if(!strcmp(list1->p[i]->strptr,list2->p[j]->strptr)) iret = TRUE;
+			ntries++;
+			if(!strcmp(list1->p[i]->strptr,list2->p[j]->strptr)) {
+				nmatches++;
+			}
 		}
 	}
+	if(!strcmp(criterion->strptr,"MATCH_ANY")){
+		if(nmatches) iret = TRUE;
+	}else if(!strcmp(criterion->strptr,"MATCH_ALL")){
+		if(nmatches == ntries) iret = TRUE;
+	}else if(!strcmp(criterion->strptr,"MATCH_ONE")){
+		if(nmatches == 1) iret = TRUE;
+	}
+	if(iallsensor || ialltarget) iret = TRUE;
+	if(inonetarget) iret = FALSE;
 	return iret;
 }
 
@@ -716,7 +736,7 @@ void do_PickSensorTick(void *ptr){
 	//'u' is a pick target node
 	if(unodes->n && pnode){
 		//check all USE-USE combinations of this node and pickTargets
-		//find next this
+		//find ME: the picksensor, in the usehit list
 		while(mehit = usehit_next(menode,mehit)){  //hopefully there's only one instance of me/picksensor node in the scenegraph
 			int iret;
 			double meinv[16],memin[3],memax[3];
@@ -755,7 +775,7 @@ void do_PickSensorTick(void *ptr){
 				memax[i] = node->_extent[i*2];
 			}
 
-			//find next target/pickable
+			//find U: a target/pickable in the usehit list
 			uhit = NULL;
 			for(j=0;j<unodes->n;j++){
 				unode = unodes->p[j];
@@ -771,11 +791,15 @@ void do_PickSensorTick(void *ptr){
 					pickable = TRUE;
 					if(pgroup){
 						pickable = pgroup->pickable;
-						intypes = objecttypes_overlap(&node->objectType,&pgroup->objectType);
+						intypes = objecttypes_overlap(&node->objectType,&pgroup->objectType,node->matchCriterion);
 					}
 					if(intypes && pickable){
 						matmultiplyAFFINE(u2me,uhit->mvm,meinv);
 						//-transform target AABB/MBB from target space to this space
+						//the specs say it should be done in world space, and perhaps there, 
+						//.. normally the MBB/AABB will be aligned to world, as the scene author is thinking
+						//.. but we'll do our MBB/AABB test in picksensor space for now,
+						//.. to save a step
 						for(i=0;i<3;i++)
 						{
 							umin[i] = unode->_extent[i*2 + 1];
@@ -784,17 +808,31 @@ void do_PickSensorTick(void *ptr){
 						transformMBB(uumin,uumax,u2me,umin,umax); 
 						//-see if AABB intersect
 						if( overlapMBBs(memin, memax, uumin, uumax) ){
-						
 							//-if so take further action:
 							//(not implemented july 17, 2016 - end of day, no time left, 
 							// ..but it does get in here, showing the above plumbing is working)
 							//picknode-specific intersections with various targetnode types
-							// - accumulate list of pickedGeometry (all picksensor types)
-							// - accumulate list of pickpoints (line and point)
-							// - accumulate list of normal (line)
-							// - accumulate list of texturecoord (line)
 							//if further testing shows they intersect, then ishit++:
-							ishit++;
+							if(!strcmp(node->intersectionType->strptr,"BOUNDS")){
+								ishit++;
+							}else if(!strcmp(node->intersectionType->strptr,"GEOMETRY")){
+								switch(node->_nodeType){
+									case NODE_LinePickSensor:
+									ishit++;
+									break;
+									case NODE_PointPickSensor:
+									ishit++;
+									break;
+									case NODE_PrimitivePickSensor:
+									ishit++;
+									break;
+									case NODE_VolumePickSensor:
+									ishit++;
+									break;
+									default:
+										break; //not for me
+								}
+							}
 						} //if overlap
 					} //if intypes and pickable
 				}  //while uhit
