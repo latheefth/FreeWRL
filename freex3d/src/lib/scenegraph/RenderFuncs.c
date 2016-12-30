@@ -137,6 +137,7 @@ typedef struct pRenderFuncs{
 	struct point_XYZ3 t_r123;
 	struct point_XYZ hp;
 	Stack *usehits_stack;
+	Stack *pickablegroupdata_stack;
 	Stack *draw_call_params_stack;
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
@@ -186,6 +187,7 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->sensor_stack = newStack(struct currayhit);
 		p->ray_stack = newStack(struct point_XYZ3);
 		p->usehits_stack = newStack(usehit);
+		p->pickablegroupdata_stack = newStack(void*);
 		p->shaderflags_stack = newStack(shaderflagsstruct); //newStack(unsigned int);
 		p->fog_stack = newStack(struct X3D_Node*);
 		p->localLight_stack = newStack(int);
@@ -207,6 +209,16 @@ void usehit_add(struct X3D_Node * node, double *modelviewmatrix){
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	uhit.node = node;
 	memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
+	uhit.userdata = NULL;
+	vector_pushBack(usehit,p->usehits_stack,uhit);  //fat elements do another deep copy
+}
+void usehit_add2(struct X3D_Node * node, double *modelviewmatrix, void *userdata){
+	//called from render_hier when/each-use-time a VF_USE node is hit
+	usehit uhit;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	uhit.node = node;
+	memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
+	uhit.userdata = userdata;
 	vector_pushBack(usehit,p->usehits_stack,uhit);  //fat elements do another deep copy
 }
 usehit * usehit_next(struct X3D_Node *node, usehit *lasthit){
@@ -247,6 +259,25 @@ void usehit_clear(){
 	p->usehits_stack->n = 0;
 }
 
+//PickableGroup can be several parents above a usehit picktarget node
+//see prep_PickableGroup, fin_PickableGroup for push and pop, 
+//see below for call to getpickablegroupdata() in render
+void push_pickablegroupdata(void *userdata){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	stack_push(void*,p->pickablegroupdata_stack,userdata);
+}
+void pop_pickablegroupdata(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	stack_pop(void*,p->pickablegroupdata_stack);
+}
+void *getpickablegroupdata(){
+	void *ret;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	ret = NULL;
+	if(vectorSize(p->pickablegroupdata_stack)>0)
+		ret = stack_top(void*,p->pickablegroupdata_stack);
+	return ret;
+}
 
 
 void unload_libraryscenes();
@@ -1680,7 +1711,7 @@ void render_node(struct X3D_Node *node) {
 			//GL_GET_MODELVIEWMATRIX
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 			//strip viewmatrix - will happen when we invert one of the USEUSE pair, and multiply
-			usehit_add(node,modelviewMatrix);
+			usehit_add2(node,modelviewMatrix,getpickablegroupdata());
 		}
 	}
 	
