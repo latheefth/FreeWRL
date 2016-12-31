@@ -570,6 +570,30 @@ void other_Sphere (struct X3D_Sphere *node)
 
 void remove_picksensor(struct X3D_Node * node) {}
 #else // DJTRACK_PICKSENSORS
+
+
+typedef struct pComponent_Picking{
+	Stack *stack_nodesintersected;
+	Stack *stack_distances;
+}* ppComponent_Picking;
+void *Component_Picking_constructor(){
+	void *v = MALLOCV(sizeof(struct pComponent_Picking));
+	memset(v,0,sizeof(struct pComponent_Picking));
+	return v;
+}
+void Component_Picking_init(struct tComponent_Picking *t){
+	//public
+	//private
+	t->prv = Component_Picking_constructor();
+	{
+		ppComponent_Picking p = (ppComponent_Picking)t->prv;
+		p->stack_distances = newStack(float);
+		p->stack_nodesintersected = newStack(void*);
+	}
+}
+//ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
+
+
 /* PICKSENSOR stubs */
 void other_PointPickSensor (struct X3D_PointPickSensor *node) {}
 void other_PickableGroup (struct X3D_Group *node) {}
@@ -691,7 +715,20 @@ int objecttypes_overlap(struct Multi_String * list1, struct Multi_String * list2
 	if(inonetarget) iret = FALSE;
 	return iret;
 }
-
+int isGeometryNode(struct X3D_Node* node){
+	//is there a bitflag or other function somewhere to say if a node is a geometry type node?
+	int iret = FALSE;
+	struct X3D_Virt *virt = virtTable[node->_nodeType];
+	if(virt->rend || virt->rendray) iret = TRUE;
+	return iret;
+}
+struct intersection_info{
+	float p[3];
+	float normal[3];
+};
+//p1 - p2 is your plumbline or line, see also particalsystems for use
+int intersect_polyrep2(struct X3D_Node *node, float *p1, float *p2, 
+	float *nearest, float *normal, Stack *intersection_stack);
 void do_PickSensorTick(void *ptr){
 	//heavy borrowing from do_TransformSensor
 	int ishit,i,j;
@@ -701,6 +738,7 @@ void do_PickSensorTick(void *ptr){
 	//we'll use PrimitivePickSensor for the generic picksensor type 
 	// -the order of field definitions for all picksensors must be the same in Perl code generator VRMLNodes.pm
 	//  up to the point of per-type differences
+	ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
 	struct X3D_PrimitivePickSensor *node = (struct X3D_PrimitivePickSensor *) ptr;
 	switch(node->_nodeType){
 		case NODE_LinePickSensor:
@@ -776,6 +814,8 @@ void do_PickSensorTick(void *ptr){
 			}
 
 			//find U: a target/pickable in the usehit list
+			p->stack_distances->n = 0; //stack_clear
+			p->stack_nodesintersected->n = 0; //stack_clear
 			uhit = NULL;
 			for(j=0;j<unodes->n;j++){
 				unode = unodes->p[j];
@@ -813,24 +853,93 @@ void do_PickSensorTick(void *ptr){
 							// ..but it does get in here, showing the above plumbing is working)
 							//picknode-specific intersections with various targetnode types
 							//if further testing shows they intersect, then ishit++:
-							if(!strcmp(node->intersectionType->strptr,"BOUNDS")){
+							if(!strcmp(node->intersectionType->strptr,"BOUNDS") || unode->_nodeType == NODE_Inline){
+								float distance;
+								stack_push(struct X3D_Node*,p->stack_nodesintersected,unode);
+								distance = 0.0f;
+								stack_push(float,p->stack_distances,distance);
 								ishit++;
 							}else if(!strcmp(node->intersectionType->strptr,"GEOMETRY")){
-								switch(node->_nodeType){
-									case NODE_LinePickSensor:
-									ishit++;
-									break;
-									case NODE_PointPickSensor:
-									ishit++;
-									break;
-									case NODE_PrimitivePickSensor:
-									ishit++;
-									break;
-									case NODE_VolumePickSensor:
-									ishit++;
-									break;
-									default:
-										break; //not for me
+								//we need to traverse the scenegraph subsection to get to the geometry
+								//clear some global variables
+								//set some render flags
+								//call render(unode) and bottom out on a callback above, which will
+								// do the work and set global variables
+								//retrieve global variables
+								//options:
+								//a) the callback snapshots the geometry node and matrix in a uhit,
+								//   and we get back (yet another) list of uhits
+								//b) the callback does the intersections, and gives us back 
+								//   the intersection lists
+								//decision: lets do a) here
+								usehitB_clear();
+								Stack *usehitB;
+								if(isGeometryNode(unode)){
+									double matidentity[16];
+									loadIdentityMatrix(matidentity);
+									usehitB_add2(unode,matidentity,pgroup);
+								}else{
+									render_hier(unode, VF_Geom | VF_Picking);
+								}
+								usehitB = getUseHitBStack();
+								for(int m=0;m<vectorSize(usehitB);m++){
+									double u2meg[16], me2ug[16];
+									usehit *ghit = vector_get_ptr(usehit,usehitB,m);
+
+									// concatonate matrices 
+									// u2meg = gmat * umat * meinv
+									//       = gmat * u2me
+									matmultiplyAFFINE(u2meg,ghit->mvm,u2me);
+									matinverseAFFINE(me2ug,u2meg);
+
+
+									switch(node->_nodeType){
+										case NODE_LinePickSensor:
+										{
+											//foreach line segment:
+											// transform ends into U
+											// intersect with U geometry
+											// sort by distance
+											// transform intersections and normals back
+											// accumulate intersections
+
+											//intersect_polyrep2(ghit->node, float *p1, float *p2, 
+											//float *nearest, float *normal, Stack *intersection_stack)
+											ishit++;
+										}
+										break;
+										case NODE_PointPickSensor:
+										{
+											//for each picksensor point:
+											//  transform into U
+											//  create plumbline
+											//  intersect plumbline with target geom and see if intersection count is odd
+											//  if odd (point inside) accumulate geometry list
+											ishit++;
+										}
+										break;
+										case NODE_PrimitivePickSensor:
+										{
+											//for each target geometry vertex:
+											//  transform into picksensor space
+											//  test if inside geometry
+											//  accumulate list
+											ishit++;
+										}
+										break;
+										case NODE_VolumePickSensor:
+										{
+											//for each target geometry vertex
+											//  transform into picksensor space
+											//  make plubline
+											//  test if intersections of plubline with pickgeometry are odd
+											//  if odd (inside) accumulate list
+											ishit++;
+										}
+										break;
+										default:
+											break; //not for me
+									}
 								}
 							}
 						} //if overlap
@@ -848,6 +957,14 @@ void do_PickSensorTick(void *ptr){
 				MARK_EVENT (ptr, offsetof(struct X3D_PrimitivePickSensor, isActive));
 			}
 			//sort by sortOrder
+			if(!strcmp(node->sortOrder->strptr,"ANY")){
+				realloc(node->pickedGeometry.p,ishit * sizeof(struct X3D_Node*));
+				memcpy(node->pickedGeometry.p,p->stack_nodesintersected->data,ishit*sizeof(struct X3D_Node*));
+			}else if(!strcmp(node->sortOrder->strptr,"ALL")){
+			}else if(!strcmp(node->sortOrder->strptr,"ALL_SORTED")){
+			}else if(!strcmp(node->sortOrder->strptr,"CLOSEST")){
+			}
+			MARK_EVENT(ptr,offsetof(struct X3D_PrimitivePickSensor, pickedGeometry));
 			//MARK_EVENT - pickedGeometry (all)
 			//MARK_EVENT - pickedPoint (line and point)
 			//MARK_EVENT - pickedNormal (line)
