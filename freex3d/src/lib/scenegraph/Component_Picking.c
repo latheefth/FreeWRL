@@ -1142,8 +1142,58 @@ void do_PickSensorTick(void *ptr){
 														}
 														break;
 														case NODE_Cylinder:
+														{
+															float R,H,h,rp;
+															struct X3D_Cylinder * cyl = (struct X3D_Cylinder*)pnode;
+															H = cyl->height;
+															R = cyl->radius;
+															if(pp[1] >= -H/2.0f && pp[1] < H/2.0f){
+																float xz[2];
+																h = pp[1] - (-H/2.0);
+																xz[0] = pp[0];
+																xz[1] = pp[2];
+																rp = veclength2f(xz);
+																if(rp <= R){
+																	//inside the cylinder
+																	struct intersection_info iinfo;
+																	iinfo.dist = veclength3f(pp);
+																	veccopy3f(iinfo.p,pp); //the point inside
+																	stack_push(struct intersection_info,p->stack_pointsinside,iinfo);
+																}
+															}
+														}
+														break;
 														case NODE_Sphere:
+														{
+															float R,rp;
+															struct X3D_Sphere * sphere = (struct X3D_Sphere*)pnode;
+															R = sphere->radius;
+															rp = veclength3f(pp);
+															if(rp <= R){
+																//inside the sphere
+																struct intersection_info iinfo;
+																iinfo.dist = rp;
+																veccopy3f(iinfo.p,pp); //the point inside
+																stack_push(struct intersection_info,p->stack_pointsinside,iinfo);
+															}
+
+														}
+														break;
 														case NODE_Box:
+														{
+															int inside;
+															struct X3D_Box * box = (struct X3D_Box*)pnode;
+															inside = TRUE;
+															for(int im=0;im<3;im++)
+																inside = inside && pp[i] >= -box->size.c[i] && pp[i] <= box->size.c[i];
+															if(inside){
+																struct intersection_info iinfo;
+																iinfo.dist = veclength3f(pp);
+																veccopy3f(iinfo.p,pp); //the point inside
+																stack_push(struct intersection_info,p->stack_pointsinside,iinfo);
+															}
+														}
+														break;
 														default:
 															break;
 													}
