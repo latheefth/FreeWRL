@@ -974,9 +974,9 @@ void do_PickSensorTick(void *ptr){
 														float2double(dd,iinfo->p,3);
 														transformAFFINEd(dd,dd,u2meg);
 														double2float(iinfo->p,dd,3);
-														//float2double(dd,iinfo->normal,3);
-														//transformAFFINEd3x3(dd,dd,u2meg);
-														//double2float(iinfo->normal,dd,3);
+														float2double(dd,iinfo->normal,3);
+														transformUPPER3X3d(dd,dd,u2meg);
+														double2float(iinfo->normal,dd,3);
 													}
 													cumdist += veclength3f(vecdif3f(delta,p2, p1));
 													cumcount = p->stack_intersections->n;
