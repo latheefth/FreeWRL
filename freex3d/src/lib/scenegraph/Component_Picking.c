@@ -570,10 +570,14 @@ void other_Sphere (struct X3D_Sphere *node)
 
 void remove_picksensor(struct X3D_Node * node) {}
 #else // DJTRACK_PICKSENSORS
-
+struct nodedistance {
+	struct X3D_Node* node;
+	float dist;
+};
 
 typedef struct pComponent_Picking{
-	Stack *stack_nodesintersected;
+	//Stack *stack_nodesintersected;
+	Stack *stack_nodesdistance;
 	Stack *stack_intersections;
 }* ppComponent_Picking;
 void *Component_Picking_constructor(){
@@ -588,7 +592,8 @@ void Component_Picking_init(struct tComponent_Picking *t){
 	{
 		ppComponent_Picking p = (ppComponent_Picking)t->prv;
 		p->stack_intersections = newStack(struct intersection_info);
-		p->stack_nodesintersected = newStack(void*);
+		//p->stack_nodesintersected = newStack();
+		p->stack_nodesdistance = newStack(struct nodedistance);
 	}
 }
 //ppComponent_Picking p = (ppComponent_Picking)gglobal()->Component_Picking.prv;
@@ -722,6 +727,21 @@ int isGeometryNode(struct X3D_Node* node){
 	if(virt->rend || virt->rendray) iret = TRUE;
 	return iret;
 }
+//struct nodedistance {
+//	struct X3D_Node* node;
+//	float dist;
+//};
+//Compare function 
+//return value	Description
+//< 0			elem1 less than elem2
+//  0			elem1 equivalent to elem2
+//> 0			elem1 greater than elem2
+int compare_nodedistance(const void *elem1,const void * elem2 ) 
+{  
+   struct nodedistance *nd1 = (struct nodedistance *)elem1; 
+   struct nodedistance *nd2 = (struct nodedistance *)elem2;
+   return nd1->dist < nd2->dist ? -1 : nd1->dist > nd2->dist ? 1 : 0;  
+}  
 
 void do_PickSensorTick(void *ptr){
 	//heavy borrowing from do_TransformSensor
@@ -809,7 +829,7 @@ void do_PickSensorTick(void *ptr){
 
 			//find U: a target/pickable in the usehit list
 			p->stack_intersections->n = 0; //stack_clear
-			p->stack_nodesintersected->n = 0; //stack_clear
+			p->stack_nodesdistance->n = 0; //stack_clear
 			uhit = NULL;
 			for(j=0;j<unodes->n;j++){
 				unode = unodes->p[j];
@@ -849,10 +869,17 @@ void do_PickSensorTick(void *ptr){
 							//picknode-specific intersections with various targetnode types
 							//if further testing shows they intersect, then ishit++:
 							if(!strcmp(node->intersectionType->strptr,"BOUNDS") || unode->_nodeType == NODE_Inline){
-								float distance;
-								stack_push(struct X3D_Node*,p->stack_nodesintersected,unode);
-								//distance = 0.0f;
-								//stack_push(float,p->stack_intersections,distance);
+								struct nodedistance ndist;
+								double c1[3],c2[3],dd[3];
+								//stack_push(struct X3D_Node*,p->stack_nodesintersected,unode);
+								vecaddd(c1,memin,memax);
+								vecscaled(c1,c1,.5);
+								vecaddd(c2,umin,umax);
+								vecscaled(c2,c2,.5);
+								vecdifd(dd,c2,c1);
+								ndist.dist = veclengthd(dd);
+								ndist.node = unode;
+								stack_push(struct nodedistance,p->stack_nodesdistance,ndist);
 								ishit++;
 							}else if(!strcmp(node->intersectionType->strptr,"GEOMETRY")){
 								//we need to traverse the scenegraph subsection to get to the geometry
@@ -884,7 +911,8 @@ void do_PickSensorTick(void *ptr){
 								}
 								usehitB = getUseHitBStack();
 								for(int m=0;m<vectorSize(usehitB);m++){
-									double u2meg[16], me2ug[16];
+									//geometry node
+									double u2meg[16], me2ug[16], nodedistance;
 									usehit *ghit = vector_get_ptr(usehit,usehitB,m);
 
 									// concatonate matrices 
@@ -973,6 +1001,8 @@ void do_PickSensorTick(void *ptr){
 														iinfo->dist += cumdist;
 														float2double(dd,iinfo->p,3);
 														transformAFFINEd(dd,dd,u2meg);
+														//in theory normals should be inverse transpose,
+														//we'll cheat here for now, and _you_ the reader, should fix
 														double2float(iinfo->p,dd,3);
 														float2double(dd,iinfo->normal,3);
 														transformUPPER3X3d(dd,dd,u2meg);
@@ -984,7 +1014,12 @@ void do_PickSensorTick(void *ptr){
 
 											}
 											if(cumcount) {
-												stack_push(struct X3D_Node*,p->stack_nodesintersected,unode);
+												struct nodedistance ndist;
+												ndist.node = unode;
+// need distanc per node
+												ndist.dist = 0.0f;
+												//stack_push(struct X3D_Node*,p->stack_nodesintersected,unode);
+												stack_push(struct nodedistance,p->stack_nodesdistance,ndist);
 												ishit++;
 											}
 										}
@@ -1039,11 +1074,43 @@ void do_PickSensorTick(void *ptr){
 			}
 			//sort by sortOrder
 			if(!strcmp(node->sortOrder->strptr,"ANY")){
-				realloc(node->pickedGeometry.p,p->stack_nodesintersected->n * sizeof(struct X3D_Node*));
-				memcpy(node->pickedGeometry.p,p->stack_nodesintersected->data,p->stack_nodesintersected->n*sizeof(struct X3D_Node*));
+				struct nodedistance *ndist;
+				realloc(node->pickedGeometry.p,1 * sizeof(struct X3D_Node*));
+				ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
+				node->pickedGeometry.p[0] = ndist->node;
 			}else if(!strcmp(node->sortOrder->strptr,"ALL")){
+				struct nodedistance *ndist;
+				realloc(node->pickedGeometry.p,p->stack_nodesdistance->n * sizeof(struct X3D_Node*));
+				for(int ii=0;ii<p->stack_nodesdistance->n;ii++){
+					ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
+					node->pickedGeometry.p[ii] = ndist->node;
+				}
+				//memcpy(node->pickedGeometry.p,p->stack_nodesintersected->data,p->stack_nodesintersected->n*sizeof(struct X3D_Node*));
 			}else if(!strcmp(node->sortOrder->strptr,"ALL_SORTED")){
+
+				//int compare( (void *) & elem1, (void *) & elem2 ); 
+				//stdlib.h
+				//void qsort(  
+				//   void *base,  
+				//   size_t num,  
+				//   size_t width,  
+				//   int (__cdecl *compare )(const void *, const void *)   
+				//);  
+				struct nodedistance *ndist;
+
+				qsort(p->stack_nodesdistance->data,p->stack_nodesdistance->n, sizeof(struct nodedistance), compare_nodedistance );  
+				realloc(node->pickedGeometry.p,p->stack_nodesdistance->n * sizeof(struct X3D_Node*));
+				for(int ii=0;ii<p->stack_nodesdistance->n;ii++){
+					ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
+					node->pickedGeometry.p[ii] = ndist->node;
+				}
 			}else if(!strcmp(node->sortOrder->strptr,"CLOSEST")){
+				struct nodedistance *ndist;
+
+				qsort(p->stack_nodesdistance->data,p->stack_nodesdistance->n, sizeof(struct nodedistance), compare_nodedistance );  
+				realloc(node->pickedGeometry.p,1 * sizeof(struct X3D_Node*));
+				ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
+				node->pickedGeometry.p[0] = ndist->node;
 			}
 			MARK_EVENT(ptr,offsetof(struct X3D_PrimitivePickSensor, pickedGeometry));
 			//MARK_EVENT - pickedGeometry (all)
@@ -1062,9 +1129,9 @@ void do_PickSensorTick(void *ptr){
 					lnode->pickedTextureCoordinate.p = realloc(lnode->pickedTextureCoordinate.p,lnode->pickedPoint.n * 3 * sizeof(float));
 					for(int ik=0;ik<p->stack_intersections->n;ik++){
 						struct intersection_info *iinfo = vector_get_ptr(struct intersection_info,p->stack_intersections,ik);
-						veccopy3f(&lnode->pickedPoint.p[ik],iinfo->p);
-						veccopy3f(&lnode->pickedNormal.p[ik],iinfo->normal);
-						veccopy3f(&lnode->pickedTextureCoordinate.p[ik],iinfo->texcoord);
+						veccopy3f(lnode->pickedPoint.p[ik].c,iinfo->p);
+						veccopy3f(lnode->pickedNormal.p[ik].c,iinfo->normal);
+						veccopy3f(lnode->pickedTextureCoordinate.p[ik].c,iinfo->texcoord);
 					}
 					MARK_EVENT(ptr,offsetof(struct X3D_LinePickSensor, pickedPoint));
 					MARK_EVENT(ptr,offsetof(struct X3D_LinePickSensor, pickedNormal));
