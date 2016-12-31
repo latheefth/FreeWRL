@@ -83,9 +83,16 @@ int currentviewportvisible(Stack *vpstack);
 typedef struct usehit {
 	struct X3D_Node *node;
 	double mvm[16];
+	void *userdata;
 } usehit;
 void usehit_add(struct X3D_Node *node, double *modelviewmatrix);
+void usehit_add2(struct X3D_Node *node, double *modelviewmatrix, void *userdata);
 usehit * usehit_next(struct X3D_Node *node, usehit* lasthit);
 void usehit_clear();
+void usehitB_add(struct X3D_Node *node, double *modelviewmatrix);
+void usehitB_add2(struct X3D_Node *node, double *modelviewmatrix, void *userdata);
+usehit * usehitB_next(struct X3D_Node *node, usehit* lasthit);
+Stack *getUseHitBStack();
+void usehitB_clear();
 
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

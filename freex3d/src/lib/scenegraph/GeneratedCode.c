@@ -681,6 +681,7 @@ extern char *parser_getNameFromNode(struct X3D_Node* node);
 	"marking",
 	"mass",
 	"massDensityModel",
+	"matchCriterion",
 	"material",
 	"matrix",
 	"maxAngle",
@@ -1412,6 +1413,7 @@ const int EVENT_IN_COUNT = ARR_SIZE(EVENT_IN);
 	"marking",
 	"mass",
 	"massDensityModel",
+	"matchCriterion",
 	"material",
 	"matrix",
 	"maxAngle",
@@ -5134,6 +5136,7 @@ const int OFFSETS_LinePickSensor[] = {
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_LinePickSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intersectionType, (int) offsetof (struct X3D_LinePickSensor, intersectionType),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_LinePickSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_matchCriterion, (int) offsetof (struct X3D_LinePickSensor, matchCriterion),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_LinePickSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_objectType, (int) offsetof (struct X3D_LinePickSensor, objectType),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_pickTarget, (int) offsetof (struct X3D_LinePickSensor, pickTarget),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6068,6 +6071,7 @@ const int OFFSETS_PointPickSensor[] = {
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_PointPickSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intersectionType, (int) offsetof (struct X3D_PointPickSensor, intersectionType),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_PointPickSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_matchCriterion, (int) offsetof (struct X3D_PointPickSensor, matchCriterion),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PointPickSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_objectType, (int) offsetof (struct X3D_PointPickSensor, objectType),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_pickTarget, (int) offsetof (struct X3D_PointPickSensor, pickTarget),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -6214,6 +6218,7 @@ const int OFFSETS_PrimitivePickSensor[] = {
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_PrimitivePickSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intersectionType, (int) offsetof (struct X3D_PrimitivePickSensor, intersectionType),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_PrimitivePickSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_matchCriterion, (int) offsetof (struct X3D_PrimitivePickSensor, matchCriterion),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_PrimitivePickSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_objectType, (int) offsetof (struct X3D_PrimitivePickSensor, objectType),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_pickTarget, (int) offsetof (struct X3D_PrimitivePickSensor, pickTarget),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -7261,6 +7266,7 @@ const int OFFSETS_VolumePickSensor[] = {
 	(int) FIELDNAMES_enabled, (int) offsetof (struct X3D_VolumePickSensor, enabled),  (int) FIELDTYPE_SFBool, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_intersectionType, (int) offsetof (struct X3D_VolumePickSensor, intersectionType),  (int) FIELDTYPE_SFString, (int) KW_initializeOnly, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_isActive, (int) offsetof (struct X3D_VolumePickSensor, isActive),  (int) FIELDTYPE_SFBool, (int) KW_outputOnly, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
+	(int) FIELDNAMES_matchCriterion, (int) offsetof (struct X3D_VolumePickSensor, matchCriterion),  (int) FIELDTYPE_SFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_metadata, (int) offsetof (struct X3D_VolumePickSensor, metadata),  (int) FIELDTYPE_SFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_objectType, (int) offsetof (struct X3D_VolumePickSensor, objectType),  (int) FIELDTYPE_MFString, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
 	(int) FIELDNAMES_pickTarget, (int) offsetof (struct X3D_VolumePickSensor, pickTarget),  (int) FIELDTYPE_MFNode, (int) KW_inputOutput, (int) (SPEC_VRML | SPEC_X3D30 | SPEC_X3D31 | SPEC_X3D32 | SPEC_X3D33),
@@ -10205,6 +10211,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->enabled = FALSE;
 			tmp2->intersectionType = newASCIIString("BOUNDS");
 			tmp2->isActive = FALSE;
+			tmp2->matchCriterion = newASCIIString("MATCH_ANY");
 			tmp2->metadata = NULL;
 			tmp2->objectType.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*3);tmp2->objectType.p[0] = newASCIIString("ALL");tmp2->objectType.p[1] = newASCIIString("NONE");tmp2->objectType.p[2] = newASCIIString("TERRAIN");tmp2->objectType.n=3; ;
 			tmp2->pickTarget.n=0; tmp2->pickTarget.p=0;
@@ -11433,6 +11440,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->enabled = FALSE;
 			tmp2->intersectionType = newASCIIString("BOUNDS");
 			tmp2->isActive = FALSE;
+			tmp2->matchCriterion = newASCIIString("MATCH_ANY");
 			tmp2->metadata = NULL;
 			tmp2->objectType.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*3);tmp2->objectType.p[0] = newASCIIString("ALL");tmp2->objectType.p[1] = newASCIIString("NONE");tmp2->objectType.p[2] = newASCIIString("TERRAIN");tmp2->objectType.n=3; ;
 			tmp2->pickTarget.n=0; tmp2->pickTarget.p=0;
@@ -11614,6 +11622,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->enabled = FALSE;
 			tmp2->intersectionType = newASCIIString("BOUNDS");
 			tmp2->isActive = FALSE;
+			tmp2->matchCriterion = newASCIIString("MATCH_ANY");
 			tmp2->metadata = NULL;
 			tmp2->objectType.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*3);tmp2->objectType.p[0] = newASCIIString("ALL");tmp2->objectType.p[1] = newASCIIString("NONE");tmp2->objectType.p[2] = newASCIIString("TERRAIN");tmp2->objectType.n=3; ;
 			tmp2->pickTarget.n=0; tmp2->pickTarget.p=0;
@@ -12938,6 +12947,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->enabled = FALSE;
 			tmp2->intersectionType = newASCIIString("BOUNDS");
 			tmp2->isActive = FALSE;
+			tmp2->matchCriterion = newASCIIString("MATCH_ANY");
 			tmp2->metadata = NULL;
 			tmp2->objectType.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*3);tmp2->objectType.p[0] = newASCIIString("ALL");tmp2->objectType.p[1] = newASCIIString("NONE");tmp2->objectType.p[2] = newASCIIString("TERRAIN");tmp2->objectType.n=3; ;
 			tmp2->pickTarget.n=0; tmp2->pickTarget.p=0;
@@ -15115,6 +15125,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," matchCriterion (SFString) \t%s\n",tmp->matchCriterion->strptr);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -16258,6 +16269,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			for (i=0; i<tmp->_oldpickTarget.n; i++) { dump_scene(fp,level+1,tmp->_oldpickTarget.p[i]); }
 		    }
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," matchCriterion (SFString) \t%s\n",tmp->matchCriterion->strptr);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -16397,6 +16409,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," matchCriterion (SFString) \t%s\n",tmp->matchCriterion->strptr);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }
@@ -17762,6 +17775,7 @@ void dump_scene (FILE *fp, int level, struct X3D_Node* node) {
 			spacer fprintf (fp," __oldEnabled (SFBool) \t%d\n",tmp->__oldEnabled);
 		    }
 			spacer fprintf (fp," enabled (SFBool) \t%d\n",tmp->enabled);
+			spacer fprintf (fp," matchCriterion (SFString) \t%s\n",tmp->matchCriterion->strptr);
 		    if(allFields) {
 			spacer fprintf (fp," metadata (SFNode):\n"); dump_scene(fp,level+1,tmp->metadata); 
 		    }

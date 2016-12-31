@@ -291,11 +291,9 @@ iOLDCODE		void *prv;
 iOLDCODE	}Component_Networking;
 #endif // OLDCODE
 
-#ifdef DJTRACK_PICKSENSORS
 	struct tComponent_Picking{
 		void *prv;
 	}Component_Picking;
-#endif
 	struct tComponent_Rendering{
 		void *prv;
 	}Component_Rendering;

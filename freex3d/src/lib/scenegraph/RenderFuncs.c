@@ -137,6 +137,8 @@ typedef struct pRenderFuncs{
 	struct point_XYZ3 t_r123;
 	struct point_XYZ hp;
 	Stack *usehits_stack;
+	Stack *usehitsB_stack;
+	Stack *pickablegroupdata_stack;
 	Stack *draw_call_params_stack;
 }* ppRenderFuncs;
 void *RenderFuncs_constructor(){
@@ -186,6 +188,8 @@ void RenderFuncs_init(struct tRenderFuncs *t){
 		p->sensor_stack = newStack(struct currayhit);
 		p->ray_stack = newStack(struct point_XYZ3);
 		p->usehits_stack = newStack(usehit);
+		p->usehitsB_stack = newStack(usehit);
+		p->pickablegroupdata_stack = newStack(void*);
 		p->shaderflags_stack = newStack(shaderflagsstruct); //newStack(unsigned int);
 		p->fog_stack = newStack(struct X3D_Node*);
 		p->localLight_stack = newStack(int);
@@ -207,6 +211,16 @@ void usehit_add(struct X3D_Node * node, double *modelviewmatrix){
 	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
 	uhit.node = node;
 	memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
+	uhit.userdata = NULL;
+	vector_pushBack(usehit,p->usehits_stack,uhit);  //fat elements do another deep copy
+}
+void usehit_add2(struct X3D_Node * node, double *modelviewmatrix, void *userdata){
+	//called from render_hier when/each-use-time a VF_USE node is hit
+	usehit uhit;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	uhit.node = node;
+	memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
+	uhit.userdata = userdata;
 	vector_pushBack(usehit,p->usehits_stack,uhit);  //fat elements do another deep copy
 }
 usehit * usehit_next(struct X3D_Node *node, usehit *lasthit){
@@ -247,6 +261,88 @@ void usehit_clear(){
 	p->usehits_stack->n = 0;
 }
 
+//USEHITB - for Component_Picking.c when traversing the sub-scenegraph
+// to get geometry nodes, and their transform, and any more PickingGroup userdata
+// (sorry - I just copied the useHit functions above, normally I refactor but short on time -dug9 dec31,2016)
+void usehitB_add(struct X3D_Node * node, double *modelviewmatrix){
+	//called from render_hier when/each-use-time a VF_USE node is hit
+	usehit uhit;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	uhit.node = node;
+	memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
+	uhit.userdata = NULL;
+	vector_pushBack(usehit,p->usehitsB_stack,uhit);  //fat elements do another deep copy
+}
+void usehitB_add2(struct X3D_Node * node, double *modelviewmatrix, void *userdata){
+	//called from render_hier when/each-use-time a VF_USE node is hit
+	usehit uhit;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	uhit.node = node;
+	memcpy(uhit.mvm,modelviewmatrix,16*sizeof(double)); //deep copy
+	uhit.userdata = userdata;
+	vector_pushBack(usehit,p->usehitsB_stack,uhit);  //fat elements do another deep copy
+}
+usehit * usehitB_next(struct X3D_Node *node, usehit *lasthit){
+	//called from do_first() > do_activity() when one of the use-use pair is searching for another of its mates
+	//call with lasthit = NULL the first time, and otherwise the previous hit to continue searching
+	int i, istart;
+	usehit *ret, *item;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	ret = NULL;
+	if(vectorSize(p->usehitsB_stack)>0){
+		//find lasthit
+		istart = 0;
+		if(lasthit) {
+			//size_t size;
+			//ptrdiff_t delta;
+			//void *start;
+			//size = sizeof(usehit);
+			//start = (char*)vector_get_ptr(usehit,p->usehits_stack,0);
+			//delta = (char*)lasthit - (char*)start;
+			//istart = delta/size + 1;
+			istart = ((char*)lasthit - (char*)vector_get_ptr(usehit,p->usehitsB_stack,0))/sizeof(usehit) + 1;
+		}
+		//search starting at lasthit+1
+		for(i=istart;i<p->usehitsB_stack->n;i++){
+			item = vector_get_ptr(usehit,p->usehitsB_stack,i);
+			if(item->node == node){
+				ret = item;
+				break;
+			}
+		}
+	}
+	return ret; //returing pointer to p->usehits fat element
+}
+void usehitB_clear(){
+	//called at the end of do_first (once per frame, after USE_USE pairing and action, and before rendering) 
+	//to clear all the USE hits from last frame
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	p->usehitsB_stack->n = 0;
+}
+Stack *getUseHitBStack(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	return p->usehitsB_stack;
+}
+
+//PickableGroup can be several parents above a usehit picktarget node
+//see prep_PickableGroup, fin_PickableGroup for push and pop, 
+//see below for call to getpickablegroupdata() in render
+void push_pickablegroupdata(void *userdata){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	stack_push(void*,p->pickablegroupdata_stack,userdata);
+}
+void pop_pickablegroupdata(){
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	stack_pop(void*,p->pickablegroupdata_stack);
+}
+void *getpickablegroupdata(){
+	void *ret;
+	ppRenderFuncs p = (ppRenderFuncs)gglobal()->RenderFuncs.prv;
+	ret = NULL;
+	if(vectorSize(p->pickablegroupdata_stack)>0)
+		ret = stack_top(void*,p->pickablegroupdata_stack);
+	return ret;
+}
 
 
 void unload_libraryscenes();
@@ -1666,7 +1762,7 @@ void render_node(struct X3D_Node *node) {
 		profile_end("proximity");
 		PRINT_GL_ERROR_IF_ANY("render_proximity"); PRINT_NODE(node,virt);
 	}
-	if(p->renderstate.render_geom && ((node->_renderFlags & VF_USE) == VF_USE)){
+	if(p->renderstate.render_geom && ((node->_renderFlags & VF_USE) == VF_USE) && !p->renderstate.render_picking){
 		//picking sensor, transform sensor and generally any USE_NODE-USE_NODE scenario
 		//ideally we would come in here once per scenegraph USE per frame, even when stereo or quad views
 		//because we want to work in world coordinates (not view coordinates) so by the time
@@ -1680,7 +1776,21 @@ void render_node(struct X3D_Node *node) {
 			//GL_GET_MODELVIEWMATRIX
 			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 			//strip viewmatrix - will happen when we invert one of the USEUSE pair, and multiply
-			usehit_add(node,modelviewMatrix);
+			usehit_add2(node,modelviewMatrix,getpickablegroupdata());
+		}
+	}
+	if(p->renderstate.render_picking && node->_nodeType == NODE_Shape ){
+		//this is for when called from Component_Picking.c on a partial scenegraph,
+		//to get geometry nodes in the usehitB list
+		//I put vrit->rendray as a way to detect if its geometry, is there a better way?
+		double modelviewMatrix[16];
+		struct X3D_Shape *shapenode = (struct X3D_Shape*)node;
+		if(shapenode->geometry){
+			//IF VIEW == 0
+			//GL_GET_MODELVIEWMATRIX
+			FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
+			//strip viewmatrix - will happen when we invert one of the USEUSE pair, and multiply
+			usehitB_add2(shapenode->geometry,modelviewMatrix,getpickablegroupdata());
 		}
 	}
 	
@@ -1692,7 +1802,7 @@ void render_node(struct X3D_Node *node) {
 		PRINT_GL_ERROR_IF_ANY("render_collision"); PRINT_NODE(node,virt);
 	}
 
-	if(p->renderstate.render_geom && !p->renderstate.render_sensitive && virt->rend) {
+	if(p->renderstate.render_geom && !p->renderstate.render_sensitive && !p->renderstate.render_picking && virt->rend) {
 			DEBUG_RENDER("rs 3\n");
 			PRINT_GL_ERROR_IF_ANY("BEFORE render_geom"); PRINT_NODE(node,virt);
 			profile_start("rend");
@@ -1717,7 +1827,6 @@ void render_node(struct X3D_Node *node) {
 		pushed_sensor = TRUE;
 		profile_end("sensitive");
 	}
-
 	if(p->renderstate.render_geom && p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive && virt->rendray) {
 		DEBUG_RENDER("rs 6\n");
 		profile_start("rendray");
@@ -1922,6 +2031,7 @@ void render_hier(struct X3D_Node *g, int rwhat) {
 	rs->render_geom =  rwhat & VF_Geom;
 	rs->render_light = rwhat & VF_globalLight;
 	rs->render_sensitive = rwhat & VF_Sensitive;
+	rs->render_picking = rwhat & VF_Picking;
 	rs->render_blend = rwhat & VF_Blend;
 	rs->render_proximity = rwhat & VF_Proximity;
 	rs->render_collision = rwhat & VF_Collision;

@@ -406,6 +406,14 @@ struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, cons
     }
     return r;
 }
+GLDOUBLE* transformUPPER3X3d(double *r,double *a, const GLDOUBLE* b){
+	double tmp[3];
+	veccopy3f(tmp,a);
+	r[0] = b[0]*tmp[0] +b[4]*tmp[1] +b[8]*tmp[2];
+	r[1] = b[1]*tmp[0] +b[5]*tmp[1] +b[9]*tmp[2];
+	r[2] = b[2]*tmp[0] +b[6]*tmp[1] +b[10]*tmp[2];
+	return r;
+}
 struct point_XYZ* transformAFFINE(struct point_XYZ* r, const struct point_XYZ* a, const GLDOUBLE* b){
 	//FLOPs 9 double
 	// r = a x b

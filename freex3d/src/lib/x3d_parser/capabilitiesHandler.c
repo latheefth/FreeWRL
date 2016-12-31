@@ -46,10 +46,10 @@ static const int capabilities[] = {
 	COM_DIS,	0, 		/* May 12, 2009 */
 	COM_EnvironmentalSensor,	3, /* May 12, 2009 */
 	COM_Text,	1, 		/* May 12, 2009 */
-	COM_NURBS,	0, 		/* May 12, 2009 */
+	COM_NURBS,	4, 		/* Dec 2016 */
 	COM_CubeMapTexturing,	3, 	/* Sep 13, 2016 */
 	COM_EventUtilities,	1, 	/* May 12, 2009 */
-	COM_Interpolation,	3, 	/* May 12, 2009 */
+	COM_Interpolation,	5, 	/* Dec 2016 */
 	COM_Shaders,	1, 		/* May 12, 2009 */
 	COM_Navigation,	3, 		/* July 29 2010 */
 	COM_Grouping,		3,	/* October 29, 2008 */
@@ -60,21 +60,21 @@ static const int capabilities[] = {
 	COM_Shape,	4, 		/* May 12, 2009 */
 	COM_Texturing3D,	2, 	/* Sept 4, 2016 */
 	COM_PointDeviceSensor,	1, 	/* May 12, 2009 */
-	COM_HAnim,	0, 		/* May 12, 2009 */
-	COM_RigidBodyPhysics,	2, 	/* Feb, 2016 */
+	COM_HAnim,	1, 		/* Nov 2016 */
+	COM_RigidBodyPhysics,	2, 	/* Nov 2016 */
 	COM_Core,		2,	/* October 29, 2008 */
 	COM_Layout,	2, 		/* Jan 2016 */
 	COM_Time,		2, 	/* October 29, 2008 */
 	COM_Geometry3D,	4, 		/* May 12, 2009 */
-	COM_Followers,	0, 		/* May 12, 2009 */
+	COM_Followers,	1, 		/* 2016 */
 	COM_Scripting,	1, 		/* May 12, 2009 */
 	COM_Lighting,	3, 		/* May 12, 2009 */
 	COM_KeyDeviceSensor,	2, 	/* May 12, 2009 */
 	COM_Layering,	1, 		/* Jan 2016 */
 	COM_Networking,	3, 		/* May 12, 2009 */
-	COM_ParticleSystems,	0, 	/* May 12, 2009 */
+	COM_ParticleSystems,	3, 	/* Nov 2016 */
 	COM_Sound,	1, 		/* May 12, 2009 */
-	COM_VolumeRendering,  1, /* Oct 1, 2016 */
+	COM_VolumeRendering,  4, /* Oct 1, 2016 */
 	INT_ID_UNDEFINED, 	INT_ID_UNDEFINED,
 };
 

@@ -78,9 +78,7 @@ void Component_KeyDevice_init(struct tComponent_KeyDevice *t);
 OLDCODEvoid Component_Networking_init(struct tComponent_Networking *t);
 #endif
 
-#ifdef DJTRACK_PICKSENSORS
 void Component_Picking_init(struct tComponent_Picking *t);
-#endif
 void Component_Rendering_init(struct tComponent_Rendering *t);
 void Component_Rendering_clear(struct tComponent_Rendering *t);
 void Component_Shape_init(struct tComponent_Shape *t);
@@ -221,9 +219,7 @@ ttglobal  iglobal_constructor() //(mainthreadID,parserthreadID,texturethreadID..
 #ifdef OLDCODE
 OLDCODE	Component_Networking_init(&iglobal->Component_Networking);
 #endif // OLDCODE
-#ifdef DJTRACK_PICKSENSORS
 	Component_Picking_init(&iglobal->Component_Picking);
-#endif
 	Component_Rendering_init(&iglobal->Component_Rendering);
 	Component_Shape_init(&iglobal->Component_Shape);
 	Component_Sound_init(&iglobal->Component_Sound);
@@ -306,9 +302,7 @@ void __iglobal_fields_destructor(ttglobal tg)
 	Component_Text_clear(&tg->Component_Text); FREE_IF_NZ(tg->Component_Text.prv);
 	FREE_IF_NZ(tg->Component_Shape.prv);
 	Component_Rendering_clear(&tg->Component_Rendering); FREE_IF_NZ(tg->Component_Rendering.prv);
-#ifdef DJTRACK_PICKSENSORS
 	FREE_IF_NZ(tg->Component_Picking.prv);
-#endif
 #ifdef OLDCODE
 OLDCODE	FREE_IF_NZ(tg->Component_Networking.prv);
 #endif

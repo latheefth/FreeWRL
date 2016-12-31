@@ -4967,14 +4967,14 @@ void startOfLoopNodeUpdates(void) {
 					CHILDREN_NODE(Group)
 				END_NODE
 
-#ifdef DJTRACK_PICKSENSORS
-				/* DJTRACK_PICKSENSORS */
 				BEGIN_NODE(PickableGroup)
-					sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
-					TURN_OFF_SHOULDSORTCHILDREN
-
+					//sortChildren (__LINE__,&X3D_PICKABLEGROUP(node)->children,&X3D_PICKABLEGROUP(node)->_sortedChildren,pnode->_renderFlags & VF_shouldSortChildren);
+					//TURN_OFF_SHOULDSORTCHILDREN
+					propagateExtent(X3D_NODE(node));
 					CHILDREN_NODE(PickableGroup)
 				END_NODE
+#ifdef DJTRACK_PICKSENSORS
+				/* DJTRACK_PICKSENSORS */
 				/* PointPickSensor needs its own flag sent up the chain */
 				BEGIN_NODE (PointPickSensor)
 							if (X3D_POINTPICKSENSOR(node)->enabled) update_renderFlag(pnode,VF_PickingSensor);
