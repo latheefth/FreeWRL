@@ -1100,7 +1100,7 @@ void do_PickSensorTick(void *ptr){
 											//  transform into picksensor space
 											//  test if inside geometry
 											//  accumulate list
-											struct X3D_PolyRep* pr = (struct X3D_PolyRep*)node->_intern;
+											struct X3D_PolyRep* pr = (struct X3D_PolyRep*)ghit->node->_intern;
 											if(pr){
 												float *points = pr->actualCoord;
 												int npts = pr->ntri;
@@ -1222,7 +1222,66 @@ void do_PickSensorTick(void *ptr){
 											//  make plubline
 											//  test if intersections of plubline with pickgeometry are odd
 											//  if odd (inside) accumulate list
-											ishit++;
+											struct X3D_PolyRep* pr = (struct X3D_PolyRep*)ghit->node->_intern;
+
+											if(pr){
+												float *points = pr->actualCoord;
+												int npts = pr->ntri;
+												int cumcount = 0;
+
+												for(int ik=0;ik<npts;ik++){
+													double dd[3];
+													float pp[3];
+													float2double(dd,&points[ik*3],3);
+													transformAFFINEd(dd,dd,u2meg);
+													double2float(pp,dd,3);
+													{
+														float p1[3], p2[3];
+														double dd[3];
+														veccopy3f(p1, pp);
+														veccopy3f(p2,p1);
+														p2[3] = menode->_extent[4] - 1.0; //plumbline point must be guaranteed outside target geom
+
+														//printf("p1,p2 in cylinder space: [%f %f %f][%f %f %f]\n",
+														//	p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]);
+														int ixcount;
+														if(ixcount = intersect_polyrep2(pnode, p1, p2, p->stack_intersections )){
+															if(ixcount % 2){
+																//if odd number of intersections, then the point is inside
+																struct intersection_info iinfo;
+																float delta[3];
+																cumcount++;
+																double c1[3], pointdist;
+																//stack_push(struct X3D_Node*,p->stack_nodesintersected,unode);
+																vecaddd(c1,memin,memax);
+																vecscaled(c1,c1,.5);
+																double2float(delta,c1,3);
+																pointdist = veclength3f(vecdif3f(delta,delta,p1));
+																iinfo.dist = pointdist;
+																veccopy3f(iinfo.p,&points[3*ik]); //the point inside
+																stack_push(struct intersection_info,p->stack_pointsinside,iinfo);
+															}
+														}
+													}
+
+												}
+												cumcount = p->stack_pointsinside->n;
+												if(cumcount) {
+													struct nodedistance ndist;
+													struct intersection_info *iinfo;
+													ndist.node = unode;
+													qsort(p->stack_intersections->data,p->stack_intersections->n, sizeof(struct intersection_info), compare_intersectiondistance );  
+													iinfo = vector_get_ptr(struct intersection_info,p->stack_intersections,0);
+
+													ndist.dist = iinfo->dist; //no distance to node required in specs for pointpicksensor
+
+													stack_push(struct nodedistance,p->stack_nodesdistance,ndist);
+													ishit++;
+												}
+
+											}
+
+
 										}
 										break;
 										default:
@@ -1325,10 +1384,8 @@ void do_PickSensorTick(void *ptr){
 				break;
 				case NODE_PrimitivePickSensor:
 				//just the geometry list
-				break;
 				case NODE_VolumePickSensor:
-				{
-				}
+				//just the geometry list
 				default:
 					break;
 			}
