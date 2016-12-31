@@ -118,3 +118,10 @@ do_glNormal3fv(struct SFVec3f *dest, GLfloat *param);
 void stream_polyrep(void *node, void *coord, void *fogCoord, void *color, void *normal, struct X3D_TextureCoordinate *texCoord);
 void compile_polyrep(void *node, void *coord, void *fogCoord, void *color, void *normal, struct X3D_TextureCoordinate *texCoord);
 
+struct intersection_info{
+	float dist;
+	float p[3];
+	float normal[3];
+	float texcoord[3];
+};
+int intersect_polyrep2(struct X3D_Node *node, float *p1, float *p2, Stack *intersection_stack);

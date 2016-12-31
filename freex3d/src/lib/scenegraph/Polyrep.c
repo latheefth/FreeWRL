@@ -1359,13 +1359,10 @@ int intersect_polyrep(struct X3D_Node *node, float *p1, float *p2, float *neares
 	return nintersections*ihavehit; //-ve if no hit but intersections of infinite ray for p1,
 	// +ve if hit and intersections, 0 -nothing
 }
-struct intersection_info{
-	float p[3];
-	float normal[3];
-};
-int intersect_polyrep2(struct X3D_Node *node, float *p1, float *p2, float *nearest, float *normal, Stack *intersection_stack){
+int intersect_polyrep2(struct X3D_Node *node, float *p1, float *p2, Stack *intersection_stack){
 	//this one returns a vector of points
 	//please allocate intersection_stack before calling ie instersection_stack = newStack(struct intersection_info);
+	//p1 - p2 is your plumbline or line, see also particalsystems for use
 	//need a utility function like part of guts of render_ray_polyrep
 	//everything in same coordinate system, no matrix multiplication in here
 	//p1, p2 - 2 points forming ray, in direciton from p1 toward p2, of length p2-p1
@@ -1461,8 +1458,8 @@ int intersect_polyrep2(struct X3D_Node *node, float *p1, float *p2, float *neare
 					veccopy3f(iinfo.normal,normi);
 					stack_push(struct intersection_info,intersection_stack,iinfo);
 					if(tscale < nearestdist) {
-						veccopy3f(nearest,pi);
-						veccopy3f(normal,normi);
+						//veccopy3f(nearest,pi);
+						//veccopy3f(normal,normi);
 						nearestdist = tscale;
 						ihavehit = 1;
 					}
@@ -1551,12 +1548,12 @@ int intersect_polyrep2(struct X3D_Node *node, float *p1, float *p2, float *neare
 					 nintersections ++;
 					 if(tmp2 >= 0.0 && tmp2 < nearestdist){
 						ihavehit = 1;
-						nearest[0] = (float)hitpoint.x;
-						nearest[1] = (float)hitpoint.y;
-						nearest[2] = (float)hitpoint.z;
-						normal[0] = (float)v3.x;
-						normal[1] = (float)v3.y;
-						normal[2] = (float)v3.z;
+						//nearest[0] = (float)hitpoint.x;
+						//nearest[1] = (float)hitpoint.y;
+						//nearest[2] = (float)hitpoint.z;
+						//normal[0] = (float)v3.x;
+						//normal[1] = (float)v3.y;
+						//normal[2] = (float)v3.z;
 						nearestdist = tmp2;
 					}
 					 //rayhit(((float)(tmp2)),
