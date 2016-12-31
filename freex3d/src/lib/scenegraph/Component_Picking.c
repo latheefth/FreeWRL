@@ -817,7 +817,7 @@ void do_PickSensorTick(void *ptr){
 					//see if they intersect, if so do something about it
 					//-prepare matrixTarget2this
 					int intypes,pickable;
-					double u2me[16], umin[3],umax[3],uumin[3],uumax[3];
+					double u2me[16], me2u[16], umin[3],umax[3],uumin[3],uumax[3];
 
 					struct X3D_PickableGroup *pgroup;
 					pgroup = (struct X3D_PickableGroup *) uhit->userdata;
@@ -829,6 +829,7 @@ void do_PickSensorTick(void *ptr){
 					}
 					if(intypes && pickable){
 						matmultiplyAFFINE(u2me,uhit->mvm,meinv);
+						matinverseAFFINE(me2u,u2me);
 						//-transform target AABB/MBB from target space to this space
 						//the specs say it should be done in world space, and perhaps there, 
 						//.. normally the MBB/AABB will be aligned to world, as the scene author is thinking
@@ -868,11 +869,17 @@ void do_PickSensorTick(void *ptr){
 								//decision: lets do a) here
 								usehitB_clear();
 								Stack *usehitB;
+								double viewMatrix[16];
+
 								if(isGeometryNode(unode)){
 									double matidentity[16];
 									loadIdentityMatrix(matidentity);
 									usehitB_add2(unode,matidentity,pgroup);
+									loadIdentityMatrix(viewMatrix);
 								}else{
+									//snapshot matrix stack before renderhier
+									//- we're at the world level, so viewpoint will be in the matrix stack
+									FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, viewMatrix);
 									render_hier(unode, VF_Geom | VF_Picking);
 								}
 								usehitB = getUseHitBStack();
@@ -883,8 +890,15 @@ void do_PickSensorTick(void *ptr){
 									// concatonate matrices 
 									// u2meg = gmat * umat * meinv
 									//       = gmat * u2me
-									matmultiplyAFFINE(u2meg,ghit->mvm,u2me);
-									matinverseAFFINE(me2ug,u2meg);
+									{
+										double viewinv[16], world2geom[16];
+										//take off the viewmatrix from the geometry matrix
+										matinverseAFFINE(viewinv,viewMatrix);
+										//now get the matrix to go from ME to UGeom
+										matmultiply(world2geom,viewinv,ghit->mvm);
+										matmultiplyAFFINE(me2ug,world2geom,me2u);
+										matinverseAFFINE(u2meg,me2ug);
+									}
 
 
 									switch(node->_nodeType){
@@ -925,10 +939,11 @@ void do_PickSensorTick(void *ptr){
 													int kk=0;
 													for(int ik=0;ik<lnode->vertexCount.n;ik++){
 														for(int jk=0;jk<lnode->vertexCount.p[ik]-1;jk++){
-															veccopy3f(&segments[6*nseg +0],&points[3*kk]);
-															veccopy3f(&segments[6*nseg +3],&points[3*(kk+1)]);
+															veccopy3f(&segments[6*nseg +0],&points[3*(kk+jk)]);
+															veccopy3f(&segments[6*nseg +3],&points[3*(kk+jk+1)]);
 															nseg++;
 														}
+														kk+= lnode->vertexCount.p[ik];
 													}
 
 												}
@@ -939,14 +954,31 @@ void do_PickSensorTick(void *ptr){
 											float cumdist = 0.0f;
 											int cumcount = 0;
 											for(int ik=0;ik<nseg;ik++){
-												if(intersect_polyrep2(ghit->node, &segments[6*ik], &segments[6*(ik+1)], p->stack_intersections )){
+												float p1[3], p2[3];
+												double dd[3];
+												veccopy3f(p1, &segments[6*ik]);
+												veccopy3f(p2,&segments[6*ik+3]);
+												float2double(dd,p1,3);
+												transformAFFINEd(dd,dd,me2ug);
+												double2float(p1,dd,3);
+												float2double(dd,p2,3);
+												transformAFFINEd(dd,dd,me2ug);
+												double2float(p2,dd,3);
+												//printf("p1,p2 in cylinder space: [%f %f %f][%f %f %f]\n",
+												//	p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]);
+												if(intersect_polyrep2(ghit->node, p1, p2, p->stack_intersections )){
 													float delta[3];
 													for(int jk=cumcount;jk<p->stack_intersections->n;jk++){
 														struct intersection_info *iinfo = vector_get_ptr(struct intersection_info,p->stack_intersections,jk);
 														iinfo->dist += cumdist;
-														
+														float2double(dd,iinfo->p,3);
+														transformAFFINEd(dd,dd,u2meg);
+														double2float(iinfo->p,dd,3);
+														//float2double(dd,iinfo->normal,3);
+														//transformAFFINEd3x3(dd,dd,u2meg);
+														//double2float(iinfo->normal,dd,3);
 													}
-													cumdist += veclength3f(vecdif3f(delta,&segments[6*ik], &segments[6*(ik+1)]));
+													cumdist += veclength3f(vecdif3f(delta,p2, p1));
 													cumcount = p->stack_intersections->n;
 												}
 
