@@ -1100,7 +1100,69 @@ void do_PickSensorTick(void *ptr){
 											//  transform into picksensor space
 											//  test if inside geometry
 											//  accumulate list
-											ishit++;
+											struct X3D_PolyRep* pr = (struct X3D_PolyRep*)node->_intern;
+											if(pr){
+												float *points = pr->actualCoord;
+												int npts = pr->ntri;
+												int cumcount = 0;
+
+												for(int ik=0;ik<npts;ik++){
+													double dd[3];
+													float pp[3];
+													float2double(dd,&points[ik*3],3);
+													transformAFFINEd(dd,dd,u2meg);
+													double2float(pp,dd,3);
+													switch(pnode->_nodeType){
+														case NODE_Cone:
+														{
+															float R,H,h,rc,rp;
+															struct X3D_Cone * cone = (struct X3D_Cone*)pnode;
+															H = cone->height;
+															R = cone->bottomRadius;
+															if(pp[1] >= -H/2.0f && pp[1] < H/2.0f){
+																float xz[2];
+																h = pp[1] - (-H/2.0);
+																rc = R*(1.0 - h/H);
+																xz[0] = pp[0];
+																xz[1] = pp[2];
+																rp = veclength2f(xz);
+																if(rp <= rc){
+																	//inside the cone
+																	struct intersection_info iinfo;
+																	float apex[3], delta[3], conedist;
+																	apex[1] = H/2.0;
+																	apex[0] = apex[2] = 0.0f;
+																	conedist = veclength3f(vecdif3f(delta,pp,apex));
+																	iinfo.dist = conedist;
+																	veccopy3f(iinfo.p,pp); //the point inside
+																	stack_push(struct intersection_info,p->stack_pointsinside,iinfo);
+																}
+																
+															}
+														}
+														break;
+														case NODE_Cylinder:
+														case NODE_Sphere:
+														case NODE_Box:
+														default:
+															break;
+													}
+												}
+												cumcount = p->stack_pointsinside->n;
+												if(cumcount) {
+													struct nodedistance ndist;
+													struct intersection_info *iinfo;
+													ndist.node = unode;
+													qsort(p->stack_intersections->data,p->stack_intersections->n, sizeof(struct intersection_info), compare_intersectiondistance );  
+													iinfo = vector_get_ptr(struct intersection_info,p->stack_intersections,0);
+
+													ndist.dist = iinfo->dist; //no distance to node required in specs for pointpicksensor
+
+													stack_push(struct nodedistance,p->stack_nodesdistance,ndist);
+													ishit++;
+												}
+
+											}
 										}
 										break;
 										case NODE_VolumePickSensor:
@@ -1212,7 +1274,11 @@ void do_PickSensorTick(void *ptr){
 				}
 				break;
 				case NODE_PrimitivePickSensor:
+				//just the geometry list
+				break;
 				case NODE_VolumePickSensor:
+				{
+				}
 				default:
 					break;
 			}
