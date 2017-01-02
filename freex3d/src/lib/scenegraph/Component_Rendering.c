@@ -741,7 +741,7 @@ float *getTransformedClipPlanes(){
 			d = vecdotd(O4,N4);
 			dplane2[3] = -d;
 		}
-		for(j=0;j<4;j++) p->clipplanes[i*4 + j] = dplane2[j]; //double to float
+		for(j=0;j<4;j++) p->clipplanes[i*4 + j] = (float) dplane2[j]; //double to float
 	}
 	return p->clipplanes;
 }
@@ -751,6 +751,9 @@ int getClipPlaneCount(){
 	nsend =  min(FW_MAXCLIPPLANES,vectorSize(p->clipplane_stack));
 	return nsend;
 }
+void pushShaderFlags(shaderflagsstruct flags);
+void popShaderFlags();
+
 void sib_prep_ClipPlane(struct X3D_Node *parent, struct X3D_Node *sibAffector){
 	//search for child clipplane
 	//if found and enabled

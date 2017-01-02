@@ -508,7 +508,7 @@ void render_HAnimHumanoid (struct X3D_HAnimHumanoid *node) {
 
 void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	int i,j, jointTransformIndex;
-	double modelviewMatrix[16], mvmInverse[16];
+	double modelviewMatrix[16]; //, mvmInverse[16];
 	JMATRIX jointMatrix;
 	Stack *JT;
 	float *PVW, *PVI;
@@ -525,7 +525,7 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	if(p->HH->skinNormal){
 		//want 'inverse-transpose' 3x3 float for transforming normals
 		//(its almost the same as jointMatrix.mat except when shear due to assymetric scales)
-		float fmat4[16], fmat3[9],fmat3i[9],fmat3it[9];
+		float fmat4[16], fmat3[9],fmat3i[9]; //,fmat3it[9];
 		matdouble2float4(fmat4,jointMatrix.mat);
 		mat423f(fmat3,fmat4);
 		matinverse3f(fmat3i,fmat3);
@@ -588,8 +588,9 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 		if(0){ //this is done in child_HAnimHumanoid for the skinCoord parents
 			//force HAnimSegment.children[] shape nodes using segment->coord to recompile
 			int k;
+			Stack *parents;
 			p->HH->skinCoord->_change++;
-			Stack *parents = p->HH->skinCoord->_parentVector;
+			parents = p->HH->skinCoord->_parentVector;
 			for(k=0;k<vectorSize(parents);k++){
 				struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
 				parent->_change++;
@@ -618,9 +619,10 @@ void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 		memcpy(node->_origCoords,psc,nsc*3*sizeof(float));
 		if(0){
 			//find a few coordinates in skinCoord I hacked, by xyz, and give me their index, for making a displacer
-			float myfind[9] = {-0.030000, -0.070000, 1.777000 ,  -0.070000, 1.777000, 0.130000 ,  1.777000, 0.130000, 0.070000 };
-			for(int i=0;i<nsc;i++){
-				for(int j=0;j<3;j++)
+			float myfind[9] = {-0.030000f, -0.070000f, 1.777000f,  -0.070000f, 1.777000f, 0.130000f,  1.777000f, 0.130000f, 0.070000f };
+			int i,j;
+			for(i=0;i<nsc;i++){
+				for(j=0;j<3;j++)
 					if(vecsametol3f(&psc[i*3],&myfind[j*3],.001f)){
 						printf("%d %f %f %f\n",i,myfind[j*3 + 0],myfind[j*3 +1],myfind[j*3 +2]);
 					}
@@ -656,7 +658,7 @@ void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 
 void child_HAnimHumanoid(struct X3D_HAnimHumanoid *node) {
 	int nc;
-	float *originalCoords;
+	//float *originalCoords;
 	Stack *JT;
 	ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
 	COMPILE_IF_REQUIRED
@@ -729,7 +731,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 			//save original coordinates before rendering skeleton
 			// - HAnimJoint may have displacers that change the Coords
 			//transform each vertex and its normal using weighted transform
-			int i,j,nsc = 0, nsn = 0;
+			int nsc = 0, nsn = 0;
 			float *psc = NULL, *psn = NULL;
 			if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
 				struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
@@ -825,8 +827,9 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 				//NODE_NEEDS_COMPILING
 				if(1){
 					int k;
+					Stack *parents;
 					node->skinCoord->_change++;
-					Stack *parents = node->skinCoord->_parentVector;
+					parents = node->skinCoord->_parentVector;
 					for(k=0;k<vectorSize(parents);k++){
 						struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
 						parent->_change++;
@@ -936,9 +939,10 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 		}
 		if(1){
 			//force HAnimSegment.children[] shape nodes using segment->coord to recompile
+			Stack *parents;
 			int k;
 			node->coord->_change++;
-			Stack *parents = node->coord->_parentVector;
+			parents = node->coord->_parentVector;
 			for(k=0;k<vectorSize(parents);k++){
 				struct X3D_Node *parent = vector_get(struct X3D_Node*,parents,k);
 				parent->_change++;
@@ -948,11 +952,11 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 		if(0){
 			//find a few coordinates in segment->coord I hacked, by xyz, and give me their index, 
 			// for making a displacer
-			float myfind[9] = {-0.029100, 1.603000, 0.042740,    -0.045570, 1.601000, 0.036520,    -0.018560, 1.600000, 0.043490 };
-			int found = FALSE;
+			float myfind[9] = {-0.029100f, 1.603000f, 0.042740f,    -0.045570f, 1.601000f, 0.036520f,    -0.018560f, 1.600000f, 0.043490f };
+			int j,found = FALSE;
 			printf("\n");
 			for(i=0;i<nsc;i++){
-				for(int j=0;j<3;j++)
+				for(j=0;j<3;j++)
 					if(vecsametol3f(&psc[i*3],&myfind[j*3],.0001f)){
 						printf("%d %f %f %f\n",i,myfind[j*3 + 0],myfind[j*3 +1],myfind[j*3 +2]);
 						found = TRUE;

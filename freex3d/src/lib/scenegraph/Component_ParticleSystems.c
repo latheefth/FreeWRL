@@ -277,7 +277,7 @@ float normalRand(){
 	//     .   o
 	//
 	circleRand2D(rxy);
-	return (rxy[0]*.5); //scale from -1 to 1 into -.5 to .5 range
+	return (float)(rxy[0]*.5); //scale from -1 to 1 into -.5 to .5 range
 }
 
 void randomTriangleCoord_dug9_uneducated_guess(float *p, float* p1, float *p2, float *p3){
@@ -383,11 +383,11 @@ GLfloat quadtris [18] = {-.5f,-.5f,0.0f, .5f,-.5f,0.0f, .5f,.5f,0.0f,   .5f,.5f,
 GLfloat twotrisnorms [18] = {0.f,0.f,1.f, 0.f,0.f,1.f, 0.f,0.f,1.f,    0.f,0.f,1.f, 0.f,0.f,1.f, 0.f,0.f,1.f,};
 GLfloat twotristex [12] = {0.f,0.f, 1.f,0.f, 1.f,1.f,    1.f,1.f, 0.f,1.f, 0.f,0.f};
 
-
+void compile_Shape (struct X3D_Shape *node);
 // COMPILE PARTICLE SYSTEM
 void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 	int i,j, maxparticles;
-	float *boxtris, *vertices;
+	float *vertices; //*boxtris, 
 	Stack *_particles;
 
 	ConsoleMessage("compile_particlesystem\n");
@@ -459,7 +459,7 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 					float p[2];
 					struct SFVec2f *sf = (struct SFVec2f *)&tc->point.p[i*4 + j];
 					p[0] = sf->c[0];
-					p[1] = min(sf->c[1],.9999); //clamp texture here otherwise tends to wrap around
+					p[1] = min(sf->c[1],.9999f); //clamp texture here otherwise tends to wrap around
 					veccopy2f(&ltex[(i*2 + j)*2],p);
 					
 				}
@@ -476,7 +476,7 @@ void compile_ParticleSystem(struct X3D_ParticleSystem *node){
 					float p[2];
 					struct SFVec2f *sf = (struct SFVec2f *)&tc->point.p[i*2 + j];
 					p[0] = sf->c[0];
-					p[1] = min(sf->c[1],.9999); //clamp texture here otherwise tends to wrap around
+					p[1] = min(sf->c[1],.9999f); //clamp texture here otherwise tends to wrap around
 					veccopy2f(&ltex[(i*2 + j)*2],p);
 				}
 			}
@@ -534,7 +534,7 @@ void apply_windphysics(particle *pp, struct X3D_Node *physics, float dtime){
 	if(px->enabled && pp->mass != 0.0f){
 		float pressure;
 		float force, speed;
-		float turbdir[3], pdir[3];
+		float turbdir[3], pdir[3],acceleration[3], v2[3];
 		speed = px->_frameSpeed;
 		pressure = powf(10.0f,2.0f*log10f(speed)) * .64615f;
 		force = pressure * pp->surfaceArea;
@@ -544,7 +544,6 @@ void apply_windphysics(particle *pp, struct X3D_Node *physics, float dtime){
 		vecnormalize3f(pdir,pdir);
 		vecscale3f(pdir,pdir,force);
 
-		float acceleration[3], v2[3];
 		vecscale3f(acceleration,pdir,1.0f/pp->mass);
 		vecscale3f(v2,acceleration,dtime);
 		vecadd3f(pp->velocity,pp->velocity,v2);
@@ -588,6 +587,8 @@ void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float *positio
 		int nintersections, ntries;
 		struct X3D_Node *node = (struct X3D_Node *) px->geometry;
 		float pos1[3], pos2[3], pnearest[3],normal[3], delta[3];
+		static int count;
+
 		//make_IndexedFaceSet((struct X3D_IndexedFaceSet*)px->geometry);
 		//COMPILE_POLY_IF_REQUIRED (node->coord, node->fogCoord, node->color, node->normal, node->texCoord)
 		if(NODE_NEEDS_COMPILING)
@@ -600,18 +601,18 @@ void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float *positio
 		//vecadd3f(pos2,pp->position,positionChange);
 		vecadd3f(pos2,pp->position,positionChange);
 		ntries = 0;
-		static int count = 0;
+		count = 0;
 		//for(;;) //in theory we may travel far enough for 2 bounces
 		{
 			//if(pos2[0] >= .5f)
 			//	printf("should hit\n");
 			nintersections = intersect_geometry(px->geometry,pos1,pos2,pnearest,normal);
 			if(nintersections > 0){
-				count++;
 				float d[3], r[3], rn[3], rd[3], n[3], ddotnn[3], orthogn[3], orthogn2[3];
 				float ddotn, speed, dlengthi,dlength;
 				vecdif3f(delta,pos2,pos1);
 				dlength = veclength3f(delta);
+				count++;
 
 				// get reflection 
 				//  pos1
@@ -688,16 +689,18 @@ void apply_ConeEmitter(particle *pp, struct X3D_Node *emitter){
 		//prep - can be done once per direction
 		//need 2 orthogonal axes 
 		//a) find a minor axis
+		float amin;
+		float orthog1[3],orthog2[3];
+		int i,imin,method;
 		vecnormalize3f(direction,e->direction.c);
-		float amin = min(min(abs(direction[0]),abs(direction[1])),abs(direction[2]));
-		int i,imin = 0;
+		amin = min(min(fabsf(direction[0]),fabsf(direction[1])),fabsf(direction[2]));
+		imin = 0;
 		for(i=0;i<3;i++){
-			if(abs(direction[i]) == amin){
+			if(fabsf(direction[i]) == amin){
 				imin = i; break;
 			}
 		}
 		//make a vector with the minor axis dominant
-		float orthog1[3],orthog2[3];
 		for(i=0;i<3;i++) orthog1[i] = 0.0f;
 		orthog1[imin] = 1.0f;
 		//orthog1 will only be approximately orthogonal to direction
@@ -708,7 +711,7 @@ void apply_ConeEmitter(particle *pp, struct X3D_Node *emitter){
 		veccross3f(orthog1,direction,orthog2);
 
 		//for this particle
-		int method = 2;
+		method = 2;
 		if(method == 1){
 			//METHOD 1: TILT + AZIMUTH
 			//tends to crowd/cluster around central direction, and fade with tilt
@@ -725,7 +728,7 @@ void apply_ConeEmitter(particle *pp, struct X3D_Node *emitter){
 			tilt = uniformRand()*e->angle;
 			ctilt = cosf(tilt);
 			stilt = sinf(tilt);
-			azimuth = uniformRand()*2.0f*PI;
+			azimuth = uniformRand()*2.0f*(float)PI;
 			caz = cosf(azimuth);
 			saz = sinf(azimuth);
 			vecscale3f(az1,orthog1,caz);
@@ -857,6 +860,8 @@ void compile_PolylineEmitter(struct X3D_Node *node){
 }
 void apply_PolylineEmitter(particle *pp, struct X3D_Node *node){
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/particle_systems.html#PolylineEmitter
+	float direction[3], speed;
+
 	struct X3D_PolylineEmitter *e = (struct X3D_PolylineEmitter *)node;
 	//like point emitter, except posiion is drawn randomly along polyline
 	//option A: pick segment index at random, then pick distance along segment at random (Octaga?)
@@ -898,7 +903,6 @@ void apply_PolylineEmitter(particle *pp, struct X3D_Node *node){
 	}
 
 	//the rest is like point emitter:
-	float direction[3], speed;
 //not for polyline see above	memcpy(pp->position,e->position.c,3*sizeof(float));
 	if(veclength3f(e->direction.c) < .00001){
 		randomDirection(direction);
@@ -926,12 +930,13 @@ void apply_SurfaceEmitter(particle *pp, struct X3D_Node *emitter){
 	if(node){
 		int index, ntri;
 		float fraction;
+		float speed;
 		float xyz[3], v1[3],v2[3],v3[3],e1[3],e2[3], normal[3], direction[3];
 		
 		fraction = uniformRand();
 		ntri = getPolyrepTriangleCount(node);
 		if(ntri){
-			index = floorf(fraction * (float)(ntri-1));
+			index = (int)floorf(fraction * (float)(ntri-1));
 			getPolyrepTriangleByIndex(node,index,v1,v2,v3);
 			randomTriangleCoord(xyz,v1,v2,v3);
 			vecdif3f(e1,v2,v1);
@@ -942,7 +947,6 @@ void apply_SurfaceEmitter(particle *pp, struct X3D_Node *emitter){
 		}
 
 		//the rest is like point emitter
-		float speed;
 		memcpy(pp->position,xyz,3*sizeof(float));
 		speed = e->speed*(1.0f + uniformRandCentered()*e->variation);
 		vecscale3f(pp->velocity,direction,speed);
@@ -964,6 +968,7 @@ void apply_VolumeEmitter(particle *pp, struct X3D_Node *emitter){
 	if(e->_ifs){
 		int nint, i, isInside;
 		float xyz[3], plumb[3], nearest[3], normal[3];
+		float direction[3], speed;
 		struct X3D_IndexedFaceSet *ifs = (struct X3D_IndexedFaceSet *)e->_ifs;
 		
 		isInside = FALSE;
@@ -985,7 +990,6 @@ void apply_VolumeEmitter(particle *pp, struct X3D_Node *emitter){
 		if(!isInside)
 			vecscale3f(xyz,xyz,0.0f); //emit from 0
 		//the rest is like point emitter
-		float direction[3], speed;
 		memcpy(pp->position,xyz,3*sizeof(float));
 		if(veclength3f(e->direction.c) < .00001){
 			randomDirection(direction);
@@ -1078,6 +1082,9 @@ void reallyDrawOnce();
 void clearDraw();
 GLfloat linepts [6] = {-.5f,0.f,0.f, .5f,0.f,0.f};
 ushort lineindices[2] = {0,1};
+int getImageChannelCountFromTTI(struct X3D_Node *appearanceNode );
+void update_effect_uniforms();
+
 void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	// 
 	// ParticleSystem 
@@ -1088,7 +1095,7 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	// for each particle (and color update if colorRamp, or texCoordUpdate if texCoordRamp, and
 	//  velocity direction if LINE)
 	//
-	s_shader_capabilities_t *caps;
+	//s_shader_capabilities_t *caps;
 	static int once = 0;
 	COMPILE_IF_REQUIRED
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
@@ -1097,7 +1104,16 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		int i,j,k,maxparticles;
 		double ttime;
 		float dtime;
+		//int colorSource, alphaSource, isLit, 
+		int isUserShader; 
+		s_shader_capabilities_t *scap;
+		shaderflagsstruct shader_requirements;
 		Stack *_particles;
+		int allowsTexcoordRamp = FALSE;
+		float *texcoord = NULL;
+		GLint ppos, cr, gtype;
+		int haveColorRamp,haveTexcoordRamp;
+
 		struct X3D_Node *tmpNG;
 		ttglobal tg = gglobal();
 
@@ -1215,10 +1231,7 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		//render appearance
 		//BORROWED FROM CHILD SHAPE >>>>>>>>>
 
-		int colorSource, alphaSource, isLit, isUserShader; 
-		s_shader_capabilities_t *scap;
 		//unsigned int shader_requirements;
-		shaderflagsstruct shader_requirements;
 		memset(&shader_requirements,0,sizeof(shaderflagsstruct));
 
 		//prep_Appearance
@@ -1374,8 +1387,8 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		textureTransform_start();
 		setupShaderB();
 		//send vertex buffer to shader
-		int allowsTexcoordRamp = FALSE;
-		float *texcoord = NULL;
+		allowsTexcoordRamp = FALSE;
+		texcoord = NULL;
 		switch(node->_geometryType){
 			case GEOM_LINE: 
 			{
@@ -1428,14 +1441,14 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 				break;
 		}
 
-		GLint ppos = GET_UNIFORM(scap->myShaderProgram,"particlePosition");
-		GLint cr = GET_UNIFORM(scap->myShaderProgram,"fw_UnlitColor");
-		GLint gtype = GET_UNIFORM(scap->myShaderProgram,"fw_ParticleGeomType");
+		ppos = GET_UNIFORM(scap->myShaderProgram,"particlePosition");
+		cr = GET_UNIFORM(scap->myShaderProgram,"fw_UnlitColor");
+		gtype = GET_UNIFORM(scap->myShaderProgram,"fw_ParticleGeomType");
 		glUniform1i(gtype,node->_geometryType); //for SPRITE = 4, screen alignment
 		//loop over live particles, drawing each one
-		int haveColorRamp = node->colorRamp ? TRUE : FALSE;
+		haveColorRamp = node->colorRamp ? TRUE : FALSE;
 		haveColorRamp = haveColorRamp && cr > -1;
-		int haveTexcoordRamp = node->texCoordRamp ? TRUE : FALSE;
+		haveTexcoordRamp = node->texCoordRamp ? TRUE : FALSE;
 		haveTexcoordRamp = haveTexcoordRamp && allowsTexcoordRamp && texcoord; 
 
 		for(i=0;i<vectorSize(_particles);i++){
@@ -1449,8 +1462,8 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 			if(node->_geometryType == GEOM_LINE){
 				float lpts[6], vel[3];
 				vecnormalize3f(vel,pp.velocity);
-				vecscale3f(&lpts[3],vel,.5*node->particleSize.c[1]);
-				vecscale3f(&lpts[0],vel,-.5*node->particleSize.c[1]);
+				vecscale3f(&lpts[3],vel,.5f*node->particleSize.c[1]);
+				vecscale3f(&lpts[0],vel,-.5f*node->particleSize.c[1]);
 				FW_GL_VERTEX_POINTER (3,GL_FLOAT,0,(float *)lpts);
 			}
 			//draw

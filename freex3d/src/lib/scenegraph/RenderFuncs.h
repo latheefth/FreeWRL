@@ -94,5 +94,5 @@ void usehitB_add2(struct X3D_Node *node, double *modelviewmatrix, void *userdata
 usehit * usehitB_next(struct X3D_Node *node, usehit* lasthit);
 Stack *getUseHitBStack();
 void usehitB_clear();
-
+bool setupShaderB();
 #endif /* __FREEWRL_SCENEGRAPH_RENDERFUNCS_H__ */

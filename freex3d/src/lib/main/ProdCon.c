@@ -663,13 +663,13 @@ bool parser_process_res_VRML_X3D(resource_item_t *res)
 	struct X3D_Node *nRnfree;
 	struct X3D_Node *ectx;
 	struct X3D_Node *insert_node;
-	int i;
+	//int i;
 	int offsetInNode;
 	int shouldBind, shouldUnBind;
     int parsedOk = FALSE; // results from parser
     bool fromEAI_SAI = FALSE;
 	/* we only bind to new nodes, if we are adding via Inlines, etc */
-	int origFogNodes, origBackgroundNodes, origNavigationNodes, origViewpointNodes;
+	//int origFogNodes, origBackgroundNodes, origNavigationNodes, origViewpointNodes;
 	ppProdCon p;
 	struct tProdCon *t;
 	ttglobal tg = gglobal();
@@ -1294,6 +1294,7 @@ int frontendGetsFiles(){
 void process_res_texitem(resource_item_t *res);
 bool parser_process_res_SHADER(resource_item_t *res);
 bool process_res_audio(resource_item_t *res);
+bool  process_res_movie(resource_item_t *res);
 /**
  *   parser_process_res: for each resource state, advance the process of loading.
  *   this version assumes the item has been dequeued for processing,

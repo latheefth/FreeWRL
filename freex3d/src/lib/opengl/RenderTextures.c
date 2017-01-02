@@ -40,6 +40,7 @@ texture enabling - works for single texture, for multitexture.
 #include "../opengl/OpenGL_Utils.h"
 #include "../scenegraph/Component_Shape.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../scenegraph/LinearAlgebra.h"
 
 #include "Textures.h"
 #include "Material.h"
@@ -429,9 +430,9 @@ void textureCoord_send(struct textureVertexInfo *genTex) {
 	// Oct 2016 refactoring before particleSystem
 	// moved texturetransform stuff out of here and into (below) textureTransform_start()
 	int c;
-	int i, isStrict, isMulti, isIdentity;
-	GLint texUnit[MAX_MULTITEXTURE];
-	GLint texMode[MAX_MULTITEXTURE];
+	//int isIdentity; //isMulti, isStrict,i,  
+	//GLint texUnit[MAX_MULTITEXTURE];
+	//GLint texMode[MAX_MULTITEXTURE];
 	s_shader_capabilities_t *me;
 	struct textureVertexInfo *genTexPtr;
 	struct X3D_Node *tnode;

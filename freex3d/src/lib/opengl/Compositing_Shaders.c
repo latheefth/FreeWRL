@@ -2681,6 +2681,8 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 
 	int retval, unique_int;
 	unsigned int volflags;
+	unsigned char volflag[7];
+	int kflags,i,k;
 	char *CompleteCode[3];
 	char *vs, *fs;
 	retval = FALSE;
@@ -2749,9 +2751,9 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	//unsigned int 32 bits - 4 for basic, leaves 28/4 = max 7 styles
 	//work from left to right (the order declared), skip any 0/null/empties
 	volflags = whichOne.volume;
-	unsigned char volflag[7];
-	int kflags = 0;
-	for(int i=0;i<7;i++){
+	volflag[7];
+	kflags = 0;
+	for(i=0;i<7;i++){
 		int iflag = (volflags >> (7-i)*4) & 0xF;
 		if(iflag){
 			volflag[kflags] = iflag;
@@ -2759,7 +2761,7 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 		}
 	}
 	//now volflag[] is in the order declared with no 0s/nulls 
-	for(int k=0;k<kflags;k++){
+	for(k=0;k<kflags;k++){
 		switch(volflag[k]){
 		case SHADERFLAGS_VOLUME_STYLE_DEFAULT:
 			AddDefine(SHADERPART_FRAGMENT,"DEFAULT",CompleteCode); 

@@ -54,6 +54,7 @@ X3D Geospatial Component
 #include "Component_Geospatial.h"
 #include "Children.h"
 #include "../scenegraph/RenderFuncs.h"
+#include "../ui/common.h"
 
 /*
 Coordinate Conversion algorithms were taken from 2 locations after

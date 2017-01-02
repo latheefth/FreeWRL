@@ -490,9 +490,8 @@ int loadImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 	3 channgels, nx=4, ny=6, nz=2 and one int string per pixel
 	format 'invented' by dug9 for testing
 */
-	int i,j,k,m,nx,ny,nz,ishex, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, nchan;
+	int i,j,k,nx,ny,nz,ishex, iret, totalbytes, ipix, nchan;
 	unsigned int pixint;
-	float sx,sy,sz,tx,ty,tz;
 	FILE *fp;
 
 	iret = FALSE;
@@ -569,9 +568,8 @@ void saveImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 	3 channgels, nx=4, ny=6, nz=2 and one int string per pixel
 	format 'invented' by dug9 for testing
 */
-	int i,j,k,m,nx,ny,nz, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, nchan;
+	int i,j,k,nx,ny,nz, iret, ipix, nchan;
 	unsigned int pixint;
-	float sx,sy,sz,tx,ty,tz;
 	char *rgbablob;
 	FILE *fp;
 
@@ -590,7 +588,7 @@ void saveImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 	for(i=0;i<nz;i++){
 		for(j=0;j<ny;j++){
 			for(k=0;k<nx;k++){
-				unsigned char *pixel,*rgba;
+				unsigned char *rgba;
 				ipix = (i*nz +j)*ny +k;
 				rgba = &rgbablob[ipix*4];
 				pixint = 0;
@@ -645,12 +643,11 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 	"""
 	format 'invented' by dug9 for testing freewrl, License: MIT
 */
-	int i,j,k,m,nx,ny,nz,nv,nc, ishex, isint, isfloat, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, kpix, nchan;
+	int i,j,k,m,nx,ny,nz,nv,nc, iret, totalbytes, ipix, jpix, kpix, nchan;
 	int version, Rmin, Rmax, Nchannelspervalue, Mvaluesperpixel, Dimensions;
 	unsigned int pixint, Pixels[10], iydown;
 	float pixfloat;
-	float sx,sy,sz,tx,ty,tz;
-	char Geometry, ODescription[200], Type, Componentnames[10], LRGBA[4], YDirection;
+	char Geometry, ODescription[200], Type, Componentnames[10], YDirection;
 	FILE *fp;
 
 	iret = FALSE;
@@ -773,10 +770,10 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 					for(j=0;j<tti->y;j++){
 						for(k=0;k<tti->x;k++){
 							int ipix,jpix,kpix;
+							unsigned int pixint;
 							ipix = (i*tti->y + j)*tti->x + k;
 							jpix = (i*tti->y + (tti->y -1 - j))*tti->x + k;
 							kpix = ipix; //print it like we see it
-							unsigned int pixint;
 							memcpy(&pixint,&tti->texdata[kpix*4],4);
 							printf("%x ",pixint);
 						}
@@ -821,11 +818,9 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 	"""
 	format 'invented' by dug9 for testing freewrl, License: MIT
 */
-	int i,j,k,m,nx,ny,nz,nv,nc, ishex, isint, isfloat, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, kpix, iydown, nchan;
+	int i,j,k,nx,ny,nz, iret, ipix, jpix, kpix, iydown, nchan;
 	int version, Rmin, Rmax, Nchannelspervalue, Mvaluesperpixel, Dimensions;
 	unsigned int pixint;
-	float pixfloat;
-	float sx,sy,sz,tx,ty,tz;
 	char Geometry, *ODescription, Type, *Componentnames, Pixels[10], YDirection;
 	static char *LRGBA [] = {"L","LA","RGB","RGBA"};
 	FILE *fp;
@@ -876,7 +871,7 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 		for(i=0;i<nz;i++){
 			for(j=0;j<ny;j++){
 				for(k=0;k<nx;k++){
-					unsigned char *pixel,*rgba;
+					unsigned char *rgba;
 					ipix = (i*ny +j)*nx +k; //incoming assumed in y-up texture order
 					jpix = (i*ny +(ny-1-j))*nx + k; //outgoing in y-down image order
 					kpix = iydown ? jpix : ipix;
@@ -928,7 +923,7 @@ The endian is one of
 0 for big endian (most significant byte first). For example Motorola processors, Sun, SGI, some HP.
 1 for little endian (least significant byte first). For example Intel processors, Dec Alphas.
 */
-	int i,j,k,m,nx,ny,nz, bitsperpixel, bpp, bpb, iendian, iret, totalbytes, ipix, jpix, nchan;
+	int i,j,k,nx,ny,nz, bitsperpixel, bpp, iendian, iret, totalbytes, ipix, jpix, nchan;
 	float sx,sy,sz,tx,ty,tz;
 	FILE *fp;
 
@@ -1008,7 +1003,7 @@ The endian is one of
 							break;
 							case 16:
 							//16 - two bytes representing a signed "short" integer
-							rgba[0] = rgba[1] = rgba[2] = *(unsigned short*)pixel;
+							rgba[0] = rgba[1] = rgba[2] = (unsigned char) *(unsigned short*)pixel;
 							break;
 							case 32:
 							//32 - four bytes representing a signed integer
@@ -1041,17 +1036,17 @@ The endian is one of
 // a mini-nrrd reader, with MIT licence
 // Oct 2, 2016: only luminance / scalar-value-per-voxel implemented, only unsigned char type tested
 //#include <endian.h> //windows doesn't have
-#define IS_LITTLE_ENDIAN (1 == *(unsigned char *)&(const int){1})   //found on internet
+//#define IS_LITTLE_ENDIAN (1 == *(unsigned char *)&(const int)1)   //found on internet
 int isMachineLittleEndian(){
 	//dug9: this will/should detect at runtime between big and little endian host machines
 	// which reverse byte order- but not mixed endian ie pdp endian
 	unsigned short int one = 1;
 	unsigned char *c;
-	int iret, itest;
+	int iret; //, itest;
 	c = (unsigned char *)&one;
 	iret = (c[0] == 1) ? TRUE : FALSE;
-	itest = IS_LITTLE_ENDIAN ? TRUE : FALSE;
-	if(iret != itest) printf("endian confusion\n");
+	//itest = IS_LITTLE_ENDIAN ? TRUE : FALSE;
+	//if(iret != itest) printf("endian confusion\n");
 	return iret;
 }
 enum {
@@ -1163,6 +1158,13 @@ encoding: raw
 		char cendian[256], cencoding[256];
 		char *remainder;
 		const char *fmt;
+		unsigned long long nvoxel;
+		unsigned long long totalbytes;
+		unsigned char *data;
+		unsigned char *voxel;
+		double dhi, dlo; 
+		double d255range;
+		int counts[256]; //histogram
 
 		fgets(line,2047,fp);
 		if(strncmp(line,"NRRD",4)){
@@ -1225,7 +1227,7 @@ encoding: raw
 								if(!strncmp(remainder,nrrddatatypes[k].stypes[j],klen)){
 									ifound = TRUE;
 									idatatype = nrrddatatypes[k].itype;
-									kdatatype = k;
+									kdatatype = (int)k;
 									bsize = nrrddatatypes[k].bsize;
 									fmt = nrrddatatypes[k].fmt;
 									break; //break out of 0,7 loop
@@ -1300,17 +1302,17 @@ encoding: raw
 		}
 		
 		//malloc data buffer
-		unsigned long long nvoxel = isize[0] * isize[1] * isize[2];
-		unsigned long long totalbytes = nvoxel * bsize;
-		unsigned char *data = MALLOC(unsigned char *,totalbytes);
-		memset(data,4,totalbytes);
-		unsigned char *voxel = MALLOC(unsigned char *, bsize);
+		nvoxel = isize[0] * isize[1] * isize[2];
+		totalbytes = nvoxel * bsize;
+		data = MALLOC(unsigned char *,(size_t)totalbytes);
+		memset(data,4,(size_t)totalbytes);
+		voxel = MALLOC(unsigned char *, bsize);
 		//read data
 		if(iencoding == NRRDENCODING_RAW){
 			int dataLittleEndian;
 			size_t nelem_read, element_size = 0L;
 			element_size = bsize;
-			nelem_read = fread(data,element_size, nvoxel,fp);
+			nelem_read = fread(data,element_size, (size_t)nvoxel,fp);
 			printf("num elems read = %llu elemsize %ld bytes requeted = %llu %llu\n",(unsigned long long)nelem_read,(long)bsize,bsize*nvoxel,totalbytes);
 			//endian conversion
 			dataLittleEndian = iendian == NRRDENDIAN_LITTLE ? TRUE : FALSE;
@@ -1320,8 +1322,9 @@ encoding: raw
 				for(i=0;i<nvoxel;i++){
 					char * voxel = &data[i*bsize];
 					for(j=0;j<bsize/2;j++){
+						char c;
 						k = bsize -1 - j;
-						char c = voxel[j];
+						c = voxel[j];
 						voxel[j] = voxel[k];
 						voxel[k] = c;
 					}
@@ -1347,7 +1350,6 @@ encoding: raw
 		//currently (Oct 2, 2016) this function assumes scalar-per-voxel aka luminance or alpha
 
 		//find range of data so we can compress range into unsigned char range 0-255 from much bigger ints and floats
-		double dhi, dlo; 
 		//initialize range - use maxint, minint or just init to first pixel which we do here
 		voxel = &data[0];
 		switch(idatatype){
@@ -1390,7 +1392,7 @@ encoding: raw
 		//find lower and upper of range by looking at every value
 		for(i=0;i<nvoxel;i++){
 			unsigned char *voxel;
-			unsigned char A;
+			//unsigned char A;
 			unsigned char *rgba = &tti->texdata[i*4];
 			//LUM-ALPHA with RGB=1, A= voxel scalar
 			voxel = &data[i*bsize];
@@ -1439,17 +1441,16 @@ encoding: raw
 					break;
 			}
 		}
-		double d255range = 255.0/(dhi - dlo); 
+		d255range = 255.0/(dhi - dlo); 
 		if(1) printf("nrrd image voxel range hi %lf lo %lf 255range scale factor %lf\n",dhi,dlo,d255range);
 		//now convert to display usable data type which currently is RGBA
-		tti->texdata = MALLOC(unsigned char *,nvoxel * 4); //4 for RGBA
+		tti->texdata = MALLOC(unsigned char *,(size_t)nvoxel * 4); //4 for RGBA
 		tti->channels = 1; //1=lum 2=lum-alpha 3=rgb 4=rgba //doing 2-channel allows modulation of material color
 			//Oct 16, 2016: in textures.c we now compute gradient automatically and put in RGB, if channels == 1 and z > 1
 		tti->hasAlpha = TRUE;
 		tti->x = isize[0];
 		tti->y = isize[1];
 		tti->z = isize[2];
-		int counts[256]; //histogram
 		memset(counts,0,256*sizeof(int));
 		for(i=0;i<nvoxel;i++){
 			unsigned char *voxel;
@@ -1510,10 +1511,10 @@ encoding: raw
 				}
 			} else {
 				//range scaling method
-				double dtemp, dtemp2;
-				unsigned int lutemp;
-				unsigned short utemp;
-				unsigned char uctemp;
+				double dtemp; //, dtemp2;
+				//unsigned int lutemp;
+				//unsigned short utemp;
+				//unsigned char uctemp;
 
 				switch(idatatype){
 					case CDATATYPE_char: 

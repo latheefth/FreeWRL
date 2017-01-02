@@ -155,7 +155,7 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 	int isRGBA = FALSE;
 
 	struct X3D_Coordinate *xc;
-	struct X3D_FogCoordinate *fc;
+	//struct X3D_FogCoordinate *fc;
 	struct X3D_Color *cc;
 	struct X3D_Normal *nc;
 
@@ -743,11 +743,14 @@ void stream_polyrep(void *innode, void *coord, void *fogCoord, void *color, void
 		//surface triangle indices - dug9 aug 2016: H: we don't need/use these triangle indices
 		//because we do glDrawArrays(GL_TRIANGLES,,,) in Polyrep.c which doesn't use indices. 
 		//(glDrawElements uses indices, used below for wireframe)
+		int i;
+		GLushort *to;
+		unsigned int *from;
+		
 		r->tri_indices = MALLOC(GLushort *, sizeof(GLushort) * r->ntri*3);
 
-		int i;
-		GLushort *to = r->tri_indices;
-		unsigned int *from = r->cindex;
+		to = r->tri_indices;
+		from = r->cindex;
 
 		for (i=0; i<r->ntri*3; i++) {
 			//printf ("and, index %d is %d\n",i,*from);

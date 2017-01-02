@@ -1071,7 +1071,7 @@ void do_AudioTick(void *ptr) {
 unsigned char *movietexture_get_frame_by_fraction(struct X3D_Node* node, float fraction, int *width, int *height, int *nchan);
 void do_MovieTextureTick( void *ptr) {
 	struct X3D_MovieTexture *node = (struct X3D_MovieTexture *)ptr;
-	struct X3D_AudioClip *anode;
+	//struct X3D_AudioClip *anode;
 	int 	oldstatus;
 	float 	frac;		/* which texture to display */
 	//int 	highest,lowest;	/* selector variables		*/
@@ -1143,7 +1143,7 @@ void do_MovieTextureTick( void *ptr) {
 		myFrac = node->elapsedTime / duration;
  		//myTime = (TickTime() - node->startTime) * speed/duration;
 		tmpTrunc = (int) myFrac;
-		frac = myFrac - (float)tmpTrunc;
+		frac = (float)myFrac - (float)tmpTrunc;
 		/* negative speed? */
 		if (speed < 0) {
 			frac = 1.0f + frac; /* frac will be *negative* */
@@ -1166,16 +1166,16 @@ void do_MovieTextureTick( void *ptr) {
 		unsigned char* texdata;
 		int width,height,nchan;
 		textureTableIndexStruct_s *tti;
-		texdata = movietexture_get_frame_by_fraction(node, node->__frac, &width, &height, &nchan);
+		texdata = movietexture_get_frame_by_fraction(X3D_NODE(node), node->__frac, &width, &height, &nchan);
 		if(texdata){
 			int thisTexture = node->__textureTableIndex;
 			tti = getTableIndex(thisTexture);
 			if(tti){
+				static int once = 0;
 				tti->x = width;
 				tti->y = height;
 				tti->z = 1;
 				tti->channels = nchan;
-				static int once = 0;
 				if(!once){
 					//send it through textures.c once to get things like wrap set
 					// textures.c likes to free texdata, so we'll deep copy

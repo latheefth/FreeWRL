@@ -71,9 +71,11 @@ void do_EaseInEaseOut(void *node){
 
 	/* ScalarInterpolator - store final value in px->value_changed */
 	struct X3D_EaseInEaseOut *px;
-	int kin, kvin;
-	float *kVs;
-	int counter;
+	int kin, ispan; //kvin,
+	//float *kVs;
+	//int counter;
+	float fraction, u, eout, ein, S;
+
 
 	if (!node) return;
 	px = (struct X3D_EaseInEaseOut *) node;
@@ -81,23 +83,24 @@ void do_EaseInEaseOut(void *node){
 
 	MARK_EVENT (node, offsetof (struct X3D_EaseInEaseOut, modifiedFraction_changed));
 
-	float fraction = min(px->set_fraction,px->key.p[kin-1]);
+	fraction = min(px->set_fraction,px->key.p[kin-1]);
 	fraction = max(px->set_fraction,px->key.p[0]);
 	/* have to go through and find the key before */
-	int ispan =find_key(kin,fraction,px->key.p);
-	float u = (fraction - px->key.p[ispan-1]) / (px->key.p[ispan] - px->key.p[ispan-1]);
-	float eout = px->easeInEaseOut.p[ispan].c[1]; //y
-	float ein  = px->easeInEaseOut.p[ispan+1].c[0]; //x
-	float S = eout + ein;
+	ispan =find_key(kin,fraction,px->key.p);
+	u = (fraction - px->key.p[ispan-1]) / (px->key.p[ispan] - px->key.p[ispan-1]);
+	eout = px->easeInEaseOut.p[ispan].c[1]; //y
+	ein  = px->easeInEaseOut.p[ispan+1].c[0]; //x
+	S = eout + ein;
 
 	if(S < 0.0f){
 		px->modifiedFraction_changed = u;
 	}else{
+		float t;
 		if(S > 1.0f){
 			ein /= S;
 			eout /= S;
 		}
-		float t = 1.0f / (2.0f - eout - ein);
+		t = 1.0f / (2.0f - eout - ein);
 		if(u < eout){
 			px->modifiedFraction_changed = (t/eout) * u*u;
 		}else if(u < 1.0f - ein){
@@ -136,6 +139,7 @@ void spline_interp(int dim, float *result, float s, float *val0, float *val1, fl
 	// s - span fraction 0-1
 	// interpolates one value, given the span values
 	float S[4], *C[4], SH[4];
+	int i,j;
 	static float H[16] = {
 	 2.0f, -3.0f, 0.0f, 1.0f, 
 	-2.0f,  3.0f, 0.0f, 0.0f, 
@@ -154,9 +158,9 @@ void spline_interp(int dim, float *result, float s, float *val0, float *val1, fl
 	C[2] = T00; //T0i
 	C[3] = T11; //T1i+1
 		
-	for(int i=0;i<dim;i++){
+	for(i=0;i<dim;i++){
 		result[i] = 0.0f;
-		for(int j=0;j<4;j++){
+		for(j=0;j<4;j++){
 			result[i] += SH[j]*C[j][i];
 		}
 	}
@@ -175,22 +179,24 @@ void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, in
 			//If the velocity vector is specified, and the normalizeVelocity flag is TRUE,
 			// the velocity at the key is set using the corresponding value of the keyVelocity field:
 			//Ti = keyVelocity[i] × ( Dtot / |keyVelocity[i]| )
-
+			int i;
 			//Dtot = SUM{i=0, i < n-1}(|vi - vi+1|)
 			float Dtot = 0.0f;
-			for(int i=0;i<nval-1;i++){
+			for(i=0;i<nval-1;i++){
 				float Di = 0.0f;
-				for(int j=0;j<dim;j++){
+				int j;
+				for(j=0;j<dim;j++){
 					Di += (val[i+1] - val[i])*(val[i+1] - val[i]); //euclidean distance d= sqrt(x**2 + y**2)
 				}
-				Dtot += sqrt(Di);
+				Dtot += (float)sqrt(Di);
 			}
-			for(int i=0;i<nval;i++){
+			for(i=0;i<nval;i++){
+				int j;
 				float veli = 0.0f;
-				for(int j=0;j<dim;j++)
+				for(j=0;j<dim;j++)
 					veli = veli + (vel[i*dim + j]*vel[i*dim + j]); //euclidean distance d= sqrt(x**2 + y**2)
-				veli = sqrt(veli);
-				for(int j=0;j<dim;j++){
+				veli = (float)sqrt(veli);
+				for(j=0;j<dim;j++){
 					if(veli != 0.0f)
 						Ti[i*dim + j] = Dtot * vel[i*dim + j] / veli;
 					else
@@ -201,23 +207,27 @@ void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, in
 	}else{
 		//If the velocity vector is not specified, (or just start & end,) it is calculated as follows:
 		//Ti = (vi+1 - vi-1) / 2
+		int i;
 		if(nvel == 2){
-			for(int j=0;j<dim;j++){
+			int j;
+			for(j=0;j<dim;j++){
 				Ti[       0*dim + j] = vel[0*dim + j];
 				Ti[(nval-1)*dim + j] = vel[1*dim + j];
 			}
 
 		}else{
-			for(int j=0;j<dim;j++){
+			int j;
+			for(j=0;j<dim;j++){
 				Ti[       0*dim + j] = 0.0f;
 				Ti[(nval-1)*dim + j] = 0.0f;
 			}
 		}
 		//skip start and end vels here
-		for(int i=1;i<nval-1;i++)
-			for(int j=0;j<dim;j++)
+		for(i=1;i<nval-1;i++){
+			int j;
+			for(j=0;j<dim;j++)
 				Ti[i*dim + j] = (val[(i+1)*dim +j] - val[(i-1)*dim +j]) * .5f;
-
+		}
 	}
 }
 int iwrap(int i, int istart, int iend){
@@ -234,7 +244,7 @@ int iwrap(int i, int istart, int iend){
 void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1){
 	//before calling please malloc T0 and T1 = malloc(nval * dim * sizeof(float))
 	float Fp, Fm;
-	int istart, iend, jend;
+	int istart, iend, jend,i,j;
 	istart = 1;
 	iend = nval-1;
 	jend = nval;
@@ -245,18 +255,18 @@ void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *ke
 	}else{
 		//take first and last values from Ti which were either 0 or start/end
 		int l = nval-1;
-		for(int j=0;j<dim;j++){
+		for(j=0;j<dim;j++){
 			T1[0*dim +j] = T0[0*dim +j] = Ti[0*dim +j];
 			T1[l*dim +j] = T0[l*dim +j] = Ti[l*dim +j];
 		}
 	}
-	for(int i=istart;i<iend;i++){
+	for(i=istart;i<iend;i++){
 		int ip, im;
 		ip = iwrap(i+1,0,jend);
 		im = iwrap(i-1,0,jend);
 		Fm = 2.0f*(key[ip] - key[i])/(key[ip]-key[im]);
 		Fp = 2.0f*(key[i] - key[im])/(key[ip]-key[im]);
-		for(int j=0;j<dim;j++){
+		for(j=0;j<dim;j++){
 			T0[i*dim +j] = Fp*Ti[i*dim +j];
 			T1[i*dim +j] = Fm*Ti[i*dim +j];
 		}
@@ -271,18 +281,23 @@ float span_fraction(float t, float t0, float t1){
 void do_SplinePositionInterpolator(void *node){
 	//	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html#SplinePositionInterpolator
 	int dim;
+	int kin, kvin;
+	int ispan; //counter, 
+	float fraction, sfraction;
+
 	struct X3D_SplinePositionInterpolator* px = (struct X3D_SplinePositionInterpolator*)node;
 	dim = 3;
 	if(NNC(px)){
 		
 		//void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti )
-		int isclosed;
-		int n = px->key.n;
-		float *Ti = MALLOC(float*,n*dim*sizeof(float));
+		int isclosed,n;
+		float *Ti, *T0, *T1;
+		n = px->key.n;
+		Ti = MALLOC(float*,n*dim*sizeof(float));
 		compute_spline_velocity_Ti(dim,px->normalizeVelocity,n,(float*)px->keyValue.p,
 			px->keyVelocity.n,(float*)px->keyVelocity.p,Ti);
-		float *T0 = MALLOC(float*,n*dim*sizeof(float));
-		float *T1 = MALLOC(float*,n*dim*sizeof(float));
+		T0 = MALLOC(float*,n*dim*sizeof(float));
+		T1 = MALLOC(float*,n*dim*sizeof(float));
 		//spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1)
 		isclosed = px->closed && vecsame3f(px->keyValue.p[0].c,px->keyValue.p[n-1].c);
 		spline_velocity_adjust_for_keyspan(dim,isclosed,n,px->key.p,Ti,T0,T1);
@@ -297,8 +312,6 @@ void do_SplinePositionInterpolator(void *node){
 		MNC(px);
 	}
 	//void spline_interp(int dim, float *result, float s, float *val0, float *val1, float *T00, float *T11)
-	int kin, kvin;
-	int counter;
 
 	if (!node) return;
 	kin = px->key.n;
@@ -318,10 +331,10 @@ void do_SplinePositionInterpolator(void *node){
 	#endif
 
 	/* set_fraction less than or greater than keys */
-	float fraction = min(px->set_fraction,px->key.p[kin-1]);
+	fraction = min(px->set_fraction,px->key.p[kin-1]);
 	fraction = max(px->set_fraction,px->key.p[0]);
 	/* have to go through and find the key before */
-	int ispan =find_key(kin,fraction,px->key.p) -1;
+	ispan =find_key(kin,fraction,px->key.p) -1;
 
 	// INTERPOLATION FUNCTION - change this from linear to spline
 	// fraction s = fraction_interp(t,t0,t1);
@@ -330,25 +343,30 @@ void do_SplinePositionInterpolator(void *node){
 	//  where vel is velocity or more generally slope/first-derivitive of value at key. 
 	//  First derivitive would be with respect to key ie d(Value)/d(key) evaluated at key
 	// in general answer, val*, vel* are vectors or types.
-	float sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
+	sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
 	spline_interp(dim, px->value_changed.c, sfraction,
 		px->keyValue.p[ispan].c, px->keyValue.p[ispan+1].c, 
 		px->_T0.p[ispan].c, px->_T1.p[ispan+1].c);
 }
 void do_SplinePositionInterpolator2D(void *node){
 	int dim;
+	int kin, kvin;
+	int ispan; //counter, 
+	float fraction,sfraction;
+
 	struct X3D_SplinePositionInterpolator2D* px = (struct X3D_SplinePositionInterpolator2D*)node;
 	dim = 2;
 	if(NNC(px)){
 		
 		//void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti )
-		int isclosed;
-		int n = px->key.n;
-		float *Ti = MALLOC(float*,n*dim*sizeof(float));
+		int isclosed,n;
+		float *Ti,*T0,*T1;
+		n = px->key.n;
+		Ti = MALLOC(float*,n*dim*sizeof(float));
 		compute_spline_velocity_Ti(dim,px->normalizeVelocity,n,(float*)px->keyValue.p,
 			px->keyVelocity.n,(float*)px->keyVelocity.p,Ti);
-		float *T0 = MALLOC(float*,n*dim*sizeof(float));
-		float *T1 = MALLOC(float*,n*dim*sizeof(float));
+		T0 = MALLOC(float*,n*dim*sizeof(float));
+		T1 = MALLOC(float*,n*dim*sizeof(float));
 		//spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1)
 		isclosed = px->closed && vecsame2f(px->keyValue.p[0].c,px->keyValue.p[n-1].c);
 		spline_velocity_adjust_for_keyspan(dim,isclosed,n,px->key.p,Ti,T0,T1);
@@ -363,8 +381,6 @@ void do_SplinePositionInterpolator2D(void *node){
 		MNC(px);
 	}
 	//void spline_interp(int dim, float *result, float s, float *val0, float *val1, float *T00, float *T11)
-	int kin, kvin;
-	int counter;
 
 	if (!node) return;
 	kin = px->key.n;
@@ -384,10 +400,10 @@ void do_SplinePositionInterpolator2D(void *node){
 	#endif
 
 	/* set_fraction less than or greater than keys */
-	float fraction = min(px->set_fraction,px->key.p[kin-1]);
+	fraction = min(px->set_fraction,px->key.p[kin-1]);
 	fraction = max(px->set_fraction,px->key.p[0]);
 	/* have to go through and find the key before */
-	int ispan =find_key(kin,fraction,px->key.p) -1;
+	ispan =find_key(kin,fraction,px->key.p) -1;
 
 	// INTERPOLATION FUNCTION - change this from linear to spline
 	// fraction s = fraction_interp(t,t0,t1);
@@ -396,7 +412,7 @@ void do_SplinePositionInterpolator2D(void *node){
 	//  where vel is velocity or more generally slope/first-derivitive of value at key. 
 	//  First derivitive would be with respect to key ie d(Value)/d(key) evaluated at key
 	// in general answer, val*, vel* are vectors or types.
-	float sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
+	sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
 	spline_interp(dim, px->value_changed.c, sfraction,
 		px->keyValue.p[ispan].c, px->keyValue.p[ispan+1].c, 
 		px->_T0.p[ispan].c, px->_T1.p[ispan+1].c);
@@ -406,26 +422,32 @@ void do_SplineScalarInterpolator(void *node){
 	// SplineScalarInterpolator - store final value in px->value_changed 
 	//  - body of function copied from ScalarInterpolator and node cast to SplineScalarInterpolator
 	int dim;
+	int kin, kvin;
+	int ispan; //counter, 
+	float fraction, sfraction;
+
 	struct X3D_SplineScalarInterpolator* px = (struct X3D_SplineScalarInterpolator*)node;
 	dim = 1;
 	if(NNC(px)){
 		
 		//void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti )
-		int isclosed;
-		int n = px->key.n;
-		float *Ti = MALLOC(float*,n*dim*sizeof(float));
+		int isclosed, i, n;
+		float *Ti,*T0,*T1;
+
+		n = px->key.n;
+		Ti = MALLOC(float*,n*dim*sizeof(float));
 		compute_spline_velocity_Ti(dim,px->normalizeVelocity,n,(float*)px->keyValue.p,
 			px->keyVelocity.n,(float*)px->keyVelocity.p,Ti);
 		printf("\nvelocities\n");
-		for(int i=0;i<n;i++)
+		for(i=0;i<n;i++)
 			printf("%f ",Ti[i]);
 		printf("\n");
-		float *T0 = MALLOC(float*,n*dim*sizeof(float));
-		float *T1 = MALLOC(float*,n*dim*sizeof(float));
+		T0 = MALLOC(float*,n*dim*sizeof(float));
+		T1 = MALLOC(float*,n*dim*sizeof(float));
 		//spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1)
 		isclosed = px->closed && px->keyValue.p[0] == px->keyValue.p[n-1];
 		spline_velocity_adjust_for_keyspan(1,isclosed,n,px->key.p,Ti,T0,T1);
-		for(int i=0;i<n;i++)
+		for(i=0;i<n;i++)
 			printf("%f ",Ti[i]);
 		printf("\n");
 		FREE_IF_NZ(px->_T0.p);
@@ -439,8 +461,6 @@ void do_SplineScalarInterpolator(void *node){
 		MNC(px);
 	}
 	//void spline_interp(int dim, float *result, float s, float *val0, float *val1, float *T00, float *T11)
-	int kin, kvin;
-	int counter;
 
 	if (!node) return;
 	kin = px->key.n;
@@ -460,10 +480,10 @@ void do_SplineScalarInterpolator(void *node){
 	#endif
 
 	/* set_fraction less than or greater than keys */
-	float fraction = min(px->set_fraction,px->key.p[kin-1]);
+	fraction = min(px->set_fraction,px->key.p[kin-1]);
 	fraction = max(px->set_fraction,px->key.p[0]);
 	/* have to go through and find the key before */
-	int ispan =find_key(kin,fraction,px->key.p) -1;
+	ispan =find_key(kin,fraction,px->key.p) -1;
 
 	// INTERPOLATION FUNCTION - change this from linear to spline
 	// fraction s = fraction_interp(t,t0,t1);
@@ -472,7 +492,7 @@ void do_SplineScalarInterpolator(void *node){
 	//  where vel is velocity or more generally slope/first-derivitive of value at key. 
 	//  First derivitive would be with respect to key ie d(Value)/d(key) evaluated at key
 	// in general answer, val*, vel* are vectors or types.
-	float sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
+	sfraction = span_fraction(fraction,px->key.p[ispan],px->key.p[ispan+1]);
 	spline_interp(dim, (float*)&px->value_changed, sfraction,
 		&px->keyValue.p[ispan], &px->keyValue.p[ispan+1], 
 		&px->_T0.p[ispan], &px->_T1.p[ispan+1]);
@@ -515,7 +535,7 @@ void quaternion_subtraction(Quaternion *ret, const Quaternion *q1, const Quatern
 	xyzw[3] = xyzw1[3] - xyzw2[3];
 	double2quaternion(ret,xyzw);
 }
-double clampd(double val, double low, double hi){
+double fwclampd(double val, double low, double hi){
 	double ret = val;
 	ret = min(ret,hi);
 	ret = max(ret,low);
@@ -523,17 +543,19 @@ double clampd(double val, double low, double hi){
 }
 double quaternion_dot(Quaternion *q1, Quaternion *q2){
 	double xyzw1[4], xyzw2[4], dot;
+	int i;
 	quaternion2double(xyzw1,q1);
 	quaternion2double(xyzw2,q1);
 	dot = 0.0;
-	for(int i=0;i<4;i++)
+	for(i=0;i<4;i++)
 		dot += xyzw1[i]*xyzw2[i];
 	return dot; 
 }
 void quaternion_negate(Quaternion *q){
+	int i;
 	double xyzw[4];
 	quaternion2double(xyzw,q);
-	for(int i=0;i<4;i++)
+	for(i=0;i<4;i++)
 		xyzw[i] = -xyzw[i];
 	double2quaternion(q,xyzw);
 }
@@ -541,7 +563,7 @@ void quaternion_log(Quaternion *ret, Quaternion *q){
 	double angle, angle_over_sine, xyzw[4];
 
 	quaternion2double(xyzw,q);
-	angle = acos( clampd(xyzw[3],-1.0,1.0));
+	angle = acos( fwclampd(xyzw[3],-1.0,1.0));
 	angle_over_sine = 0.0;
 	if(angle != 0.0) angle_over_sine = angle/sin(angle);
 	vecscaled(xyzw,xyzw,angle_over_sine);
@@ -549,7 +571,7 @@ void quaternion_log(Quaternion *ret, Quaternion *q){
 	double2quaternion(ret,xyzw);
 }
 void quaternion_exp(Quaternion *ret, Quaternion *q){
-	double angle, xyzw[4], sine, sine_over_angle;
+	double angle, xyzw[4], sine_over_angle;
 
 	quaternion2double(xyzw,q);
 	angle = veclengthd(xyzw);
@@ -573,7 +595,7 @@ void compute_si(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim
 	// p.10 "the logarithm of a unit quaternion q = [vˆ sin O, cos O] is just vˆO, a pure vector of length O."
 
 	Quaternion qiinv, qiinv_qip1, qiinv_qim1,qadded,qexp;
-	double xyzw[4],sine,cosine,angle, angle_over_sine;
+	double xyzw[4];
 
 	quaternion_inverse(&qiinv,qi);
 	quaternion_multiply(&qiinv_qip1,&qiinv,qip1);
@@ -601,9 +623,8 @@ void debug_SquadOrientationInterpolator(struct X3D_SquadOrientationInterpolator 
 	// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
 	//in theory, the vrmlrot_to_quaternion and compute_si can be done in a compile_squadorientationinterpolator step
 	//and the si and quats for each keyvalue cached
-	Quaternion qi,qip1,qip2,qim1,si,sip1,di,dip1,qs,ss;
-	double h, xyzw1[4],xyzw2[4];
-	int ip1, ip2, im1, kin, iend;
+	Quaternion qi,qip1,qip2,qim1,si,sip1;
+	int ip1, ip2, im1, kin, iend,i;
 	struct SFRotation *kVs = px->keyValue.p;
 	static int once_debug = 0;
 	if(once_debug != 0) return;
@@ -618,7 +639,7 @@ void debug_SquadOrientationInterpolator(struct X3D_SquadOrientationInterpolator 
 	//there are 1 fewer spans than key/values
 	//we'll iterate over key/values here
 	printf("Si:\n");
-	for(int i=0;i<kin;i++){
+	for(i=0;i<kin;i++){
 		float axislength;
 		if(1) printf("%d ri   [%f %f %f, %f]\n",i,kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
 		axislength = veclength3f(kVs[i].c);
@@ -732,7 +753,7 @@ void quaternion_squad(Quaternion *final,Quaternion *q1,Quaternion *q2, Quaternio
 void quaternion_diff(Quaternion *qdiff, Quaternion *q2, Quaternion *q1){
 	// diff * q1 = q2  --->  diff = q2 * inverse(q1)
 	//where:  inverse(q1) = conjugate(q1) / abs(q1)}
-	Quaternion q1inv, qd1, qd2;
+	Quaternion q1inv;
 	quaternion_inverse(&q1inv,q1);
 	quaternion_multiply(qdiff,q2,&q1inv);
 	if(qdiff->w < 0.0){
@@ -763,26 +784,31 @@ void squad_compute_velocity_normalized_key_keyvalue(int closed,
 	//2. compute how much each span gets fraction-wise
 	//3. malloc new keys and values
 	//4. compute new keys and or values
-	Quaternion qlast;
-	float * mkeys = MALLOC(float*,n*100*sizeof(float));
-	Quaternion * mvals = MALLOC(Quaternion*,n*100*sizeof(Quaternion));
-	float * cumangle = MALLOC(float*,n*100*sizeof(float));
-	float * spanangle = MALLOC(float*,n*sizeof(float));
-	struct SFRotation *kVs = (struct SFRotation *)values;
-	int iend, nspan = n-1;
+	Quaternion qlast, *mvals;
+	double totalangle, angle, velocity;
+	int i,j,k, iend, nspan;
+	float *mkeys,*cumangle, *spanangle, *nkey, *nvals, cumkey;
+	struct SFRotation *kVs;
+
+	mkeys = MALLOC(float*,n*100*sizeof(float));
+	mvals = MALLOC(Quaternion*,n*100*sizeof(Quaternion));
+	cumangle = MALLOC(float*,n*100*sizeof(float));
+	spanangle = MALLOC(float*,n*sizeof(float));
+	kVs = (struct SFRotation *)values;
+	nspan = n-1;
 	iend = n;
 	if(vecsame4f(kVs[0].c,kVs[n-1].c)) iend = n -1;
-	double totalangle, angle;
 	totalangle = 0.0;
-	int k = 0;
+	k = 0;
 	if(0){
 		printf("key vals before:\n");
-		for(int i=0;i<n;i++){
+		for(i=0;i<n;i++){
 			printf("%d %f %f %f %f %f\n",i,keys[i],values[i*4 +0],values[i*4 +1],values[i*4 +2],values[i*4 +3]);
 		}
 	}
-	for(int i=0;i<nspan;i++){
-		Quaternion qi,qip1,qip2,qim1,si,sip1,qs,ss;
+	for(i=0;i<nspan;i++){
+		Quaternion qi,qip1,qip2,qim1,si,sip1;
+		Quaternion qc, qfinal, qdiff;
 		double h;
 		int ip1, ip2, im1;
 		//i = ispan; //counter -1;
@@ -804,12 +830,11 @@ void squad_compute_velocity_normalized_key_keyvalue(int closed,
 		if(k==0) qlast = qi;
 		//quaternion_squad_prepare(qim1,qi,qip1,qip2,s1,s2,q2);
 		//si
-		Quaternion qc, qfinal, qdiff;
 		quaternion_squad_prepare(&qim1,&qi,&qip1,&qip2,&si,&sip1,&qc);
 		
 		spanangle[i] = 0.0f;
-		for(int j=0;j<10;j++){
-			float sfraction = j*.1;
+		for(j=0;j<10;j++){
+			float sfraction = j*.1f;
 
 			h = (double) sfraction; //interval;
 
@@ -817,36 +842,36 @@ void squad_compute_velocity_normalized_key_keyvalue(int closed,
 			quaternion_normalize(&qfinal);
 			quaternion_diff(&qdiff,&qfinal,&qlast);
 			quaternion_normalize(&qdiff);
-			angle = acos(clampd(qdiff.w,-1.0,1.0))*2.0;
-			spanangle[i] += angle;
+			angle = acos(fwclampd(qdiff.w,-1.0,1.0))*2.0;
+			spanangle[i] += (float)angle;
 			mkeys[k] = keys[i] + sfraction * (keys[i+1] - keys[i]);
 			mvals[k] = qfinal;
 			totalangle += angle;
-			cumangle[k] = totalangle;
+			cumangle[k] = (float)totalangle;
 			if(0) printf("i %d j %d angle %lf\n",i,j,angle);
 			qlast = qfinal;
 			
 		}
 	}
 	if(1) printf("total angle=%lf\n",totalangle);
-	double velocity = totalangle / (keys[n-1] - keys[0]);
+	velocity = totalangle / (keys[n-1] - keys[0]);
 
 	//method 2 adjust span keys
-	float *nkey = *normkeys = MALLOC(float*, n*sizeof(float));
-	float *nvals = *normvals = MALLOC(float*,n*sizeof(struct SFRotation));
+	nkey = *normkeys = MALLOC(float*, n*sizeof(float));
+	nvals = *normvals = MALLOC(float*,n*sizeof(struct SFRotation));
 	memcpy(*normkeys,keys,n*sizeof(float));
 	memcpy(*normvals,values,n*sizeof(struct SFRotation));
-	float cumkey = 0.0f;
+	cumkey = 0.0f;
 	cumkey = nkey[0] = keys[0];
-	for(int i=0;i<nspan;i++){
-		float newspanfraction = spanangle[i]/velocity;
+	for(i=0;i<nspan;i++){
+		float newspanfraction = (float)(spanangle[i]/velocity);
 		nkey[i+1] = newspanfraction + cumkey;
 		cumkey += newspanfraction;
 	}
 	*nnorm = n;
 	if(0){
 		printf("key vals after:\n");
-		for(int i=0;i<*nnorm;i++){
+		for(i=0;i<*nnorm;i++){
 			printf("%d %f %f %f %f %f\n",i,nkey[i],nvals[i*4 +0],nvals[i*4 +1],nvals[i*4 +2],nvals[i*4 +3]);
 		}
 		printf("\n");
@@ -887,12 +912,12 @@ void do_SquadOrientationInterpolator(void *node){
 	int kin, kvin;
 	struct SFRotation *kVs;
 	float *keys;
-	int counter, iend;
-	float interval;		/* where we are between 2 values */
+	int iend;
+	//float interval;		/* where we are between 2 values */
 	// UNUSED?? int stzero;
 	// UNUSED?? int endzero;	/* starting and/or ending angles zero? */
 
-	Quaternion st, fin, qfinal;
+	Quaternion qfinal;
 	double x,y,z,a;
 
 	if (!node) return;
@@ -951,6 +976,10 @@ void do_SquadOrientationInterpolator(void *node){
 	} else {
 		int ispan;
 		float sfraction;
+		Quaternion qi,qip1,qip2,qim1,si,sip1;
+		Quaternion qc;
+		double h;
+		int ip1, ip2, im1, i;
 
 		ispan = find_key(kin,(float)(px->set_fraction),keys) -1;
 		//interval = (px->set_fraction - keys[counter-1]) /
@@ -976,9 +1005,6 @@ void do_SquadOrientationInterpolator(void *node){
 		// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
 		//in theory, the vrmlrot_to_quaternion and compute_si can be done in a compile_squadorientationinterpolator step
 		//then just quaternion_slerps here
-		Quaternion qi,qip1,qip2,qim1,si,sip1,qs,ss;
-		double h;
-		int ip1, ip2, im1, i;
 		i = ispan; //counter -1;
 		vrmlrot_to_quaternion (&qi,   kVs[i].c[0],  kVs[i].c[1],   kVs[i].c[2],   kVs[i].c[3]);
 		quaternion_normalize(&qi);
@@ -1001,7 +1027,7 @@ void do_SquadOrientationInterpolator(void *node){
 		//compute_si(&sip1,&qip1,&qip2,&qi);
 		h = (double) sfraction; //interval;
 
-		Quaternion qc;
+
 		quaternion_squad_prepare(&qim1,&qi,&qip1,&qip2,&si,&sip1,&qc);
 		quaternion_squad(&qfinal,&qi,&qc,&si,&sip1,h);
 		quaternion_normalize(&qfinal);

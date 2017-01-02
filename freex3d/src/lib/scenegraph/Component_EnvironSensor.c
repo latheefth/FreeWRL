@@ -335,7 +335,7 @@ int frustumHitsMBB(float *extent){
 	// overlap tests: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
 	// cuboid space: frustum is a -1 to 1 cube
 	GLDOUBLE modelMatrix[16], projectionMatrix[16];
-	int i, j, isIn, iret;
+	int i,isIn, iret; // j, 
 	GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
 	int retval;
 	retval = FALSE;
@@ -435,7 +435,7 @@ int frustumHitsMBB(float *extent){
 
 void other_VisibilitySensor (struct X3D_VisibilitySensor *node) {
 	// http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/envsensor.html#VisibilitySensor
-	ttrenderstate rs;
+	//ttrenderstate rs;
 	ttglobal tg = gglobal();
 	/* if not enabled, do nothing */
 	if (!node) return;
@@ -702,7 +702,7 @@ void do_TransformSensorTick (void *ptr) {
 		//check all USE-USE combinations of this node and targetObject
 		//find next this
 		while(mehit = usehit_next(menode,mehit)){
-			int iret;
+			//int iret;
 			double meinv[16],memin[3],memax[3];
 			float emin[3], emax[3], halfsize[3];
 
@@ -758,7 +758,7 @@ void do_TransformSensorTick (void *ptr) {
 					static const struct point_XYZ zvec = {0,0,-0.05};
 					static const struct point_XYZ zpvec = {0,0,0.05};
 					static const struct point_XYZ orig = {0,0,0};
-					struct point_XYZ t_zvec, t_yvec, t_orig, t_center;
+					struct point_XYZ t_zvec, t_yvec, t_orig; //, t_center;
 					struct point_XYZ nor1,nor2;
 					struct point_XYZ ins;
 					double len;
@@ -782,7 +782,7 @@ void do_TransformSensorTick (void *ptr) {
 					//transform position
 					for(i=0;i<3;i++) t1u[i] = (umin[i] + umax[i])*.5;
 					transformAFFINEd(t1me,t1u,u2me);
-					for(i=0;i<3;i++) node->__t1.c[i] = t1me[i] - node->center.c[i];
+					for(i=0;i<3;i++) node->__t1.c[i] = (float)t1me[i] - node->center.c[i];
 					if (memcmp ((void *) &node->position_changed,(void *) &node->__t1,sizeof(struct SFColor))) {
 						#ifdef SEVERBOSE
 						printf ("PROX - position changed!!! \n");

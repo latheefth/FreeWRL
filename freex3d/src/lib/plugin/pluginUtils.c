@@ -288,7 +288,7 @@ int doBrowserAction()
 			  while the UI thread keeps looping
 			  - first, make sure it's a scene file (not .html, .img which are handled in the html browser in new window)
 			*/
-			BOOL isScene, isHTML; 
+			BOOL isScene; //, isHTML; 
 
 			// June 2016 change: avoid mixed anchors, must be uniform ie all SF are scene, or all SF are html
 			// for it to be scene, all need to be scene (could split out non-scene to get scene-only MF / non-mixed anchor)

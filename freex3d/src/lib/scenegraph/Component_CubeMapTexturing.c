@@ -555,9 +555,9 @@ struct DdsLoadInfo loadInfoBGR565 = {
 };
 unsigned int GetLowestBitPos(unsigned int value)
 {
+   unsigned int pos = 0;
    assert(value != 0); // handled separately
 
-   unsigned int pos = 0;
    while (!(value & 1))
    {
       value >>= 1;
@@ -568,14 +568,14 @@ unsigned int GetLowestBitPos(unsigned int value)
 }
 int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *file;
-	char *buffer, *bdata, *bdata2;
+	char *buffer, *bdata; //, *bdata2;
 	char sniffbuf[20];
 	unsigned long fileLen;
 	union DDS_header hdr;
 	unsigned int x = 0;
 	unsigned int y = 0;
 	unsigned int z = 0;
-	unsigned int rshift[4]; //to go with color bitmask
+	//unsigned int rshift[4]; //to go with color bitmask
 	int nchan, idoFrontBackSwap;
 	unsigned int mipMapCount = 0;
 	unsigned int size,xSize, ySize,zSize;
@@ -740,7 +740,8 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		//if(!hdr.dwFlags & DDSD_MIPMAPCOUNT){
 		if(bdata){
 			//simple, convert to rgba and set tti
-			int ipix,jpix,i,j,k,bpp, ir, ig, ib;
+			int ipix,jpix,bpp, ir, ig, ib;
+			unsigned int i,j,k;
 			char * rgbablob = malloc(x*y*z *4);
 			bpp = hdr.sPixelFormat.dwRGBBitCount / 8;
 			ir = 0; ig = 1; ib = 2; //if incoming is BGR order
@@ -1074,7 +1075,7 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
 	//for .DDS and .web3dit that are in cubemap format ie 6 contiguous images in tti->teximage
 	// incoming order of images: +x,-x,+y,-y,+z,-z (or R,L,F,B,T,D ?) */
-	int size;
+	//int size;
 	int count;
 
 	struct X3D_ImageCubeMapTexture *node = (struct X3D_ImageCubeMapTexture *)me->scenegraphNode;
@@ -1098,38 +1099,40 @@ void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
 	/* (jas declared target) order: right left, top, bottom, back, front */
 	// (dug9 incoming order from dds/.web3dit cubemap texture, RHS: +x,-x,+y,-y,+z,-z
 	// this should be same as opengl/web3d order
-	uint32 imlookup[] = {0,1,2,3,4,5}; //dug9 lookup order that experimentally seems to work
-	for (count=0; count <6; count++) {
-		int x,y,i,j,k;
-		uint32 val, ioff;
-		uint32 *tex;
-		struct X3D_PixelTexture *pt = X3D_PIXELTEXTURE(node->__subTextures.p[count]);
+	{
+		uint32 imlookup[] = {0,1,2,3,4,5}; //dug9 lookup order that experimentally seems to work
+		for (count=0; count <6; count++) {
+			int i,j; //,k; //x,y,
+			uint32 ioff; //val, 
+			uint32 *tex;
+			struct X3D_PixelTexture *pt = X3D_PIXELTEXTURE(node->__subTextures.p[count]);
 
-		/* create the MFInt32 array for this face in the PixelTexture */
-		FREE_IF_NZ(pt->image.p);
-		pt->image.n = me->x*me->y+3;
-		pt->image.p = MALLOC(int *, pt->image.n * sizeof (uint32));
-		pt->image.p[0] = me->x;
-		pt->image.p[1] = me->y;
-		pt->image.p[2] = 4; /* this last one is for RGBA */
-		ioff = imlookup[count] * me->x * me->y;
-		//we are in char rgba order, but we need to convert to endian-specific uint32
-		// which is what texture_load_from_pixelTexture() will be expecting
-		//in imageIsDDS() image reader, we already flipped from top-down image to bottom-up texture order
-		// which pixeltexture is expecting
-		tex = (uint32 *) me->texdata;
-		tex = &tex[ioff];
-		for(j=0;j<me->y;j++){
-			for(i=0;i<me->x;i++){
-				int ipix,jpix;
-				uint32 pixint;
-				unsigned char* rgba;
+			/* create the MFInt32 array for this face in the PixelTexture */
+			FREE_IF_NZ(pt->image.p);
+			pt->image.n = me->x*me->y+3;
+			pt->image.p = MALLOC(int *, pt->image.n * sizeof (uint32));
+			pt->image.p[0] = me->x;
+			pt->image.p[1] = me->y;
+			pt->image.p[2] = 4; /* this last one is for RGBA */
+			ioff = imlookup[count] * me->x * me->y;
+			//we are in char rgba order, but we need to convert to endian-specific uint32
+			// which is what texture_load_from_pixelTexture() will be expecting
+			//in imageIsDDS() image reader, we already flipped from top-down image to bottom-up texture order
+			// which pixeltexture is expecting
+			tex = (uint32 *) me->texdata;
+			tex = &tex[ioff];
+			for(j=0;j<me->y;j++){
+				for(i=0;i<me->x;i++){
+					int ipix; //,jpix;
+					uint32 pixint;
+					unsigned char* rgba;
 
-				ipix = j*me->x + i;  //image row same as image row out
-				//jpix = (me->y-1 -j)*me->x + i;  //flip image vertically - no, pixeltexture is bottom-up like incoming
-				rgba = (unsigned char*)&tex[ipix];
-				pixint = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + rgba[3];
-				pt->image.p[ipix+3] = pixint;
+					ipix = j*me->x + i;  //image row same as image row out
+					//jpix = (me->y-1 -j)*me->x + i;  //flip image vertically - no, pixeltexture is bottom-up like incoming
+					rgba = (unsigned char*)&tex[ipix];
+					pixint = (rgba[0] << 24) + (rgba[1] << 16) + (rgba[2] << 8) + rgba[3];
+					pt->image.p[ipix+3] = pixint;
+				}
 			}
 		}
 	}
@@ -1257,6 +1260,7 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 }
 //double *get_view_matrixd();
 void get_view_matrix(double *savePosOri, double *saveView);
+void freeASCIIString(struct Uni_String *us);
 void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 	int count, iface;
 
@@ -1282,7 +1286,8 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 			}
 			if(!isAdded){
 				double modelviewMatrix[16], mvmInverse[16];
-				double worldmatrix[16], viewmatrix[16], bothinverse[16], saveView[16], savePosOri[16];
+				double worldmatrix[16], viewmatrix[16], saveView[16], savePosOri[16]; //bothinverse[16], 
+				usehit uhit;
 				//GL_GET_MODELVIEWMATRIX
 				FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelviewMatrix);
 				get_view_matrix(savePosOri,saveView);
@@ -1296,7 +1301,6 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 				matmultiplyAFFINE(worldmatrix,viewmatrix,mvmInverse);
 
 				//strip viewmatrix - will happen when we invert one of the USEUSE pair, and multiply
-				usehit uhit;
 				uhit.node = X3D_NODE(node);
 				//memcpy(uhit.mvm,modelviewMatrix,16*sizeof(double)); //deep copy
 				memcpy(uhit.mvm,worldmatrix,16*sizeof(double)); //deep copy
@@ -1387,6 +1391,7 @@ void generate_GeneratedCubeMapTextures(){
 			int isize;
 			double modelviewmatrix[16];
 			textureTableIndexStruct_s* tti;
+			float vp[4] = {0.0f,1.0f,0.0f,1.0f}; //arbitrary
 			struct X3D_GeneratedCubeMapTexture * node;
 
 			uhit = vector_get(usehit,gencube_stack,i);
@@ -1401,7 +1406,6 @@ void generate_GeneratedCubeMapTextures(){
 			//GLuint attachments [1] = {GL_COLOR_ATTACHMENT0};
 			//glDrawBuffers(1,attachments); //'draw' is implied in GL_RENDERBUFFER above
 			//glReadBuffer(GL_COLOR_ATTACHMENT0); //'read' is implied in GL_RENDERBUFFER
-			float vp[4] = {0.0f,1.0f,0.0f,1.0f}; //arbitrary
 			pushnset_viewport(vp); //something to push so we can pop-and-set below, so any mainloop GL_BACK viewport is restored
 			glViewport(0,0,isize,isize); //viewport we want 
 
@@ -1412,6 +1416,8 @@ void generate_GeneratedCubeMapTextures(){
 			for(j=0;j<node->__subTextures.n;j++){  //should be 6
 				textureTableIndexStruct_s* ttip;
 				struct X3D_PixelTexture * nodep;
+				GLuint pixelType;
+				int bytesPerPixel;
 
 				nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
 				ttip = getTableIndex(nodep->__textureTableIndex);
@@ -1465,8 +1471,8 @@ void generate_GeneratedCubeMapTextures(){
 
 				//if you can figure out how to use regular texture in cubemap, then there may be a shortcut
 				//for now, we'll pull the fbo pixels back into cpu space and put them in pixeltexture
-				GLuint pixelType = GL_RGBA;
-				int bytesPerPixel = 4;
+				pixelType = GL_RGBA;
+				bytesPerPixel = 4;
 				if(!ttip->texdata || ttip->x != isize){
 					FREE_IF_NZ(ttip->texdata);
 					ttip->texdata = MALLOC (GLvoid *, bytesPerPixel*isize*isize);

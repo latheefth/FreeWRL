@@ -880,6 +880,8 @@ void sendBindBufferToGPU (GLenum target, GLuint buffer, char *file, int line) {
 bool setupShader() {
 	return true;
 }
+void sendFogToShader(s_shader_capabilities_t *me);
+void sendClipplanesToShader(s_shader_capabilities_t *me);
 bool setupShaderB() {
 
 	s_shader_capabilities_t *mysp = getAppearanceProperties()->currentShaderProperties;
@@ -1962,6 +1964,7 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 	}
 }
 #include "../x3d_parser/Bindable.h"
+int fwl_getShadingStyle();
 void push_globalRenderFlags(){
 	//call in render_hier for geom or blend passes
 	//unsigned int shaderflags;
