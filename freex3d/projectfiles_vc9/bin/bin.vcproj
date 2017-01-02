@@ -217,10 +217,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libtessd.lib libFreeWRLd.lib glew32mx.lib Opengl32.lib pthreadVC2d.lib zlib.lib libminizip.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib mozjs185-1.0.lib ode_doubled.lib"
+				AdditionalDependencies="libtessd.lib libFreeWRLd.lib glew32mx.lib Opengl32.lib pthreadVC2d.lib zlib.lib libminizip.lib ws2_32.lib freetype239.lib shlwapi.lib gdiplus.lib libxml2_a.lib Wininet.lib Winmm.lib mozjs185-1.0.lib ode_doubled.lib libnurbs.lib alut.lib openAL32.lib avcodec.lib swscale.lib avformat.lib avutil.lib avfilter.lib swresample.lib avdevice.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\..\lib_windows\MSopenGL\lib;&quot;..\..\..\..\lib_windows\glew\lib\Release MX\Win32&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\..\..\..\lib_windows\ODE\lib;..\Debug_glew;..\Debug"
+				AdditionalLibraryDirectories="..\..\..\..\lib_windows\ffmpeg\win32\lib;..\..\..\..\lib_windows\freeALUT\lib;..\..\..\..\lib_windows\openALsoft\lib;..\..\..\..\lib_windows\MSopenGL\lib;&quot;..\..\..\..\lib_windows\glew\lib\Release MX\Win32&quot;;..\..\..\..\lib_windows\js185\lib;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\..\..\..\lib_windows\ODE\lib;..\Debug_glew;..\Debug"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="MSVCRT"
 				GenerateDebugInformation="true"

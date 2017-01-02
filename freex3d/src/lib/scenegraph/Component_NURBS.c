@@ -457,7 +457,7 @@ void MNX0(struct X3D_Node* node);
 
 void CALLBACK nurbsError(GLenum errorCode)
 {
-   const GLubyte *estring;
+   //const GLubyte *estring;
 
    //estring = gluErrorString(errorCode);
    //fprintf (stderr, "Nurbs Error: %s\n", estring);
@@ -540,9 +540,9 @@ int knotsOK(int order, int ncontrol, int nknots, double *knots){
 	if(nknots < 2 || nknots != ncontrol + order ) 
 		ok = FALSE;
 	if(ok){
-		int nconsec = 1;
+		int i,nconsec = 1;
 		double lastval = knots[0];
-		for(int i=1;i<nknots;i++){
+		for(i=1;i<nknots;i++){
 			if(lastval == knots[i]) nconsec++;
 			else nconsec = 1;
 			if(nconsec > order) 
@@ -561,9 +561,9 @@ int knotsOKf(int order, int ncontrol, int nknots, float *knots){
 	if(nknots < 2 || nknots != ncontrol + order ) 
 		ok = FALSE;
 	if(ok){
-		int nconsec = 1;
+		int i, nconsec = 1;
 		double lastval = knots[0];
-		for(int i=1;i<nknots;i++){
+		for(i=1;i<nknots;i++){
 			if(lastval == knots[i]) nconsec++;
 			else nconsec = 1;
 			if(nconsec > order) 
@@ -579,9 +579,10 @@ int knotsOKf(int order, int ncontrol, int nknots, float *knots){
 void compile_ContourPolyline2D(struct X3D_ContourPolyline2D *node){
 	MARK_NODE_COMPILED;
 	if(node->point.n && !node->controlPoint.n){
+		int i;
 		//version v3.0 had a mfvec2f point field, version 3.1+ changed to mfvec2d controlPoint field
 		node->controlPoint.p = MALLOC(struct SFVec2d*,node->point.n * sizeof(struct SFVec2d));
-		for(int i=0;i<node->point.n;i++)
+		for(i=0;i<node->point.n;i++)
 			float2double(node->controlPoint.p[i].c,node->point.p[i].c,2);
 	}
 }
@@ -601,7 +602,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 				xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
 				for(i=0;i<mfd->n;i++){
 					for(j=0;j<3;j++){
-						xyzw[i*4 + j] = mfd->p[i].c[j];
+						xyzw[i*4 + j] = (float) mfd->p[i].c[j];
 					}
 				}
 			}else if(node->controlPoint->_nodeType == NODE_Coordinate){
@@ -625,7 +626,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 			for(i=0;i<n;i++){
 				im = i < m ? i : m-1;
 				w = node->weight.p[im];
-				xyzw[i*4 + 3] = w;
+				xyzw[i*4 + 3] = (float)w;
 			}
 		}else{
 			for(i=0;i<n;i++) xyzw[i*4 + 3] = 1.0;
@@ -650,8 +651,9 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 			knots = MALLOC(void *, nk *sizeof(GLfloat));
 			generateUniformKnotVector(node->order,n, knots);
 			if(!once){
+				int ii;
 				printf("bad knot vector, replacing with:\n");
-				for(int ii=0;ii<nk;ii++)
+				for(ii=0;ii<nk;ii++)
 					printf("[%d]=%f \n",ii,knots[ii]);
 				once = 1;
 			}
@@ -707,7 +709,7 @@ void compile_NurbsCurve(struct X3D_NurbsCurve *node){
 					mtess = max(mtess,(-ntess * n) + 1);
 				else
 					mtess = max(mtess,2*n + 1);
-				mtess *= node->_tscale;
+				mtess = (int)((float)mtess * node->_tscale);
 				node->__points.p = MALLOC(void *, sizeof(struct SFVec3f)*mtess+1);
 				node->__points.n = mtess;  //.n will be used for realloc test in callbacks
 				gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
@@ -774,7 +776,7 @@ void compile_NurbsTextureCoordinate(struct X3D_NurbsTextureCoordinate *node){
 		for(i=0;i<nc;i++){
 			im = i < m ? i : m-1;
 			w = node->weight.p[im];
-			xyzw[i*4 + 3] = w;
+			xyzw[i*4 + 3] = (float) w;
 		}
 	}else{
 		for(i=0;i<nc;i++) xyzw[i*4 + 3] = 1.0;
@@ -792,8 +794,9 @@ void compile_NurbsTextureCoordinate(struct X3D_NurbsTextureCoordinate *node){
 			knotsu[i] = (GLfloat)node->uKnot.p[i];
 		}
 		if(DEBG){
+			int ii;
 			printf("good u knot vector nk=%d\n",nku);
-			for(int ii=0;ii<nku;ii++)
+			for(ii=0;ii<nku;ii++)
 				printf("[%d]=%f \n",ii,knotsu[ii]);
 		}
 
@@ -805,8 +808,9 @@ void compile_NurbsTextureCoordinate(struct X3D_NurbsTextureCoordinate *node){
 		knotsu = MALLOC(void *, nku *sizeof(GLfloat));
 		generateUniformKnotVector(node->uOrder,nu, knotsu);
 		if(!once){
+			int ii;
 			printf("bad u knot vector given, replacing with:\n");
-			for(int ii=0;ii<nku;ii++)
+			for(ii=0;ii<nku;ii++)
 				printf("[%d]=%f \n",ii,knotsu[ii]);
 			once = 1;
 		}
@@ -821,8 +825,9 @@ void compile_NurbsTextureCoordinate(struct X3D_NurbsTextureCoordinate *node){
 			knotsv[i] = (GLfloat)node->vKnot.p[i];
 		}
 		if(DEBG){
+			int ii;
 			printf("good v knot vector nk=%d\n",nkv);
-			for(int ii=0;ii<nkv;ii++)
+			for(ii=0;ii<nkv;ii++)
 				printf("[%d]=%f \n",ii,knotsv[ii]);
 		}
 
@@ -834,8 +839,9 @@ void compile_NurbsTextureCoordinate(struct X3D_NurbsTextureCoordinate *node){
 		knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
 		generateUniformKnotVector(node->vOrder,nv, knotsv);
 		if(!once){
+			int ii;
 			printf("bad v knot vector given, replacing with:\n");
-			for(int ii=0;ii<nkv;ii++)
+			for(ii=0;ii<nkv;ii++)
 				printf("[%d]=%f \n",ii,knotsv[ii]);
 			once = 1;
 		}
@@ -966,8 +972,9 @@ void CALLBACK nurbssurfEndcb(void *ud)
 	struct Vector * strips = (struct Vector *)ud;
 	ss = vector_get(struct stripState,strips,strips->n -1);
 	if(0){
+		int i;
 		printf("nurbssurfEnd #p %d #n %d\n",ss.pv.n, ss.nv.n);
-		for(int i=0;i<ss.pv.n;i++){
+		for(i=0;i<ss.pv.n;i++){
 			struct SFVec3f pp = vector_get(struct SFVec3f,&ss.pv,i);
 			printf("%f %f %f\n",pp.c[0],pp.c[1],pp.c[2]);
 		}
@@ -1221,7 +1228,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
 				for(i=0;i<mfd->n;i++){
 					for(j=0;j<3;j++){
-						xyzw[i*4 + j] = mfd->p[i].c[j];
+						xyzw[i*4 + j] = (float)mfd->p[i].c[j];
 					}
 				}
 			}else if(node->controlPoint->_nodeType == NODE_Coordinate){
@@ -1245,7 +1252,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			for(i=0;i<n;i++){
 				im = i < m ? i : m-1;
 				w = node->weight.p[im];
-				xyzw[i*4 + 3] = w;
+				xyzw[i*4 + 3] = (float)w;
 			}
 		}else{
 			for(i=0;i<n;i++) xyzw[i*4 + 3] = 1.0;
@@ -1263,8 +1270,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				knotsu[i] = (GLfloat)node->uKnot.p[i];
 			}
 			if(DEBG){
+				int ii;
 				printf("good u knot vector nk=%d\n",nku);
-				for(int ii=0;ii<nku;ii++)
+				for(ii=0;ii<nku;ii++)
 					printf("[%d]=%f \n",ii,knotsu[ii]);
 			}
 
@@ -1276,8 +1284,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			knotsu = MALLOC(void *, nku *sizeof(GLfloat));
 			generateUniformKnotVector(node->uOrder,nu, knotsu);
 			if(!once){
+				int ii;
 				printf("bad u knot vector given, replacing with:\n");
-				for(int ii=0;ii<nku;ii++)
+				for(ii=0;ii<nku;ii++)
 					printf("[%d]=%f \n",ii,knotsu[ii]);
 				once = 1;
 			}
@@ -1292,8 +1301,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				knotsv[i] = (GLfloat)node->vKnot.p[i];
 			}
 			if(DEBG){
+				int ii;
 				printf("good v knot vector nk=%d\n",nkv);
-				for(int ii=0;ii<nkv;ii++)
+				for(ii=0;ii<nkv;ii++)
 					printf("[%d]=%f \n",ii,knotsv[ii]);
 			}
 
@@ -1305,8 +1315,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
 			generateUniformKnotVector(node->vOrder,nv, knotsv);
 			if(!once){
+				int ii;
 				printf("bad v knot vector given, replacing with:\n");
-				for(int ii=0;ii<nkv;ii++)
+				for(ii=0;ii<nkv;ii++)
 					printf("[%d]=%f \n",ii,knotsv[ii]);
 				once = 1;
 			}
@@ -1316,6 +1327,9 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 		if(n && nku && nkv){
 			GLUnurbsObj *theNurb;
 			int ntessu, ntessv, mtessu, mtessv;
+			struct Vector * strips;
+			struct X3D_Node * texCoordNode;
+
 			mtessu = node->uOrder + 1;
 			ntessu = node->uTessellation;
 			mtessv = node->vOrder + 1;
@@ -1370,8 +1384,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 					mtessv = max(mtessv,(-ntessv * nv) + 1);
 				else
 					mtessv = max(mtessv,2*nv + 1);
-				mtessu *= node->_tscale;
-				mtessv *= node->_tscale;
+				mtessu = (int)((float)mtessu * node->_tscale);
+				mtessv = (int)((float)mtessv * node->_tscale);
 
 				gluNurbsProperty(theNurb,GLU_SAMPLING_METHOD,GLU_DOMAIN_DISTANCE);
 				gluNurbsProperty(theNurb,GLU_U_STEP,(GLfloat)mtessu);
@@ -1386,7 +1400,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			gluNurbsCallback(theNurb, GLU_NURBS_END_DATA, nurbssurfEndcb);
 			gluNurbsCallback(theNurb, GLU_NURBS_TEXTURE_COORD_DATA, nurbssurfTexcoordcb);
 			
-			struct Vector * strips = newVector(struct stripState,20);
+			strips = newVector(struct stripState,20);
 			gluNurbsCallbackData(theNurb,(GLvoid*)strips);
 
 			if(DEBG) printf("gluBeginSurface \n");
@@ -1425,7 +1439,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						on separate surface in nurbstexturecoordinate node
 						options: a) in texture callback b) when converting to polyrep
 			*/
-			struct X3D_Node * texCoordNode = node->texCoord;
+			texCoordNode = node->texCoord;
 			if(!texCoordNode){
 				//2 no texcoord node supplied 
 				switch('b'){
@@ -1436,17 +1450,17 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						// H2b: - compute defaults using equal spacing 
 						{
 							float du, dv, uu, vv;
-							int jj;
+							int jj,j,k;
 							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
 							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
 							du = 1.0f / (float)max(1,(nu -1));
 							dv = 1.0f / (float)max(1,(nv -1));
 							vv = 0.0f;
 							jj = 0;
-							for(int k=0;k<nv;k++){
+							for(k=0;k<nv;k++){
 								if(k == nv-1) vv = 1.0f; //they like end exact on 1.0f
 								uu = 0.0f;
-								for(int j=0;j<nu;j++){
+								for(j=0;j<nu;j++){
 									if(j == nu-1) uu = 1.0f;  //they like end exact on 1.0f
 									texCoord->point.p[jj].c[0] = uu;
 									texCoord->point.p[jj].c[1] = vv;
@@ -1480,14 +1494,16 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						//H1b: use linear order=2 and knot vectors, order from main surface
 						//DISCONFIRMED: the texturecoord callback is never called
 						float *tknotsu, *tknotsv;
+						int k;
+
 						tknotsu = MALLOC(float *, (nu+2) *sizeof(GLfloat));
 						tknotsv = MALLOC(float *, (nv+2) *sizeof(GLfloat));
 						generateUniformKnotVector(2,nu,tknotsu);
 						generateUniformKnotVector(2,nv,tknotsv);
 						printf("tknotsu = [");
-						for(int k=0;k<nu+2;k++) printf("%f ",tknotsu[k]);
+						for(k=0;k<nu+2;k++) printf("%f ",tknotsu[k]);
 						printf("]\ntknotsv = [");
-						for(int k=0;k<nv+2;k++) printf("%f ",tknotsv[k]);
+						for(k=0;k<nv+2;k++) printf("%f ",tknotsv[k]);
 						printf("]\n");
 						gluNurbsSurface(theNurb,nu+2,knotsu,nv+2,knotsv,4,4*nu,control2D,2,2,GL_MAP2_TEXTURE_COORD_2);
 					}
@@ -1507,7 +1523,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						// H2b: - compute defaults using equal spacing 
 						{
 							float du, dv, uu, vv;
-							int jj;
+							int jj,j,k;
+							float *control2D;
 							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
 							FREE_IF_NZ(texCoord->point.p);
 							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
@@ -1515,10 +1532,10 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 							dv = 1.0f / (float)max(1,(nv -1));
 							vv = 0.0f;
 							jj = 0;
-							for(int k=0;k<nv;k++){
+							for(k=0;k<nv;k++){
 								if(k == nv-1) vv = 1.0f; //they like end exact on 1.0f
 								uu = 0.0f;
-								for(int j=0;j<nu;j++){
+								for(j=0;j<nu;j++){
 									if(j == nu-1) uu = 1.0f;  //they like end exact on 1.0f
 									texCoord->point.p[jj].c[0] = uu;
 									texCoord->point.p[jj].c[1] = vv;
@@ -1532,7 +1549,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 							//H1a: use same order and knot vector as controlPoints 
 							// except using texcoord.point as nurbscontrol
 							//CONFIRMED when using H2b 'b' above to generate missing TexCoord node
-							float *control2D = (float*)texCoord->point.p;
+							control2D = (float*)texCoord->point.p;
 							gluNurbsSurface(theNurb,nku,knotsu,nkv,knotsv,2,2*nu,control2D,node->uOrder,node->vOrder,GL_MAP2_TEXTURE_COORD_2);
 
 						}
@@ -1558,8 +1575,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						// except I get a nurbs error with the following
 						GLfloat *edges = MALLOC(void *,  (2 * ntessu + 2 * ntessv) *2*sizeof(GLfloat));
 						GLfloat uspan, vspan;
-						uspan = 1.0/(float)(ntessu -1);
-						vspan = 1.0/(float)(ntessv -1);
+						uspan = 1.0f/(float)(ntessu -1);
+						vspan = 1.0f/(float)(ntessv -1);
 						for(i=0;i<ntessu-1;i++){
 							edges[i*2 +0] = (float)(i)*uspan;
 							edges[i*2 +1] = 0.0;
@@ -1610,7 +1627,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 					gluBeginTrim (theNurb);
 					for(m=0;m<tc->children.n;m++)
 					{
-						int j,k,dim;
+						int j,k,nk,dim;
 						struct X3D_ContourPolyline2D *cp2d;
 						struct X3D_NurbsCurve2D *nc2d;
 						struct X3D_Node *ctr = tc->children.p[m]; //trim->p[i];
@@ -1631,7 +1648,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 							case NODE_NurbsCurve2D:
 								nc2d = (struct X3D_NurbsCurve2D *)ctr;
 								dim = 2;
-								int nk = nc2d->controlPoint.n + nc2d->order;
+								nk = nc2d->controlPoint.n + nc2d->order;
 								if(nk == nc2d->knot.n)
 
 								cknot = MALLOC(void *, nk * sizeof(GLfloat));
@@ -1639,7 +1656,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 									dim = 3;
 									cweight = MALLOC(void *, nc2d->controlPoint.n * sizeof(GLfloat));
 									if(nc2d->weight.n == nc2d->controlPoint.n){
-										for(j=0;j<nc2d->weight.n;j++) cweight[j] = nc2d->weight.p[j];
+										for(j=0;j<nc2d->weight.n;j++) cweight[j] = (float)nc2d->weight.p[j];
 									}else{
 										for(j=0;j<nc2d->controlPoint.n;j++) cweight[j] = 1.0f;
 									}
@@ -1808,15 +1825,15 @@ void render_NurbsTrimmedSurface (struct X3D_NurbsTrimmedSurface *node) {
 void do_NurbsPositionInterpolator (void *node) {
 	struct X3D_NurbsPositionInterpolator *px;
 	struct X3D_Coordinate *control;
-	float knotrange[2], fraction;
+	float fraction; //knotrange[2], 
 	double *weight;
-	float *xyzw, cw[4];
+	float cw[4]; //*xyzw, 
 
 	if (!node) return;
 	px = (struct X3D_NurbsPositionInterpolator *) PPX(node);
 	if(NNC(px)){
 		float *knots;
-		int nk, n;
+		int i,nk, n;
 
 		MNC(px);
 		if(!px->_OK == TRUE){
@@ -1836,9 +1853,9 @@ void do_NurbsPositionInterpolator (void *node) {
 				weight = px->weight.p;
 			px->_xyzw.p = MALLOC(struct SFVec4f*,control->point.n * sizeof(struct SFVec4f));
 			px->_xyzw.n = n;
-			for(int i=0;i<control->point.n;i++){
+			for(i=0;i<control->point.n;i++){
 				float xyzw[4], wt;
-				wt =  weight ? weight[i] : 1.0f;
+				wt =  weight ? (float)weight[i] : 1.0f;
 				veccopy3f(xyzw,control->point.p[i].c);
 				vecscale3f(xyzw,xyzw,wt);
 				xyzw[3] = wt;
@@ -1848,7 +1865,7 @@ void do_NurbsPositionInterpolator (void *node) {
 
 				nk = px->knot.n;
 				knots = MALLOC(void *, nk * sizeof(GLfloat));
-				for(int i=0;i<nk;i++){
+				for(i=0;i<nk;i++){
 					knots[i] = (GLfloat)px->knot.p[i];
 				}
 				//printf("good knot nk=%d\n",nk);
@@ -1863,8 +1880,9 @@ void do_NurbsPositionInterpolator (void *node) {
 				knots = MALLOC(void *, nk *sizeof(GLfloat));
 				generateUniformKnotVector(px->order,n, knots);
 				if(!once){
+					int ii;
 					printf("bad knot vector, replacing with:\n");
-					for(int ii=0;ii<nk;ii++)
+					for(ii=0;ii<nk;ii++)
 						printf("[%d]=%f \n",ii,knots[ii]);
 					once = 1;
 				}
@@ -1904,15 +1922,15 @@ void do_NurbsPositionInterpolator (void *node) {
 void do_NurbsOrientationInterpolator (void *node) {
 	struct X3D_NurbsOrientationInterpolator *px;
 	struct X3D_Coordinate *control;
-	float knotrange[2], fraction;
+	float fraction; //knotrange[2], 
 	double *weight;
-	float *xyzw, cw[4];
+	//float *xyzw; //, cw[4];
 
 	if (!node) return;
 	px = (struct X3D_NurbsOrientationInterpolator *) PPX(node);
 	if(NNC(px)){
 		float *knots;
-		int nk, n;
+		int i,nk, n;
 
 		MNC(px);
 		if(!px->_OK == TRUE){
@@ -1932,9 +1950,9 @@ void do_NurbsOrientationInterpolator (void *node) {
 				weight = px->weight.p;
 			px->_xyzw.p = MALLOC(struct SFVec4f*,control->point.n * sizeof(struct SFVec4f));
 			px->_xyzw.n = n;
-			for(int i=0;i<control->point.n;i++){
+			for(i=0;i<control->point.n;i++){
 				float xyzw[4], wt;
-				wt =  weight ? weight[i] : 1.0f;
+				wt =  weight ? (float)weight[i] : 1.0f;
 				veccopy3f(xyzw,control->point.p[i].c);
 				vecscale3f(xyzw,xyzw,wt);
 				xyzw[3] = wt;
@@ -1944,7 +1962,7 @@ void do_NurbsOrientationInterpolator (void *node) {
 
 				nk = px->knot.n;
 				knots = MALLOC(void *, nk * sizeof(GLfloat));
-				for(int i=0;i<nk;i++){
+				for(i=0;i<nk;i++){
 					knots[i] = (GLfloat)px->knot.p[i];
 				}
 				//printf("good knot nk=%d\n",nk);
@@ -1959,8 +1977,9 @@ void do_NurbsOrientationInterpolator (void *node) {
 				knots = MALLOC(void *, nk *sizeof(GLfloat));
 				generateUniformKnotVector(px->order,n, knots);
 				if(!once){
+					int ii;
 					printf("bad knot vector, replacing with:\n");
-					for(int ii=0;ii<nk;ii++)
+					for(ii=0;ii<nk;ii++)
 						printf("[%d]=%f \n",ii,knots[ii]);
 					once = 1;
 				}
@@ -2012,9 +2031,10 @@ void do_NurbsOrientationInterpolator (void *node) {
 				float default_direction [4] = {1.0f, 0.0f, 0.0f, 0.0f};
 				veccopy4f(rot,default_direction);
 			}else{
+				float cosine, angle;
 				vecnormalize3f(perp,perp);
-				float cosine = vecdot3f(dir,dirx);
-				float angle = atan2(sine,cosine);
+				cosine = vecdot3f(dir,dirx);
+				angle = atan2f(sine,cosine);
 				veccopy3f(rot,perp);
 				rot[3] = angle;
 			}
@@ -2036,9 +2056,10 @@ void do_NurbsOrientationInterpolator (void *node) {
 				veccopy4f(rot,default_direction);
 				printf(".");
 			}else{
+				float cosine,angle;
 				vecnormalize3f(perp,perp);
-				float cosine = vecdot3f(dir0,dir);
-				float angle = acos(cosine);
+				cosine = vecdot3f(dir0,dir);
+				angle = acosf(cosine);
 				veccopy3f(rot,perp);
 				rot[3] = -angle;
 			}
@@ -2058,7 +2079,8 @@ void do_NurbsOrientationInterpolator (void *node) {
 }
 
 void do_NurbsSurfaceInterpolator (void *_node) {
-
+	float uv[2], xyzw[4];
+	int ok;
 	struct X3D_NurbsSurfaceInterpolator *node;
 
 	if (!_node) return;
@@ -2081,7 +2103,7 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 					xyzw = MALLOC(void *, n * 4 * sizeof(GLfloat));
 					for(i=0;i<mfd->n;i++){
 						for(j=0;j<3;j++){
-							xyzw[i*4 + j] = mfd->p[i].c[j];
+							xyzw[i*4 + j] = (float)mfd->p[i].c[j];
 						}
 					}
 				}else if(node->controlPoint->_nodeType == NODE_Coordinate){
@@ -2106,7 +2128,7 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 				for(i=0;i<n;i++){
 					im = i < m ? i : m-1;
 					w = node->weight.p[im];
-					xyzw[i*4 + 3] = w;
+					xyzw[i*4 + 3] = (float)w;
 				}
 			}else{
 				for(i=0;i<n;i++) xyzw[i*4 + 3] = 1.0;
@@ -2127,8 +2149,9 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 					knotsu[i] = (GLfloat)node->uKnot.p[i];
 				}
 				if(DEBG){
+					int ii;
 					printf("good u knot vector nk=%d\n",nku);
-					for(int ii=0;ii<nku;ii++)
+					for(ii=0;ii<nku;ii++)
 						printf("[%d]=%f \n",ii,knotsu[ii]);
 				}
 
@@ -2140,8 +2163,9 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 				knotsu = MALLOC(void *, nku *sizeof(GLfloat));
 				generateUniformKnotVector(node->uOrder,nu, knotsu);
 				if(!once){
+					int ii;
 					printf("bad u knot vector given, replacing with:\n");
-					for(int ii=0;ii<nku;ii++)
+					for(ii=0;ii<nku;ii++)
 						printf("[%d]=%f \n",ii,knotsu[ii]);
 					once = 1;
 				}
@@ -2156,8 +2180,9 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 					knotsv[i] = (GLfloat)node->vKnot.p[i];
 				}
 				if(DEBG){
+					int ii;
 					printf("good v knot vector nk=%d\n",nkv);
-					for(int ii=0;ii<nkv;ii++)
+					for(ii=0;ii<nkv;ii++)
 						printf("[%d]=%f \n",ii,knotsv[ii]);
 				}
 
@@ -2169,8 +2194,9 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 				knotsv = MALLOC(void *, nkv *sizeof(GLfloat));
 				generateUniformKnotVector(node->vOrder,nv, knotsv);
 				if(!once){
+					int ii;
 					printf("bad v knot vector given, replacing with:\n");
-					for(int ii=0;ii<nkv;ii++)
+					for(ii=0;ii<nkv;ii++)
 						printf("[%d]=%f \n",ii,knotsv[ii]);
 					once = 1;
 				}
@@ -2188,8 +2214,6 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 	}
 
 	if(!node->_OK) return;
-	float uv[2], xyzw[4];
-	int ok;
 	
 	veccopy2f(uv,node->set_fraction.c);
 
@@ -2204,11 +2228,11 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 		float udir[3], vdir[3], normal[3], xyz1[4];
 		ok = SurfacePoint(node->uDimension,node->uOrder-1,node->_uKnot.p, 
 							node->vDimension,node->vOrder-1,node->_vKnot.p,
-							(float *)node->_controlPoint.p,uv[1],uv[0]+.01,xyz1);
+							(float *)node->_controlPoint.p,uv[1],uv[0]+.01f,xyz1);
 		vecdif3f(udir,xyz1,xyzw);
 		ok = SurfacePoint(node->uDimension,node->uOrder-1,node->_uKnot.p, 
 							node->vDimension,node->vOrder-1,node->_vKnot.p,
-							(float *)node->_controlPoint.p,uv[1]+.01,uv[0],xyz1);
+							(float *)node->_controlPoint.p,uv[1]+.01f,uv[0],xyz1);
 		vecdif3f(vdir,xyz1,xyzw);
 		veccross3f(normal,udir,vdir);
 		vecnormalize3f(normal,normal);
@@ -2230,41 +2254,46 @@ void do_NurbsSurfaceInterpolator (void *_node) {
 //SWUNG
 
 void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
+	struct X3D_NurbsPatchSurface *patch;
+	struct X3D_Coordinate *controlPoint;
+	struct X3D_NurbsCurve2D *trajectoryxz;
+	struct X3D_NurbsCurve2D *profileyz;
+	int nt, np,ic,j,i,k;
+	double *xyzp, *xyzt;
+	float *xyz;
+
 	MARK_NODE_COMPILED
 	//strategy: generate 3D control net from curves, 
 	// then delegate to NurbsPatchSurface
 	//Swung: 
-	struct X3D_NurbsPatchSurface *patch;
-	struct X3D_Coordinate *controlPoint;
 	if(!node->_patch){
-		patch = node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
-		controlPoint = patch->controlPoint = createNewX3DNode(NODE_Coordinate);
+		patch = (struct X3D_NurbsPatchSurface*)node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
+		controlPoint =(struct X3D_Coordinate*) patch->controlPoint = createNewX3DNode(NODE_Coordinate);
 	}else{
-		patch = node->_patch;
-		controlPoint = patch->controlPoint;
+		patch = (struct X3D_NurbsPatchSurface*) node->_patch;
+		controlPoint = (struct X3D_Coordinate*)patch->controlPoint;
 	}
-	struct X3D_NurbsCurve2D *trajectoryxz = (struct X3D_NurbsCurve2D *)node->trajectoryCurve;
-	struct X3D_NurbsCurve2D *profileyz = (struct X3D_NurbsCurve2D *)node->profileCurve;
-	int nt, np;
-	double *xyzp, *xyzt;
+	trajectoryxz = (struct X3D_NurbsCurve2D *)node->trajectoryCurve;
+	profileyz = (struct X3D_NurbsCurve2D *)node->profileCurve;
+
 	nt = trajectoryxz->controlPoint.n;
 	np = profileyz->controlPoint.n;
 	xyzp = (double*)profileyz->controlPoint.p;
 	xyzt = (double*)trajectoryxz->controlPoint.p;
-	float *xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
-	controlPoint->point.p = xyz;
+	xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
+	controlPoint->point.p = (struct SFVec3f*)xyz;
 	controlPoint->point.n = nt * np;
-	int ic = 0;
-	for(int j=0;j<nt;j++){
+	ic = 0;
+	for(j=0;j<nt;j++){
 		float pt[3];
 		double2float(pt,&xyzt[j*2],2);
-		for(int i=0;i<np;i++){
+		for(i=0;i<np;i++){
 			float pp[3];
-			double2float(pp,&xyzp[2*i],2);
 			float cosine, sine, swingangle;
-			swingangle = atan2(pt[1],pt[0]);
-			cosine = cos(swingangle);
-			sine = sin(swingangle);
+			double2float(pp,&xyzp[2*i],2);
+			swingangle = atan2f(pt[1],pt[0]);
+			cosine = cosf(swingangle);
+			sine = sinf(swingangle);
 			xyz[ic*3 + 0] = pt[0] + cosine * pp[0];
 			xyz[ic*3 + 1] = pp[1];
 			xyz[ic*3 + 2] = pt[1] + sine * pp[0];
@@ -2278,18 +2307,18 @@ void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
 	memcpy(patch->uKnot.p,profileyz->knot.p,profileyz->knot.n * sizeof(double));
 	patch->uKnot.n = profileyz->knot.n;
 	patch->uOrder = profileyz->order;
-	patch->uTessellation = profileyz->tessellation * profileyz->_tscale;
+	patch->uTessellation = (int)((float)profileyz->tessellation * profileyz->_tscale);
 	//v will be trajectory
 	patch->vDimension = nt;
 	patch->vKnot.p = malloc(trajectoryxz->knot.n * sizeof(double));
 	memcpy(patch->vKnot.p,trajectoryxz->knot.p,trajectoryxz->knot.n * sizeof(double));
 	patch->vKnot.n = trajectoryxz->knot.n;
 	patch->vOrder = trajectoryxz->order;
-	patch->vTessellation = trajectoryxz->tessellation * profileyz->_tscale;
+	patch->vTessellation = (int)((float)trajectoryxz->tessellation * profileyz->_tscale);
 	if(0){
 		int ic = 0;
-		for(int j=0;j<nt;j++){
-			for(int k=0;k<np;k++){
+		for(j=0;j<nt;j++){
+			for(k=0;k<np;k++){
 				printf("%f %f %f,",xyz[ic*3 + 0], xyz[ic*3 +1], xyz[ic*3 +2]);
 				ic++;
 			}
@@ -2297,7 +2326,7 @@ void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
 		}
 		printf("uDimension=%d vDimension=%d nc=%d\n",np,nt,ic);
 	}
-	compile_NurbsPatchSurface(node->_patch);
+	compile_NurbsPatchSurface((struct X3D_NurbsPatchSurface*)node->_patch);
 }
 void rendray_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
 		COMPILE_IF_REQUIRED
@@ -2316,9 +2345,9 @@ void render_NurbsSwungSurface (struct X3D_NurbsSwungSurface *node) {
 		COMPILE_IF_REQUIRED
 		if (!node->_patch->_intern) 
 			return;
-		patch = node->_patch;
+		patch = (struct X3D_NurbsPatchSurface*) node->_patch;
 		CULL_FACE(patch->solid)
-		render_polyrep(patch);
+		render_polyrep(X3D_NODE(patch));
 }
 
 
@@ -2328,7 +2357,7 @@ int compute_tessellation(int tessellation, int order, int ncontrol ){
 		and given the node->tesselation value, order and nDimension or ncontrol for the axis
 		return a computed tesselation value
 	*/
-	int mtessv, ntessv, mtessu, ntessu;
+	int mtessu, ntessu; //mtessv, ntessv, 
 	mtessu = order + 1;
 	ntessu = tessellation;
 				
@@ -2344,19 +2373,19 @@ void compute_knotvector(int order, int ncontrol, int nknots, double *knots, int 
 	//for a given axis, QCs the knot vector, and replaces if necessary
 	//will malloc the necessary newknot vector - caller responsible
 	//range: pass in float[2] already allocated
-	int nku;
+	int nku,i,ii;
 	float *knotsu;
 	if(knotsOK(order,ncontrol,nknots,knots)){
 		//could do another check: max number of consecutive equal value knots == order
 		//could do another check: knot values == or ascending
 		nku = nknots;
 		knotsu = MALLOC(void *, nku * sizeof(GLfloat));
-		for(int i=0;i<nku;i++){
+		for(i=0;i<nku;i++){
 			knotsu[i] = (GLfloat)knots[i];
 		}
 		if(DEBG){
 			printf("good u knot vector nk=%d\n",nku);
-			for(int ii=0;ii<nku;ii++)
+			for(ii=0;ii<nku;ii++)
 				printf("[%d]=%f \n",ii,knotsu[ii]);
 		}
 		*newknots = knotsu;
@@ -2370,7 +2399,7 @@ void compute_knotvector(int order, int ncontrol, int nknots, double *knots, int 
 		generateUniformKnotVector(order,ncontrol, knotsu);
 		if(!once){
 			printf("bad u knot vector given, replacing with:\n");
-			for(int ii=0;ii<nku;ii++)
+			for(ii=0;ii<nku;ii++)
 				printf("[%d]=%f \n",ii,knotsu[ii]);
 			once = 1;
 		}
@@ -2388,19 +2417,20 @@ void compute_weightedcontrol(double *xyz, int dim, int nc, int nweight, double *
 	dim = 2 for incoming xy (2D) control
 	outgoing is [w*x,w*y,w*z,w]
 */
+	int i,j;
 	float *xyzw;
 
 	xyzw = MALLOC(float *, nc * 4 * sizeof(GLfloat));
-	for(int i=0;i<nc;i++)
+	for(i=0;i<nc;i++)
 		xyzw[i*4 +0] = xyzw[i*4 +1] =xyzw[i*4 +2] =xyzw[i*4 +3] = 0.0f;
-	for(int i=0;i<nc;i++){
-		for(int j=0;j<dim;j++){
+	for(i=0;i<nc;i++){
+		for(j=0;j<dim;j++){
 			xyzw[i*4 + j] = (float)xyz[i*dim + j];
 		}
 		xyzw[i*4 + 3] = 1.0f;
 	}
 	if(nweight && nweight == nc ){
-		for(int i=0;i<nc;i++){
+		for(i=0;i<nc;i++){
 			float wt = (float)weights[i];
 			xyzw[i*4 + 3] = wt;
 			vecscale3f(&xyzw[i*4],&xyzw[i*4],wt);
@@ -2412,7 +2442,7 @@ void compute_doublecontrol(struct X3D_Node *controlPoint, int *nc, double** xyz 
 	/*  rather than switch-casing elsewhere in the code, we'll get both types into double here
 	
 	*/
-	int n;
+	int n,i;
 	double *xyzd = NULL;
 	n = 0;
 	switch(controlPoint->_nodeType){
@@ -2421,7 +2451,7 @@ void compute_doublecontrol(struct X3D_Node *controlPoint, int *nc, double** xyz 
 			struct X3D_Coordinate *tcoord = (struct X3D_Coordinate*) controlPoint;
 			n = tcoord->point.n;
 			xyzd = MALLOC(double *,n * 3 * sizeof(double));
-			for(int i=0;i<tcoord->point.n;i++)
+			for(i=0;i<tcoord->point.n;i++)
 				float2double(&xyzd[i*3],tcoord->point.p[i].c,3);
 		}
 		break;
@@ -2430,7 +2460,7 @@ void compute_doublecontrol(struct X3D_Node *controlPoint, int *nc, double** xyz 
 			struct X3D_CoordinateDouble *tcoord = (struct X3D_CoordinateDouble *)controlPoint;
 			n = tcoord->point.n;
 			xyzd = MALLOC(double *,n * 3 * sizeof(double));
-			for(int i=0;i<tcoord->point.n;i++)
+			for(i=0;i<tcoord->point.n;i++)
 				veccopyd(&xyzd[i*3],tcoord->point.p[i].c);
 
 		}
@@ -2443,17 +2473,18 @@ void compute_doublecontrol(struct X3D_Node *controlPoint, int *nc, double** xyz 
 
 }
 float *vecabs3f(float *res, float *p){
-	for(int i=0;i<3;i++)
-		res[i] = fabs(p[i]);
+	int i;
+	for(i=0;i<3;i++)
+		res[i] = fabsf(p[i]);
 	return res;
 }
 int	ivecdominantdirection3f(int *irank, float *p){
 	float rmax, rmin, vabs[3];
-	int iret = 0;
+	int i,iret = 0;
 	vecabs3f(vabs,p);
 	rmax = max(vabs[0],max(vabs[1],vabs[2]));
 	rmin = min(vabs[0],min(vabs[1],vabs[2]));
-	for(int i=0;i<3;i++){
+	for(i=0;i<3;i++){
 		irank[i] = 1;
 		if(vabs[i] == rmax) {
 			irank[i] = 2;
@@ -2467,7 +2498,7 @@ void convert_mesh_to_polyrep(float *xyz, int npts, float *nxyz, int* tindex, int
 	//this is a bit like compile_polyrep, except the virt_make is below
 
 	struct X3D_PolyRep *rep_, *polyrep;
-	GLuint *cindex, *norindex;
+	GLuint *norindex; //*cindex, 
 
 	//from compile_polyrep:
 	//node = X3D_NODE(innode);
@@ -2545,13 +2576,15 @@ void convert_mesh_to_polyrep(float *xyz, int npts, float *nxyz, int* tindex, int
 
 }
 void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
-	MARK_NODE_COMPILED
-	//Swept: 
 	int nt, np;
 	double *xyzx;
 	double *xyzt;
+	struct X3D_NurbsCurve *trajectory;
+	struct X3D_NurbsCurve2D *xsection;
+	MARK_NODE_COMPILED
+	//Swept: 
 
-	struct X3D_NurbsCurve *trajectory = (struct X3D_NurbsCurve *)node->trajectoryCurve;
+	trajectory = (struct X3D_NurbsCurve *)node->trajectoryCurve;
 	xyzt = NULL;
 	nt = 0;
 	/*
@@ -2580,7 +2613,7 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 	}
 	*/
 	compute_doublecontrol(trajectory->controlPoint,&nt,&xyzt);
-	struct X3D_NurbsCurve2D *xsection = (struct X3D_NurbsCurve2D *)node->crossSectionCurve;
+	xsection = (struct X3D_NurbsCurve2D *)node->crossSectionCurve;
 
 	np = xsection->controlPoint.n;
 	xyzx = (double*)xsection->controlPoint.p;
@@ -2623,22 +2656,26 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		//ALGO 1 Suv = T(v) + C(u)
 		struct X3D_NurbsPatchSurface *patch;
 		struct X3D_Coordinate *controlPoint;
+		float *xyz;
+		int ic,j,i;
+		double *weight;
+
 		if(!node->_patch){
-			patch = node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
-			controlPoint = patch->controlPoint = createNewX3DNode(NODE_Coordinate);
+			patch = (struct X3D_NurbsPatchSurface*)node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
+			controlPoint = (struct X3D_Coordinate*)patch->controlPoint = createNewX3DNode(NODE_Coordinate);
 		}else{
-			patch = node->_patch;
-			controlPoint = patch->controlPoint;
+			patch = (struct X3D_NurbsPatchSurface*)node->_patch;
+			controlPoint = (struct X3D_Coordinate*)patch->controlPoint;
 		}
-		float *xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
-		controlPoint->point.p = xyz;
+		xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
+		controlPoint->point.p = (struct SFVec3f*) xyz;
 		controlPoint->point.n = nt * np;
 
-		int ic = 0;
-		for(int j=0;j<nt;j++){
+		ic = 0;
+		for(j=0;j<nt;j++){
 			float pt[3];
 			double2float(pt,&xyzt[j*3],3);
-			for(int i=0;i<np;i++){
+			for(i=0;i<np;i++){
 				float pp[3];
 				double2float(pp,&xyzx[2*i],2);
 				xyz[ic*3 + 0] = pt[0] + pp[0];
@@ -2648,15 +2685,15 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 			}
 		}
 
-		double *weight = NULL;
+		weight = NULL;
 		if((trajectory->weight.n && trajectory->weight.n == nt) || 
 			(xsection->weight.n  &&  xsection->weight.n  == np)){
 			//we have some non-default weights, so apply the piegl formula p.473
 			// w(i,j) = wT(j) x wC(i)  (weights)
 			weight = MALLOC(double*,nt * np * sizeof(double));
-			for(int j=0;j<nt;j++){
+			for(j=0;j<nt;j++){
 				double wtTj = trajectory->weight.p[j];
-				for(int i=0;i<np;i++)
+				for(i=0;i<np;i++)
 					weight[j*np + i] = wtTj * xsection->weight.p[i];
 			}
 		}
@@ -2673,18 +2710,18 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		memcpy(patch->uKnot.p,xsection->knot.p,xsection->knot.n * sizeof(double));
 		patch->uKnot.n = xsection->knot.n;
 		patch->uOrder = xsection->order;
-		patch->uTessellation = xsection->tessellation * xsection->_tscale;
+		patch->uTessellation = (int)((float)xsection->tessellation * xsection->_tscale);
 		//v will be trajectory
 		patch->vDimension = nt;
 		patch->vKnot.p = malloc(xsection->knot.n * sizeof(double));
 		memcpy(patch->vKnot.p,trajectory->knot.p,trajectory->knot.n * sizeof(double));
 		patch->vKnot.n = trajectory->knot.n;
 		patch->vOrder = trajectory->order;
-		patch->vTessellation = trajectory->tessellation * trajectory->_tscale;
+		patch->vTessellation = (int)((float)trajectory->tessellation * trajectory->_tscale);
 		if(0){
-			int ic = 0;
-			for(int j=0;j<nt;j++){
-				for(int k=0;k<np;k++){
+			int j,k,ic = 0;
+			for(j=0;j<nt;j++){
+				for(k=0;k<np;k++){
 					printf("%f %f %f,",xyz[ic*3 + 0], xyz[ic*3 +1], xyz[ic*3 +2]);
 					ic++;
 				}
@@ -2692,28 +2729,41 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 			}
 			printf("uDimension=%d vDimension=%d nc=%d\n",np,nt,ic);
 		}
-		compile_NurbsPatchSurface(node->_patch);
+		compile_NurbsPatchSurface((struct X3D_NurbsPatchSurface*)node->_patch);
 	} //end method == 1
 	if(node->_method == 2){
 		//ALGO 2 skinning like extrusion
 		int mtessv, mtessu, nku, nkv;
+		int i,DBGSW;
 		float *knotsu,*knotsv,*xyzwu,*xyzwv, urange[2],vrange[2];
+		float *Tv, *Tangentv, *Bup, *pts;
+		float *Qu, *Nu;
+		float *normals;
+		int *idx;
+		int ic, it;
+		float matB0[9];
+		int ntri;
+
+
+		int mtessu1, mtessv1;
+
 		mtessu = compute_tessellation(xsection->tessellation,xsection->order,np);
-		mtessu *= xsection->_tscale;
+		mtessu = (int)((float)mtessu * xsection->_tscale);
 		mtessv = compute_tessellation(trajectory->tessellation,trajectory->order,nt);
-		mtessv *= trajectory->_tscale;
+		mtessv = (int)((float)mtessv * trajectory->_tscale);
 		compute_knotvector(xsection->order,np,xsection->knot.n,xsection->knot.p,&nku,&knotsu,urange);
 		compute_knotvector(trajectory->order,nt,trajectory->knot.n,trajectory->knot.p,&nkv,&knotsv,vrange);
 		compute_weightedcontrol(xyzt,3,nt, trajectory->weight.n, trajectory->weight.p, &xyzwv);
 		compute_weightedcontrol(xyzx,2,np, xsection->weight.n, xsection->weight.p, &xyzwu);
-		int DBGSW = FALSE;
+		DBGSW = FALSE;
 		if(DBGSW){
+			int i;
 			printf("np %d mtessu %d nku %d, nt %d mtessv %d, nkv %d",np,mtessu,nku,nt,mtessv,nkv);
 			printf("trajectory nt %d points:\n",nt);
-			for(int i=0;i<nt;i++)
+			for(i=0;i<nt;i++)
 				printf("%d %f %f %f %f\n",i,xyzwv[i*4 + 0],xyzwv[i*4 + 1],xyzwv[i*4 + 2],xyzwv[i*4 + 3]);
 			printf("xsection np %d points:\n",np);
-			for(int i=0;i<np;i++)
+			for(i=0;i<np;i++)
 				printf("%d %f %f %f %f\n",i,xyzwu[i*4 + 0],xyzwu[i*4 + 1],xyzwu[i*4 + 2],xyzwu[i*4 + 3]);
 		}
 		// 1. compute tesselation points along trajectory curve (use piegl CurvePoint)
@@ -2724,20 +2774,18 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		//				Ti = T'(vi)/|T'(vi)| //get the tangent vector Tangentv along the trajectory curve, can use delta or Derivs 	
 		//				bi = Bi-1 - (Bi-1 dot Ti)Ti  //where dot is the dot product
 		//				Bi = bi/|bi|
-		float *Tv, *Tangentv, *Bup, *pts;
-		int mtessu1, mtessv1;
 		mtessu1 = mtessu + 1;
 		mtessv1 = mtessv + 1;
 		Tv = MALLOC(float*,(mtessv1)*3*sizeof(float));
 		Tangentv = MALLOC(float*,(mtessv1)*3*sizeof(float));
 		Bup = MALLOC(float*,(mtessv1)*3*sizeof(float));
-		for(int i=0;i<mtessv1;i++){
+		for(i=0;i<mtessv1;i++){
 			float cw[4], cw1[4], delta[3], v;
 			v = (float)i*(vrange[1]-vrange[0])/(float)mtessv;
 			CurvePoint(nt, trajectory->order-1, knotsv, xyzwv, v, cw );
 			veccopy3f(&Tv[i*3],cw);
 			//- get direction vector aka Tangent T of curve using Delta or Derivs, as xsection normal
-			CurvePoint(nt, trajectory->order-1, knotsv, xyzwv, v+.01, cw1 );
+			CurvePoint(nt, trajectory->order-1, knotsv, xyzwv, v+.01f, cw1 );
 			vecdif3f(delta,cw1,cw);
 			//	Ti = T'(vi)/|T'(vi)| //get the tangent vector Tangentv along the trajectory curve, can use delta or Derivs 	
 			vecnormalize3f(delta,delta);
@@ -2745,11 +2793,11 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 			//- project up-vector from last profile (1st profile up is arbitrary)
 			if(i==0){
 				//	B0 - arbitrary unit vector perpendicular/orthogonal to trajectory tangent vector at v0
-				int irank[3],idom, inondom;
+				int k,irank[3],idom, inondom;
 				float perp[3], perp2[3];
 				idom = ivecdominantdirection3f(irank,delta);
 				inondom = idom + 1 > 2 ? 0 : idom + 1;
-				for(int k=0;k<3;k++) if(irank[k] == 0) inondom = k;
+				for(k=0;k<3;k++) if(irank[k] == 0) inondom = k;
 				memset(perp,0,3*sizeof(float));
 				perp[inondom] = 1.0;  //close to perpendicular, but not quite
 				veccross3f(perp2,delta,perp); //perp2 perpendicular to perp and delta
@@ -2767,12 +2815,12 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		}
 		if(DBGSW){
 			printf("trajectory T:\n");
-			for(int i=0;i<mtessv1;i++){
+			for(i=0;i<mtessv1;i++){
 				printf("%d [%f %f %f] \n",i,
 					Tv[i*3 +0],Tv[i*3 +1],Tv[i*3 +2]);
 			}
 			printf("trajectory T', B:\n");
-			for(int i=0;i<mtessv1;i++){
+			for(i=0;i<mtessv1;i++){
 				printf("%d [%f %f %f] [%f %f %f] \n",i,
 					Tangentv[i*3 +0],Tangentv[i*3 +1],Tangentv[i*3 +2],
 					Bup[i*3 +0],Bup[i*3 +1],Bup[i*3 +2]);
@@ -2783,16 +2831,16 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		//	//compute backward Bup, and average fore and aft Bup
 		//}
 		// 2. comupte tesselated cross section aka xsection aka profile (use piegl CurvePoint)
-		float *Qu = MALLOC(float*,(mtessu+1)*3*sizeof(float));  //cross section points
-		float *Nu = MALLOC(float*,(mtessu+1)*3*sizeof(float));  //cross section normals
+		Qu = MALLOC(float*,(mtessu+1)*3*sizeof(float));  //cross section points
+		Nu = MALLOC(float*,(mtessu+1)*3*sizeof(float));  //cross section normals
 		if(DBGSW) printf("Xsection tess pts:\n");
-		for(int i=0;i<mtessu1;i++){
+		for(i=0;i<mtessu1;i++){
 			float u, cw[4], cw1[4], delta[3], normal[3];
 			float zzz[3] = {0.0f,0.0f,1.0f};
 			u = (float)i*(urange[1]-urange[0])/(float)mtessu;
 			CurvePoint(np, xsection->order-1, knotsu, xyzwu, u, cw );
 			veccopy3f(&Qu[i*3],cw);
-			CurvePoint(np, xsection->order-1, knotsu, xyzwu, u+.01, cw1 );
+			CurvePoint(np, xsection->order-1, knotsu, xyzwu, u+.01f, cw1 );
 			vecdif3f(delta,cw1,cw);
 			vecnormalize3f(delta,delta);
 			veccross3f(normal,zzz,delta);
@@ -2804,14 +2852,14 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		//		a) insert up- and tangent- oriented xsection points
 		//		b) skin: join current xsection points with last with triangles
 		pts = MALLOC(float*,mtessu1 * mtessv1 * 3 * sizeof(float));
-		float *normals = MALLOC(float*,mtessu1 * mtessv1 * 3 * sizeof(float));
-		int *idx = MALLOC(int *, mtessu * mtessv * 2 * 3 * sizeof(int));
-		int ic = 0;
-		int it = 0;
-		float matB0[9];
-		for(int i=0;i<mtessv1;i++){
+		normals = MALLOC(float*,mtessu1 * mtessv1 * 3 * sizeof(float));
+		idx = MALLOC(int *, mtessu * mtessv * 2 * 3 * sizeof(int));
+		ic = 0;
+		it = 0;
+		for(i=0;i<mtessv1;i++){
 			//insert oriented xsection at T(v)
 			float mat [9], matt[9];
+			int j;
 			//set up 3x3 rotation by using 3 perpendicular local unit vectors as rot mat rows
 			//http://renderdan.blogspot.ca/2006/05/rotation-matrix-from-axis-vectors.html
 
@@ -2829,7 +2877,7 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 				memcpy(matB0,mat,9*sizeof(float));
 			}
 			matmultiply3f(mat,matt,matB0);
-			for(int j=0;j<mtessu1;j++){
+			for(j=0;j<mtessu1;j++){
 				float pp[3], norm[3];
 				matmultvec3f(pp, mat, &Qu[j*3] ); //orient profile point
 				vecadd3f(pp,pp,&Tv[i*3]); //add on trajectory point
@@ -2840,9 +2888,10 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 			}
 			//connect to last xsection with triangles
 			if(i > 0){
-				int kk = (i-1)*mtessu1;
-				int mm = i*mtessu1;
-				for(int j=0;j<mtessu;j++){
+				int j,kk,mm;
+				kk = (i-1)*mtessu1;
+				mm = i*mtessu1;
+				for(j=0;j<mtessu;j++){
 					// 1     1  3
 					// 0  2     2
 					//first triangle
@@ -2857,19 +2906,21 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 			}
 		}
 		//assign to something 
-		int ntri = it/3;
+		ntri = it/3;
 		if(DBGSW){
 			printf("ntri %d triangle indexes:\n",ntri);
-			for(int i=0;i<ntri;i++){
+			for(i=0;i<ntri;i++){
+				int j;
 				printf("%d [",i);
-				for(int j=0;j<3;j++){
+				for(j=0;j<3;j++){
 					printf("%d ",idx[i*3 +j]);
 				}
 				printf("\n");
 			}
 			printf("triangle vertices:\n");
-			for(int i=0;i<ntri;i++){
-				for(int j=0;j<3;j++){
+			for(i=0;i<ntri;i++){
+				int j;
+				for(j=0;j<3;j++){
 					float pt[3];
 					int ix = idx[i*3 +j];
 					veccopy3f(pt,&pts[ix*3]);
@@ -2879,7 +2930,7 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		}
 
 		//send to polyrep
-		convert_mesh_to_polyrep(pts,ic,normals,idx,ntri,node);
+		convert_mesh_to_polyrep(pts,ic,normals,idx,ntri,X3D_NODE(node));
 	}
 
 }
@@ -2913,7 +2964,7 @@ void render_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
 		struct X3D_NurbsPatchSurface *patch;
 		if (!node->_patch->_intern) 
 			return;
-		patch = node->_patch;
+		patch = (struct X3D_NurbsPatchSurface *)node->_patch;
 		CULL_FACE(patch->solid)
 		render_polyrep(patch);
 	}
@@ -2926,9 +2977,10 @@ void render_NurbsSweptSurface (struct X3D_NurbsSweptSurface *node) {
 	}
 }
 void compile_NurbsSet(struct X3D_NurbsSet *node){
+	int i;
 	MARK_NODE_COMPILED
 	//tessellationScale
-	for(int i=0;i<node->geometry.n;i++){
+	for(i=0;i<node->geometry.n;i++){
 		struct X3D_Node *gn = (struct X3D_Node*)node->geometry.p[i];
 		switch(gn->_nodeType){
 			case NODE_NurbsCurve:

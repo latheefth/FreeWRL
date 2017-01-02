@@ -276,102 +276,107 @@ bool movie_load(resource_item_t *res){
 	}
 
 #elif MOVIETEXTURE_FFMPEG
+	{
+		void *opaque;
+		int loaded;
+		loaded = movie_load_from_file(res->actual_file,&opaque);
+		retval = loaded > -1 ? TRUE : FALSE;
+		if(loaded){
+			int freq,channels,size,bits;
+			unsigned char * pcmbuf;
+			struct X3D_MovieTexture *node;
 
-	void *opaque;
-	int loaded;
-	loaded = movie_load_from_file(res->actual_file,&opaque);
-	retval = loaded > -1 ? TRUE : FALSE;
-	if(loaded){
-		struct X3D_MovieTexture *node;
-		res->status = ress_loaded;
-		res->complete = TRUE;
-		res->status = ress_parsed; //we'll skip the parse_movie/load_from_blob handler 
+			res->status = ress_loaded;
+			res->complete = TRUE;
+			res->status = ress_parsed; //we'll skip the parse_movie/load_from_blob handler 
 
-		node = (struct X3D_MovieTexture *) res->whereToPlaceData;
-		//AUDIO AND/OR VIDEO CHANNELS?
-		node->duration_changed = movie_get_duration(opaque);
-		node->__fw_movie = opaque;
-		node->__loadstatus = LOAD_STABLE;
-		//VIDEO CHANNEL?
-		//double totalframes = node->duration_changed * 30.0; 
-		node->speed = 1.0; //1 means normal speed 30.0 / totalframes; //in fractions per second = speed in frames/second / totalframes
-		MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, duration_changed));
-		//AUDIO CHANNEL?
-		//node->__sourceNumber = parse_movie(node,buffer,len); //__sourceNumber will be openAL buffer number
-		int freq,channels,size,bits;
-		unsigned char * pcmbuf = movie_get_audio_PCM_buffer(opaque,&freq,&channels,&size,&bits);
-		if(pcmbuf){
-			//MPEG1 level1,2 are compressed audio
-			//decoders generally deliver so called PCM pulse code modulated buffers
-			//and that's what audio drivers on computers normally take
-			//and same with the APIs that wrap the hardware drivers ie openAL API
-			printf("audio freq %d channels %d size %d bits per channel %d\n",freq,channels,size,bits);
-			#ifdef HAVE_OPENAL
-			// http://open-activewrl.sourceforge.net/data/OpenAL_PGuide.pdf
-			// page 6
-			int format;
-			ALuint albuffer; 
-			static int once = 0;
-			if(!once){
-				#ifdef HAVE_ALUT
-				//alutInit(0, NULL); // Initialize OpenAL 
-				if (!alutInitWithoutContext(NULL, NULL))
-					ConsoleMessage("ALUT init failed\n");
-				#endif //HAVE_ALUT
-				alGetError(); // Clear Error Code
-				//SoundEngineInit();
-				once = 1;
+			node = (struct X3D_MovieTexture *) res->whereToPlaceData;
+			//AUDIO AND/OR VIDEO CHANNELS?
+			node->duration_changed = movie_get_duration(opaque);
+			node->__fw_movie = opaque;
+			node->__loadstatus = LOAD_STABLE;
+			//VIDEO CHANNEL?
+			//double totalframes = node->duration_changed * 30.0; 
+			node->speed = 1.0; //1 means normal speed 30.0 / totalframes; //in fractions per second = speed in frames/second / totalframes
+			MARK_EVENT (X3D_NODE(node), offsetof(struct X3D_MovieTexture, duration_changed));
+			//AUDIO CHANNEL?
+			//node->__sourceNumber = parse_movie(node,buffer,len); //__sourceNumber will be openAL buffer number
+			pcmbuf = movie_get_audio_PCM_buffer(opaque,&freq,&channels,&size,&bits);
+			if(pcmbuf){
+				//MPEG1 level1,2 are compressed audio
+				//decoders generally deliver so called PCM pulse code modulated buffers
+				//and that's what audio drivers on computers normally take
+				//and same with the APIs that wrap the hardware drivers ie openAL API
+				printf("audio freq %d channels %d size %d bits per channel %d\n",freq,channels,size,bits);
+				#ifdef HAVE_OPENAL
+				// http://open-activewrl.sourceforge.net/data/OpenAL_PGuide.pdf
+				// page 6
+				{
+					int format;
+					ALuint albuffer; 
+					static int once = 0;
+					if(!once){
+						#ifdef HAVE_ALUT
+						//alutInit(0, NULL); // Initialize OpenAL 
+						if (!alutInitWithoutContext(NULL, NULL))
+							ConsoleMessage("ALUT init failed\n");
+						#endif //HAVE_ALUT
+						alGetError(); // Clear Error Code
+						//SoundEngineInit();
+						once = 1;
+					}
+
+					alGenBuffers(1, &albuffer); 
+					//al.h
+					//#define AL_FORMAT_MONO8                          0x1100
+					//#define AL_FORMAT_MONO16                         0x1101
+					//#define AL_FORMAT_STEREO8                        0x1102
+					//#define AL_FORMAT_STEREO16                       0x1103
+					//if(bits == 8)
+					//	format = AL_FORMAT_MONO8;
+					//else
+					//	format = AL_FORMAT_MONO16;
+					//if(channels == 2) 
+					//	if(bits == 8)
+					//		format = AL_FORMAT_STEREO8;
+					//	else
+					//		format = AL_FORMAT_STEREO16;
+					format = 0;
+					switch(bits){
+						case 8:
+							format = AL_FORMAT_MONO8;
+							if(channels == 2) 
+								format = AL_FORMAT_STEREO8;
+							break;
+						case 16:
+							format = AL_FORMAT_MONO16;
+							if (channels == 2)
+								format = AL_FORMAT_STEREO16;
+							break;
+						case 32:
+							#ifdef AL_EXT_float32
+							format = AL_FORMAT_MONO_FLOAT32;
+							if (channels == 2) 
+								format = AL_FORMAT_STEREO_FLOAT32;
+							break;
+							#endif
+						default:
+							break;
+					}
+					if(format > 0){
+						//this is a complex function that tries to figure out if its float, int PCM etc
+						alBufferData(albuffer,format,pcmbuf,size,freq); 
+						//BufferData * bdata = _alutBufferDataConstruct( pcmbuf,size,channels,bits, freq);
+
+						node->__sourceNumber = albuffer;
+					}
+				}
+				#endif //HAVE_OPENAL
 			}
+		} 
 
-			alGenBuffers(1, &albuffer); 
-			//al.h
-			//#define AL_FORMAT_MONO8                          0x1100
-			//#define AL_FORMAT_MONO16                         0x1101
-			//#define AL_FORMAT_STEREO8                        0x1102
-			//#define AL_FORMAT_STEREO16                       0x1103
-			//if(bits == 8)
-			//	format = AL_FORMAT_MONO8;
-			//else
-			//	format = AL_FORMAT_MONO16;
-			//if(channels == 2) 
-			//	if(bits == 8)
-			//		format = AL_FORMAT_STEREO8;
-			//	else
-			//		format = AL_FORMAT_STEREO16;
-			format = 0;
-			switch(bits){
-				case 8:
-					format = AL_FORMAT_MONO8;
-					if(channels == 2) 
-						format = AL_FORMAT_STEREO8;
-					break;
-				case 16:
-					format = AL_FORMAT_MONO16;
-					if (channels == 2)
-						format = AL_FORMAT_STEREO16;
-					break;
-				case 32:
-					#ifdef AL_EXT_float32
-					format = AL_FORMAT_MONO_FLOAT32;
-					if (channels == 2) 
-						format = AL_FORMAT_STEREO_FLOAT32;
-					break;
-					#endif
-				default:
-					break;
-			}
-			if(format > 0){
-				//this is a complex function that tries to figure out if its float, int PCM etc
-				alBufferData(albuffer,format,pcmbuf,size,freq); 
-				//BufferData * bdata = _alutBufferDataConstruct( pcmbuf,size,channels,bits, freq);
-
-				node->__sourceNumber = albuffer;
-			}
-			#endif //HAVE_OPENAL
-		}
-	} 
-
-	printf("opqaue = %p, loaded=%d \n",opaque,res->status);
+		printf("opqaue = %p, loaded=%d \n",opaque,res->status);
+	}
 #elif MOVIETEXTURE_LIBMPEG2
 #endif
 	return retval;
