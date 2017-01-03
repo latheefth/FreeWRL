@@ -50,8 +50,9 @@ OLDCODE #include <limits.h>		/* LONG_MAX */
 #endif //OLDCODE
 
 
-#if defined (_ANDROID) || defined (IPHONE) || defined (QNX) || defined (ANGLEPROJECT)
+#if defined (_ANDROID) || defined(ANDROIDNDK) || defined (IPHONE) || defined (QNX) || defined (ANGLEPROJECT)
 	#include <GLES2/gl2.h>
+	#include <GLES2/gl2ext.h>
 	#define GLdouble double
 	//#define USE_INTERNAL_EVAL
 	#define GL_QUAD_STRIP				0x0008
@@ -341,6 +342,7 @@ typedef GLUtesselator GLUtriangulatorObj;
 
 /* Internal convenience typedefs */
 typedef void (GLAPIENTRYP _GLUfuncptr)(void);
+
 
 GLAPI void GLAPIENTRY gluBeginCurve (GLUnurbs* nurb);
 GLAPI void GLAPIENTRY gluBeginPolygon (GLUtesselator* tess);
