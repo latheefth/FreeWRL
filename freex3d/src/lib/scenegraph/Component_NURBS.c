@@ -1012,7 +1012,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 	struct X3D_PolyRep *rep_, *polyrep;
 	struct X3D_TextureCoordinate * tcnode = NULL;
 	GLuint *cindex, *norindex, *tcindex;
-	float *tcoord;
+	float *tcoord = NULL;
 
 	//from compile_polyrep:
 	//node = X3D_NODE(innode);
@@ -1101,7 +1101,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 //printf("ss.pv.n=%d nv.n=%d tv.n=%d\n",ss.pv.n,ss.nv.n,ss.tv.n);
 		memcpy(&rep_->actualCoord[np*3],ss.pv.data,ss.pv.n * 3 * sizeof(float));
 		memcpy(&rep_->normal[np*3],ss.nv.data,ss.nv.n * 3 * sizeof(float));
-		if(USETXCOORD) memcpy(&tcoord[np*2],ss.tv.data,ss.tv.n * 2 * sizeof(float));
+		if(USETXCOORD && tcoord) memcpy(&tcoord[np*2],ss.tv.data,ss.tv.n * 2 * sizeof(float));
 		switch(ss.type){
 			case GL_QUAD_STRIP: 
 				for(j=0;j<ss.pv.n -2;j+=2){
@@ -2266,13 +2266,15 @@ void compile_NurbsSwungSurface(struct X3D_NurbsSwungSurface *node){
 	//strategy: generate 3D control net from curves, 
 	// then delegate to NurbsPatchSurface
 	//Swung: 
-	if(!node->_patch){
-		patch = (struct X3D_NurbsPatchSurface*)node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
-		controlPoint =(struct X3D_Coordinate*) patch->controlPoint = createNewX3DNode(NODE_Coordinate);
-	}else{
-		patch = (struct X3D_NurbsPatchSurface*) node->_patch;
-		controlPoint = (struct X3D_Coordinate*)patch->controlPoint;
+	patch = (struct X3D_NurbsPatchSurface*) node->_patch;
+	controlPoint = (struct X3D_Coordinate*)patch->controlPoint;
+	if(!patch){
+		patch = (struct X3D_NurbsPatchSurface*)createNewX3DNode(NODE_NurbsPatchSurface);
+		controlPoint = (struct X3D_Coordinate*)createNewX3DNode(NODE_Coordinate);
+		node->_patch = X3D_NODE(patch);
+		patch->controlPoint = X3D_NODE(controlPoint);
 	}
+
 	trajectoryxz = (struct X3D_NurbsCurve2D *)node->trajectoryCurve;
 	profileyz = (struct X3D_NurbsCurve2D *)node->profileCurve;
 
@@ -2660,12 +2662,13 @@ void compile_NurbsSweptSurface(struct X3D_NurbsSweptSurface *node){
 		int ic,j,i;
 		double *weight;
 
-		if(!node->_patch){
-			patch = (struct X3D_NurbsPatchSurface*)node->_patch = createNewX3DNode(NODE_NurbsPatchSurface);
-			controlPoint = (struct X3D_Coordinate*)patch->controlPoint = createNewX3DNode(NODE_Coordinate);
-		}else{
-			patch = (struct X3D_NurbsPatchSurface*)node->_patch;
-			controlPoint = (struct X3D_Coordinate*)patch->controlPoint;
+		patch = (struct X3D_NurbsPatchSurface*)node->_patch;
+		controlPoint = (struct X3D_Coordinate*)patch->controlPoint;
+		if(!patch){
+			patch = (struct X3D_NurbsPatchSurface*) createNewX3DNode(NODE_NurbsPatchSurface);
+			controlPoint = (struct X3D_Coordinate*) createNewX3DNode(NODE_Coordinate);
+			node->_patch = X3D_NODE(patch);
+			patch->controlPoint = X3D_NODE(controlPoint);
 		}
 		xyz = MALLOC(float*,nt * np * 3 * sizeof(float));
 		controlPoint->point.p = (struct SFVec3f*) xyz;

@@ -753,6 +753,7 @@ directedLine* directedLine::rootLinkFindRoot()
  */
 void directedLine::writeAllPolygons(char* filename)
 {
+#ifdef ALLOW_IO
   FILE* fp = fopen(filename, "w");
   assert(fp);
   Int nPolygons = numPolygons();
@@ -785,16 +786,19 @@ void directedLine::writeAllPolygons(char* filename)
       fprintf(fp, "\n");
     }
   fclose(fp);
+#endif
 }
 
 directedLine* readAllPolygons(char* filename)
 {
+	directedLine *ret = NULL;
+
+#ifdef ALLOW_IO
   Int i,j;
   FILE* fp = fopen(filename, "r");
   assert(fp);
   Int nPolygons;
   fscanf(fp, "%i", &nPolygons);
-  directedLine *ret = NULL;
 
   for(i=0; i<nPolygons; i++)
     {
@@ -836,6 +840,7 @@ dLine->rootLinkSet(thisPoly);
       ret = thisPoly->insertPolygon(ret);
     }
   fclose(fp);
+#endif
   return ret;
 }
 
