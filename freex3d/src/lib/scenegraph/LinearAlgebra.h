@@ -140,7 +140,7 @@ Linear algebra.
 
 */
 
-float *double2float(float *b, double *a, int n);
+float *double2float(float *b, const double *a, int n);
 double *float2double(double *b, float *a, int n);
 
 /* next define abbreviates VECROTATE with use of the SFRotation struct	*/

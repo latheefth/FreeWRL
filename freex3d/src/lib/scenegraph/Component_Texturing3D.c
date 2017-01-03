@@ -193,7 +193,7 @@ textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *texture
 void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
 	/* printf ("render_ComposedTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
 	if(node && node->_nodeType == NODE_ComposedTexture3D){
-		int i, ntextures, allLoaded;
+		int i, allLoaded; //ntextures, 
 		struct Multi_Node *tex = &node->texture;
 		//Sep 14, 2016 we assume all ComposedTexture3D are 'LAYERED' TEX3D_LAYER_SHADER / TEX3DLAY
 		if(0){

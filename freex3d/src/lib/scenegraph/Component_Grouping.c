@@ -294,8 +294,9 @@ void fin_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors){
 		for(jj=0;jj<affectors->n;jj++){
 			//we go backwards so any sib_fin popping is in reverse order to any sib_prep pushing,
 			// in case multiple push to same stack, as with multiple Effects
+			struct X3D_Node *sa;
 			j = affectors->n - jj - 1; 
-			struct X3D_Node *sa = affectors->p[j];
+			sa = affectors->p[j];
 			sib_fin(parent,sa);
 		}
 	}
@@ -413,7 +414,7 @@ printf ("child_Group,  children.n %d sortedChildren.n %d\n",node->children.n, no
 
 
 void child_Transform (struct X3D_Transform *node) {
-	LOCAL_LIGHT_SAVE
+	//LOCAL_LIGHT_SAVE
 	CHILDREN_COUNT
 	OCCLUSIONTEST
 

@@ -263,7 +263,7 @@ void compute_3D_alpha_gradient_store_rgb(char *dest,int x,int y, int z){
 	int iz,iy,ix, jz,jy,jx,jzz,jyy,jxx, k;
 	char *rgba0, *rgba1;
 	int gradient[3], maxgradient[3], mingradient[3];
-	unsigned char *urgba, a;
+	unsigned char *urgba;
 	uint32 *pixels = (uint32 *)dest;
 
 	for(k=0;k<3;k++) {
@@ -1329,10 +1329,10 @@ DEF_FINDFIELD(TEXTUREMAGNIFICATIONKEYWORDS)
 DEF_FINDFIELD(TEXTUREBOUNDARYKEYWORDS)
 DEF_FINDFIELD(TEXTURECOMPRESSIONKEYWORDS)
 
-
+void unpackImageCubeMap6 (textureTableIndexStruct_s* me);
 void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	int rx,ry,rz,sx,sy,sz;
-	int x,y,z,itile3d;
+	int x,y,z;
 	GLint iformat;
 	GLenum format;
 
@@ -1583,7 +1583,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 	if (getAppearanceProperties()->cubeFace != 0) {
 		//this is a single cubmap face pixeltexture tti (ie from __subTextures in ImageCubemap)
 		unsigned char *dest = me->texdata;
-		uint32 *sp, *dp;
+		uint32 *sp;
 
 		int cx;
 
@@ -1668,7 +1668,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 			//already unpacked into 6 separate PixelTexture tti->texdata during cubemap generation
 			me->status = TEX_LOADED; /* finito */
 		} else {
-
+			int npot;
 			/* a pointer to the tex data. We increment the pointer for movie texures */
 			mytexdata = me->texdata;
 			if (mytexdata == NULL) {
@@ -1712,7 +1712,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 				FW_GL_TEXPARAMETERI(GL_TEXTURE_2D, GL_TEXTURE_INTERNAL_FORMAT, GL_COMPRESSED_RGBA);
 				glHint(GL_TEXTURE_COMPRESSION_HINT, compression);
 			}
-			int npot = rdr_caps->av_npot_texture;
+			npot = rdr_caps->av_npot_texture;
 			x = me->x;
 			y = me->y; // * me->z; //takes care of texture3D using strip image
 			z = me->z;
@@ -1784,6 +1784,11 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						//  
 						// 
 						int rc,sc,c,cube_root, max_size;
+						unsigned char *texdataTiles = NULL;
+						uint32 *p2, *p1;
+						int nx, ny, ix, iy, nxx, nyy, xy;
+						int iz,j,k;
+
 						max_size = rdr_caps->runtime_max_texture_size;
 						//if(32bit) I find process doesn't have enough RAM left for opengl to malloc 512x512x512x4byte.
 						//could try single channel, single byte textures, but for now we'll keep it under 17M pixels
@@ -1840,9 +1845,6 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 							compute_3D_alpha_gradient_store_rgb(dest,x,y,z);
 						}
 
-						unsigned char *texdataTiles = NULL;
-						uint32 *p2, *p1;
-						int nx, ny, ix, iy, nxx, nyy, xy;
 						ny = (int) sqrt(z+1);
 						nx = z / ny;
 						nx = z - nx*ny > 0 ? nx+1 : nx;
@@ -1859,16 +1861,17 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						texdataTiles =  MALLOC(unsigned char *,nxx * nyy * 4);
 						p2 = (uint32 *)texdataTiles;
 						p1 = (uint32 *)dest;
-						for(int iz=0;iz<z;iz++){
+						for(iz=0;iz<z;iz++){
 							iy = iz % ny;
 							ix = iz / ny;
-							for(int j=0;j<y;j++){
-								for(int k=0;k<x;k++){
+							for(j=0;j<y;j++){
+								for(k=0;k<x;k++){
 									int ifrom, ito;
+									uint32 pixel;
 									ifrom = (iz*y + j)*x + k;
 									//ito = iy*nx*xy + j*nxx + ix*x + k;
 									ito = (iy*y + j)*nxx + (ix*x) + k;
-									uint32 pixel = p1[ifrom];
+									pixel = p1[ifrom];
 									p2[ito] = pixel;
 									//p2[iy*nx*xy + j*nxx + ix*x + k] = p1[i*xy + j*x + k];
 								}

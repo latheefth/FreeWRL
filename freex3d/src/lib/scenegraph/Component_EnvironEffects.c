@@ -230,7 +230,7 @@ void render_Fog(struct X3D_Fog *node) {
 	// - its just to get the fog scale
 	//if Fog DEF/USED (multiple scales possible) we use the last one calculated
 	int fogType = 0;
-	node->__fogScale = calculateFogScale();
+	node->__fogScale = (float)calculateFogScale();
 	if(node->fogType->strptr){
 		if(!strcmp(node->fogType->strptr,"LINEAR")) fogType = FOGTYPE_LINEAR; //1
 		if(!strcmp(node->fogType->strptr,"EXPONENTIAL")) fogType = FOGTYPE_EXPONENTIAL; //2

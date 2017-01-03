@@ -1365,7 +1365,7 @@ int multitouch_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, un
 	return iret;
 }
 contenttype *new_contenttype_multitouch(){
-	int i;
+	//int i;
 	contenttype_multitouch *self = MALLOCV(sizeof(contenttype_multitouch));
 	register_contenttype(self);
 	init_tcontenttype(&self->t1);
@@ -4323,9 +4323,9 @@ static int using_gyro = 1;
 static int using_accelerometer = 0;
 void fwl_handle_gyro(float rx, float ry, float rz) {
 	if(using_sensors_for_navigation &&  using_gyro){
-		double axyz[3], dd[3], Axyz[3], quat4[4], vec3[3], ypr[3];
+		double axyz[3], dd[3], quat4[4], vec3[3]; //, ypr[3]; //Axyz[3], 
 		static double dt, lasttime, curtime;
-		Quaternion qq0, q1, qq2, qq;
+		Quaternion qq0, qq2, qq; //q1, 
 		static int initialized = 0;
 
 		if (!initialized) {
@@ -4371,9 +4371,9 @@ void fwl_handle_magnetic(float azimuth, float pitch, float roll) {
 		//doesn't work, but the idea is to use magnetic bearing differences from startup pose
 		//to rotate the scene. (H: would be better to use sensor fusion, perhaps via bayes or
 		// kalman filtering or least squares updates)
-		double rxyz[3], dd[3], Rxyz[3], quat4[4], vec3[3], ypr[3];
+		double rxyz[3], dd[3], Rxyz[3], quat4[4], vec3[3]; //, ypr[3];
 		static double ddlast[3];
-		Quaternion qq0, q1, qq2, qq, qqlast;
+		Quaternion qq0, qq2, qq, qqlast; //q1, 
 		static int initialized = 0;
 
 		if (!initialized) {
@@ -4422,7 +4422,7 @@ void fwl_handle_magnetic_old(float azimuth, float pitch, float roll) {
 		static double lasttime, curtime, dt;
 		Quaternion qq, qq2;
 		static Quaternion qq0;
-		float dazimuth,ddazimuth, dpitch,ddpitch, droll,ddroll;
+		float dazimuth,ddazimuth, dpitch, droll; //,ddroll;ddpitch,
 		double quat4[4], vec3[3], rxyz[3];
 		static double ypr[3];
 		static float lazimuth, lpitch, lroll;
@@ -5402,7 +5402,7 @@ void setup_projection()
         //printf ("Before FW_GLU_PERSPECTIVE, np %f fp %f\n",viewer->nearPlane, viewer->farPlane);
 		if(0) FW_GLU_PERSPECTIVE(fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
 		if(1) fw_gluPerspective_2(viewer->xcenter,fieldofview2, aspect2, viewer->nearPlane,viewer->farPlane);
-		tg->Mainloop.fieldOfView = fieldofview2;
+		tg->Mainloop.fieldOfView = (float)fieldofview2;
 	}
 	FW_GL_MATRIX_MODE(GL_MODELVIEW);
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_projection");
@@ -5640,7 +5640,7 @@ static void render()
 	if(1){
 		//render last known mouse position as seen by the backend
 		int ktouch;
-		s_shader_capabilities_t *scap;
+		//s_shader_capabilities_t *scap;
 		struct Touch *touch; // =  currentTouch(); //&p->touchlist[0];
 		for(ktouch=0;ktouch<p->ntouch;ktouch++){
 			touch = &p->touchlist[ktouch];
@@ -6332,7 +6332,7 @@ struct X3D_Node* getRayHit() {
 	//	- used in do_CyclinderSensor, do_SphereSensor for computing a radius  on mouse-down
 	//  RenderFuncs.hp - intersection with scene geometry found closes to viewpoint, in bearing/pickray space
 
-	double x,y,z;
+	//double x,y,z;
 	int i;
 	struct X3D_Node *retnode;
 	ppMainloop p;
@@ -6342,8 +6342,8 @@ struct X3D_Node* getRayHit() {
 	retnode = NULL;
 //	printf("@");
 	if(tg->RenderFuncs.hitPointDist >= 0) {
-		GLDOUBLE mvpi[16];
-		struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
+		//GLDOUBLE mvpi[16];
+		//struct point_XYZ tp; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 		struct currayhit * rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 //		printf("#");
 		if (rh->hitNode == NULL){
@@ -6505,8 +6505,8 @@ void prepare_model_view_pickmatrix_inverse(GLDOUBLE *mvpi){
 		MVPI = inverse(pickray_frozen_model * view)
 	*/
 	struct currayhit * rh;
-	GLDOUBLE *modelview;
-	GLDOUBLE viewmatrix[16], viewinverse[16], mv[16];
+	//GLDOUBLE *modelview;
+	GLDOUBLE viewmatrix[16],  mv[16]; //viewinverse[16],
 	ttglobal tg = gglobal();
 
 	rh = (struct currayhit *)tg->RenderFuncs.rayHit;

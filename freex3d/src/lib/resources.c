@@ -1104,7 +1104,7 @@ static void possiblyUnzip (openned_file_t *of) {
         if (((unsigned char) of->fileData[0] == 0x1f) && ((unsigned char) of->fileData[1] == 0x8b)) {
 		#define GZIP_BUFF_SIZE 2048
 
-		gzFile *source;
+		gzFile source;
 		FILE *dest;
 		char buffer[GZIP_BUFF_SIZE];
 		int num_read = 0;

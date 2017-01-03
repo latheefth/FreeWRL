@@ -75,6 +75,27 @@ void Component_RigidBodyPhysics_clear(struct tComponent_RigidBodyPhysics *t){
 
 //ppComponent_RigidBodyPhysics p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 
+
+//Q. do you love criptic macros? Here's a few:
+int NNC0(struct X3D_Node* node){
+	//NNC Node Needs Compiling
+	return NODE_NEEDS_COMPILING;
+	//return FALSE;
+}
+void MNC0(struct X3D_Node* node){
+	//MNC Mark Node Compiled
+	MARK_NODE_COMPILED;
+}
+void MNX0(struct X3D_Node* node){
+	//MNX Mark Node Changed
+	node->_change++;
+}
+#define NNC(A) NNC0(X3D_NODE(A))
+#define MNC(A) MNC0(X3D_NODE(A))
+#define MNX(A) MNX0(X3D_NODE(A))
+#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
+
+
 void rbp_run_physics();
 void set_physics();
 
@@ -263,6 +284,13 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 	  }
     } else {
 		int i, numc;
+		void *cdata1, *cdata2;
+		struct X3D_CollidableShape *xshape1, *xshape2;
+		//struct X3D_RigidBody *xbody1, *xbody2;
+		struct X3D_CollisionSensor *xsens1, *xsens2;
+		struct X3D_CollisionCollection *xcol1, *xcol2, *xcol;
+		static int count = 0;
+
 		dContact contact[MAX_CONTACTS];   // up to MAX_CONTACTS contacts per box-box
 		// if (o1->body && o2->body) return;
 
@@ -274,12 +302,6 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 
 		//X3D Component_RigidBodyPhysics
 		//somewhere we need to spit out X3DContacts if there was a X3DCollisionSensor
-		void *cdata1, *cdata2;
-		struct X3D_CollidableShape *xshape1, *xshape2;
-		struct X3D_RigidBody *xbody1, *xbody2;
-		struct X3D_CollisionSensor *xsens1, *xsens2;
-		struct X3D_CollisionCollection *xcol1, *xcol2, *xcol;
-		static int count = 0;
 		cdata1 = dGeomGetData(o1);
 		cdata2 = dGeomGetData(o2);
 		xshape1 = getCollidableShapeFromData(cdata1);
@@ -372,23 +394,23 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					ct->_appliedParameters = contact[i].surface.mode;
 					ct->body1 = b1 ? dBodyGetData(b1) : NULL; //we set the user data to X3DRigidBody* when initializing the bodies
 					ct->body2 = b2 ? dBodyGetData(b2) : NULL;
-					ct->bounce = surface->bounce;
+					ct->bounce = (float)surface->bounce;
 					double2float(ct->contactNormal.c,contact[i].geom.normal,3);
-					ct->depth =  contact[i].geom.depth;
-					ct->frictionCoefficients.c[0] = surface->mu;
-					ct->frictionCoefficients.c[1] = surface->mu2;
+					ct->depth =  (float)contact[i].geom.depth;
+					ct->frictionCoefficients.c[0] = (float)surface->mu;
+					ct->frictionCoefficients.c[1] = (float)surface->mu2;
 
 					double2float(ct->frictionDirection.c,contact[i].fdir1,2);
 					ct->geometry1 = X3D_NODE(xshape1);
 					ct->geometry2 = X3D_NODE(xshape2);
-					ct->minBounceSpeed = surface->bounce_vel;
+					ct->minBounceSpeed = (float)surface->bounce_vel;
 					double2float(ct->position.c,contact[i].geom.pos,3);
-					ct->slipCoefficients.c[0] = surface->mu;
-					ct->slipCoefficients.c[1] = surface->mu2;
-					ct->softnessConstantForceMix = surface->soft_cfm;
-					ct->softnessErrorCorrection = surface->soft_erp;
-					ct->surfaceSpeed.c[0]= surface->motion1;
-					ct->surfaceSpeed.c[1]= surface->motion2;
+					ct->slipCoefficients.c[0] = (float)surface->mu;
+					ct->slipCoefficients.c[1] = (float)surface->mu2;
+					ct->softnessConstantForceMix = (float)surface->soft_cfm;
+					ct->softnessErrorCorrection = (float)surface->soft_erp;
+					ct->surfaceSpeed.c[0]= (float)surface->motion1;
+					ct->surfaceSpeed.c[1]= (float)surface->motion2;
 					if(xsens1 && xsens1->enabled){
 						//BOMBING - CRoutes was bombing if I was resizing contacts.p and intersections.p in there
 						//so I malloc once to 100=MAXCONTACTS
@@ -442,25 +464,6 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 		}
 	}
 }
-
-//Q. do you love criptic macros? Here's a few:
-int NNC0(struct X3D_Node* node){
-	//NNC Node Needs Compiling
-	return NODE_NEEDS_COMPILING;
-	//return FALSE;
-}
-void MNC0(struct X3D_Node* node){
-	//MNC Mark Node Compiled
-	MARK_NODE_COMPILED;
-}
-void MNX0(struct X3D_Node* node){
-	//MNX Mark Node Changed
-	node->_change++;
-}
-#define NNC(A) NNC0(X3D_NODE(A))
-#define MNC(A) MNC0(X3D_NODE(A))
-#define MNX(A) MNX0(X3D_NODE(A))
-#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
 
 static int init_rbp_once = 0;
 //static dThreadingImplementationID threading;
@@ -569,7 +572,7 @@ unsigned int forceout_from_names(int n, struct Uni_String **p){
 	if(!strcmp(p[0]->strptr,"ALL")) return FORCEOUT_ALL;
 	if(!strcmp(p[0]->strptr,"NONE")) return FORCEOUT_NONE;
 	for(i=0;i<n;i++){
-		struct force_output_fieldname *fname;
+		//struct force_output_fieldname *fname;
 		j=0;
 		do{
 			 if(!strcmp(p[i]->strptr,force_output_fieldnames[j].fieldname)){
@@ -646,15 +649,17 @@ void setTransformsAndGeom_E(dSpaceID space, void *csensor, struct X3D_Node* pare
 								case NODE_TriangleSet:
 									{
 										//see ODE demo_heightfield.cpp 
+										int j,k;
+										dTriMeshDataID new_tmdata;
 										struct X3D_TriangleSet *tris = (struct X3D_TriangleSet*)shape->geometry;
 										struct X3D_Coordinate *coord = (struct X3D_Coordinate *)tris->coord;
 										int index_count = coord->point.n;
 										dTriIndex * indices = malloc(index_count*sizeof(dTriIndex));
-										for(int j=0;j<index_count/3;j++){
-											for(int k=0;k<3;k++)
+										for(j=0;j<index_count/3;j++){
+											for( k=0;k<3;k++)
 												indices[j*3 +k] = j*3 + k;
 										}
-										dTriMeshDataID new_tmdata = dGeomTriMeshDataCreate();
+										new_tmdata = dGeomTriMeshDataCreate();
 										dGeomTriMeshDataBuildSingle(new_tmdata, coord->point.p, 3 * sizeof(float), coord->point.n, 
 											&indices[0], index_count, 3 * sizeof(dTriIndex));
 
@@ -712,12 +717,12 @@ void setTransformsAndGeom_E(dSpaceID space, void *csensor, struct X3D_Node* pare
 					case NODE_CollidableOffset:
 					{
 						//snippet from ODE demo_boxstack.cpp cmd == 'x' {} section
+						dMatrix3 Rtx;
 						struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)parent;
 						float *translation, *rotation;
 						translation = coff->_initialTranslation.c;
 						rotation = coff->_initialRotation.c;
 						dGeomSetPosition (gid,translation[0],translation[1],translation[2]);
-						dMatrix3 Rtx;
 						dRFromAxisAndAngle (Rtx,rotation[0],rotation[1],rotation[2],rotation[3]);
 						dGeomSetRotation (gid,Rtx);
 						coff->_geom = gid;
@@ -891,10 +896,11 @@ void rbp_run_physics(){
 			- we run the collision and simulation steps
 			- we output to any collisionSensors
 	*/
+	int nstep;
 	ppComponent_RigidBodyPhysics p;
 	p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 	
-	int nstep = 1;
+	nstep = 1;
 	if(1){
 		//situation: physics simulations need constant size time steps ie STEP_SIZE seconds .02
 		//goal: make the simulation speed match wall clock
@@ -956,8 +962,8 @@ void rbp_run_physics(){
 				csens = ccol->_csensor;
 				if(NNC(ccol)){
 					unsigned int mask = 0;
-
-					for(int k=0;k<ccol->appliedParameters.n;k++){
+					int k;
+					for(k=0;k<ccol->appliedParameters.n;k++){
 						//I shamefully copied and pasted enums from ode header without trying to understand them
 						// http://ode.org/ode-latest-userguide.html#sec_7_3_7
 						const char *ap = ccol->appliedParameters.p[k]->strptr;
@@ -1018,11 +1024,12 @@ void rbp_run_physics(){
 
 			if(x3dworld->set_contacts.n){
 				//someone in javascript / sai sent us some extra contacts to add as contact joints
-				for (int kk=0; kk < x3dworld->set_contacts.n; kk++) {
+				int kk;
+				for (kk=0; kk < x3dworld->set_contacts.n; kk++) {
 					struct X3D_RigidBody *body1, *body2;
 					struct X3D_Contact *ct = (struct X3D_Contact *)x3dworld->set_contacts.p[kk];
 					dContact contact;
-
+					dBodyID b1, b2;
 					dJointID c = dJointCreateContact (world,contactgroup,&contact);
 
 					contact.surface.mode = ct->_appliedParameters; //dContactBounce; // | dContactSoftCFM;
@@ -1040,8 +1047,8 @@ void rbp_run_physics(){
 
 					body1 = (struct X3D_RigidBody*)ct->body1;
 					body2 = (struct X3D_RigidBody*)ct->body2;
-					dBodyID b1 = body1 ? body1->_body : NULL;
-					dBodyID b2 = body2 ? body2->_body : NULL;
+					b1 = body1 ? body1->_body : NULL;
+					b2 = body2 ? body2->_body : NULL;
 					if (b1 && b2 && dAreConnectedExcluding (b1,b2,dJointTypeContact)) continue;
 					dJointAttach (c,b1,b2);
 				}
@@ -1050,8 +1057,8 @@ void rbp_run_physics(){
 			//update bodies
 			for(i=0;i<x3dworld->bodies.n;i++){
 				int isNewBody = FALSE;
-				x3dbody = (struct X3D_RigidBody*)x3dworld->bodies.p[i];
 				int method_anchor_fixed_with_fixed_joint = 1;
+				x3dbody = (struct X3D_RigidBody*)x3dworld->bodies.p[i];
 				if(method_anchor_fixed_with_fixed_joint){
 					if(!x3dbody->_body){
 						x3dbody->_body = dBodyCreate (x3dworld->_world);
@@ -1165,6 +1172,7 @@ void rbp_run_physics(){
 				if(x3dbody->_body){
 					//not fixed
 					if(NNC(x3dbody)){
+						float speed;
 						//not fixed
 						if(x3dbody->autoDamp){
 							dBodySetAngularDamping(x3dbody->_body, x3dbody->angularDampingFactor);
@@ -1235,7 +1243,7 @@ void rbp_run_physics(){
 						}
 						//position and orientation set once in if(!_geom) above
 						//add any per-step per-body forces
-						float speed = veclength3f(x3dbody->linearVelocity.c);
+						speed = veclength3f(x3dbody->linearVelocity.c);
 						if(speed > .001f){
 							if(!vecsame3f(x3dbody->__old_linearVelocity.c,x3dbody->linearVelocity.c)){
 								dBodySetLinearVel(x3dbody->_body, x3dbody->linearVelocity.c[0],x3dbody->linearVelocity.c[1],x3dbody->linearVelocity.c[2]);
@@ -1256,7 +1264,8 @@ void rbp_run_physics(){
 						if(x3dbody->forces.n){
 							//the engine's force accumulator is zeroed after each step, so for these
 							//constant forces you have to re-add them on each step
-							for(int kf=0;kf<x3dbody->forces.n;kf++){
+							int kf;
+							for(kf=0;kf<x3dbody->forces.n;kf++){
 								float *force = x3dbody->forces.p[kf].c;
 								dBodyAddForce(x3dbody->_body, force[0], force[1], force[2]);
 							}
@@ -1264,7 +1273,8 @@ void rbp_run_physics(){
 						if(x3dbody->torques.n){
 							//the engine's torque accumulator is zeroed after each step, so for these
 							//constant torques you have to re-add them on each step
-							for(int kf=0;kf<x3dbody->torques.n;kf++){
+							int kf;
+							for(kf=0;kf<x3dbody->torques.n;kf++){
 								float *torque = x3dbody->torques.p[kf].c;
 								dBodyAddTorque(x3dbody->_body, torque[0], torque[1], torque[2]);
 							}
@@ -1327,11 +1337,12 @@ void rbp_run_physics(){
 								//veccopy3f(jnt->__old_axis.c,jnt->axis.c);
 							}
 							if(NNC(jnt)){
+								float axislen;
 								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
 									dJointSetHingeAnchor (jointID,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
 									veccopy3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c);
 								}
-								float axislen = veclength3f(jnt->axis.c);
+								axislen = veclength3f(jnt->axis.c);
 								if(axislen < .1){
 									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
 									jnt->axis.c[0] = jnt->axis.c[1] = 0.0f;
@@ -1354,6 +1365,8 @@ void rbp_run_physics(){
 						{
 							//see the ODE demo_buggy for Hinge2 example of steerable wheel
 							dJointID jointID;
+							double avel;
+							int method_extension_axis1Angle;
 							struct X3D_DoubleAxisHingeJoint *jnt = (struct X3D_DoubleAxisHingeJoint*)joint;
 
 							if(!jnt->_joint){
@@ -1413,8 +1426,8 @@ void rbp_run_physics(){
 							dJointSetHinge2Param (jnt->_joint,dParamVel2,jnt->desiredAngularVelocity2);
 							dJointSetHinge2Param (jnt->_joint,dParamFMax2,jnt->maxTorque2);
 							//steering
-							double avel = jnt->desiredAngularVelocity1;
-							int method_extension_axis1Angle = 0;
+							avel = jnt->desiredAngularVelocity1;
+							method_extension_axis1Angle = 0;
 							if(method_extension_axis1Angle){
 								//the specs don't have an axis1Angle on DoubleAxisHingeJoint - too bad
 								//because here is how easy it would be to steer a car
@@ -1486,12 +1499,13 @@ void rbp_run_physics(){
 								dJointSetUniversalAnchor (jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
 							}
 							if(NNC(jnt)){
+								float axislen;
 								if(!vecsame3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c)){
 									dJointSetUniversalAnchor (jnt->_joint,jnt->anchorPoint.c[0],jnt->anchorPoint.c[1],jnt->anchorPoint.c[2]);
 									veccopy3f(jnt->__old_anchorPoint.c,jnt->anchorPoint.c);
 								}
 
-								float axislen = veclength3f(jnt->axis1.c);
+								axislen = veclength3f(jnt->axis1.c);
 								if(axislen < .1){
 									//specs say 0 0 0 is default but that's garbage, should be 0 0 1
 									jnt->axis1.c[0] = jnt->axis1.c[1] = 0.0f;
@@ -1662,7 +1676,8 @@ void rbp_run_physics(){
 					//ATTEMPT 5 and 6
 					//we set and mark both x3dbody and top-level collidable translation,rotation
 					//top level collidable: we concatonate x3dboy * top-collidable transform
-					dReal *dpos, *dquat, *drot;
+					const dReal *dpos, *dquat;
+					//dReal *drot;
 					Quaternion quat;
 					double xyza[4];
 
@@ -1728,7 +1743,7 @@ void rbp_run_physics(){
 				switch(joint->_nodeType){
 					case NODE_BallJoint:
 						{
-							dJointID jointID;
+							//dJointID jointID;
 							struct X3D_BallJoint *jnt = (struct X3D_BallJoint*)joint;
 							if(jnt->_forceout){
 								if(jnt->_forceout & FORCEOUT_body1AnchorPoint){
@@ -1745,7 +1760,7 @@ void rbp_run_physics(){
 						break;
 					case NODE_SingleAxisHingeJoint:
 						{
-							dJointID jointID;
+							//dJointID jointID;
 							struct X3D_SingleAxisHingeJoint *jnt = (struct X3D_SingleAxisHingeJoint*)joint;
 							if(jnt->_forceout){
 
@@ -1771,7 +1786,7 @@ void rbp_run_physics(){
 						break;
 					case NODE_DoubleAxisHingeJoint:
 						{
-							dJointID jointID;
+							//dJointID jointID;
 							struct X3D_DoubleAxisHingeJoint *jnt = (struct X3D_DoubleAxisHingeJoint*)joint;
 							if(jnt->_forceout){
 								if(jnt->_forceout & FORCEOUT_body1AnchorPoint){
@@ -1812,7 +1827,7 @@ void rbp_run_physics(){
 						break;
 					case NODE_SliderJoint:
 						{
-							dJointID jointID;
+							//dJointID jointID;
 							struct X3D_SliderJoint *jnt = (struct X3D_SliderJoint*)joint;
   							if(jnt->_forceout){
   								if(jnt->_forceout & FORCEOUT_separation){
@@ -1828,7 +1843,7 @@ void rbp_run_physics(){
 						break;
 					case NODE_UniversalJoint:
 						{
-							dJointID jointID;
+							//dJointID jointID;
 							struct X3D_UniversalJoint *jnt = (struct X3D_UniversalJoint*)joint;
   							if(jnt->_forceout){
 								if(jnt->_forceout & FORCEOUT_body1AnchorPoint){
@@ -1852,31 +1867,31 @@ void rbp_run_physics(){
 						break;
 					case NODE_MotorJoint:
 						{
-							dJointID jointID;
+							//dJointID jointID;
 							struct X3D_MotorJoint *jnt = (struct X3D_MotorJoint*)joint;
 							if(jnt->_forceout){
 								if(jnt->_forceout & FORCEOUT_motor1Angle){
-									jnt->motor1Angle = dJointGetAMotorAngle( jnt->_joint, 0 );
+									jnt->motor1Angle = (float) dJointGetAMotorAngle( jnt->_joint, 0 );
 									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor1Angle));
 								}
 								if(jnt->_forceout & FORCEOUT_motor1AngleRate){
-									jnt->motor1AngleRate = dJointGetAMotorAngleRate( jnt->_joint, 0 );
+									jnt->motor1AngleRate = (float) dJointGetAMotorAngleRate( jnt->_joint, 0 );
 									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor1AngleRate));
 								}
 								if(jnt->_forceout & FORCEOUT_motor2Angle){
-									jnt->motor2Angle = dJointGetAMotorAngle( jnt->_joint, 1 );
+									jnt->motor2Angle = (float) dJointGetAMotorAngle( jnt->_joint, 1 );
 									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor2Angle));
 								}
 								if(jnt->_forceout & FORCEOUT_motor2AngleRate){
-									jnt->motor2AngleRate = dJointGetAMotorAngleRate( jnt->_joint, 1 );
+									jnt->motor2AngleRate = (float) dJointGetAMotorAngleRate( jnt->_joint, 1 );
 									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor2AngleRate));
 								}
 								if(jnt->_forceout & FORCEOUT_motor3Angle){
-									jnt->motor3Angle = dJointGetAMotorAngle( jnt->_joint, 2 );
+									jnt->motor3Angle = (float) dJointGetAMotorAngle( jnt->_joint, 2 );
 									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor3Angle));
 								}
 								if(jnt->_forceout & FORCEOUT_motor3AngleRate){
-									jnt->motor3AngleRate = dJointGetAMotorAngleRate( jnt->_joint, 2 );
+									jnt->motor3AngleRate = (float) dJointGetAMotorAngleRate( jnt->_joint, 2 );
 									MARK_EVENT(X3D_NODE(jnt),offsetof(struct X3D_MotorJoint,motor3AngleRate));
 								}
 							}
@@ -1919,6 +1934,7 @@ void register_CollisionSensor(struct X3D_Node *_node){
 void register_RigidBodyCollection(struct X3D_Node *_node){
 	if(_node->_nodeType == NODE_RigidBodyCollection){
 		ppComponent_RigidBodyPhysics p;
+		dJointGroupID groupID;
 		struct X3D_RigidBodyCollection *node = (struct X3D_RigidBodyCollection*)_node;
 		p = (ppComponent_RigidBodyPhysics)gglobal()->Component_RigidBodyPhysics.prv;
 
@@ -1950,7 +1966,7 @@ void register_RigidBodyCollection(struct X3D_Node *_node){
 		} 
 		///// we assign above node->_world = (void*)world;
 		//node->_space = (void*)space;
-		dJointGroupID groupID = dJointGroupCreate (0); //this is a contact group for joints
+		groupID = dJointGroupCreate (0); //this is a contact group for joints
 		node->_group = groupID;
 		if(!x3dworlds) x3dworlds = newVector(struct X3D_Node*,5);
 		vector_pushBack(struct X3D_Node*,x3dworlds,_node);

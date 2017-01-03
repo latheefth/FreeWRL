@@ -125,3 +125,4 @@ struct intersection_info{
 	float texcoord[3];
 };
 int intersect_polyrep2(struct X3D_Node *node, float *p1, float *p2, Stack *intersection_stack);
+void render_ray_polyrep(void *node);

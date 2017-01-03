@@ -40,6 +40,8 @@ double Time1970sec()
 		static ULARGE_INTEGER mystarttimeu = {0};
 		//ULONGLONG ABC;
 		double dtime;
+		static double offset1970sec = 0.0;
+		static once = 0;
 
 		GetSystemTime(&mytimet);
 		SystemTimeToFileTime(&mytimet,&mytimef);
@@ -63,8 +65,6 @@ double Time1970sec()
 		//but web3d specs say 'since 1970'. Unfortunately there doesn't seem to be one
 		//simple function to get the resolution we want, _and_ give is the 1970 offset
 		//so we get 1970 seconds below and add on.
-		static double offset1970sec = 0.0;
-		static once = 0;
 		if(!once){
 			//https://msdn.microsoft.com/en-us/library/1f4c8f33.aspx	
 			time_t ltime;

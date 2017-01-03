@@ -457,9 +457,11 @@ quaternion_to_vrmlrot(const Quaternion *quat, double *x, double *y, double *z, d
 	
 	//double scale = sqrt(VECSQ(*quat));
 	Quaternion qn;
+	double scale;
+
 	quaternion_set(&qn,quat);
 	quaternion_normalize(&qn);
-	double scale = sqrt((qn.x * qn.x) + (qn.y * qn.y) + (qn.z * qn.z));
+	scale = sqrt((qn.x * qn.x) + (qn.y * qn.y) + (qn.z * qn.z));
 	if (APPROX(scale, 0.0)) {
 		*x = 0;
 		*y = 0;

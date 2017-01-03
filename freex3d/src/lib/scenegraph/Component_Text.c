@@ -1262,7 +1262,7 @@ int len_utf8(unsigned char *utf8string)
 #include <malloc.h>
 
 // OLD_IPHONE_AQUA #endif
-
+void register_Polyrep_combiner();
 void prep_screentext(struct X3D_Text *tnode, int num, double screensize);
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep or rowvec[] for screen(pixel) font
    For placing text on the screen directly from freewrl ie GUI or HUD like use the CaptionText contenttype 
@@ -3709,8 +3709,8 @@ void render_screentext0(struct X3D_Text *tnode){
 					chardata chr = rowvec[row].chr[i];
 
 					//[du] = [m] * [du/m]
-					xpos = chr.x+90 + entry->pos.X;
-					ypos = chr.y+30 - entry->pos.Y;
+					xpos = (float)chr.x + 90.0f + entry->pos.X;
+					ypos = (float)chr.y + 30.0f - entry->pos.Y;
 					xsize =  entry->size.X;
 					ysize = entry->size.Y;
 					if(0){

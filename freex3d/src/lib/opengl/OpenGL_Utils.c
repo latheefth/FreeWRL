@@ -6260,11 +6260,11 @@ void sendExplicitMatriciesToShader (GLint ModelViewMatrix, GLint ProjectionMatri
 		//send in the inverse of the modelview matrix
 		//- handy for cube-map texturing
 		float spvali[16];
-		int ii,jj;
+		int ii; //,jj;
 		float *spi;
 		double *dpi, *dpp;
 		GLDOUBLE inverseMV[16];
-		GLDOUBLE transInverseMV[16];
+		//GLDOUBLE transInverseMV[16];
 		GLDOUBLE MV[16];
 
 		dpp = p->FW_ModelView[p->modelviewTOS];
@@ -6391,7 +6391,7 @@ void sendFogToShader(s_shader_capabilities_t *me) {
 float *getTransformedClipPlanes();
 int getClipPlaneCount();
 void sendClipplanesToShader(s_shader_capabilities_t *me){
-	int i, nsend;
+	int nsend; //i, 
 
 	float *clipplanes = getTransformedClipPlanes();
 	nsend = getClipPlaneCount();

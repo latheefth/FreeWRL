@@ -57,7 +57,7 @@ double * vecsetd(double *b, double x, double y, double z){
 	b[0] = x, b[1] = y; b[2] = z;
 	return b;
 }
-float *double2float(float *b, double *a, int n){
+float *double2float(float *b, const double *a, int n){
 	int i;
 	for(i=0;i<n;i++) b[i] = (float)a[i];
 	return b;
@@ -408,7 +408,7 @@ struct point_XYZ* transform(struct point_XYZ* r, const struct point_XYZ* a, cons
 }
 GLDOUBLE* transformUPPER3X3d(double *r,double *a, const GLDOUBLE* b){
 	double tmp[3];
-	veccopy3f(tmp,a);
+	veccopyd(tmp,a);
 	r[0] = b[0]*tmp[0] +b[4]*tmp[1] +b[8]*tmp[2];
 	r[1] = b[1]*tmp[0] +b[5]*tmp[1] +b[9]*tmp[2];
 	r[2] = b[2]*tmp[0] +b[6]*tmp[1] +b[10]*tmp[2];

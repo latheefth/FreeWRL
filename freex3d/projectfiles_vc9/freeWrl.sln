@@ -56,6 +56,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtess", "libtess\libtess.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winGLES2", "esUtils\winGLES2.vcproj", "{A6255F79-AC96-4224-891F-EEFE6B8CFD21}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libnurbs", "libnurbs\libnurbs.vcproj", "{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_glew|Win32 = Debug_glew|Win32
@@ -156,6 +158,14 @@ Global
 		{A6255F79-AC96-4224-891F-EEFE6B8CFD21}.Release_glew|Win32.Build.0 = Release|Win32
 		{A6255F79-AC96-4224-891F-EEFE6B8CFD21}.Release|Win32.ActiveCfg = Release|Win32
 		{A6255F79-AC96-4224-891F-EEFE6B8CFD21}.Release|Win32.Build.0 = Release|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Debug_glew|Win32.ActiveCfg = Debug_glew|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Debug_glew|Win32.Build.0 = Debug_glew|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Debug|Win32.ActiveCfg = Debug|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Debug|Win32.Build.0 = Debug|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release_glew|Win32.ActiveCfg = Release|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release_glew|Win32.Build.0 = Release|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release|Win32.ActiveCfg = Release|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

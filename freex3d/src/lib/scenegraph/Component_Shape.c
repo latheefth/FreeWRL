@@ -798,7 +798,7 @@ void child_Shape (struct X3D_Shape *node) {
 
 	/* now, are we rendering blended nodes or normal nodes?*/
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
-		int colorSource, alphaSource, isLit, isUserShader; 
+		int isUserShader; //colorSource, isLit, alphaSource, 
 		s_shader_capabilities_t *scap;
 		//unsigned int shader_requirements;
 		shaderflagsstruct shader_requirements;

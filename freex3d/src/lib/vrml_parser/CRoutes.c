@@ -2946,6 +2946,7 @@ the first thing in the event loop.
 void printStatsEvents(){
 	ConsoleMessage("%25s %d\n","ClockEvent count", ((ppCRoutes)gglobal()->CRoutes.prv)->num_ClockEvents);
 }
+void usehit_clear();
 void do_first() {
 	int counter, ne;
 	struct FirstStruct ce;

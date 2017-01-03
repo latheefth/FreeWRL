@@ -1,8 +1,9 @@
 
 #ifdef MOVIETEXTURE_FFMPEG
 // http://dranger.com/ffmpeg/tutorial01.html
-
+#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
+#endif
 #include <math.h>
 #include <limits.h>
 #include <signal.h>
@@ -62,7 +63,18 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int nchan, int iFrame) {
   // Close file
   fclose(pFile);
 }
-
+float fwroundf(float val){
+	//some math.h don't have round. here's dug9 version.
+	int ival;
+	float singv, valv;
+	singv = val < 0.0f ? -1.0f : 1.0f;
+	valv = fabsf(val);
+	valv = valv + .5f;
+	ival = (int)valv;
+	valv = (float)ival;
+	valv *= singv;
+	return valv;
+}
 //our opaque pointer is a struct:
 struct fw_movietexture {
 	//AVFormatContext *pFormatCtx; //don't need to save for decode-on-load
@@ -82,14 +94,42 @@ struct fw_movietexture {
 int movie_load_from_file(char *fname, void **opaque){
 	static int once = 0;
 	struct fw_movietexture fw_movie;
-	*opaque = NULL;
+	AVFormatContext *pFormatCtx;
+	int i, videoStream, audioStream;
+	AVCodecContext *pCodecCtxOrig;
+	AVCodecContext *pCodecCtx;
+	AVCodecContext  *aCodecCtxOrig;
+	AVCodecContext  *aCodecCtx;
+	AVCodec         *aCodec;
+	AVFrame			*aFrame;
+	AVFrame			*aFrameB;
+	//uint8_t *audio_pkt_data = NULL;
+	//int audio_pkt_size = 0;
+	unsigned int audio_buf_size;
+	unsigned int audio_buf_index;
+	uint8_t * audio_buf;
+	SwrContext *swr; 
+	int audio_resample_target_fmt;
+	int do_audio_resample;
+	struct SwsContext *sws_ctx;
+	int frameFinished;
+	AVPacket packet;
+	AVFrame *pFrame;
+	AVCodec *pCodec;
+	Stack *fw_framequeue;
+	AVFrame *pFrameRGB;
+	int nchan;
+	uint8_t *buffer;
 
+
+
+	*opaque = NULL;
 	//initialize ffmpeg libs once per process
 	if(once == 0){
 		av_register_all(); //register all codecs - will filter in the future for patent non-expiry
 		once = 1;
 	}
-	AVFormatContext *pFormatCtx = NULL;
+	pFormatCtx = NULL;
 
 	// Open video file
 	if(avformat_open_input(&pFormatCtx, fname, NULL, NULL)!=0)
@@ -103,9 +143,8 @@ int movie_load_from_file(char *fname, void **opaque){
 	av_dump_format(pFormatCtx, 0, fname, 0);
 	//fw_movie.pFormatCtx = pFormatCtx;
 
-	int i, videoStream, audioStream;
-	AVCodecContext *pCodecCtxOrig = NULL;
-	AVCodecContext *pCodecCtx = NULL;
+	pCodecCtxOrig = NULL;
+	pCodecCtx = NULL;
 
 	// Find the first video stream
 	videoStream=-1;
@@ -131,22 +170,24 @@ int movie_load_from_file(char *fname, void **opaque){
 	fw_movie.audio_buf_size = 0;
 
 	//audio function-scope variables
-	AVCodecContext  *aCodecCtxOrig = NULL;
-	AVCodecContext  *aCodecCtx = NULL;
-	AVCodec         *aCodec = NULL;
-	AVFrame			*aFrame = NULL;
-	AVFrame			*aFrameB = NULL;
+	aCodecCtxOrig = NULL;
+	aCodecCtx = NULL;
+	aCodec = NULL;
+	aFrame = NULL;
+	aFrameB = NULL;
 	//uint8_t *audio_pkt_data = NULL;
 	//int audio_pkt_size = 0;
-	unsigned int audio_buf_size = 1000000;
-	unsigned int audio_buf_index = 0;
-	uint8_t * audio_buf = NULL;
-	SwrContext *swr = NULL; 
-	int audio_resample_target_fmt = 0;
-	int do_audio_resample = FALSE;
+	audio_buf_size = 1000000;
+	audio_buf_index = 0;
+	audio_buf = NULL;
+	swr = NULL; 
+	audio_resample_target_fmt = 0;
+	do_audio_resample = FALSE;
 
 	//audio prep
 	if(audioStream > -1){
+		AVCodecParameters *aparams;
+
 		aCodecCtxOrig=pFormatCtx->streams[audioStream]->codec;
 		aCodec = avcodec_find_decoder(aCodecCtxOrig->codec_id);
 		if(!aCodec) {
@@ -156,7 +197,7 @@ int movie_load_from_file(char *fname, void **opaque){
 
 		// Copy context
 		aCodecCtx = avcodec_alloc_context3(aCodec);
-		AVCodecParameters *aparams = avcodec_parameters_alloc();
+		aparams = avcodec_parameters_alloc();
 		avcodec_parameters_from_context(aparams, aCodecCtxOrig);
 		avcodec_parameters_to_context(aCodecCtx,aparams);
 		avcodec_parameters_free(&aparams);
@@ -226,17 +267,18 @@ int movie_load_from_file(char *fname, void **opaque){
 	}
 
 	//video function-scope variables
-	struct SwsContext *sws_ctx = NULL;
-	int frameFinished;
-	AVPacket packet;
-	AVFrame *pFrame = NULL;
-	AVCodec *pCodec = NULL;
-	Stack *fw_framequeue = NULL;
-	AVFrame *pFrameRGB = NULL;
-	int nchan;
-	uint8_t *buffer = NULL;
+	sws_ctx = NULL;
+	pFrame = NULL;
+	pCodec = NULL;
+	fw_framequeue = NULL;
+	pFrameRGB = NULL;
+	buffer = NULL;
 	//video prep
 	if(videoStream > -1){
+		AVCodecParameters *vparams;		
+		int numBytes;
+		int av_pix_fmt;
+
 		// Get a pointer to the codec context for the video stream
 		pCodecCtxOrig = pFormatCtx->streams[videoStream]->codec;
 
@@ -249,7 +291,7 @@ int movie_load_from_file(char *fname, void **opaque){
 		}
 		// Copy context
 		pCodecCtx = avcodec_alloc_context3(pCodec);
-		AVCodecParameters *vparams = avcodec_parameters_alloc();
+		vparams = avcodec_parameters_alloc();
 		avcodec_parameters_from_context(vparams, pCodecCtxOrig);
 		avcodec_parameters_to_context(pCodecCtx, vparams);
 		avcodec_parameters_free(&vparams);
@@ -271,9 +313,7 @@ int movie_load_from_file(char *fname, void **opaque){
 		if(pFrameRGB==NULL)
 			return -1;
 
-		int numBytes;
 		// Determine required buffer size and allocate buffer
-		int av_pix_fmt;
 		if(0){
 			nchan = 3;
 			av_pix_fmt = AV_PIX_FMT_RGB24;
@@ -328,6 +368,8 @@ int movie_load_from_file(char *fname, void **opaque){
 			// Did we get a video frame?
 			if(frameFinished) {
 				// Convert the image from its native format to RGB
+				unsigned char * fw_frame;
+				int k;
 				sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
 					pFrame->linesize, 0, pCodecCtx->height,
 					pFrameRGB->data, pFrameRGB->linesize);
@@ -342,9 +384,9 @@ int movie_load_from_file(char *fname, void **opaque){
 				//printf("saving frame %d %d %d\n",pCodecCtx->width,pCodecCtx->height, i);
 				//printf("linesize = %d \n",pFrameRGB->linesize[0]);
 
-				unsigned char * fw_frame = malloc(fw_movie.height * fw_movie.width *  nchan); //assumes width == linesize[0]
+				fw_frame = malloc(fw_movie.height * fw_movie.width *  nchan); //assumes width == linesize[0]
 				
-				for(int k=0;k<pCodecCtx->height;k++){
+				for(k=0;k<pCodecCtx->height;k++){
 					int kd,ks,kk;
 					unsigned char *src;
 					kk = pCodecCtx->height - k - 1; //flip y-down to y-up for opengl
@@ -363,13 +405,15 @@ int movie_load_from_file(char *fname, void **opaque){
 			// alBufferData(g_Buffers[0],format,data,size,freq); 
 			// Goal: PCM data
 			// taking code from decode_audio_frame in ffmpeg tutorial03.c
+			int buf_size;
 			int got_frame = 0;
+			int data_size = 0;
 			//int len1;
 			//len1 = avcodec_decode_audio4(aCodecCtx, aFrame, &got_frame, &packet);
 			avcodec_send_packet(aCodecCtx, &packet);
 			got_frame = avcodec_receive_frame(aCodecCtx, aFrame) == 0 ? TRUE : FALSE;
-			int data_size = 0;
-			int buf_size = audio_buf_size - audio_buf_index;
+
+			buf_size = audio_buf_size - audio_buf_index;
 			if(got_frame) {
 				//aFrameOut->format = aCodecCtx->sample_fmt;
 				if(aFrame->nb_samples > 0){
@@ -391,20 +435,21 @@ int movie_load_from_file(char *fname, void **opaque){
 							//hand-coded FLTP to S16 
 							// works with apple1984veryshort.mp4 on win32 openAL, but not generally trusted, just as hacker code
 							//http://stackoverflow.com/questions/14989397/how-to-convert-sample-rate-from-av-sample-fmt-fltp-to-av-sample-fmt-s16
+							int i,c;
 							int nb_samples = aFrame->nb_samples;
 							int channels = aFrame->channels;
 							int outputBufferLen = nb_samples * channels * 2;
 							short* outputBuffer = (short*)&audio_buf[audio_buf_index];
 
-							for (int i = 0; i < nb_samples; i++)
+							for (i = 0; i < nb_samples; i++)
 							{
-								 for (int c = 0; c < channels; c++)
+								 for (c = 0; c < channels; c++)
 								 {
 									 float* extended_data = (float*)aFrame->extended_data[c];
 									 float sample = extended_data[i];
 									 if (sample < -1.0f) sample = -1.0f;
 									 else if (sample > 1.0f) sample = 1.0f;
-									 outputBuffer[i * channels + c] = (short)round(sample * 32767.0f);
+									 outputBuffer[i * channels + c] = (short)fwroundf(sample * 32767.0f);
 								 }
 							}
 							audio_buf_index += outputBufferLen;
@@ -415,7 +460,7 @@ int movie_load_from_file(char *fname, void **opaque){
 							uint8_t *output;
 							int in_samples = aFrame->nb_samples;
 
-							int out_samples = av_rescale_rnd(swr_get_delay(swr, aCodecCtx->sample_rate) + in_samples, 44100, aCodecCtx->sample_rate, AV_ROUND_UP);
+							int out_samples = (int)av_rescale_rnd(swr_get_delay(swr, aCodecCtx->sample_rate) + in_samples, 44100, aCodecCtx->sample_rate, AV_ROUND_UP);
 							av_samples_alloc(&output, NULL, 2, out_samples,	AV_SAMPLE_FMT_S16, 0);
 							out_samples = swr_convert(swr,&output,out_samples, aFrame->extended_data, aFrame->nb_samples);  
 							memcpy(&audio_buf[audio_buf_index],output, out_samples * 2 * 2);
@@ -447,6 +492,7 @@ int movie_load_from_file(char *fname, void **opaque){
 
 		if(0){
 			//write out frames in .web3dit image format for testing
+			int k;
 			textureTableIndexStruct_s ttipp, *ttip;
 			ttip = &ttipp;
 			ttip->x = fw_movie.width;
@@ -455,9 +501,9 @@ int movie_load_from_file(char *fname, void **opaque){
 			ttip->hasAlpha = 1;
 			ttip->channels = nchan;
 
-			for(int k=0;k<fw_movie.nframes;k++){
-				ttip->texdata = fw_movie.frames[k];
+			for(k=0;k<fw_movie.nframes;k++){
 				char namebuf[100];
+				ttip->texdata = fw_movie.frames[k];
 				sprintf(namebuf,"%s%d.web3dit","ffmpeg_frame_",k);
 				saveImage_web3dit(ttip, namebuf);
 			}
@@ -500,10 +546,11 @@ double movie_get_duration(void *opaque){
 }
 
 unsigned char *movie_get_frame_by_fraction(void *opaque, float fraction, int *width, int *height, int *nchan){
+	int iframe;
 	struct fw_movietexture *fw_movie = (struct fw_movietexture *)opaque;
 	if(!fw_movie) return NULL;
 
-	int iframe = (int)(fraction * ((float)(fw_movie->nframes -1) + .5f));
+	iframe = (int)(fraction * ((float)(fw_movie->nframes -1) + .5f));
 	iframe = max(0,iframe);
 	iframe = min(fw_movie->nframes -1,iframe);
 	*width = fw_movie->width;
@@ -524,7 +571,8 @@ unsigned char * movie_get_audio_PCM_buffer(void *opaque,int *freq, int *channels
 void movie_free(void *opaque){
 	struct fw_movietexture *fw_movie = (struct fw_movietexture *)opaque;
 	if(fw_movie) {
-		for(int k=0;k<fw_movie->nframes;k++){
+		int k;
+		for(k=0;k<fw_movie->nframes;k++){
 			FREE_IF_NZ(fw_movie->frames[k]);
 		}
 		free(opaque);

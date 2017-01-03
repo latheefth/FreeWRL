@@ -636,6 +636,7 @@ void child_PickableGroup (struct X3D_Group *node) {
 #endif // DJTRACK_PICKSENSORS
 
 int overlapMBBs(GLDOUBLE *MBBmin1, GLDOUBLE *MBBmax1, GLDOUBLE *MBBmin2, GLDOUBLE* MBBmax2);
+void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax);
 /*
 A. Q. Should we even bother to implement Picking component? Few others are:
 	http://www.web3d.org/wiki/index.php/Player_support_for_X3D_components
@@ -694,17 +695,17 @@ HARD PARTS:
 */
 int objecttypes_overlap(struct Multi_String * list1, struct Multi_String * list2, struct Uni_String * criterion){
 	int ntries, nmatches, iallsensor, ialltarget,inonetarget;
-	int iret = FALSE;
+	int i,j,iret = FALSE;
 	//hope I got this logic right
 	ntries = nmatches = iallsensor = ialltarget = inonetarget = 0;
-	for(int j=0;j<list2->n;j++){
+	for(j=0;j<list2->n;j++){
 		if(!strcmp(list2->p[j]->strptr,"ALL")) ialltarget = TRUE;
 		if(!strcmp(list2->p[j]->strptr,"NONE")) inonetarget = TRUE;
 	}
 
-	for(int i=0;i<list1->n;i++){
+	for(i=0;i<list1->n;i++){
 		if(!strcmp(list1->p[i]->strptr,"ALL")) iallsensor = TRUE;
-		for(int j=0;j<list2->n;j++){
+		for(j=0;j<list2->n;j++){
 			ntries++;
 			if(!strcmp(list1->p[i]->strptr,list2->p[j]->strptr)) {
 				nmatches++;
@@ -796,9 +797,9 @@ void do_PickSensorTick(void *ptr){
 		//check all USE-USE combinations of this node and pickTargets
 		//find ME: the picksensor, in the usehit list
 		while(mehit = usehit_next(menode,mehit)){  //hopefully there's only one instance of me/picksensor node in the scenegraph
-			int iret;
+			//int iret;
 			double meinv[16],memin[3],memax[3];
-			float emin[3], emax[3], halfsize[3];
+			float emin[3], emax[3]; //, halfsize[3];
 
 			matinverseAFFINE(meinv,mehit->mvm);
 			//iret = __gluInvertMatrixd( mehit->mvm, meinv);
@@ -884,7 +885,7 @@ void do_PickSensorTick(void *ptr){
 								vecaddd(c2,umin,umax);
 								vecscaled(c2,c2,.5);
 								vecdifd(dd,c2,c1);
-								ndist.dist = veclengthd(dd);
+								ndist.dist = (float)veclengthd(dd);
 								ndist.node = unode;
 								stack_push(struct nodedistance,p->stack_nodesdistance,ndist);
 								ishit++;
@@ -901,9 +902,11 @@ void do_PickSensorTick(void *ptr){
 								//b) the callback does the intersections, and gives us back 
 								//   the intersection lists
 								//decision: lets do a) here
-								usehitB_clear();
 								Stack *usehitB;
 								double viewMatrix[16];
+								int m;
+
+								usehitB_clear();
 
 								if(isGeometryNode(unode)){
 									double matidentity[16];
@@ -917,9 +920,9 @@ void do_PickSensorTick(void *ptr){
 									render_hier(unode, VF_Geom | VF_Picking);
 								}
 								usehitB = getUseHitBStack();
-								for(int m=0;m<vectorSize(usehitB);m++){
+								for(m=0;m<vectorSize(usehitB);m++){
 									//geometry node
-									double u2meg[16], me2ug[16], nodedistance;
+									double u2meg[16], me2ug[16]; // nodedistance;
 									usehit *ghit = vector_get_ptr(usehit,usehitB,m);
 
 									// concatonate matrices 
@@ -948,13 +951,19 @@ void do_PickSensorTick(void *ptr){
 											//compile_LinePick_sensor
 											float *segments = NULL; //a segment has 2 points / 6 floats
 											int nseg = 0;
+											float cumdist = 0.0f;
+											int ik, cumcount = 0;
+
+
 											switch(pnode->_nodeType){
 												case NODE_IndexedLineSet:
 												{
+													float *points;
+													int ik;
 													struct X3D_IndexedLineSet *lnode = (struct X3D_IndexedLineSet *)pnode;
 													segments = MALLOC(float*,lnode->coordIndex.n * 2 * 3 * sizeof(float));
-													float *points = (float*)((struct X3D_Coordinate*)lnode->coord)->point.p;
-													for(int ik=0;ik<lnode->coordIndex.n;ik++){
+													points = (float*)((struct X3D_Coordinate*)lnode->coord)->point.p;
+													for(ik=0;ik<lnode->coordIndex.n;ik++){
 														if(lnode->coordIndex.p[ik] == -1) continue;
 														if(lnode->coordIndex.p[ik+1] == -1) continue;
 														veccopy3f(&segments[6*nseg +0],&points[3*lnode->coordIndex.p[ik]]);
@@ -965,15 +974,16 @@ void do_PickSensorTick(void *ptr){
 												break;
 												case NODE_LineSet:
 												{
+													float *points;
 													struct X3D_LineSet *lnode = (struct X3D_LineSet *)pnode;
-													int nn = 0;
-													for(int ik=0;ik<lnode->vertexCount.n;ik++)
+													int kk,ik,jk, nn = 0;
+													for(ik=0;ik<lnode->vertexCount.n;ik++)
 														nn += lnode->vertexCount.p[ik];
 													segments = MALLOC(float*,nn * 2 * 3 * sizeof(float));
-													float *points = (float*)((struct X3D_Coordinate*)lnode->coord)->point.p;
-													int kk=0;
-													for(int ik=0;ik<lnode->vertexCount.n;ik++){
-														for(int jk=0;jk<lnode->vertexCount.p[ik]-1;jk++){
+													points = (float*)((struct X3D_Coordinate*)lnode->coord)->point.p;
+													kk=0;
+													for(ik=0;ik<lnode->vertexCount.n;ik++){
+														for(jk=0;jk<lnode->vertexCount.p[ik]-1;jk++){
 															veccopy3f(&segments[6*nseg +0],&points[3*(kk+jk)]);
 															veccopy3f(&segments[6*nseg +3],&points[3*(kk+jk+1)]);
 															nseg++;
@@ -986,9 +996,9 @@ void do_PickSensorTick(void *ptr){
 												default:
 												break;
 											}
-											float cumdist = 0.0f;
-											int cumcount = 0;
-											for(int ik=0;ik<nseg;ik++){
+											cumdist = 0.0f;
+											cumcount = 0;
+											for(ik=0;ik<nseg;ik++){
 												float p1[3], p2[3];
 												double dd[3];
 												veccopy3f(p1, &segments[6*ik]);
@@ -1003,7 +1013,8 @@ void do_PickSensorTick(void *ptr){
 												//	p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]);
 												if(intersect_polyrep2(ghit->node, p1, p2, p->stack_intersections )){
 													float delta[3];
-													for(int jk=cumcount;jk<p->stack_intersections->n;jk++){
+													int jk;
+													for(jk=cumcount;jk<p->stack_intersections->n;jk++){
 														struct intersection_info *iinfo = vector_get_ptr(struct intersection_info,p->stack_intersections,jk);
 														iinfo->dist += cumdist;
 														float2double(dd,iinfo->p,3);
@@ -1044,41 +1055,42 @@ void do_PickSensorTick(void *ptr){
 											//  create plumbline
 											//  intersect plumbline with target geom and see if intersection count is odd
 											//  if odd (point inside) accumulate geometry list
-											float *points;
-											int npoints;
+											float *points, cumdist;
+											int npoints,cumcount,ik;
 											struct X3D_PointSet *ps = (struct X3D_PointSet*)pnode;
 											struct X3D_Coordinate *cc = (struct X3D_Coordinate *)ps->coord;
 											points = (float*)cc->point.p;
 											npoints = cc->point.n;
 
-											float cumdist = 0.0f;
-											int cumcount = 0;
-											for(int ik=0;ik<npoints;ik++){
+											cumdist = 0.0f;
+											cumcount = 0;
+											for(ik=0;ik<npoints;ik++){
 												float p1[3], p2[3];
 												double dd[3];
+												int ixcount;
+
 												veccopy3f(p1, &points[3*ik]);
 												float2double(dd,p1,3);
 												transformAFFINEd(dd,dd,me2ug);
 												double2float(p1,dd,3);
 												veccopy3f(p2,p1);
-												p2[3] = unode->_extent[4] - 1.0; //plumbline point must be guaranteed outside target geom
+												p2[3] = unode->_extent[4] - 1.0f; //plumbline point must be guaranteed outside target geom
 
 												//printf("p1,p2 in cylinder space: [%f %f %f][%f %f %f]\n",
 												//	p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]);
-												int ixcount;
 												if(ixcount = intersect_polyrep2(ghit->node, p1, p2, p->stack_intersections )){
 													if(ixcount % 2){
 														//if odd number of intersections, then the point is inside
 														struct intersection_info iinfo;
 														float delta[3];
-														cumcount++;
 														double c1[3], pointdist;
+														cumcount++;
 														//stack_push(struct X3D_Node*,p->stack_nodesintersected,unode);
 														vecaddd(c1,memin,memax);
 														vecscaled(c1,c1,.5);
 														double2float(delta,c1,3);
 														pointdist = veclength3f(vecdif3f(delta,delta,p1));
-														iinfo.dist = pointdist;
+														iinfo.dist = (float)pointdist;
 														veccopy3f(iinfo.p,&points[3*ik]); //the point inside
 														stack_push(struct intersection_info,p->stack_pointsinside,iinfo);
 													}
@@ -1103,10 +1115,10 @@ void do_PickSensorTick(void *ptr){
 											struct X3D_PolyRep* pr = (struct X3D_PolyRep*)ghit->node->_intern;
 											if(pr){
 												float *points = pr->actualCoord;
-												int npts = pr->ntri;
+												int ik, npts = pr->ntri;
 												int cumcount = 0;
 
-												for(int ik=0;ik<npts;ik++){
+												for(ik=0;ik<npts;ik++){
 													double dd[3];
 													float pp[3];
 													float2double(dd,&points[ik*3],3);
@@ -1121,8 +1133,8 @@ void do_PickSensorTick(void *ptr){
 															R = cone->bottomRadius;
 															if(pp[1] >= -H/2.0f && pp[1] < H/2.0f){
 																float xz[2];
-																h = pp[1] - (-H/2.0);
-																rc = R*(1.0 - h/H);
+																h = pp[1] - (-H/2.0f);
+																rc = R*(1.0f - h/H);
 																xz[0] = pp[0];
 																xz[1] = pp[2];
 																rp = veclength2f(xz);
@@ -1130,7 +1142,7 @@ void do_PickSensorTick(void *ptr){
 																	//inside the cone
 																	struct intersection_info iinfo;
 																	float apex[3], delta[3], conedist;
-																	apex[1] = H/2.0;
+																	apex[1] = H/2.0f;
 																	apex[0] = apex[2] = 0.0f;
 																	conedist = veclength3f(vecdif3f(delta,pp,apex));
 																	iinfo.dist = conedist;
@@ -1149,7 +1161,7 @@ void do_PickSensorTick(void *ptr){
 															R = cyl->radius;
 															if(pp[1] >= -H/2.0f && pp[1] < H/2.0f){
 																float xz[2];
-																h = pp[1] - (-H/2.0);
+																h = pp[1] - (-H/2.0f);
 																xz[0] = pp[0];
 																xz[1] = pp[2];
 																rp = veclength2f(xz);
@@ -1181,10 +1193,10 @@ void do_PickSensorTick(void *ptr){
 														break;
 														case NODE_Box:
 														{
-															int inside;
+															int inside,im;
 															struct X3D_Box * box = (struct X3D_Box*)pnode;
 															inside = TRUE;
-															for(int im=0;im<3;im++)
+															for(im=0;im<3;im++)
 																inside = inside && pp[i] >= -box->size.c[i] && pp[i] <= box->size.c[i];
 															if(inside){
 																struct intersection_info iinfo;
@@ -1227,9 +1239,9 @@ void do_PickSensorTick(void *ptr){
 											if(pr){
 												float *points = pr->actualCoord;
 												int npts = pr->ntri;
-												int cumcount = 0;
+												int ik,cumcount = 0;
 
-												for(int ik=0;ik<npts;ik++){
+												for(ik=0;ik<npts;ik++){
 													double dd[3];
 													float pp[3];
 													float2double(dd,&points[ik*3],3);
@@ -1237,27 +1249,27 @@ void do_PickSensorTick(void *ptr){
 													double2float(pp,dd,3);
 													{
 														float p1[3], p2[3];
-														double dd[3];
+														//double dd[3];
+														int ixcount;
 														veccopy3f(p1, pp);
 														veccopy3f(p2,p1);
-														p2[3] = menode->_extent[4] - 1.0; //plumbline point must be guaranteed outside target geom
+														p2[3] = menode->_extent[4] - 1.0f; //plumbline point must be guaranteed outside target geom
 
 														//printf("p1,p2 in cylinder space: [%f %f %f][%f %f %f]\n",
 														//	p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]);
-														int ixcount;
 														if(ixcount = intersect_polyrep2(pnode, p1, p2, p->stack_intersections )){
 															if(ixcount % 2){
 																//if odd number of intersections, then the point is inside
 																struct intersection_info iinfo;
 																float delta[3];
-																cumcount++;
 																double c1[3], pointdist;
+																cumcount++;
 																//stack_push(struct X3D_Node*,p->stack_nodesintersected,unode);
 																vecaddd(c1,memin,memax);
 																vecscaled(c1,c1,.5);
 																double2float(delta,c1,3);
 																pointdist = veclength3f(vecdif3f(delta,delta,p1));
-																iinfo.dist = pointdist;
+																iinfo.dist = (float) pointdist;
 																veccopy3f(iinfo.p,&points[3*ik]); //the point inside
 																stack_push(struct intersection_info,p->stack_pointsinside,iinfo);
 															}
@@ -1310,9 +1322,10 @@ void do_PickSensorTick(void *ptr){
 				ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
 				node->pickedGeometry.p[0] = ndist->node;
 			}else if(!strcmp(node->sortOrder->strptr,"ALL")){
+				int ii;
 				struct nodedistance *ndist;
 				realloc(node->pickedGeometry.p,p->stack_nodesdistance->n * sizeof(struct X3D_Node*));
-				for(int ii=0;ii<p->stack_nodesdistance->n;ii++){
+				for(ii=0;ii<p->stack_nodesdistance->n;ii++){
 					ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
 					node->pickedGeometry.p[ii] = ndist->node;
 				}
@@ -1328,10 +1341,11 @@ void do_PickSensorTick(void *ptr){
 				//   int (__cdecl *compare )(const void *, const void *)   
 				//);  
 				struct nodedistance *ndist;
+				int ii;
 
 				qsort(p->stack_nodesdistance->data,p->stack_nodesdistance->n, sizeof(struct nodedistance), compare_nodedistance );  
 				realloc(node->pickedGeometry.p,p->stack_nodesdistance->n * sizeof(struct X3D_Node*));
-				for(int ii=0;ii<p->stack_nodesdistance->n;ii++){
+				for(ii=0;ii<p->stack_nodesdistance->n;ii++){
 					ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
 					node->pickedGeometry.p[ii] = ndist->node;
 				}
@@ -1351,6 +1365,7 @@ void do_PickSensorTick(void *ptr){
 			switch(node->_nodeType){
 				case NODE_LinePickSensor:
 				{
+					int ik;
 					struct X3D_LinePickSensor *lnode = (struct X3D_LinePickSensor *)node;
 					lnode->pickedPoint.n = p->stack_intersections->n;
 					lnode->pickedNormal.n = p->stack_intersections->n;
@@ -1358,7 +1373,7 @@ void do_PickSensorTick(void *ptr){
 					lnode->pickedPoint.p = realloc(lnode->pickedPoint.p,lnode->pickedPoint.n * 3 * sizeof(float));
 					lnode->pickedNormal.p = realloc(lnode->pickedNormal.p,lnode->pickedPoint.n * 3 * sizeof(float));
 					lnode->pickedTextureCoordinate.p = realloc(lnode->pickedTextureCoordinate.p,lnode->pickedPoint.n * 3 * sizeof(float));
-					for(int ik=0;ik<p->stack_intersections->n;ik++){
+					for(ik=0;ik<p->stack_intersections->n;ik++){
 						struct intersection_info *iinfo = vector_get_ptr(struct intersection_info,p->stack_intersections,ik);
 						veccopy3f(lnode->pickedPoint.p[ik].c,iinfo->p);
 						veccopy3f(lnode->pickedNormal.p[ik].c,iinfo->normal);
@@ -1372,10 +1387,11 @@ void do_PickSensorTick(void *ptr){
 				case NODE_PointPickSensor:
 				{
 					//send points that were inside
+					int ik;
 					struct X3D_PointPickSensor *lnode = (struct X3D_PointPickSensor *)node;
 					lnode->pickedPoint.n = p->stack_pointsinside->n;
 					lnode->pickedPoint.p = realloc(lnode->pickedPoint.p,lnode->pickedPoint.n * 3 * sizeof(float));
-					for(int ik=0;ik<p->stack_pointsinside->n;ik++){
+					for(ik=0;ik<p->stack_pointsinside->n;ik++){
 						struct intersection_info *iinfo = vector_get_ptr(struct intersection_info,p->stack_pointsinside,ik);
 						veccopy3f(lnode->pickedPoint.p[ik].c,iinfo->p);
 					}

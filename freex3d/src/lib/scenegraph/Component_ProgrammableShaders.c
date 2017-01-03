@@ -1405,7 +1405,7 @@ int getNextFreeEffectSlot() {
 void compile_Effect (struct X3D_Effect *node) {
 	//printf("compile_effect not implemented\n");
 	int i, is_valid;
-	struct myArgs *args;
+	//struct myArgs *args;
 	ttglobal tg = gglobal();
 
 	is_valid = TRUE;
@@ -1417,6 +1417,9 @@ void compile_Effect (struct X3D_Effect *node) {
 }
 static int effect_stack_count = 0;
 shaderflagsstruct getShaderFlags();
+void pushShaderFlags(shaderflagsstruct flags);
+void popShaderFlags();
+
 void sib_prep_Effect (struct X3D_Node *parent, struct X3D_Node *sibAffector) {
 	//unsigned int shaderflags;
 	shaderflagsstruct shaderflags;
