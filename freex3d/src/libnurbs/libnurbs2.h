@@ -52,7 +52,7 @@ OLDCODE #include <limits.h>		/* LONG_MAX */
 
 #if defined (_ANDROID) || defined(ANDROIDNDK) || defined (IPHONE) || defined (QNX) || defined (ANGLEPROJECT)
 	#include <GLES2/gl2.h>
-	#include <GLES2/gl2ext.h>
+	//#include <GLES2/gl2ext.h>
 	#define GLdouble double
 	//#define USE_INTERNAL_EVAL
 	#define GL_QUAD_STRIP				0x0008
@@ -68,6 +68,14 @@ OLDCODE #include <limits.h>		/* LONG_MAX */
 #define GLAPIENTRY
 #endif
 #endif
+
+#ifdef ANDROIDNDK
+#define APIENTRY GLAPIENTRY
+#ifndef CALLBACK 
+#define CALLBACK
+#endif
+#endif
+
 
 #ifndef GLAPIENTRYP
 #define GLAPIENTRYP GLAPIENTRY *
@@ -341,7 +349,8 @@ typedef GLUtesselator GLUtriangulatorObj;
 #define GLU_TESS_MAX_COORD 1.0e150
 
 /* Internal convenience typedefs */
-typedef void (GLAPIENTRYP _GLUfuncptr)(void);
+//typedef void (GLAPIENTRYP _GLUfuncptr)(void);
+typedef void (GLAPIENTRYP _GLUfuncptr)();
 
 
 GLAPI void GLAPIENTRY gluBeginCurve (GLUnurbs* nurb);
