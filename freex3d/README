@@ -1,12 +1,12 @@
 FreeWRL			$log: $
 -------
 
-Welcome to FreeWRL : X3D / VRML visualization program for Linux, Mac
+Welcome to FreeWRL : X3D / VRML visualization program for Linux
 and Windows. It can be used as a standalone application or integrated
 as a browser plugin.
 
-FreeWRL is currently packaged for Mac OS X, Linux (Gentoo, Debian,
-Ubuntu), and, in the near future, for Windows.
+FreeWRL is currently packaged for Linux (Gentoo, Debian,
+Ubuntu), and Windows.
 
 If you want to build FreeWRL from sources please refer to the 
 documentation in INSTALL.
