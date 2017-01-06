@@ -705,7 +705,10 @@ void setTransformsAndGeom_E(dSpaceID space, void *csensor, struct X3D_Node* pare
 						struct X3D_CollidableOffset *coff = (struct X3D_CollidableOffset *)node;
 						//printf("handle collidableoffset\n");
 						//recurse to leaf-node collidableShape
-						setTransformsAndGeom_E(space,csensor,X3D_NODE(coff),&X3D_NODE(coff->collidable),1);
+						struct X3D_Node *nodelist[1];
+						struct X3D_Node *nodelistitem = X3D_NODE(coff->collidable);
+						nodelist[0] = nodelistitem;
+						setTransformsAndGeom_E(space,csensor,X3D_NODE(coff),nodelist,1);
 						gid = coff->_geom;
 					}
 					break;
@@ -1146,8 +1149,12 @@ void rbp_run_physics(){
 						//   composition in one callstack
 						//Phase II option: recurse even if _geom set by RBP->collidables separate traverse/callstack
 						//   so we can set mass to the same pose
+						struct X3D_Node *nodelistitem;
+						struct X3D_Node *nodelist[1];
 						struct X3D_CollidableOffset* collidable = (struct X3D_CollidableOffset*)x3dbody->geometry.p[k];
-						setTransformsAndGeom_E(space,NULL,X3D_NODE(x3dbody), &X3D_NODE(collidable),1);
+						nodelistitem = X3D_NODE(collidable);
+						nodelist[0] = nodelistitem;
+						setTransformsAndGeom_E(space,NULL,X3D_NODE(x3dbody), nodelist,1);
 					}
 					if(verify_translate(translation)){
 						//printf("verified translation= %f %f %f\n",translation[0],translation[1],translation[2]);
