@@ -2676,13 +2676,13 @@ int AtlasFont_setFontSize(AtlasFont *me, int EMpixels, int *rowheight, int *maxa
     
 	if(1){
 		int h, max_advance_px;
-		printf("spacing between rows = %f\n",fontFace->height);
+		//printf("spacing between rows = %f\n",fontFace->height);
 		h = fontFace->size->metrics.height;
-		printf("height(px)= %d.%d x_ppem=%d\n",(int)(h >>6),(int)(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
+		//printf("height(px)= %d.%d x_ppem=%d\n",(int)(h >>6),(int)(h<<26)>>26,(unsigned int)fontFace->size->metrics.x_ppem);
 		*rowheight = fontFace->size->metrics.height >> 6;
 		//fs->EMpixels = (unsigned int)fontFace->size->metrics.x_ppem;
 		max_advance_px = fontFace->size->metrics.max_advance >> 6;
-		printf("max advance px=%d\n",max_advance_px);
+		//printf("max advance px=%d\n",max_advance_px);
 	}
 	*maxadvancepx = fontFace->size->metrics.max_advance >> 6;
     if (err) {
@@ -2710,7 +2710,7 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	Atlas *atlas = NULL;
 	ppComponent_Text p = (ppComponent_Text)gglobal()->Component_Text.prv;
 
-	printf("start of RenderFontAtlas\n");
+	//printf("start of RenderFontAtlas\n");
 
 	if(!me->fontFace) return; //font .ttf file not loaded (likely not found, or programmer didn't load flont first)
 
@@ -2727,7 +2727,7 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	pixelsNeeded = rowheight * EMpixels / 2 * strlen(alphabet);
 	dimension = (unsigned int)sqrt((double)pixelsNeeded);
 	dimension = upperPowerOfTwo(dimension);
-	printf("creating atlas %s with dimension %d advance %d rowheight %d\n",name,dimension,EMpixels/2,rowheight);
+	//printf("creating atlas %s with dimension %d advance %d rowheight %d\n",name,dimension,EMpixels/2,rowheight);
 	Atlas_init(atlas,dimension,rowheight);
 	aes->atlas = atlas;
 	aes->EMpixels = EMpixels;
@@ -2740,7 +2740,7 @@ void AtlasFont_RenderFontAtlas(AtlasFont *me, int EMpixels, char* alphabet){
 	//vector_pushBack(AtlasEntrySet*,&me->atlasSizes,aes);
 	me->set = aes;
 	///vector_pushBack(GUIAtlas*,atlas_table,atlas); //will have fontnameXX where XX is the EMpixel
-	printf("end of RenderFontAtlas\n");
+	//printf("end of RenderFontAtlas\n");
 }
 
 

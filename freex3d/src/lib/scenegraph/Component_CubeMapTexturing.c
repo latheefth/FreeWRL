@@ -634,13 +634,13 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	/* does this start off with "DDS " an so on ?? */
 	if ((hdr.dwMagic == DDS_MAGIC) && (hdr.dwSize == 124) &&
 		(hdr.dwFlags & DDSD_PIXELFORMAT) && (hdr.dwFlags & DDSD_CAPS)) {
-		printf ("matched :DDS :\n");
+		//printf ("matched :DDS :\n");
 
 		
-		printf ("dwFlags %x, DDSD_PIXELFORMAT %x, DDSD_CAPS %x\n",hdr.dwFlags, DDSD_PIXELFORMAT, DDSD_CAPS);
+		//printf ("dwFlags %x, DDSD_PIXELFORMAT %x, DDSD_CAPS %x\n",hdr.dwFlags, DDSD_PIXELFORMAT, DDSD_CAPS);
 			xSize = hdr.dwWidth;
 			ySize = hdr.dwHeight;
-		printf ("size %d, %d\n",xSize, ySize);
+		//printf ("size %d, %d\n",xSize, ySize);
 		
 
 		/*
@@ -648,25 +648,25 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			assert( !(ySize & (ySize-1)) );
 		*/
 
-		
-		printf ("looking to see what it is...\n");
-		printf ("DDPF_FOURCC dwFlags %x mask %x, final %x\n",hdr.sPixelFormat.dwFlags,DDPF_FOURCC,hdr.sPixelFormat.dwFlags & DDPF_FOURCC);
+		if(0){
+			printf ("looking to see what it is...\n");
+			printf ("DDPF_FOURCC dwFlags %x mask %x, final %x\n",hdr.sPixelFormat.dwFlags,DDPF_FOURCC,hdr.sPixelFormat.dwFlags & DDPF_FOURCC);
 
-		printf ("if it is a dwFourCC, %x and %x\n", hdr.sPixelFormat.dwFourCC ,D3DFMT_DXT1);
+			printf ("if it is a dwFourCC, %x and %x\n", hdr.sPixelFormat.dwFourCC ,D3DFMT_DXT1);
 
-		printf ("dwFlags %x\n",hdr.sPixelFormat.dwFlags);
-		printf ("dwRGBBitCount %d\n",hdr.sPixelFormat.dwRGBBitCount); //24 for normal RGB
-		printf ("dwRBitMask %x\n",hdr.sPixelFormat.dwRBitMask);
-		printf ("dwGBitMask %x\n",hdr.sPixelFormat.dwGBitMask);
-		printf ("dwBBitMask %x\n",hdr.sPixelFormat.dwBBitMask);
-		printf ("dwAlphaBitMask %x\n",hdr.sPixelFormat.dwAlphaBitMask);
-		printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags);
-		printf ("dwflags & DDPF_RGB %x\n,",hdr.sPixelFormat.dwFlags & DDPF_RGB);
+			printf ("dwFlags %x\n",hdr.sPixelFormat.dwFlags);
+			printf ("dwRGBBitCount %d\n",hdr.sPixelFormat.dwRGBBitCount); //24 for normal RGB
+			printf ("dwRBitMask %x\n",hdr.sPixelFormat.dwRBitMask);
+			printf ("dwGBitMask %x\n",hdr.sPixelFormat.dwGBitMask);
+			printf ("dwBBitMask %x\n",hdr.sPixelFormat.dwBBitMask);
+			printf ("dwAlphaBitMask %x\n",hdr.sPixelFormat.dwAlphaBitMask);
+			printf ("dwFlags and DDPF_ALPHAPIXELS... %x\n",DDPF_ALPHAPIXELS & hdr.sPixelFormat.dwFlags);
+			printf ("dwflags & DDPF_RGB %x\n,",hdr.sPixelFormat.dwFlags & DDPF_RGB);
 
-		printf ("dwFlags and DEPTH %x\n",hdr.dwFlags & DDSD_DEPTH);
-		printf ("dwCaps1 and complex %x\n",   (hdr.sCaps.dwCaps1 & DDSCAPS_COMPLEX));
-		printf ("dwCaps1 and VOLUME %x\n", (hdr.sCaps.dwCaps1 & DDSCAPS2_VOLUME));
-		
+			printf ("dwFlags and DEPTH %x\n",hdr.dwFlags & DDSD_DEPTH);
+			printf ("dwCaps1 and complex %x\n",   (hdr.sCaps.dwCaps1 & DDSCAPS_COMPLEX));
+			printf ("dwCaps1 and VOLUME %x\n", (hdr.sCaps.dwCaps1 & DDSCAPS2_VOLUME));
+		}
 		//rshift[0] = GetLowestBitPos(hdr.sPixelFormat.dwRBitMask);
 		//rshift[1] = GetLowestBitPos(hdr.sPixelFormat.dwGBitMask);
 		//rshift[2] = GetLowestBitPos(hdr.sPixelFormat.dwBBitMask);
@@ -749,7 +749,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 				//if incoming is RGB order
 				ir = 2;
 				ib = 0;
-				printf("BGR\n");
+				//printf("BGR\n");
 			}
 			//printf("bitmasks R %d G %d B %d\n",hdr.sPixelFormat.dwRBitMask,hdr.sPixelFormat.dwGBitMask,hdr.sPixelFormat.dwBBitMask);
 			//printf("bpp=%d x %d y %d z %d\n",bpp, x,y,z);
@@ -798,7 +798,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		//printf ("mipMapCount %d\n",mipMapCount);
 
 		if( li->compressed ) {
-			printf ("compressed\n");
+			//printf ("compressed\n");
 			/*
 			size_t size = max( li->divSize, x )/li->divSize * max( li->divSize, y )/li->divSize * li->blockBytes;
 			assert( size == hdr.dwPitchOrLinearSize );
@@ -819,7 +819,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			free( data );
 			*/
 		} else if( li->palette ) {
-			printf ("palette\n");
+			//printf ("palette\n");
 			/*
 			//  currently, we unpack palette into BGRA
 			//  I'm not sure we always get pitch...
@@ -851,7 +851,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			*/  
 		} else {
 			if( li->swap ) {
-			printf ("swap\n");
+			//printf ("swap\n");
 
 			/*
 			glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_TRUE );
@@ -859,7 +859,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			}
 			size = x * y * li->blockBytes;
 
-			printf ("size is %d\n",size);
+			//printf ("size is %d\n",size);
 			/*
 			format = li->externalFormat;
 			cFormat = li->internalFormat;
@@ -890,9 +890,10 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 		}
 		*/
 
-	} else {
-		printf ("put in the dummy file here, and call it quits\n");
 	}
+	// else {
+	//	//printf ("put in the dummy file here, and call it quits\n");
+	//}
 	FREE_IF_NZ(buffer);
 	return FALSE;
 }

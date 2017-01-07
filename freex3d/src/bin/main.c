@@ -107,7 +107,7 @@ int main (int argc, char **argv)
 		sprintf(consoleBuffer ,"FreeWRL expected library version %s, got %s...\n",progver, libver);
 		fwl_StringConsoleMessage(consoleBuffer);
 	}else{
-		sprintf(consoleBuffer, "library version %s\n", libver);
+		sprintf(consoleBuffer, "libfreewrl version %s\n", libver);
 		fwl_StringConsoleMessage(consoleBuffer);
 	}
 
@@ -143,7 +143,7 @@ int main (int argc, char **argv)
 		static char *fdir;
 		char *syspath;
 		syspath = getenv("windir");
-		printf("windir path=[%s]\n",syspath);
+		//printf("windir path=[%s]\n",syspath);
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
 		strcat(fdir,syspath);

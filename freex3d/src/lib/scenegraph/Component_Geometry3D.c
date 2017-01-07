@@ -983,31 +983,6 @@ void render_Sphere (struct X3D_Sphere *node) {
 	/* turn off */
 	//FW_GL_BINDBUFFER(GL_ARRAY_BUFFER, 0);
 	//FW_GL_BINDBUFFER(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-///* DJTRACK_PICKSENSORS */
-//#ifdef DJTRACK_PICKSENSORS
-//	if(active_picksensors()) {
-//		struct X3D_Node *chained ;
-//		int pickable = FALSE ;
-//		chained = (struct X3D_Node *) node ;
-//
-//		node->_renderFlags = node->_renderFlags & (0xFFFF^VF_inPickableGroup);
-//		chainUpPickableTree((struct X3D_Node *) node, chained, -1) ;
-//		pickable = (node->_renderFlags & VF_inPickableGroup) ;
-//
-//		if(pickable) {
-//			rewind_picksensors();
-//			/* dump_scene(stdout, 0, (struct X3D_Node *)rootNode); */
-//			//dump_scene(stdout, 0, (struct X3D_Node *)node);
-//			while (more_picksensors() == TRUE) {
-//				void * XX = get_picksensor();
-//				printf("%s,%d render_Sphere %p test PickSensor\n",__FILE__,__LINE__,XX);
-//				//dump_scene (stdout, 0, XX) ;
-//				advance_picksensors();
-//			}
-//		}
-//	}
-//#endif
 }
 
 void render_IndexedFaceSet (struct X3D_IndexedFaceSet *node) {

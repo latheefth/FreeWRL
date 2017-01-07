@@ -1218,7 +1218,7 @@ count,max,paramPtr->multitex_mode[0],paramPtr->multitex_mode[1],paramPtr->multit
 
 		paramPtr++;
 		}
-	printf("end of compileMultiTexture\n");
+	//printf("end of compileMultiTexture\n");
 }
 
 void loadMultiTexture (struct X3D_MultiTexture *node) {

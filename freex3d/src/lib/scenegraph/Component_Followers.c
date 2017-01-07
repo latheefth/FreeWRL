@@ -1880,7 +1880,7 @@ void do_OrientationChaserTick_oldway_works(void * ptr){
 	}
 	Now = TickTime();
 	if(NODE_NEEDS_COMPILING){
-		printf("node_needs_compiling\n");
+		//printf("node_needs_compiling\n");
 		node->isActive = TRUE;
 		MARK_EVENT ((struct X3D_Node*)node, offsetof(struct X3D_OrientationChaser, isActive));
 		//Q how to tell which set_ was set: set_destination or set_value?

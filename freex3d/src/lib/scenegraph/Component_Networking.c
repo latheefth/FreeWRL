@@ -74,7 +74,6 @@ X3D Networking Component
 
 #if USE_OSC
 /**************** START OF OSC node **************************/
-/* DJTRACK_OSCSENSORS */
 
 void error(int num, const char *m, const char *path);
 void utilOSCcounts(char *types , int *intCount, int *fltCount, int *strCount, int *blobCount, int *midiCount, int *otherCount);

@@ -2073,7 +2073,7 @@ void process_eventsProcessed(){
 	ttglobal tg;
 	ppJScript p;
 
-	if(!duk_once) printf("in process_eventsProcessed\n");
+	//if(!duk_once) printf("in process_eventsProcessed\n");
 	//call function eventsProcessed () {
 
 	duk_once++;
@@ -2432,10 +2432,10 @@ int runQueuedDirectOutputs()
 	struct CRscriptStruct *scriptcontrol; //*ScriptControlArray, 
 	//ScriptControlArray = getScriptControl();
 	
-	if(!doneOnce){
-		printf("in runQueuedDirectOutputs\n");
-		doneOnce++;
-	}
+	//if(!doneOnce){
+	//	printf("in runQueuedDirectOutputs\n");
+	//	doneOnce++;
+	//}
 	moreAction = FALSE;
 	for(num=0;num< tg->CRoutes.max_script_found_and_initialized;num++){
 		scriptcontrol = getScriptControlIndex(num); //&ScriptControlArray[num];

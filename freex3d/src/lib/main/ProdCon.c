@@ -1376,6 +1376,7 @@ static bool parser_process_res(s_list_t *item)
 			resource_identify(res->parent, res); //should increment multi pointer/iterator
 			frontenditem_enqueue(ml_new(res));
 		}else{
+			ConsoleMessage("url not found: %s\n",res->parsed_request);
 			retval = FALSE;
 			res->complete = TRUE; //J30
 			destroy_it = TRUE;

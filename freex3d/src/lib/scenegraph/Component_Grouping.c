@@ -344,9 +344,6 @@ if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision "
 if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
 if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
 if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
-#ifdef DJTRACK_PICKSENSORS
-if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
-#endif
 printf ("\n");
 */
 
@@ -514,9 +511,7 @@ if ((node->_renderFlags & VF_Collision) == VF_Collision) printf ("VF_Collision "
 if ((node->_renderFlags & VF_globalLight) == VF_globalLight) printf ("VF_globalLight ");
 if ((node->_renderFlags & VF_hasVisibleChildren) == VF_hasVisibleChildren) printf ("VF_hasVisibleChildren ");
 if ((node->_renderFlags & VF_shouldSortChildren) == VF_shouldSortChildren) printf ("VF_shouldSortChildren ");
-#ifdef DJTRACK_PICKSENSORS
-if ((node->_renderFlags & VF_inPickableGroup) == VF_inPickableGroup) printf ("VF_inPickableGroup ");
-#endif
+
 printf ("\n");
 */
 	RETURN_FROM_CHILD_IF_NOT_FOR_ME

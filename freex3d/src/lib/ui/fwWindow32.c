@@ -248,9 +248,9 @@ BOOL bSetupPixelFormat(HDC hdc)
 	/*  seems to fail stereo gracefully/quietly, allowing you to detect with glGetbooleanv(GL_STEREO,) in shared code
 	*/
 	DescribePixelFormat(hdc, pixelformat, sizeof(PIXELFORMATDESCRIPTOR), ppfd);
-	printf("Depth Bits = %d\n",(int)(ppfd->cDepthBits));
-	if(gglobal()->display.shutterGlasses > 0)
-		printf("got stereo? = %d\n",(int)(ppfd->dwFlags & PFD_STEREO));
+	//printf("Depth Bits = %d\n",(int)(ppfd->cDepthBits));
+	//if(gglobal()->display.shutterGlasses > 0)
+	//	printf("got stereo? = %d\n",(int)(ppfd->dwFlags & PFD_STEREO));
 	/**/
     if (SetPixelFormat(hdc, pixelformat, ppfd) == FALSE) 
     { 
@@ -278,14 +278,14 @@ bool fv_create_and_bind_GLcontext(freewrl_params_t* d)
 
 	/* create GL context */
 	//fwl_thread_dump();
-	printf("starting createcontext32b\n");
+	//printf("starting createcontext32b\n");
 	hWnd = (HWND)d->winToEmbedInto;
 	hDC = GetDC(hWnd); 
-	printf("got hdc\n");
+	//printf("got hdc\n");
 	if (!bSetupPixelFormat(hDC))
 		printf("ouch - bSetupPixelFormat failed\n");
 	hRC = wglCreateContext(hDC); 
-	printf("created context\n");
+	//printf("created context\n");
 	/* bind GL context */
 
 	//fwl_thread_dump();
@@ -771,7 +771,7 @@ static int shiftState = 0;
     switch( msg ) {
 
     case WM_CREATE: 
-	printf("wm_create\n");
+	//printf("wm_create\n");
 	//fv_create_GLcontext();
 	//fv_bind_GLcontext();
 	//((*LPCREATESTRUCT)lParam)->lpCreateParams;
@@ -1143,10 +1143,10 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 	int width, height;
     int nCmdShow = SW_SHOW;
 	
-	printf("starting createWindow32\n"); 
+	//printf("starting createWindow32\n"); 
     /* I suspect hInstance should be get() and passed in from the console program not get() in the dll, but .lib maybe ok */
     hInstance = (HANDLE)GetModuleHandle(NULL); 
-	printf("hInstance=%p\n",hInstance);
+	//printf("hInstance=%p\n",hInstance);
     //gglobal()->display.window_title = "FreeWRL";
 	//d->window_title = "FreeWRL";
 
@@ -1224,12 +1224,12 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
     if (!ghWnd) 
         return NULL; 
 
-    printf("made a window\n");
+    //printf("made a window\n");
 
     //GetClientRect(ghWnd, &rect); 
    
     ShowWindow( ghWnd, SW_SHOW); /* SW_SHOWNORMAL); /*nCmdShow );*/
-    printf("showed window\n");
+    //printf("showed window\n");
 	//d->winToEmbedInto = (long int)ghWnd;
 
 
@@ -1247,7 +1247,7 @@ HWND create_main_window0(freewrl_params_t * d) //int argc, char *argv[])
 
 		SetWindowPos(ghWnd, HWND_TOP, d->xpos, d->ypos, 0, 0, SWP_FRAMECHANGED | SWP_NOSIZE);
 	}
-    printf("updated window - leaving createwindow\n");
+    //printf("updated window - leaving createwindow\n");
 	//setWindowTitle00();
 	//ShowCursor(0); //turns off hArrow, hHand cursors
 	setArrowCursor();

@@ -1120,8 +1120,8 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 		ttime = TickTime();
 		dtime = (float)(ttime - node->_lasttime); //increment to particle age
 
-		if(!once)
-			printf("child particlesystem \n");
+		//if(!once)
+		//	printf("child particlesystem \n");
 
 
 		//RETIRE remove deceased/retired particles (by packing vector)

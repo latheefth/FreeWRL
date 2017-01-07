@@ -400,7 +400,7 @@ _getopt_initialize (argc, argv, optstring)
   nextchar = NULL;
 
   posixly_correct = getenv ("POSIXLY_CORRECT");
-  printf("posixlycorrect=[%s]\n",posixly_correct);
+  //printf("posixlycorrect=[%s]\n",posixly_correct);
   /* Determine how to handle the ordering of options and nonoptions.  */
 
   if (optstring[0] == '-')

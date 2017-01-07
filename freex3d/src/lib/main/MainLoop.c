@@ -3648,9 +3648,9 @@ void setup_stagesNORMAL(){
 			ctext->t1.viewport[2] = 1.0f;
 			ctext->t1.viewport[3] = .5f;
 
-			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
+			//ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
 			textpanel_register_as_console(ctextpanel);
-			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+			//ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
 			
 			csbh->t1.contents = ctextpanel;
 			ctextpanel->t1.contents = cscene;
@@ -3793,9 +3793,9 @@ void setup_stagesNORMAL(){
 			cscene2 = new_contenttype_scene();
 
 
-			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
+			//ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
 			textpanel_register_as_console(ctextpanel);
-			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+			//ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
 
 			csbh->t1.contents = ctextpanel;
 			ctextpanel->t1.contents = cswitch0;
@@ -5079,10 +5079,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 }
 
 /* get setup for rendering. */
-#ifdef DJTRACK_PICKSENSORS
-void do_pickSensors();
-int enabled_picksensors();
-#endif
+
 void SSR_test_cumulative_pose();
 static void render_pre() {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
@@ -5142,20 +5139,6 @@ static void render_pre() {
 			profile_start("hier_prox");
 			render_hier(rootNode(), VF_Proximity);
 			profile_end("hier_prox");
-#ifdef DJTRACK_PICKSENSORS
-			{
-				/* find pickingSensors, record their world transform and picktargets */
-				save_viewpoint2world();
-				render_hier(rootNode(), VF_PickingSensor | VF_Other);
-				if( enabled_picksensors() )
-				{
-					/* find picktargets, transform to world and do pick test and save results */
-					render_hier(rootNode(), VF_inPickableGroup | VF_Other );
-					/* record results of picks to picksensor node fields and event outs*/
-					do_pickSensors();
-				}
-			}
-#endif
 		}
 
 		//drawStatusBar();

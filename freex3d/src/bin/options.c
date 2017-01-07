@@ -53,7 +53,7 @@ void fv_print_version()
     progver = freewrl_get_version();
     
     printf("Program version: %s\nLibrary version: %s\n", progver, libver);
-    printf("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
+    printf("\nFreeWRL VRML/X3D browser from (http://freewrl.sf.net)\n");
     printf("   type \"man freewrl\" to view man pages\n\n");
 }
 
@@ -226,10 +226,12 @@ int fv_parseCommandLine (int argc, char **argv, freewrl_params_t *fv_params)
 
 #if defined(_MSC_VER)
 #define strncasecmp _strnicmp
+#ifdef _DEBUG
 	for(c=0;c<argc;c++)
 	{
 		printf("argv[%d]=%s\n",c,argv[c]);
 	}
+#endif
 	c =	_getopt_internal (argc, argv, optstring, long_options, &option_index, 0);
 #else
 	c = getopt_long(argc, argv, optstring, long_options, &option_index);

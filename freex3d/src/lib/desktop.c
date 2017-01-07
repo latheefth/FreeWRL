@@ -210,7 +210,9 @@ bool resource_fetch(void *res)
 			} else {
 				//res->status = ress_failed;
 				fwl_resitem_setStatus(res,ress_failed);
-				ERROR_MSG("resource_fetch: can't find file: %s\n", url); //res->parsed_request);
+				// a little too noisy, if MF url and first url isn't found, it makes it look like there's a problem
+				// meanwhile subsequent SF urls in the MFUrl might succeed.
+				//ERROR_MSG("resource_fetch: can't find file: %s\n", url); //res->parsed_request);
 			}
 
 			break;
@@ -275,7 +277,7 @@ static void *thread_download_async (void *args){
 	//resource_item_t *res = (resource_item_t *)item->elem;
 	void *res = (void*)item->elem;
 	async_thread_count++;
-	printf("{%d}",async_thread_count);
+	//printf("{%d}",async_thread_count);
 	tg = fwl_resitem_getGlobal(res);
 	if(fwl_setCurrentHandle(tg, __FILE__, __LINE__));
 
