@@ -275,7 +275,7 @@ static void *thread_download_async (void *args){
 	//resource_item_t *res = (resource_item_t *)item->elem;
 	void *res = (void*)item->elem;
 	async_thread_count++;
-	printf("{%d}",async_thread_count);
+	//printf("{%d}",async_thread_count);
 	tg = fwl_resitem_getGlobal(res);
 	if(fwl_setCurrentHandle(tg, __FILE__, __LINE__));
 

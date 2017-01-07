@@ -3648,9 +3648,9 @@ void setup_stagesNORMAL(){
 			ctext->t1.viewport[2] = 1.0f;
 			ctext->t1.viewport[3] = .5f;
 
-			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
+			//ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
 			textpanel_register_as_console(ctextpanel);
-			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+			//ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
 			
 			csbh->t1.contents = ctextpanel;
 			ctextpanel->t1.contents = cscene;
@@ -3793,9 +3793,9 @@ void setup_stagesNORMAL(){
 			cscene2 = new_contenttype_scene();
 
 
-			ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
+			//ConsoleMessage("Going to register textpanel for ConsoleMessages\n"); //should not show in textpanel
 			textpanel_register_as_console(ctextpanel);
-			ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
+			//ConsoleMessage("Registered textpanel for ConsoleMessages\n"); //should be first message to show in textpanel
 
 			csbh->t1.contents = ctextpanel;
 			ctextpanel->t1.contents = cswitch0;

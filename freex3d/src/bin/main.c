@@ -107,7 +107,7 @@ int main (int argc, char **argv)
 		sprintf(consoleBuffer ,"FreeWRL expected library version %s, got %s...\n",progver, libver);
 		fwl_StringConsoleMessage(consoleBuffer);
 	}else{
-		sprintf(consoleBuffer, "library version %s\n", libver);
+		sprintf(consoleBuffer, "libfreewrl version %s\n", libver);
 		fwl_StringConsoleMessage(consoleBuffer);
 	}
 
