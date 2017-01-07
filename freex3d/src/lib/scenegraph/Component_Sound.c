@@ -698,7 +698,7 @@ void render_Sound (struct X3D_Sound *node) {
 					if(acp->isActive ){
 						if(istate != AL_PLAYING && !acp->isPaused){
 							alSourcePlay(node->__sourceNumber);
-							printf(".play.");
+							//printf(".play.");
 						}
 					}else{
 						if(istate != AL_STOPPED)
@@ -865,7 +865,7 @@ int	parse_audioclip(struct X3D_AudioClip *node,char *bbuffer, int len){
 #else
 	int buffer = BADAUDIOSOURCE;
 #endif
-	printf("parse_audioclip buffer=%d\n",buffer);
+	//printf("parse_audioclip buffer=%d\n",buffer);
 	return buffer;
 }
 
