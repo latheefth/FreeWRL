@@ -96,10 +96,6 @@ extern char *BrowserFullPath;
 #define VF_hasVisibleChildren       0x0100
 #define VF_shouldSortChildren       0x0200
 #define VF_Other                    0x0400
-#ifdef DJTRACK_PICKSENSORS
-#define VF_inPickableGroup          0x0800 /* DJTRACK_PICKSENSORS */
-#define VF_PickingSensor            0x1000 /* DJTRACK_PICKSENSORS */
-#endif
 #define VF_Picking					0x1000
 #define VF_HideLeft                  0x2000 /*stereo don't draw on left side, used for stereovision experiments*/
 #define VF_HideRight                 0x4000 /*stereo don't draw on right side*/
@@ -622,17 +618,6 @@ int checkNode(struct X3D_Node *node, char *fn, int line);
 void do_first(void);
 void process_eventsProcessed(void);
 
-#ifdef DJTRACK_PICKSENSORS
-/* DJTRACK_PICKSENSORS */
-void add_picksensor(struct X3D_Node * node);
-void rewind_picksensors();
-void advance_picksensors();
-void activate_picksensors();
-void deactivate_picksensors();
-int active_picksensors();
-int more_picksensors();
-struct X3D_Node* get_picksensor();
-#endif
 
 void getEAI_MFStringtype (struct Multi_String *from, struct Multi_String *to);
 
@@ -771,10 +756,6 @@ void freewrlDie(const char *format);
 //extern int render_sensitive,render_vp,render_light,render_proximity,render_other,verbose,render_blend,render_geom,render_collision;
 typedef struct trenderstate{
 int render_sensitive,render_picking,render_vp,render_light,render_proximity,render_other,verbose,render_blend,render_geom,render_collision,render_cube;
-#ifdef DJTRACK_PICKSENSORS
-int render_picksensors;
-int render_pickables;
-#endif
 }* ttrenderstate;
 //extern struct trenderstate renderstate;
 ttrenderstate renderstate();

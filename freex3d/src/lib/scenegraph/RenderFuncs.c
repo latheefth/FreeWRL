@@ -1814,11 +1814,6 @@ void render_node(struct X3D_Node *node) {
 	}
 	if(p->renderstate.render_other && virt->other )
 	{
-#ifdef DJTRACK_PICKSENSORS
-		DEBUG_RENDER("rs 4a\n");
-		virt->other(node); //other() is responsible for push_renderingState(VF_inPickableGroup);
-		PRINT_GL_ERROR_IF_ANY("render_other"); PRINT_NODE(node,virt);
-#endif
 		virt->other(node);
 	} //other
 
@@ -1863,9 +1858,6 @@ void render_node(struct X3D_Node *node) {
 
 	if(p->renderstate.render_other && virt->other)
 	{
-#ifdef DJTRACK_PICKSENSORS
-		//pop_renderingState(VF_inPickableGroup);
-#endif
 	}
 
 	if(pushed_sensor)
@@ -2040,10 +2032,6 @@ void render_hier(struct X3D_Node *g, int rwhat) {
 	rs->render_collision = rwhat & VF_Collision;
 	rs->render_other = rwhat & VF_Other;
 	rs->render_cube = rwhat & VF_Cube;
-#ifdef DJTRACK_PICKSENSORS
-	rs->render_picksensors = rwhat & VF_PickingSensor;
-	rs->render_pickables = rwhat & VF_inPickableGroup;
-#endif
 	//p->nextFreeLight = 0;
 	p->lastShader = -1; //in sendLights,and optimization
 	tg->RenderFuncs.hitPointDist = -1;

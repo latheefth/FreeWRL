@@ -5079,10 +5079,7 @@ void handle(const int mev, const unsigned int button, const float x, const float
 }
 
 /* get setup for rendering. */
-#ifdef DJTRACK_PICKSENSORS
-void do_pickSensors();
-int enabled_picksensors();
-#endif
+
 void SSR_test_cumulative_pose();
 static void render_pre() {
 	ppMainloop p = (ppMainloop)gglobal()->Mainloop.prv;
@@ -5142,20 +5139,6 @@ static void render_pre() {
 			profile_start("hier_prox");
 			render_hier(rootNode(), VF_Proximity);
 			profile_end("hier_prox");
-#ifdef DJTRACK_PICKSENSORS
-			{
-				/* find pickingSensors, record their world transform and picktargets */
-				save_viewpoint2world();
-				render_hier(rootNode(), VF_PickingSensor | VF_Other);
-				if( enabled_picksensors() )
-				{
-					/* find picktargets, transform to world and do pick test and save results */
-					render_hier(rootNode(), VF_inPickableGroup | VF_Other );
-					/* record results of picks to picksensor node fields and event outs*/
-					do_pickSensors();
-				}
-			}
-#endif
 		}
 
 		//drawStatusBar();

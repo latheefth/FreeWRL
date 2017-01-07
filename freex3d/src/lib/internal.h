@@ -372,7 +372,6 @@ int DEBUG_MSG(const char *fmt, ...)
 #endif
 #endif //_MSC_VER
 
-/* #define DJTRACK_PICKSENSORS 1  define this in your build */
 void *mallocn_debug(int line, char *file, void *node,size_t size);
 void *reallocn_debug(int line, char *file, void *node, void *pold, size_t newsize);
 void *mallocn(void *node,size_t size);
