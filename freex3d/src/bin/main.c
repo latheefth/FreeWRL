@@ -143,7 +143,7 @@ int main (int argc, char **argv)
 		static char *fdir;
 		char *syspath;
 		syspath = getenv("windir");
-		printf("windir path=[%s]\n",syspath);
+		//printf("windir path=[%s]\n",syspath);
 		fdir = malloc(MAX_PATH); 
 		strcpy(fdir,"FREEWRL_FONTS_DIR=");
 		strcat(fdir,syspath);

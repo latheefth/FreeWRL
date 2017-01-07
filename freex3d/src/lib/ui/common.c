@@ -754,7 +754,7 @@ int fwl_commandline(char *cmdline){
 		//(*sep) = '\0';
 		key = strndup(cmdline,keylen +1);
 		key[keylen] = '\0';
-		printf("key=[%s] val=[%s]\n",key,val);
+		//printf("key=[%s] val=[%s]\n",key,val);
 		fwl_keyval(key,val);
 		free(key);
 		free(val);

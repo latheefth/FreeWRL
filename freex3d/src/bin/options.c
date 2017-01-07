@@ -53,7 +53,7 @@ void fv_print_version()
     progver = freewrl_get_version();
     
     printf("Program version: %s\nLibrary version: %s\n", progver, libver);
-    printf("\nFreeWRL VRML/X3D browser from CRC Canada (http://www.crc.ca)\n");
+    printf("\nFreeWRL VRML/X3D browser from (http://freewrl.sf.net)\n");
     printf("   type \"man freewrl\" to view man pages\n\n");
 }
 
