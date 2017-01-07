@@ -210,7 +210,9 @@ bool resource_fetch(void *res)
 			} else {
 				//res->status = ress_failed;
 				fwl_resitem_setStatus(res,ress_failed);
-				ERROR_MSG("resource_fetch: can't find file: %s\n", url); //res->parsed_request);
+				// a little too noisy, if MF url and first url isn't found, it makes it look like there's a problem
+				// meanwhile subsequent SF urls in the MFUrl might succeed.
+				//ERROR_MSG("resource_fetch: can't find file: %s\n", url); //res->parsed_request);
 			}
 
 			break;
