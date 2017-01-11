@@ -20,6 +20,8 @@
 /* To do list July 2014
 - runQueuedDirectOutputs() - is there a way to flag a Script Node so this isn't a double loop over all scripts and fields?
 - cfwconstructor - fwtype could be extended to articulate allowed AUXTYPEs and FIELDTYPEs for a given W or P
+To do list Jan 2017
+- proxy cache could be per-script node to save one lookup loop
 */
 
 
@@ -543,6 +545,8 @@ void show_stack(duk_context *ctx, char* comment)
 //   val[1] == ground are true if they are supposed to be the same node
 //   still some wasteful re-generation of proxies 
 //   but within the scope of the == operator, its working, which is better than before caching
+// UNFINISHED BUISNESS JAN 2017: the lookup table for finding the cache based on ctx
+// could be changed so Script->_cache to save one lookup loop
 static Stack * proxycaches = NULL;
 typedef struct cache_table_entry {
 	duk_context *ctx;
