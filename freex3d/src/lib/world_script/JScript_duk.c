@@ -526,6 +526,153 @@ void show_stack(duk_context *ctx, char* comment)
 
 //Object virtualization via proxy objects: constructor, handlers (has,ownKeys,enumerate,get,set,deleteProp), finalizer
 
+// >> PROXY CACHING FUNCTIONS 
+// 2017 - lazy proxies have been too lazy, we created a new "Proxy" on ever fetch
+// x and that meant if(ground == ground) would always be false if ground is a proxy
+// x in js there's no proxy trap (function overload) just for the binary == scenario, 
+// x and no way to override binary == operator
+// - can do if(ground.valueOf() == ground.valueOf()) and over-ride valueOf (working now Jan 2017), 
+//   x but that's unconventional syntax
+// - duktape creator Sami says try caching your proxies
+// - then (ground == ground) still won't be comparing x3d node addresses, 
+//   but will return true because the proxy instances will be the same
+// - that means per-context/ctx caching
+// - and since we don't have a way to hook into javascript scope push and pop
+//   we need to rely on finalizer for a place to remove a proxy from our cache / lookup table
+//   Jan 11, 2017 proxy caching is working, now ground==ground and scenarios like 
+//   val[1] == ground are true if they are supposed to be the same node
+//   still some wasteful re-generation of proxies 
+//   but within the scope of the == operator, its working, which is better than before caching
+static Stack * proxycaches = NULL;
+typedef struct cache_table_entry {
+	duk_context *ctx;
+	Stack *cache;
+} cache_entry;
+typedef struct proxy_cache_entry {
+	struct X3D_Node *node;
+	// native proxy
+	// js proxy
+	void *jsproxy;
+} proxy_entry;
+
+cache_entry * lookup_ctx_proxy_cache(duk_context *ctx){
+	int i;
+	cache_entry *ret = NULL;
+	if(proxycaches == NULL){
+		proxycaches = newStack(cache_entry *); //* so can NULL if/when script node deleted, without needing to pack
+	}
+	for(i=0;i<vectorSize(proxycaches);i++){
+		cache_entry * ce = vector_get(cache_entry*,proxycaches,i);
+		if(ce->ctx == ctx){
+			ret = ce;
+			break;	
+		}
+	}
+	if(ret == NULL){
+		cache_entry *ce = MALLOC(cache_entry*,sizeof(cache_entry));
+		stack_push(cache_entry*,proxycaches,ce);
+		ce->ctx = ctx;
+		ce->cache = newStack(proxy_entry*); //* so can NULL in cfinalizer without needing to pack table
+		ret = ce;
+	}
+	return ret;
+}
+proxy_entry *lookup_ctx_proxycache_entry_by_nodeptr(duk_context *ctx, struct X3D_Node *node){
+	proxy_entry *ret = NULL;
+	cache_entry* cache = lookup_ctx_proxy_cache(ctx);
+	if(cache){
+		int i;
+		for(i=0;i<vectorSize(cache->cache);i++){
+			proxy_entry *pe = vector_get(proxy_entry*,cache->cache,i);
+			if(pe && pe->node == node){
+				ret = pe;
+			}
+		}
+	}
+	return ret;
+}
+proxy_entry *add_ctx_proxycache_entry(duk_context *ctx, struct X3D_Node *node, void *jsproxy){
+	int i;
+	//assume we already verified it doesn't exist
+	proxy_entry *ret = NULL;
+	cache_entry *cache = lookup_ctx_proxy_cache(ctx);
+	if(cache){
+		proxy_entry *pe = MALLOC(proxy_entry*,sizeof(proxy_entry));
+		pe->node = node;
+		pe->jsproxy = jsproxy;
+		int i, itarget;
+		itarget = -1;
+		for(i=0;i<vectorSize(cache->cache);i++){
+			proxy_entry *pe0 = vector_get(proxy_entry*,cache->cache,i);
+			if(pe0 == NULL){
+				itarget = i; 
+				vector_set(proxy_entry*,cache->cache,i,pe);
+				ret = pe;
+				break;
+			}
+		}
+		if(itarget == -1){
+			stack_push(proxy_entry*,cache->cache,pe);
+			ret = pe;
+		}
+		if(0){
+			printf("cache after add proxy\n");
+			for(i=0;i<vectorSize(cache->cache);i++){
+				proxy_entry *pe0 = vector_get(proxy_entry*,cache->cache,i);
+				if(pe0)
+					printf("%d %x %x\n",i,pe0->node,pe0->jsproxy);
+				else
+					printf("%d NULL\n",i);
+			}
+		}
+	}
+	return ret;
+}
+void remove_ctx_proxycache_entry_by_nodeptr(duk_context *ctx, struct X3D_Node *node){
+	int i;
+	//Q. is it dangerous / should we always remove by jsproxy* ?
+	proxy_entry *ret = NULL;
+	cache_entry *cache = lookup_ctx_proxy_cache(ctx);
+	if(cache){
+		int i;
+		for(i=0;i<vectorSize(cache->cache);i++){
+			proxy_entry *pe0 = vector_get(proxy_entry*,cache->cache,i);
+			if(pe0 && pe0->node == node){
+				vector_set(proxy_entry*,cache->cache,i,NULL);
+				FREE_IF_NZ(pe0);
+				break;
+			}
+		}
+		if(0){
+			printf("after cache clean\n");
+			for(i=0;i<vectorSize(cache->cache);i++){
+				proxy_entry *pe0 = vector_get(proxy_entry*,cache->cache,i);
+				if(pe0)
+					printf("%d %x %x\n",i,pe0->node,pe0->jsproxy);
+				else
+					printf("%d NULL\n",i);
+			}
+		}
+	}
+}
+void remove_ctx_proxycache_entry_by_jsproxy(duk_context *ctx, void *jsproxy){
+	int i;
+	proxy_entry *ret = NULL;
+	cache_entry *cache = lookup_ctx_proxy_cache(ctx);
+	if(cache){
+		int i;
+		for(i=0;i<vectorSize(cache->cache);i++){
+			proxy_entry *pe0 = vector_get(proxy_entry*,cache->cache,i);
+			if(pe0 && pe0->jsproxy == jsproxy){
+				vector_set(proxy_entry*,cache->cache,i,NULL);
+				FREE_IF_NZ(pe0);
+				break;
+			}
+		}
+	}
+}
+//<< PROXY CACHING FUNCTIONS
+
 int cfinalizer(duk_context *ctx){
 	int rc, itype, igc;
 	void *fwpointer = NULL;
@@ -541,7 +688,16 @@ int cfinalizer(duk_context *ctx){
 	duk_pop(ctx); //get prop string result
 
 
-	//printf("hi from finalizer, itype=%d igc=%d p=%p\n",itype,igc,fwpointer);
+	//printf("hi from finalizer, itype=%s igc=%d p=%p\n",itype2string(itype),igc,fwpointer);
+	if(itype == FIELDTYPE_SFNode && fwpointer){
+		//2017 remove proxy from context cache
+		//
+		//a) lookup context cache
+		//b) lookup node's proxy in context cache
+		//c) remove
+		struct X3D_Node *node = *(struct X3D_Node**)fwpointer;
+		remove_ctx_proxycache_entry_by_nodeptr(ctx, node);
+	}
 	if(igc > 0 && itype > -1 && fwpointer){
 		if(itype < AUXTYPE_X3DConstants){
 			//FIELDS
@@ -559,7 +715,15 @@ void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 {
 	//like push_typed_proxy2 except push this instead of push obj
 	//int rc;
-	if(1){
+	proxy_entry *pe = NULL;
+	if(itype == FIELDTYPE_SFNode){
+		struct X3D_Node* node = *(struct X3D_Node**)fwpointer;
+		//printf("pushtyped nodetype %d\n",node->_nodeType);
+		pe = lookup_ctx_proxycache_entry_by_nodeptr(ctx, node);
+	}
+	if(pe){
+		duk_push_heapptr(ctx, pe->jsproxy);
+	}else{
 		//show_stack(ctx,"push_typed_proxy start");
 		duk_eval_string(ctx,"Proxy");
 		duk_push_this(ctx);  //this
@@ -589,6 +753,11 @@ void push_typed_proxy(duk_context *ctx, int itype, void *fwpointer, int* valueCh
 			//           print('WARNING: finalizer failed (ignoring): ' + e);
 			//       }
 			//   });
+			if(itype == FIELDTYPE_SFNode){
+				struct X3D_Node* node = *(struct X3D_Node**)fwpointer;
+				void *jsproxy = duk_get_heapptr(ctx, -1);
+				add_ctx_proxycache_entry(ctx, node, jsproxy);
+			}
 			duk_eval_string(ctx,"Duktape.fin");
 			duk_dup(ctx, -2); //copy the proxy object
 			duk_push_c_function(ctx,cfinalizer,1);
@@ -604,42 +773,56 @@ int push_typed_proxy2(duk_context *ctx, int itype, int kind, void *fwpointer, in
 		nativePtr
 	*/
 	//int rc;
-
-	duk_eval_string(ctx,"Proxy");
-	duk_push_object(ctx);
-	duk_push_pointer(ctx,fwpointer);
-	duk_put_prop_string(ctx,-2,"fwField");
-	duk_push_pointer(ctx,valueChanged);
-	duk_put_prop_string(ctx,-2,"fwChanged");
-	duk_push_int(ctx,itype);
-	duk_put_prop_string(ctx,-2,"fwItype");
-	duk_push_int(ctx,kind);
-	duk_put_prop_string(ctx,-2,"fwKind");
-
-	if(doingFinalizer && doGC){
-		duk_push_boolean(ctx,TRUE);
-		duk_put_prop_string(ctx,-2,"fwGC");
+	proxy_entry *pe = NULL;
+	int idogc = doGC ? TRUE : FALSE;
+	if(itype == FIELDTYPE_SFNode){
+		struct X3D_Node* node = *(struct X3D_Node**)fwpointer;
+		//printf("pushtyped2 nodetype %d\n",node->_nodeType);
+		pe = lookup_ctx_proxycache_entry_by_nodeptr(ctx, node);
 	}
+	if(pe){
+		duk_push_heapptr(ctx, pe->jsproxy);
+	}else{
+		duk_eval_string(ctx,"Proxy");
+		duk_push_object(ctx);
+		duk_push_pointer(ctx,fwpointer);
+		duk_put_prop_string(ctx,-2,"fwField");
+		duk_push_pointer(ctx,valueChanged);
+		duk_put_prop_string(ctx,-2,"fwChanged");
+		duk_push_int(ctx,itype);
+		duk_put_prop_string(ctx,-2,"fwItype");
+		duk_push_int(ctx,kind);
+		duk_put_prop_string(ctx,-2,"fwKind");
 
-	duk_eval_string(ctx,"handler");
-	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+		if(doingFinalizer) { // && idogc){
+			duk_push_boolean(ctx,idogc);
+			duk_put_prop_string(ctx,-2,"fwGC");
+		}
 
-	if(doingFinalizer && doGC){
-		//push_typed_proxy2 _refers_ to script->field[i]->anyVrml (its caller fwgetter doesn't malloc) and should not GC its pointer
-		//
-		//Duktape.fin(a, function (x) {
-		//       try {
-		//           print('finalizer, foo ->', x.foo);
-		//       } catch (e) {
-		//           print('WARNING: finalizer failed (ignoring): ' + e);
-		//       }
-		//   });
+		duk_eval_string(ctx,"handler");
+		duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+		if(doingFinalizer) { // && idogc){
+			//push_typed_proxy2 _refers_ to script->field[i]->anyVrml (its caller fwgetter doesn't malloc) and should not GC its pointer
+			//
+			//Duktape.fin(a, function (x) {
+			//       try {
+			//           print('finalizer, foo ->', x.foo);
+			//       } catch (e) {
+			//           print('WARNING: finalizer failed (ignoring): ' + e);
+			//       }
+			//   });
+			if(itype == FIELDTYPE_SFNode){
+				struct X3D_Node* node = *(struct X3D_Node**)fwpointer;
+				void *jsproxy = duk_get_heapptr(ctx, -1);
+				add_ctx_proxycache_entry(ctx, node, jsproxy);
+			}
 
-		duk_eval_string(ctx,"Duktape.fin");
-		duk_dup(ctx, -2); //copy the proxy object
-		duk_push_c_function(ctx,cfinalizer,1);
-		duk_pcall(ctx,2);
-		duk_pop(ctx); //pop Duktape.fin result
+			duk_eval_string(ctx,"Duktape.fin");
+			duk_dup(ctx, -2); //copy the proxy object
+			duk_push_c_function(ctx,cfinalizer,1);
+			duk_pcall(ctx,2);
+			duk_pop(ctx); //pop Duktape.fin result
+		}
 	}
 
 	return 1;
@@ -1114,6 +1297,9 @@ int fwval_duk_push(duk_context *ctx, FWval fwretval, int *valueChanged){
 			//SCALARS_ARE_PROXY_OBJECTS
 			push_typed_proxy2(ctx,fwretval->_web3dval.fieldType,fwretval->_web3dval.kind,fwretval->_web3dval.native,valueChanged,fwretval->_web3dval.gc);
 		}
+		break;
+	case 'X':
+		duk_push_pointer(ctx,fwretval->_jsobject);
 		break;
 	case 'P':
 		//for web3d auxiliary types Browser, X3DFieldDefinitionArray, X3DRoute ...
@@ -1767,17 +1953,51 @@ void push_typed_proxy_fwgetter(duk_context *ctx, int itype, int mode, const char
 		2. fwpointer: reference to script->field[i]->anyvrml
 	*/
 	//int rc;
+	proxy_entry *pe = NULL;
+	if(itype == FIELDTYPE_SFNode){
+		struct X3D_Node* node = *(struct X3D_Node**)fwpointer;
+		printf("pushtyped2 nodetype %d\n",node->_nodeType);
+		pe = lookup_ctx_proxycache_entry_by_nodeptr(ctx, node);
+	}
+	if(pe){
+		duk_push_heapptr(ctx,pe->jsproxy);
+	}else{
 
-	duk_eval_string(ctx,"Proxy");
-	duk_push_object(ctx);
-	duk_push_pointer(ctx,fwpointer);
-	duk_put_prop_string(ctx,-2,"fwField");
-	duk_push_pointer(ctx,valueChanged);
-	duk_put_prop_string(ctx,-2,"fwChanged");
-	duk_push_int(ctx,itype);
-	duk_put_prop_string(ctx,-2,"fwItype");
-	duk_eval_string(ctx,"handler");
-	duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+		duk_eval_string(ctx,"Proxy");
+		duk_push_object(ctx);
+		duk_push_pointer(ctx,fwpointer);
+		duk_put_prop_string(ctx,-2,"fwField");
+		duk_push_pointer(ctx,valueChanged);
+		duk_put_prop_string(ctx,-2,"fwChanged");
+		duk_push_int(ctx,itype);
+		duk_put_prop_string(ctx,-2,"fwItype");
+		duk_eval_string(ctx,"handler");
+		duk_new(ctx,2); /* [ global Proxy target handler ] -> [ global result ] */
+	
+		//2017 >
+		if(doingFinalizer) { // && idogc){
+			//push_typed_proxy2 _refers_ to script->field[i]->anyVrml (its caller fwgetter doesn't malloc) and should not GC its pointer
+			//
+			//Duktape.fin(a, function (x) {
+			//       try {
+			//           print('finalizer, foo ->', x.foo);
+			//       } catch (e) {
+			//           print('WARNING: finalizer failed (ignoring): ' + e);
+			//       }
+			//   });
+			if(itype == FIELDTYPE_SFNode){
+				struct X3D_Node* node = *(struct X3D_Node**)fwpointer;
+				void *jsproxy = duk_get_heapptr(ctx, -1);
+				add_ctx_proxycache_entry(ctx, node, jsproxy);
+			}
+			duk_eval_string(ctx,"Duktape.fin");
+			duk_dup(ctx, -2); //copy the proxy object
+			duk_push_c_function(ctx,cfinalizer,1);
+			duk_pcall(ctx,2);
+			duk_pop(ctx); //pop Duktape.fin result
+		}
+	}
+
 }
 
 
@@ -2432,10 +2652,11 @@ int runQueuedDirectOutputs()
 	struct CRscriptStruct *scriptcontrol; //*ScriptControlArray, 
 	//ScriptControlArray = getScriptControl();
 	
-	//if(!doneOnce){
-	//	printf("in runQueuedDirectOutputs\n");
-	//	doneOnce++;
-	//}
+	if(!doneOnce){
+		//	printf("in runQueuedDirectOutputs\n");
+		printf("duktape javascript engine version %ld\n", DUK_VERSION);
+		doneOnce++;
+	}
 	moreAction = FALSE;
 	for(num=0;num< tg->CRoutes.max_script_found_and_initialized;num++){
 		scriptcontrol = getScriptControlIndex(num); //&ScriptControlArray[num];
