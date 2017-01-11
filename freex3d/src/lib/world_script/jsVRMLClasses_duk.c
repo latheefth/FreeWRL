@@ -1151,6 +1151,8 @@ int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int
 	int ftype, kind, ihave, iifield;
 	char ctype;
 	union anyVrml *value;
+
+	if(!node) return -1;
 	index ++;
 	(*jndex) = 0;
 	iifield = index;
@@ -1353,7 +1355,7 @@ int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 int SFNode_valueOf(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	void* *ptr = (void * *)fwn;
-	if(1){
+	if(0){
 		struct X3D_Node *node = *ptr;
 		printf("node address=%x nodetype=%s\n",node,stringNodeType(node->_nodeType));
 	}

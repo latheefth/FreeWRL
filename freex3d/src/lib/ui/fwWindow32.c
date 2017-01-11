@@ -313,7 +313,7 @@ BOOL fwDisplayChange(){
 
 	ghDC = GetDC(hWnd); 
 	ret = bSetupPixelFormat(ghDC);
-	printf("WM_DISPLAYCHANGE happening now\n");
+	//printf("WM_DISPLAYCHANGE happening now\n");
 
 	/* ???? do we have to recreate an OpenGL context 
 	   when display mode changed ? */

@@ -1528,7 +1528,8 @@ int cget(duk_context *ctx) {
 			//int lastProp;
 			key = duk_get_string(ctx,-2);
 			found = fwhas_generic(fwt,parent,key,&jndex,&type,&readOnly);
-			if(!found){
+			if(!found && strcmp(key,"valueOf")){
+				//annoying valueOf ususally thunks properly to toString, so just show other keys not found
 				static int once = 0;
 				if(!once)
 					ConsoleMessage("type %s has no property or function %s - please check your typing\n",fwt->name,key);
