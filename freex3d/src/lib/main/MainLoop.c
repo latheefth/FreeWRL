@@ -4255,8 +4255,8 @@ int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 	
 	//ConsoleMessage("mev %d butnum %d\n",mev,butnum);
-	//ID = 1; //normal, 2=over
-	if(mev == ButtonPress) ID++;
+	ID = 1; //normal, 2=over
+	//if(mev == ButtonPress) ID++;
 	tactic_up_drag = 0;
 	if(tactic_up_drag){
 		//this was an attempt to restore isOver for desktop, by 

@@ -1,0 +1,6 @@
+If you refresh duktape from duktape.org in the future, what I found in 2017
+a) they use python 2.7, and it needs PyYAML for 2.7 installed
+b) they have a /tools folder
+c) go in there and run python configure.py --help for details
+d) I did a Generic build: python configure.py --output-directory=generic
+-- and that means the duk_config.h has every possible compiler/platform detector in it

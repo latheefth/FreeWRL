@@ -1151,6 +1151,8 @@ int SFNode_Iterator(int index, FWTYPE *fwt, FWPointer *pointer, char **name, int
 	int ftype, kind, ihave, iifield;
 	char ctype;
 	union anyVrml *value;
+
+	if(!node) return -1;
 	index ++;
 	(*jndex) = 0;
 	iifield = index;
@@ -1350,11 +1352,31 @@ int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 	}
 	return nr;
 }
+int SFNode_valueOf(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	void* *ptr = (void * *)fwn;
+	if(0){
+		struct X3D_Node *node = *ptr;
+		printf("node address=%x nodetype=%s\n",node,stringNodeType(node->_nodeType));
+	}
+	if(0){
+		//see also mfw_getter
+		void *sfptr = malloc(sizeof(void*));
+		memcpy(sfptr,(void *)(fwn),sizeof(void*)); //*sfptr = MF.p[i] = &SF
+		fwretval->_web3dval.native = (void *)sfptr; //native = &sfptr
+		fwretval->_web3dval.gc = 1;
+		fwretval->itype = 'W';
+	}else{
+		fwretval->_jsobject =  *ptr;
+		fwretval->itype = 'X';
+	}
+	return 1;
+}
 int SFNode_toString(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	char str[512];
 	void **ptr = (void **)fwn;
-	sprintf(str,"%x",(*ptr));
+	sprintf(str,"_%x_",(*ptr));
 	fwretval->_string =  strdup(str);
 	fwretval->itype = 'S';
 	return 1;
@@ -1366,7 +1388,8 @@ FWFunctionSpec (SFNodeFunctions)[] = {
 	//{"getFieldDefinitions", SFNode_getFieldDefinitions, 'P',{0,0,0,NULL}},
 	//{"toVRMLString", SFNode_toVRMLString, 'S',{0,0,0,NULL}},
 	//{"toXMLString", SFNode_toXMLString, 'S',{0,0,0,NULL}},
-	//{"toString", SFNode_toString, 'S',{0,0,0,NULL}},
+	{"valueOf", SFNode_valueOf, 'X',{0,0,0,NULL}},
+	{"toString", SFNode_toString, 'S',{0,0,0,NULL}},
 	{0}
 };
 
