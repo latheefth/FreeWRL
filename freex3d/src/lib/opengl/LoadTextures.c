@@ -2343,7 +2343,7 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 			break;
 		case IMAGETYPE_GIF:
 			#ifdef HAVE_LIBGIF_H
-			loadImageTexture_gif(this_tex, filename);
+			ret = loadImageTexture_gif(this_tex, filename);
 			#endif
 			break;
 		case IMAGETYPE_DDS:
@@ -2390,7 +2390,8 @@ bool texture_load_from_file(textureTableIndexStruct_s* this_tex, char *filename)
 	//close_openned_file(myFile);
 	FREE_IF_NZ(myFile);
 	*/
-	return (ret != 0); // this_tex->frames;
+	//return (ret != 0); // 
+	return this_tex->frames;
 
 #endif //ANDROIDNDK
 

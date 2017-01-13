@@ -61,6 +61,7 @@ typedef struct pcommon{
 	char myMenuStatus[MAXSTAT];
 	char messagebar[MAXSTAT];
 	char fpsbar[16];
+	char distbar[16];
 	char window_title[MAXTITLE];
 	int cursorStyle;
 	int promptForURL;
@@ -218,6 +219,14 @@ char *getMessageBar()
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->messagebar;
 }
+double get_viewer_dist();
+char *getDistBar(){
+	ppcommon p = (ppcommon)gglobal()->common.prv;
+	snprintf(p->distbar, 10, "DIST %4f", (float)get_viewer_dist());
+
+	return p->distbar;
+}
+
 char *getFpsBar(){
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 	return p->fpsbar;
