@@ -3149,7 +3149,7 @@ M       void toggle_collision()                             //"
 			}
 			{
 				int len, istart,istart1,ilen,lenk,lenkk;
-				char *strfps, *strstatus, *strAkeys;
+				char *strfps, *strdist, *strstatus, *strAkeys;
 				
 				//squeeze status and optionally keychord into remaining space
 				strAkeys = fwl_getKeyChord(); //keychord like YAWZ or YAWPITCH
@@ -3190,6 +3190,8 @@ M       void toggle_collision()                             //"
 				//always draw FPS
 				strfps = getFpsBar(); //FPS
 				printString2(1.0f - xy.x*(4), side_bottom_f, strfps); //4 wide
+				strdist = getDistBar(); //Viewer.Dist
+				printString2(1.0f - xy.x*(20), side_bottom_f, strdist); //6 wide
 			}
 
 		}

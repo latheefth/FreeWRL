@@ -1148,6 +1148,10 @@ printf ("examine->origin %4.3f %4.3f %4.3f\n",examine->Origin.x, examine->Origin
 */
 }
 
+double get_viewer_dist(){
+	return Viewer()->Dist;
+}
+
 void handle_dist(const int mev, const unsigned int button, float x, float y) {
 	/* different than z, this adjusts the viewer->Dist value for examine, turntable, explore, lookat
 		- all without using RMB (right mouse button), so mobile friendly
@@ -1601,8 +1605,13 @@ void handle_tick_tplane(double dtime){
 
 	inplane = &viewer->inplane;
 	if(inplane->on){
+		if(0){
 		pp.x =  xsign_quadratic(inplane->xx - inplane->x,300.0,100.0,0.0) *dtime;
 		pp.y =  xsign_quadratic(inplane->yy - inplane->y,300.0,100.0,0.0) *dtime;
+		}else{
+			pp.x =  xsign_quadratic(inplane->xx - inplane->x,3.0,1.0,0.0)*max(1.0,viewer->Dist) * dtime;
+			pp.y =  xsign_quadratic(inplane->yy - inplane->y,3.0,1.0,0.0)*max(1.0,viewer->Dist) * dtime;
+		}
 		pp.z = 0.0;
 		//vecadd(&viewer->Pos,&viewer->Pos,&pp);
 		increment_pos(&pp);
@@ -2462,7 +2471,7 @@ static void handle_tick_fly()
 		//if key action, add new velocity
 		if(fly->down[0][i].direction){ 
 			//key is currently down
-			fly->Velocity[0][i] += (fly->ndown[0][i]+fly->down[0][i].once)*fly->down[0][i].direction * viewer->speed;
+			fly->Velocity[0][i] += (fly->ndown[0][i]+fly->down[0][i].once)*fly->down[0][i].direction * viewer->speed * .1 * max(viewer->Dist,1.0);
 			fly->down[0][i].once = 0;
 			fly->ndown[0][i] = 0; //p->translaten[i] = 0; 
 			//fly->ttransition[i][0] = fly->lasttime; //save time of last [i] translate, for delaying decay
