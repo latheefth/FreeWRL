@@ -3191,7 +3191,7 @@ M       void toggle_collision()                             //"
 				strfps = getFpsBar(); //FPS
 				printString2(1.0f - xy.x*(4), side_bottom_f, strfps); //4 wide
 				strdist = getDistBar(); //Viewer.Dist
-				printString2(1.0f - xy.x*(20), side_bottom_f, strdist); //6 wide
+				printString2(1.0f - xy.x*(22), side_bottom_f, strdist); //6 wide
 			}
 
 		}
