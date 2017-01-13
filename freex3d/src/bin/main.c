@@ -176,8 +176,8 @@ int main (int argc, char **argv)
     fv_params = calloc(1, sizeof(freewrl_params_t));
 
     /* Default values */
-    fv_params->width = 600;
-    fv_params->height = 400;
+    fv_params->width = 640;
+    fv_params->height = 480;
 
     fv_params->fullscreen = FALSE;
     fv_params->winToEmbedInto = INT_ID_UNDEFINED;
