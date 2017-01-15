@@ -601,10 +601,11 @@ proxy_entry *add_ctx_proxycache_entry(duk_context *ctx, struct X3D_Node *node, v
 	proxy_entry *ret = NULL;
 	cache_entry *cache = lookup_ctx_proxy_cache(ctx);
 	if(cache){
+		int i, itarget;
 		proxy_entry *pe = MALLOC(proxy_entry*,sizeof(proxy_entry));
 		pe->node = node;
 		pe->jsproxy = jsproxy;
-		int i, itarget;
+
 		itarget = -1;
 		for(i=0;i<vectorSize(cache->cache);i++){
 			proxy_entry *pe0 = vector_get(proxy_entry*,cache->cache,i);
@@ -846,7 +847,8 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 	(*argc) = nNeeded;
 	for(i=0;i<nUsable;i++){
 		//const char* str;
-		char ctype;
+		int trhs; //RHS or incoming javascript primitive type
+		char ctype; //LHS or target type
 		ii = istack + i;
 		if(i < arglist.nfixedArg) 
 			ctype = arglist.argtypes[i];
@@ -865,6 +867,24 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 				duk_to_primitive(ctx,ii,DUK_HINT_NONE);
 			}
 		}
+		//determine RHS / actual ecma type on stack
+		trhs = duk_get_type(ctx, ii);
+		//switch(trhs){
+		//	case DUK_TYPE_NUMBER: stype ="number"; break;
+		//	case DUK_TYPE_STRING: stype ="string"; break;
+
+		//	case DUK_TYPE_OBJECT: stype ="object"; break;
+		//	case DUK_TYPE_NONE: stype ="none"; break;
+		//	case DUK_TYPE_UNDEFINED: stype ="undefined"; break;
+		//	case DUK_TYPE_BOOLEAN: stype ="boolean"; break;
+		//	case DUK_TYPE_NULL: stype ="null"; break;
+		//	case DUK_TYPE_POINTER: stype ="pointer"; break;
+		//	default:
+		//}
+		//if( duk_is_null(ctx,ii)){
+		//	printf("rhs is null\n");
+		//}
+
 		switch(ctype){
 		case 'B': {
 			int bb = duk_get_boolean(ctx,ii); //duk_to_boolean(ctx,ii);
@@ -887,18 +907,25 @@ void convert_duk_to_fwvals(duk_context *ctx, int nargs, int istack, struct ArgLi
 		case 'W': {
 				int rc, isOK, itypeRHS = -1;
 				union anyVrml *fieldRHS = NULL;
-				rc = duk_get_prop_string(ctx,ii,"fwItype");
-				if(rc == 1){
-					itypeRHS = duk_to_int(ctx,-1);
+				if(trhs == DUK_TYPE_NULL){
+					itypeRHS = 10;
+					fieldRHS = malloc(sizeof(union anyVrml));
+					fieldRHS->sfnode = NULL;
+				}else if(trhs == DUK_TYPE_OBJECT){
+					rc = duk_get_prop_string(ctx,ii,"fwItype");
+					if(rc == 1){
+						itypeRHS = duk_to_int(ctx,-1);
+					}
+					duk_pop(ctx);
+					rc = duk_get_prop_string(ctx,ii,"fwField");
+					if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
+					duk_pop(ctx);
 				}
-				duk_pop(ctx);
-				rc = duk_get_prop_string(ctx,ii,"fwField");
-				if(rc == 1) fieldRHS = duk_to_pointer(ctx,-1);
-				duk_pop(ctx);
 				/*we don't need the RHS fwChanged=valueChanged* because we are only changing the LHS*/
 				isOK = FALSE;
-				if(fieldRHS != NULL && itypeRHS > -1){
-					// its one of our proxy field types. But is it the type we need?
+				//if(fieldRHS != NULL && itypeRHS > -1){
+				if(itypeRHS > -1){
+					// its one of our proxy field types or null. But is it the type we need?
 					//medium_copy_field(itypeRHS,fieldRHS,&pars[i]._web3dval.native); //medium copy - copies p[] in MF types but not deep copy *(p[i]) if p[i] is pointer type ie SFNode* or Uni_String*
 					pars[i]._web3dval.native = fieldRHS;
 					pars[i]._web3dval.fieldType = itypeRHS;
