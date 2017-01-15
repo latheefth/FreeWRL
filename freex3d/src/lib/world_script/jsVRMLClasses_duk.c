@@ -1352,6 +1352,15 @@ int SFNode_getNodeName(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpar
 	}
 	return nr;
 }
+int SFNode_equals(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
+{
+	struct X3D_Node *lhs = *(void * *)fwn;
+	struct X3D_Node *rhs = *(struct X3D_Node **)(fwpars[0]._web3dval.native);
+
+	fwretval->_boolean = lhs == rhs;
+	fwretval->itype = 'B';
+	return 1;
+}
 int SFNode_valueOf(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval)
 {
 	void* *ptr = (void * *)fwn;
@@ -1388,6 +1397,7 @@ FWFunctionSpec (SFNodeFunctions)[] = {
 	//{"getFieldDefinitions", SFNode_getFieldDefinitions, 'P',{0,0,0,NULL}},
 	//{"toVRMLString", SFNode_toVRMLString, 'S',{0,0,0,NULL}},
 	//{"toXMLString", SFNode_toXMLString, 'S',{0,0,0,NULL}},
+	{"equals", SFNode_equals, 'B',{1,-1,0,"W"}},
 	{"valueOf", SFNode_valueOf, 'X',{0,0,0,NULL}},
 	{"toString", SFNode_toString, 'S',{0,0,0,NULL}},
 	{0}

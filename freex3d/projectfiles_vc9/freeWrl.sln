@@ -162,8 +162,8 @@ Global
 		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Debug_glew|Win32.Build.0 = Debug_glew|Win32
 		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Debug|Win32.ActiveCfg = Debug|Win32
 		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Debug|Win32.Build.0 = Debug|Win32
-		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release_glew|Win32.ActiveCfg = Release|Win32
-		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release_glew|Win32.Build.0 = Release|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release_glew|Win32.ActiveCfg = Release_glew|Win32
+		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release_glew|Win32.Build.0 = Release_glew|Win32
 		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release|Win32.ActiveCfg = Release|Win32
 		{731AE1DA-8BA0-4350-8E9F-DADF9477FA59}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
