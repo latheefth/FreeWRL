@@ -25,6 +25,7 @@ AM_CPPFLAGS += \
 				$(PNG_CFLAGS) \
 				$(LIBCURL_CFLAGS) \
 				$(IMLIB2_CFLAGS) \
+				$(ODE_CFLAGS) \
 				$(JAVASCRIPT_ENGINE_CFLAGS)
 
 EXTERNAL_LIBS = \
@@ -41,6 +42,7 @@ EXTERNAL_LIBS = \
 				$(LIBCURL_LIBS) \
 				$(IMLIB2_LIBS) \
 				$(LIBLO_LIBS) \
+				$(ODE_LIBS) \
 				$(LIBM)
 
 

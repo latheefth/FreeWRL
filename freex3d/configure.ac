@@ -681,6 +681,20 @@ if test x$sw_osc = xyes; then
 fi
 
 # ======================================
+# RBP enable
+# ======================================
+
+AC_MY_SWITCH(rbp,[enable building of RigidBodyPhysics (needs libODE)],off)
+if test x$sw_rbp = xyes; then
+    PKG_CHECK_MODULES(ODE, ode,
+        AC_DEFINE([WITH_RBP],[1],
+                  [Define if ODE exists and RBP support wanted]),
+                  AC_MSG_ERROR([Skipping RBP. No libode installed.]))
+fi
+AC_SUBST(ODE_CFLAGS)
+AC_SUBST(ODE_LIBS)
+
+# ======================================
 # STEREO enable - Ian says build it by default
 # ======================================
 #
