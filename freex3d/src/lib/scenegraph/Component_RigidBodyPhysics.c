@@ -32,6 +32,15 @@ X3D Rigid Body Physics Component
 
 #include <libFreeWRL.h>
 
+#ifdef WITH_RBP
+//#define dSINGLE 1  //Q. do we need to match the physics lib build
+//#define dDOUBLE 1
+# include <ode/ode.h>
+# ifndef dDOUBLE
+#  error "RigidBodyPhysics: ODE needs to be built to use double-precision"
+# endif
+#endif
+
 #include "../vrml_parser/Structs.h"
 #include "../vrml_parser/CRoutes.h"
 #include "../main/headers.h"
@@ -102,13 +111,6 @@ void set_physics();
 //#undef WITH_RBP
 #ifdef WITH_RBP
 //START MIT LIC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-//#define dSINGLE 1  //Q. do we need to match the physics lib build
-//#define dDOUBLE 1
-#ifndef dDOUBLE
-# error "RigidBodyPhysics: ODE needs to be built to use double-precision"
-#endif
-#include <ode/ode.h>
 
 /*
 Physics options considered:
