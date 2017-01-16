@@ -185,67 +185,69 @@ else
 fi
 
 # ======================================
-# Javascript engine option
+# Javascript engine options
 # ======================================
-#javascriptopt = sm
-AC_ARG_WITH([javascriptopt],
-        [AS_HELP_STRING([--with-javascriptopt=OPT],[javascriptopt OPT (stub,sm,duk) for none,spidermonkey or duktape])],
-        [javascriptopt="$withval"],
-        [javascriptopt="duk"])
+AC_ARG_WITH([javascript],
+        [AS_HELP_STRING([--with-javascript=OPT],[javascript OPT (no,sm,duk) for none, spidermonkey or duktape])],
+        [javascript="$withval"],
+        [javascript="check"])
 
-case "$javascriptopt" in
-     stub|sm|duk) AC_MSG_NOTICE([javascriptopt: $javascriptopt]) ;; # valid input
-     *) AC_MSG_ERROR([Invalid input for javascriptopt: $javascriptopt]) ;;
+found_JAVASCRIPT_ENGINE=no
+
+case "$javascript" in
+no)
+	AC_DEFINE([JAVASCRIPT_STUB],[1], [Define for no javascript])
+	;;
+check|sm|spidermonkey|mozjs)
+	# Spidermonkey check order:
+	# xulrunner 1.9 (provides mozilla-js.pc, from the libmozjs-dev package in testing)
+	# xulrunner 1.8 (provides xulrunner-js.pc, from the libmozjs-dev package in stable)
+	# seamonkey (firefox-2.0 equivalent packaging)
+	# firefox (2.0 or 1.5)
+	# firefox (firefox-2.0 possible alternate packaging)
+	# NOTE - mozjs-17 and later are not supported.
+	# AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs-17.0])
+	AC_MSG_NOTICE([Determining Javascript engine to build against])
+	case "$os_type" in
+	mac)
+        	AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[spidermonkey],[>=],[1.7.0])
+		;;
+	*)
+		AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs187])
+		AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs185])
+		AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozilla-js],[<],[3.0])
+		;;
+	esac
+	## Provide a fix for include path for systems with erroneous mozilla-js.pc
+	if test x$found_JAVASCRIPT_ENGINE = xmozilla-js; then
+		LIBMOZJS_INCDIR=`$PKG_CONFIG --variable=includedir mozilla-js 2>/dev/null`
+		if (echo $JAVASCRIPT_ENGINE_CFLAGS | egrep '(un)?stable') > /dev/null 2>&1; then
+			if test -f $LIBMOZJS_INCDIR/unstable/jsapi.h; then
+				AC_MSG_NOTICE([Discovered jsapi.h exists in unstable includedir])
+				JAVASCRIPT_ENGINE_CFLAGS="${JAVASCRIPT_ENGINE_CFLAGS/unstable/stable} -DMOZILLA_JS_UNSTABLE_INCLUDES"
+				AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
+			fi
+		fi
+	fi
+	if test "x$found_JAVASCRIPT_ENGINE$JAVASCRIPT_ENGINE_LIBS" = xno; then
+		if test x$javascript != xcheck; then
+			AC_MSG_ERROR([Unable to find a compatible version of spidermonkey to build against.])
+		fi
+	else
+		AC_MSG_NOTICE([Using $found_JAVASCRIPT_ENGINE for Javascript engine library])
+		AC_DEFINE([JAVASCRIPT_SM],[1], [Define for spidermonkey js engine])
+	fi
+	;;
+check|duk)
+	if test x$found_JAVASCRIPT_ENGINE = xno; then
+		AC_MSG_NOTICE([Using internal duktape for Javascript engine library])
+		AC_DEFINE([JAVASCRIPT_DUK],[1], [Define for duktape js engine])
+	fi
+	;;
+*)
+	AC_MSG_ERROR([Invalid input for --with-javascript: $javascript])
+	;;
 esac
-case "$javascriptopt" in
-	stub) AC_DEFINE([JAVASCRIPT_STUB],[1], [Define for no javascript]);;
-	sm) AC_DEFINE([JAVASCRIPT_SM],[1], [Define for spidermonkey js engine]);;
-	duk) AC_DEFINE([JAVASCRIPT_DUK],[1], [Define for duktape js engine]);;
-esac
-
-
-# Javascript engine
-# check order:
-# xulrunner 1.9 (provides mozilla-js.pc, from the libmozjs-dev package in testing)
-# xulrunner 1.8 (provides xulrunner-js.pc, from the libmozjs-dev package in stable)
-# seamonkey (firefox-2.0 equivalent packaging)
-# firefox (2.0 or 1.5)
-# firefox (firefox-2.0 possible alternate packaging)
-# NOTE - mozjs-17 and later are not supported yet
-# AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs-17.0])
-if test "$javascriptopt" = "sm"; then
-  AC_MSG_NOTICE([Determining Javascript engine to build against])
-  found_JAVASCRIPT_ENGINE=no
-  case "$os_type" in
-     mac)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[spidermonkey],[>=],[1.7.0])
-        ;;
-     *)
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs187])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozjs185])
-        AC_MY_CHECK_MODULE(JAVASCRIPT_ENGINE,[mozilla-js],[<],[3.0])
-        ;;
-  esac
-
-  ## if no package yet, test for spidermonkey or other 'js' library
-  if test x$found_JAVASCRIPT_ENGINE = xno; then
-    AC_MSG_ERROR([Unable to find an appropriate javascript engine])
-  fi
-
-  ## Provide a fix for include path for systems with erroneous mozilla-js.pc
-  if test x$found_JAVASCRIPT_ENGINE = xmozilla-js; then
-    LIBMOZJS_INCDIR=`$PKG_CONFIG --variable=includedir mozilla-js 2>/dev/null`
-    if (echo $JAVASCRIPT_ENGINE_CFLAGS | egrep '(un)?stable') > /dev/null 2>&1; then
-      if test -f $LIBMOZJS_INCDIR/unstable/jsapi.h; then
-          AC_MSG_NOTICE([Discovered jsapi.h exists in unstable includedir])
-        JAVASCRIPT_ENGINE_CFLAGS="${JAVASCRIPT_ENGINE_CFLAGS/unstable/stable} -DMOZILLA_JS_UNSTABLE_INCLUDES"
-        AC_SUBST(JAVASCRIPT_ENGINE_CFLAGS)
-      fi
-    fi
-  fi
-
-  AC_MSG_NOTICE([Using $found_JAVASCRIPT_ENGINE for Javascript engine library])
-fi
 
 # XML
 PKG_CHECK_MODULES(XML, libxml-2.0)
