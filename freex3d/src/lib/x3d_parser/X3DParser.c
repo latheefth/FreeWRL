@@ -856,6 +856,7 @@ need to put a node into something other than the "children" field.
 int getFieldFromNodeAndName(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value);
 int indexChildrenName(struct X3D_Node *node);
 struct Multi_Node *childrenField(struct X3D_Node *node);
+#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
 void linkNodeIn_B(void *ud) {
 /*	Assumes you have parsed a node, and have it pushed onto the node stack, and 
 	now you want to put it in a field in it's parent
@@ -875,7 +876,7 @@ b) get the parent's suggested fieldname off stack, and if not null,
 c) look at atts containerField, and if not null and not children, use it.
 	- scene author is trying to over-ride defaults.
 */
-	struct X3D_Node *node, *parent;
+	struct X3D_Node *node, *typenode, *parent;
 	char *parentsSuggestion; //*ic,  
 	int type, kind, iifield, ok, isRootNode, mode;
 	union anyVrml *value;
@@ -883,8 +884,11 @@ c) look at atts containerField, and if not null and not children, use it.
 
 	mode = getMode(ud,TOP);
 	node = getNode(ud,TOP);
+	typenode = PPX(node);
 	parent = getNode(ud,TOP-1);
 	if(!node || !parent)return;
+	if(node && !typenode) //empty protobody
+		typenode = node;
 	isRootNode = FALSE;
 	if(parent->_nodeType == NODE_Proto){
 		if(mode == PARSING_PROTOBODY) isRootNode = TRUE;
@@ -899,16 +903,23 @@ c) look at atts containerField, and if not null and not children, use it.
 		ok = getFieldFromNodeAndName(parent,"__children",&type,&kind,&iifield,&valueadd);
 		AddRemoveChildren(parent,&valueadd->mfnode,&node,1,1,__FILE__,__LINE__);
 	}else{
-		int i, defaultContainer[3], iContainer, ncontainer; //, instanceContainer, i;
+		int i, ncontainer; //, instanceContainer, i;
+		unsigned int iContainer, jContainer, defaultContainer[3];
 
 		parentsSuggestion = getField(ud,TOP-1);
 
 		//3.a)
-		defaultContainer[0] = (node->_defaultContainer << 16) >> 16; //Nov 2016 I sqeezed multiple defaults into an int in perl, and extract them here
-		defaultContainer[1] = node->_defaultContainer >> 16;
+		jContainer = typenode->_defaultContainer;
+		//Jan 2017 I squeezed 3 defaults into an int in generateCode.c, and extract them here
+		//but do I have the right endian math?
+		defaultContainer[0] = (jContainer << 22) >> 22; 
+		defaultContainer[1] = (jContainer << 12) >> 22;
+		defaultContainer[2] = (jContainer <<  2) >> 22; 
 		ncontainer = 1;
 		if(defaultContainer[1]) 
 			ncontainer = 2;
+		if(defaultContainer[2]) 
+			ncontainer = 3;
 		for(i=0;i<ncontainer;i++){
 			iContainer = defaultContainer[i];
 			if(iContainer == FIELDNAMES_children) iContainer = 0;

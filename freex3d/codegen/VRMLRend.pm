@@ -24,7 +24,7 @@ use warnings;
 # used for the X3D Parser only. Return type of node.
 
 our %defaultContainerType = (
-	Proto			=>["children"],
+	Proto			=>["children"],  #max 3 in list, 10 bits each < 32bits
 
 	ContourPolyline2D	=>["children"],
 	NurbsCurve		=>["geometry"],
@@ -202,8 +202,8 @@ our %defaultContainerType = (
 	ScreenGroup		=>["children"],
 
 	BallJoint		=>["joints"],
-	CollidableOffset	=>["collidables","geometry"], #collidable
-	CollidableShape		=>["collidables","geometry"], #collidable
+	CollidableOffset	=>["collidables","geometry","collidable"],
+	CollidableShape		=>["collidables","geometry","collidable"],
 	CollisionCollection	=>["collider"],
 	CollisionSensor		=>["children"],
 	CollisionSpace		=>["collidables"],
