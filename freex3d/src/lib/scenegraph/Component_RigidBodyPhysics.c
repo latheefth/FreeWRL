@@ -786,7 +786,7 @@ void setTransformsAndGeom_E(dSpaceID space, void *csensor, struct X3D_Node* pare
 	}
 }
 
-static int pause = FALSE;
+static int rbp_pause = FALSE;
 static double STEP_SIZE = .02; //seconds
 /* http://www.ode.org/ode-0.039-userguide.html#ref27
 3.10. Typical simulation code
@@ -1665,7 +1665,7 @@ void rbp_run_physics(){
 
 			//RUN PHYSICS ENGINE
 			dSpaceCollide (space,0,&nearCallback);
-			if (!pause) {
+			if (!rbp_pause) {
 				if(x3dworld->preferAccuracy){
 					//PUNISHING GIANT MATRIX PUSHED ONTO C STACK FOR GIANT MATRIX SOLUTION
 					double step_fraction = STEP_SIZE;
