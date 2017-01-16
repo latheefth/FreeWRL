@@ -37,7 +37,7 @@ X3D Rigid Body Physics Component
 //#define dDOUBLE 1
 # include <ode/ode.h>
 # ifndef dDOUBLE
-#  error "RigidBodyPhysics: ODE needs to be built to use double-precision"
+#  warning "RigidBodyPhysics: ODE isn't build to use double-precision"
 # endif
 #endif
 
