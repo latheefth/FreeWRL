@@ -104,7 +104,10 @@ void set_physics();
 //START MIT LIC >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 //#define dSINGLE 1  //Q. do we need to match the physics lib build
-#define dDOUBLE 1
+//#define dDOUBLE 1
+#ifndef dDOUBLE
+# error "RigidBodyPhysics: ODE needs to be built to use double-precision"
+#endif
 #include <ode/ode.h>
 
 /*
