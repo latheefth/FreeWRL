@@ -3008,6 +3008,7 @@ int statusbar_getClipPlane(){
 	return vrml_clipplane;
 
 }
+char *getDistBar();
 void drawStatusBar() 
 {
 	/* drawStatusBar() is called just before swapbuffers in mainloop so anything that you want to render 2D

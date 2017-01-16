@@ -59,7 +59,7 @@ my $interalNodeCommonFields =
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       struct X3D_PolyRep *_intern; \n"              	.
                "       int referenceCount; /* if this reaches zero, nobody wants it anymore */ \n".
-	       "       int _defaultContainer; /* holds the container */\n".
+	       "       unsigned int _defaultContainer; /* holds the container */\n".
 	       "       void* _gc; /* ptr to vector of ptrs to free */\n".
 	       "       struct X3D_Node* _executionContext; /* scene or protoInstance */\n".
                " 	/*** node specific data: *****/\n";
@@ -1178,16 +1178,16 @@ sub gen {
 		my $lencount = scalar(@ {$VRML::Rend::defaultContainerType{$node}});
 		#push @genFuncs2, "$lencount ";
 		for(my $i=0;$i<$lencount;$i++) {
-			if($i < 2) {  #just 1 or 2 for now
+			if($i < 3) {  #just 1 or 2 for now
 				if ($i == 1 || $i == 2) {
 					push @genFuncs2, " + (";
 				}
 				push @genFuncs2, "FIELDNAMES_".$VRML::Rend::defaultContainerType{$node}[$i];
 				if ($i == 1) {
-					push @genFuncs2, " << 16)";
+					push @genFuncs2, " << 10)";
 				}
 				if ($i == 2) {
-					push @genFuncs2, " << 32)"; #the constants would need to be 64bit to use this
+					push @genFuncs2, " << 20)"; #squeezing 3 into 32 bits, 10 bits each, so FIELDNAMES_ can only go up to 1023, currently ~960 jan 2017
 				}
 			}
 		}

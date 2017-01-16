@@ -400,16 +400,25 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
 					ct->body1 = b1 ? dBodyGetData(b1) : NULL; //we set the user data to X3DRigidBody* when initializing the bodies
 					ct->body2 = b2 ? dBodyGetData(b2) : NULL;
 					ct->bounce = (float)surface->bounce;
-					double2float(ct->contactNormal.c,contact[i].geom.normal,3);
+					//double2float(ct->contactNormal.c,contact[i].geom.normal,3);
+					ct->contactNormal.c[0] = contact[i].geom.normal[0];
+					ct->contactNormal.c[1] = contact[i].geom.normal[1];
+					ct->contactNormal.c[2] = contact[i].geom.normal[2];
+
 					ct->depth =  (float)contact[i].geom.depth;
 					ct->frictionCoefficients.c[0] = (float)surface->mu;
 					ct->frictionCoefficients.c[1] = (float)surface->mu2;
 
-					double2float(ct->frictionDirection.c,contact[i].fdir1,2);
+					//double2float(ct->frictionDirection.c,contact[i].fdir1,2);
+					ct->frictionDirection.c[0] = contact[i].fdir1[0];
+					ct->frictionDirection.c[1] = contact[i].fdir1[1];
 					ct->geometry1 = X3D_NODE(xshape1);
 					ct->geometry2 = X3D_NODE(xshape2);
 					ct->minBounceSpeed = (float)surface->bounce_vel;
-					double2float(ct->position.c,contact[i].geom.pos,3);
+					//double2float(ct->position.c,contact[i].geom.pos,3);
+					ct->position.c[0] = contact[i].geom.pos[0];
+					ct->position.c[1] = contact[i].geom.pos[1];
+					ct->position.c[2] = contact[i].geom.pos[2];
 					ct->slipCoefficients.c[0] = (float)surface->mu;
 					ct->slipCoefficients.c[1] = (float)surface->mu2;
 					ct->softnessConstantForceMix = (float)surface->soft_cfm;
@@ -1698,7 +1707,8 @@ void rbp_run_physics(){
 					dquat = dBodyGetQuaternion(x3dbody->_body);
 					quat.x = dquat[1], quat.y = dquat[2], quat.z = dquat[3], quat.w = dquat[0];
 					quaternion_to_vrmlrot(&quat,&xyza[0],&xyza[1],&xyza[2],&xyza[3]);
-					double2float(x3dbody->position.c,dpos,3);
+					//double2float(x3dbody->position.c,dpos,3);
+					x3dbody->position.c[0] = dpos[0];x3dbody->position.c[1] = dpos[1];x3dbody->position.c[2] = dpos[2];
 					double2float(x3dbody->orientation.c,xyza,4);
 					MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_RigidBody,position));
 					MARK_EVENT(X3D_NODE(x3doffset),offsetof(struct X3D_RigidBody,orientation));

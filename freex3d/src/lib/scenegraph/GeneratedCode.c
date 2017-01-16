@@ -8531,7 +8531,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->metadata = NULL;
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
 			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_collidables + (FIELDNAMES_geometry << 16);
+			tmp2->_defaultContainer = FIELDNAMES_collidables + (FIELDNAMES_geometry << 10) + (FIELDNAMES_collidable << 20);
 		break;
 		}
 		case NODE_CollidableShape : {
@@ -8551,7 +8551,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->rotation.c[0] = 0;tmp2->rotation.c[1] = 0;tmp2->rotation.c[2] = 1;tmp2->rotation.c[3] = 0;;
 			tmp2->shape = NULL;
 			tmp2->translation.c[0] = 0.0f;tmp2->translation.c[1] = 0.0f;tmp2->translation.c[2] = 0.0f;
-			tmp2->_defaultContainer = FIELDNAMES_collidables + (FIELDNAMES_geometry << 16);
+			tmp2->_defaultContainer = FIELDNAMES_collidables + (FIELDNAMES_geometry << 10) + (FIELDNAMES_collidable << 20);
 		break;
 		}
 		case NODE_Collision : {
@@ -8832,7 +8832,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2 = (struct X3D_Coordinate *) tmp;
 			tmp2->metadata = NULL;
 			tmp2->point.n=0; tmp2->point.p=0;
-			tmp2->_defaultContainer = FIELDNAMES_coord + (FIELDNAMES_skinCoord << 16);
+			tmp2->_defaultContainer = FIELDNAMES_coord + (FIELDNAMES_skinCoord << 10);
 		break;
 		}
 		case NODE_CoordinateChaser : {
@@ -10897,7 +10897,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->stopTime = 0;
 			tmp2->textureProperties = 0;
 			tmp2->url.p = MALLOC (struct Uni_String **, sizeof(struct Uni_String)*1);tmp2->url.p[0] = newASCIIString("");tmp2->url.n=1; ;
-			tmp2->_defaultContainer = FIELDNAMES_texture + (FIELDNAMES_source << 16);
+			tmp2->_defaultContainer = FIELDNAMES_texture + (FIELDNAMES_source << 10);
 		break;
 		}
 		case NODE_MultiTexture : {
@@ -12009,7 +12009,7 @@ void *createNewX3DNode0 (int nt) {
 			tmp2->bboxSize.c[0] = -1.0f;tmp2->bboxSize.c[1] = -1.0f;tmp2->bboxSize.c[2] = -1.0f;
 			tmp2->geometry = NULL;
 			tmp2->metadata = NULL;
-			tmp2->_defaultContainer = FIELDNAMES_children + (FIELDNAMES_shape << 16);
+			tmp2->_defaultContainer = FIELDNAMES_children + (FIELDNAMES_shape << 10);
 		break;
 		}
 		case NODE_SignalPdu : {
