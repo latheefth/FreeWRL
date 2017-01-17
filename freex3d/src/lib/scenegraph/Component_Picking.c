@@ -799,13 +799,13 @@ void do_PickSensorTick(void *ptr){
 			//sort by sortOrder
 			if(!strcmp(node->sortOrder->strptr,"ANY")){
 				struct nodedistance *ndist;
-				realloc(node->pickedGeometry.p,1 * sizeof(struct X3D_Node*));
+				node->pickedGeometry.p = realloc(node->pickedGeometry.p,1 * sizeof(struct X3D_Node*));
 				ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
 				node->pickedGeometry.p[0] = ndist->node;
 			}else if(!strcmp(node->sortOrder->strptr,"ALL")){
 				int ii;
 				struct nodedistance *ndist;
-				realloc(node->pickedGeometry.p,p->stack_nodesdistance->n * sizeof(struct X3D_Node*));
+				node->pickedGeometry.p = realloc(node->pickedGeometry.p,p->stack_nodesdistance->n * sizeof(struct X3D_Node*));
 				for(ii=0;ii<p->stack_nodesdistance->n;ii++){
 					ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
 					node->pickedGeometry.p[ii] = ndist->node;
@@ -825,7 +825,7 @@ void do_PickSensorTick(void *ptr){
 				int ii;
 
 				qsort(p->stack_nodesdistance->data,p->stack_nodesdistance->n, sizeof(struct nodedistance), compare_nodedistance );  
-				realloc(node->pickedGeometry.p,p->stack_nodesdistance->n * sizeof(struct X3D_Node*));
+				node->pickedGeometry.p = realloc(node->pickedGeometry.p,p->stack_nodesdistance->n * sizeof(struct X3D_Node*));
 				for(ii=0;ii<p->stack_nodesdistance->n;ii++){
 					ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
 					node->pickedGeometry.p[ii] = ndist->node;
@@ -834,7 +834,7 @@ void do_PickSensorTick(void *ptr){
 				struct nodedistance *ndist;
 
 				qsort(p->stack_nodesdistance->data,p->stack_nodesdistance->n, sizeof(struct nodedistance), compare_nodedistance );  
-				realloc(node->pickedGeometry.p,1 * sizeof(struct X3D_Node*));
+				node->pickedGeometry.p = realloc(node->pickedGeometry.p,1 * sizeof(struct X3D_Node*));
 				ndist = vector_get_ptr(struct nodedistance,p->stack_nodesdistance,0);
 				node->pickedGeometry.p[0] = ndist->node;
 			}
