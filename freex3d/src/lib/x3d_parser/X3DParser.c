@@ -1447,7 +1447,7 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 			//so we'll keep the original as well, for linkNodeIn
 			//in theory we should call an update function here, and about 4 other places
 			// in x3dparser.c
-			node->_defaultContainer = (node->_defaultContainer << 16) + builtinField;  
+			node->_defaultContainer = (node->_defaultContainer << 10) + builtinField;  
 			//printf("new defaultContainer=%u\n",(unsigned int)node->_defaultContainer);
 		}
 	}

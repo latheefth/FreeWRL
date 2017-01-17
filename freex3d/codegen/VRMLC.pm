@@ -59,7 +59,7 @@ my $interalNodeCommonFields =
 	       "       float _extent[6]; /* used for boundingboxes - +-x, +-y, +-z */ \n" .
                "       struct X3D_PolyRep *_intern; \n"              	.
                "       int referenceCount; /* if this reaches zero, nobody wants it anymore */ \n".
-	       "       unsigned int _defaultContainer; /* holds the container */\n".
+	       "       int _defaultContainer; /* holds the container */\n".
 	       "       void* _gc; /* ptr to vector of ptrs to free */\n".
 	       "       struct X3D_Node* _executionContext; /* scene or protoInstance */\n".
                " 	/*** node specific data: *****/\n";

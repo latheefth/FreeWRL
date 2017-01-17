@@ -269,7 +269,7 @@ void child_LayerSet(struct X3D_Node * node){
 
 			int i0, saveActive, isActive;
 			struct X3D_Node *rayhit;
-			struct X3D_Layer * layer;
+			struct X3D_Layer * layer = NULL;
 			// UNUSED OLDCODE X3D_Viewer *viewer;
 			bindablestack* bstack;
 
@@ -281,7 +281,7 @@ void child_LayerSet(struct X3D_Node * node){
 
 			layerId = layerset->order.p[ii];
 			isActive = layerId == tg->Bindable.activeLayer;
-			i0 = layerId -1;
+			i0 = max(0,layerId -1);
 			layer = (struct X3D_Layer*)layerset->layers.p[i0];
 
 			if(rs->render_sensitive == VF_Sensitive){
