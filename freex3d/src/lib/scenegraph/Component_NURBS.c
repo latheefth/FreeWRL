@@ -1331,6 +1331,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			int ntessu, ntessv, mtessu, mtessv;
 			struct Vector * strips;
 			struct X3D_Node * texCoordNode;
+			int texcoordnodeIsGenerated;
 
 			mtessu = node->uOrder + 1;
 			ntessu = node->uTessellation;
@@ -1442,6 +1443,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						on separate surface in nurbstexturecoordinate node
 						options: a) in texture callback b) when converting to polyrep
 			*/
+			texcoordnodeIsGenerated = FALSE; //for possible garbage collection
 			texCoordNode = node->texCoord;
 			if(!texCoordNode){
 				//2 no texcoord node supplied 
@@ -1454,7 +1456,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						{
 							float du, dv, uu, vv;
 							int jj,j,k;
-							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							struct X3D_TextureCoordinate *texCoord = createNewX3DNode0(NODE_TextureCoordinate);
+							texcoordnodeIsGenerated = TRUE;
 							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
 							du = 1.0f / (float)max(1,(nu -1));
 							dv = 1.0f / (float)max(1,(nv -1));
@@ -1528,7 +1531,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 							float du, dv, uu, vv;
 							int jj,j,k;
 							float *control2D;
-							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							struct X3D_TextureCoordinate *texCoord = createNewX3DNode0(NODE_TextureCoordinate);
+							texcoordnodeIsGenerated = TRUE;
 							FREE_IF_NZ(texCoord->point.p);
 							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
 							du = 1.0f / (float)max(1,(nu -1));
@@ -1766,6 +1770,12 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 
 			//convert points to polyrep
 			convert_strips_to_polyrep(strips,(struct X3D_NurbsTrimmedSurface*)node);
+
+			if(texcoordnodeIsGenerated){
+				struct X3D_TextureCoordinate *texCoord = (struct X3D_TextureCoordinate *)texCoordNode;
+				FREE_IF_NZ(texCoord->point.p);
+				FREE_IF_NZ(texCoordNode);
+			}
 			//vector_releaseData(,strips);
 			for(i=0;i<vectorSize(strips);i++){
 				struct stripState *ss = vector_get_ptr(struct stripState,strips,i);
