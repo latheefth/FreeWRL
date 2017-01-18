@@ -944,38 +944,38 @@ void CALLBACK nurbssurfBegincb(GLenum type, void *ud)
 }
 void CALLBACK nurbssurfVertexcb(GLfloat *vertex, void *ud)
 {
-	struct stripState ss;
+	struct stripState *ss;
 	struct SFVec3f pp;
 	struct Vector * strips = (struct Vector *)ud;
-	ss = vector_get(struct stripState,strips,strips->n -1);
+	ss = vector_get_ptr(struct stripState,strips,strips->n -1);
 	memcpy(&pp,vertex,sizeof(struct SFVec3f));
-	vector_pushBack(struct SFVec3f,&ss.pv,pp);
-	vector_set(struct stripState,strips,strips->n-1,ss);
+	vector_pushBack(struct SFVec3f,&ss->pv,pp);
+	//vector_set(struct stripState,strips,strips->n-1,ss);
 
 	if(0) printf("callback nurbssurfVertex %f %f %f\n",vertex[0],vertex[1],vertex[2]);
 }
 void CALLBACK nurbssurfNormalcb(GLfloat *nml, void *ud)
 {
-	struct stripState ss;
+	struct stripState *ss;
 	struct SFVec3f pp;
 	struct Vector * strips = (struct Vector *)ud;
-	ss = vector_get(struct stripState,strips,strips->n -1);
+	ss = vector_get_ptr(struct stripState,strips,strips->n -1);
 	memcpy(&pp,nml,sizeof(struct SFVec3f));
-	vector_pushBack(struct SFVec3f,&ss.nv,pp);
-	vector_set(struct stripState,strips,strips->n-1,ss);
+	vector_pushBack(struct SFVec3f,&ss->nv,pp);
+	//vector_set(struct stripState,strips,strips->n-1,ss);
 
 	if(0) printf("callback nurbssurfNormal\n");
 }
 void CALLBACK nurbssurfEndcb(void *ud)
 {
-	struct stripState ss;
+	struct stripState *ss;
 	struct Vector * strips = (struct Vector *)ud;
-	ss = vector_get(struct stripState,strips,strips->n -1);
+	ss = vector_get_ptr(struct stripState,strips,strips->n -1);
 	if(0){
 		int i;
-		printf("nurbssurfEnd #p %d #n %d\n",ss.pv.n, ss.nv.n);
-		for(i=0;i<ss.pv.n;i++){
-			struct SFVec3f pp = vector_get(struct SFVec3f,&ss.pv,i);
+		printf("nurbssurfEnd #p %d #n %d\n",ss->pv.n, ss->nv.n);
+		for(i=0;i<ss->pv.n;i++){
+			struct SFVec3f pp = vector_get(struct SFVec3f,&ss->pv,i);
 			printf("%f %f %f\n",pp.c[0],pp.c[1],pp.c[2]);
 		}
 	}
@@ -984,13 +984,13 @@ void CALLBACK nurbssurfEndcb(void *ud)
 }
 void CALLBACK nurbssurfTexcoordcb(GLfloat *tCrd, void *ud){
 	static int count = 0;
-	struct stripState ss;
+	struct stripState *ss;
 	struct SFVec2f tp;
 	struct Vector * strips = (struct Vector *)ud;
-	ss = vector_get(struct stripState,strips,strips->n -1);
+	ss = vector_get_ptr(struct stripState,strips,strips->n -1);
 	memcpy(&tp,tCrd,sizeof(struct SFVec2f));
-	vector_pushBack(struct SFVec2f,&ss.tv,tp);
-	vector_set(struct stripState,strips,strips->n-1,ss);
+	vector_pushBack(struct SFVec2f,&ss->tv,tp);
+	//vector_set(struct stripState,strips,strips->n-1,ss);
 	//printf("%f %f %f\n",tCrd[0],tCrd[1],0.0f);
 	//count++;
 	//if(count % 50 == 0)
@@ -1008,9 +1008,9 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 	//this is a bit like compile_polyrep, except the virt_make is below
 
 	int i, j, npoints, np, ni, ntri, nindex, ntc;
-	struct stripState ss;
+	struct stripState *ss;
 	struct X3D_PolyRep *rep_, *polyrep;
-	struct X3D_TextureCoordinate * tcnode = NULL;
+	struct X3D_TextureCoordinate * tcnode, tcnode0;
 	GLuint *cindex, *norindex, *tcindex;
 	float *tcoord = NULL;
 
@@ -1030,6 +1030,8 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 		FREE_IF_NZ(polyrep->normal);
 		FREE_IF_NZ(polyrep->flat_normal);
 		FREE_IF_NZ(polyrep->tcindex);
+		FREE_IF_NZ(polyrep->wire_indices);
+		//glDeleteBuffers(VBO_COUNT,polyrep->VBO_buffers); //streampoly checks if 0 before doing a new one
 	}
 	if(!node->_intern) 
 		node->_intern = create_polyrep();
@@ -1048,21 +1050,21 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 		rep_->ntexdim[0] = 2;
 		rep_->tcoordtype = NODE_TextureCoordinate; //??
 		rep_->ntcoord = 1;
-		tcnode =  createNewX3DNode(NODE_TextureCoordinate);
 	}
+	tcnode =  &tcnode0; //createNewX3DNode(NODE_TextureCoordinate);
 
 	npoints = nindex = ntc = 0;
 	for(i=0;i<strips->n;i++){
-		ss = vector_get(struct stripState,strips,i);
-		npoints += ss.pv.n;
-		ntc += ss.tv.n;
-		switch(ss.type){
-			case GL_QUAD_STRIP: nindex += (ss.pv.n -2)/2 * 5;break;
-			case GL_TRIANGLE_STRIP: nindex += (ss.pv.n -2);break;
-			case GL_TRIANGLE_FAN: nindex += (ss.pv.n -2);break;
-			case GL_TRIANGLES: nindex += (ss.pv.n -2);break;
+		ss = vector_get_ptr(struct stripState,strips,i);
+		npoints += ss->pv.n;
+		ntc += ss->tv.n;
+		switch(ss->type){
+			case GL_QUAD_STRIP: nindex += (ss->pv.n -2)/2 * 5;break;
+			case GL_TRIANGLE_STRIP: nindex += (ss->pv.n -2);break;
+			case GL_TRIANGLE_FAN: nindex += (ss->pv.n -2);break;
+			case GL_TRIANGLES: nindex += (ss->pv.n -2);break;
 			default:
-				nindex += (ss.pv.n -2);
+				nindex += (ss->pv.n -2);
 		}
 	}
     if (npoints > 0)
@@ -1071,10 +1073,10 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
         rep_->actualCoord = MALLOC(void *, npoints * 3 * sizeof(float));
         rep_->normal = MALLOC(void *, npoints * 3 * sizeof(float));
 		//if(USETXCOORD) rep->GeneratedTexCoords[0] = MALLOC(void *, npoints * 2 * sizeof(float));
-		if(USETXCOORD){
-			 tcnode->point.p = MALLOC(void *, npoints * 2 * sizeof(float));
-			 tcnode->point.n = npoints;
-		}
+		//if(USETXCOORD){
+		//	 tcnode->point.p = MALLOC(void*, npoints * 2 * sizeof(float));
+		//	 tcnode->point.n = npoints;
+		//}
 		//rep->t
     }
 	rep_->ntri = ntri = nindex; //we'll over-malloc
@@ -1097,14 +1099,14 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 	ni = 0;
 	ntri = 0;
 	for(i=0;i<strips->n;i++){
-		ss = vector_get(struct stripState,strips,i);
+		ss = vector_get_ptr(struct stripState,strips,i);
 //printf("ss.pv.n=%d nv.n=%d tv.n=%d\n",ss.pv.n,ss.nv.n,ss.tv.n);
-		memcpy(&rep_->actualCoord[np*3],ss.pv.data,ss.pv.n * 3 * sizeof(float));
-		memcpy(&rep_->normal[np*3],ss.nv.data,ss.nv.n * 3 * sizeof(float));
-		if(USETXCOORD && tcoord) memcpy(&tcoord[np*2],ss.tv.data,ss.tv.n * 2 * sizeof(float));
-		switch(ss.type){
+		memcpy(&rep_->actualCoord[np*3],ss->pv.data,ss->pv.n * 3 * sizeof(float));
+		memcpy(&rep_->normal[np*3],ss->nv.data,ss->nv.n * 3 * sizeof(float));
+		if(USETXCOORD && tcoord) memcpy(&tcoord[np*2],ss->tv.data,ss->tv.n * 2 * sizeof(float));
+		switch(ss->type){
 			case GL_QUAD_STRIP: 
-				for(j=0;j<ss.pv.n -2;j+=2){
+				for(j=0;j<ss->pv.n -2;j+=2){
 					rep_->cindex[ni++] = np+j;
 					rep_->cindex[ni++] = np+j+1;
 					rep_->cindex[ni++] = np+j+3;
@@ -1120,11 +1122,11 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 				}
 				break;
 			case GL_TRIANGLE_STRIP: 
-				nindex += (ss.pv.n -2);
+				nindex += (ss->pv.n -2);
 				break;
 			case GL_TRIANGLE_FAN: 
 				//nindex += (ss.pv.n -2);
-				for(j=0;j<ss.pv.n -2;j+=1){
+				for(j=0;j<ss->pv.n -2;j+=1){
 					rep_->cindex[ni++] = np;
 					rep_->cindex[ni++] = np+j+1;
 					rep_->cindex[ni++] = np+j+2;
@@ -1134,12 +1136,12 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 				}
 				break;
 			case GL_TRIANGLES: 
-				nindex += (ss.pv.n -2);
+				nindex += (ss->pv.n -2);
 				break;
 			default:
-				nindex += (ss.pv.n -2);
+				nindex += (ss->pv.n -2);
 		}
-		np += ss.pv.n;
+		np += ss->pv.n;
 	}
 	rep_->ntri = ntri;
 	if(node->texCoord && node->texCoord->_nodeType == NODE_NurbsTextureCoordinate){
@@ -1182,7 +1184,9 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 		stream_polyrep(node, NULL,NULL,NULL,NULL, tcnode);
 		/* and, tell the rendering process that this shape is now compiled */
 	}
+	FREE_IF_NZ(tcnode->point.p);
 	//else wait for set_coordIndex to be converted to coordIndex
+	//MARK POLYREP COMPILED
 	polyrep->irep_change = node->_change;
 
 	/*
@@ -1325,10 +1329,11 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 		}
 
 		if(n && nku && nkv){
-			GLUnurbsObj *theNurb;
+			static GLUnurbsObj *theNurb = NULL;
 			int ntessu, ntessv, mtessu, mtessv;
 			struct Vector * strips;
 			struct X3D_Node * texCoordNode;
+			int texcoordnodeIsGenerated;
 
 			mtessu = node->uOrder + 1;
 			ntessu = node->uTessellation;
@@ -1336,7 +1341,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			ntessv = node->vTessellation;
 
 			if(DEBG) printf("gluNewNurbsRenderer\n");
-			theNurb = gluNewNurbsRenderer();
+			if(!theNurb)
+				theNurb = gluNewNurbsRenderer();
 			gluNurbsProperty(theNurb, GLU_NURBS_MODE, GLU_NURBS_TESSELLATOR);
 			if(0){
 				//chord length or automatic - not implemented properly nor tested thoroughly
@@ -1439,6 +1445,7 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						on separate surface in nurbstexturecoordinate node
 						options: a) in texture callback b) when converting to polyrep
 			*/
+			texcoordnodeIsGenerated = FALSE; //for possible garbage collection
 			texCoordNode = node->texCoord;
 			if(!texCoordNode){
 				//2 no texcoord node supplied 
@@ -1451,7 +1458,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 						{
 							float du, dv, uu, vv;
 							int jj,j,k;
-							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							struct X3D_TextureCoordinate *texCoord = createNewX3DNode0(NODE_TextureCoordinate);
+							texcoordnodeIsGenerated = TRUE;
 							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
 							du = 1.0f / (float)max(1,(nu -1));
 							dv = 1.0f / (float)max(1,(nv -1));
@@ -1525,7 +1533,8 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 							float du, dv, uu, vv;
 							int jj,j,k;
 							float *control2D;
-							struct X3D_TextureCoordinate *texCoord = createNewX3DNode(NODE_TextureCoordinate);
+							struct X3D_TextureCoordinate *texCoord = createNewX3DNode0(NODE_TextureCoordinate);
+							texcoordnodeIsGenerated = TRUE;
 							FREE_IF_NZ(texCoord->point.p);
 							texCoord->point.p = MALLOC(struct SFVec2f*,nu * nv * sizeof(struct SFVec2f));
 							du = 1.0f / (float)max(1,(nu -1));
@@ -1759,14 +1768,31 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 			if(DEBG) printf("gluEndSurface \n");
 			gluEndSurface(theNurb);
 			if(DEBG) printf("gluDeleteNurbsRenderer \n");
-			gluDeleteNurbsRenderer(theNurb);
+			if(0) gluDeleteNurbsRenderer(theNurb);
 
 			//convert points to polyrep
 			convert_strips_to_polyrep(strips,(struct X3D_NurbsTrimmedSurface*)node);
-			FREE_IF_NZ(knotsv);
-			FREE_IF_NZ(knotsu);
+
+			if(texcoordnodeIsGenerated){
+				struct X3D_TextureCoordinate *texCoord = (struct X3D_TextureCoordinate *)texCoordNode;
+				FREE_IF_NZ(texCoord->point.p);
+				FREE_IF_NZ(texCoordNode);
+			}
+			//vector_releaseData(,strips);
+			if(strips){
+				for(i=0;i<vectorSize(strips);i++){
+					struct stripState *ss = vector_get_ptr(struct stripState,strips,i);
+					FREE_IF_NZ(ss->pv.data); ss->pv.allocn = 0; ss->pv.n = 0;
+					FREE_IF_NZ(ss->nv.data); ss->nv.allocn = 0; ss->nv.n = 0;
+					FREE_IF_NZ(ss->tv.data); ss->tv.allocn = 0; ss->tv.n = 0;
+				}
+				FREE_IF_NZ(strips->data); strips->allocn = 0; strips->n = 0;
+				FREE_IF_NZ(strips);
+			}
 			FREE_IF_NZ(xyzw);
 		}
+		FREE_IF_NZ(knotsv);
+		FREE_IF_NZ(knotsu);
 	}
 
 }
