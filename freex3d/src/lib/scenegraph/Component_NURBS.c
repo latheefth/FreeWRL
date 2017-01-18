@@ -1010,7 +1010,7 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 	int i, j, npoints, np, ni, ntri, nindex, ntc;
 	struct stripState *ss;
 	struct X3D_PolyRep *rep_, *polyrep;
-	struct X3D_TextureCoordinate * tcnode;
+	struct X3D_TextureCoordinate * tcnode, tcnode0;
 	GLuint *cindex, *norindex, *tcindex;
 	float *tcoord = NULL;
 
@@ -1048,8 +1048,8 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 		rep_->ntexdim[0] = 2;
 		rep_->tcoordtype = NODE_TextureCoordinate; //??
 		rep_->ntcoord = 1;
-		tcnode =  createNewX3DNode(NODE_TextureCoordinate);
 	}
+	tcnode =  &tcnode0; //createNewX3DNode(NODE_TextureCoordinate);
 
 	npoints = nindex = ntc = 0;
 	for(i=0;i<strips->n;i++){
@@ -1071,10 +1071,10 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
         rep_->actualCoord = MALLOC(void *, npoints * 3 * sizeof(float));
         rep_->normal = MALLOC(void *, npoints * 3 * sizeof(float));
 		//if(USETXCOORD) rep->GeneratedTexCoords[0] = MALLOC(void *, npoints * 2 * sizeof(float));
-		if(USETXCOORD){
-			 tcnode->point.p = MALLOC(void*, npoints * 2 * sizeof(float));
-			 tcnode->point.n = npoints;
-		}
+		//if(USETXCOORD){
+		//	 tcnode->point.p = MALLOC(void*, npoints * 2 * sizeof(float));
+		//	 tcnode->point.n = npoints;
+		//}
 		//rep->t
     }
 	rep_->ntri = ntri = nindex; //we'll over-malloc
@@ -1182,7 +1182,9 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 		stream_polyrep(node, NULL,NULL,NULL,NULL, tcnode);
 		/* and, tell the rendering process that this shape is now compiled */
 	}
+	FREE_IF_NZ(tcnode->point.p);
 	//else wait for set_coordIndex to be converted to coordIndex
+	//MARK POLYREP COMPILED
 	polyrep->irep_change = node->_change;
 
 	/*
