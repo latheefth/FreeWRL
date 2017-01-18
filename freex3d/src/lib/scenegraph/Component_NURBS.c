@@ -1030,6 +1030,8 @@ void convert_strips_to_polyrep(struct Vector * strips,struct X3D_NurbsTrimmedSur
 		FREE_IF_NZ(polyrep->normal);
 		FREE_IF_NZ(polyrep->flat_normal);
 		FREE_IF_NZ(polyrep->tcindex);
+		FREE_IF_NZ(polyrep->wire_indices);
+		//glDeleteBuffers(VBO_COUNT,polyrep->VBO_buffers); //streampoly checks if 0 before doing a new one
 	}
 	if(!node->_intern) 
 		node->_intern = create_polyrep();
@@ -1777,14 +1779,16 @@ void compile_NurbsSurface(struct X3D_NurbsPatchSurface *node, struct Multi_Node 
 				FREE_IF_NZ(texCoordNode);
 			}
 			//vector_releaseData(,strips);
-			for(i=0;i<vectorSize(strips);i++){
-				struct stripState *ss = vector_get_ptr(struct stripState,strips,i);
-				FREE_IF_NZ(ss->pv.data); ss->pv.allocn = 0; ss->pv.n = 0;
-				FREE_IF_NZ(ss->nv.data); ss->nv.allocn = 0; ss->nv.n = 0;
-				FREE_IF_NZ(ss->tv.data); ss->tv.allocn = 0; ss->tv.n = 0;
+			if(strips){
+				for(i=0;i<vectorSize(strips);i++){
+					struct stripState *ss = vector_get_ptr(struct stripState,strips,i);
+					FREE_IF_NZ(ss->pv.data); ss->pv.allocn = 0; ss->pv.n = 0;
+					FREE_IF_NZ(ss->nv.data); ss->nv.allocn = 0; ss->nv.n = 0;
+					FREE_IF_NZ(ss->tv.data); ss->tv.allocn = 0; ss->tv.n = 0;
+				}
+				FREE_IF_NZ(strips->data); strips->allocn = 0; strips->n = 0;
+				FREE_IF_NZ(strips);
 			}
-			FREE_IF_NZ(strips->data); strips->allocn = 0; strips->n = 0;
-			FREE_IF_NZ(strips);
 			FREE_IF_NZ(xyzw);
 		}
 		FREE_IF_NZ(knotsv);
