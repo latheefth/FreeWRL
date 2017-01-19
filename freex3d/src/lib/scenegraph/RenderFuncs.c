@@ -1751,11 +1751,15 @@ void render_node(struct X3D_Node *node) {
 		profile_end("prep");
 		if(justGeom)
 			profile_end("prepgeom");
-		if(p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive) {
-			push_ray(); //upd_ray(); 
-			pushed_ray = TRUE;
-		}
+		//if(p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive) {
+		//	push_ray(); //upd_ray(); 
+		//	pushed_ray = TRUE;
+		//}
 		PRINT_GL_ERROR_IF_ANY("prep"); PRINT_NODE(node,virt);
+	}
+	if(p->renderstate.render_sensitive && !tg->RenderFuncs.hypersensitive) {
+		push_ray(); //upd_ray(); 
+		pushed_ray = TRUE;
 	}
 	if(p->renderstate.render_proximity && virt->proximity) {
 		DEBUG_RENDER("rs 2a\n");
