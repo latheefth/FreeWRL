@@ -276,6 +276,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="..\..\src_windows;..\..\src\bin;..\..\src\lib;..\..\..\..\lib_windows\pthreads.2"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
@@ -295,9 +296,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="gdiplus.lib avcodec.lib swscale.lib avformat.lib avutil.lib avfilter.lib swresample.lib avdevice.lib libtess.lib libFreeWRL.lib glew32mx.lib Opengl32.lib pthreadVC2.lib zlib.lib libminizip.lib ws2_32.lib freetype239.lib shlwapi.lib libxml2_a.lib Wininet.lib Winmm.lib ode_double.lib libnurbs.lib alut.lib openAL32.lib"
+				AdditionalDependencies="gdiplus.lib libtess.lib libFreeWRL.lib glew32mx.lib Opengl32.lib zlib.lib pthreadVC2.lib libminizip.lib ws2_32.lib freetype239.lib shlwapi.lib libxml2_a.lib Wininet.lib Winmm.lib ode_double.lib libnurbs.lib alut.lib openAL32.lib avcodec.lib swscale.lib avformat.lib avutil.lib avfilter.lib swresample.lib avdevice.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\..\lib_windows\ffmpeg\win32\lib;..\..\..\..\lib_windows\freeALUT\lib;..\..\..\..\lib_windows\openALsoft\lib;..\..\..\..\lib_windows\MSopenGL\lib;&quot;..\..\..\..\lib_windows\glew\lib\Release MX\Win32&quot;;..\..\..\..\lib_windows\pthreads.2;..\..\..\..\lib_windows\freetype2\lib;..\..\..\..\lib_windows\zlib\lib;..\..\..\..\lib_windows\libxml2\lib;..\..\..\..\lib_windows\ODE\lib;..\Release_glew;..\Release"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
