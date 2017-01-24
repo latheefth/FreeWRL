@@ -1191,7 +1191,7 @@ void popnset_framebuffer();
 #else
 #define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
 #endif
-
+int haveFrameBufferObject();
 void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 	if (node->__subTextures.n == 0) {
 		int i;
@@ -1217,7 +1217,7 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 		tti->x = tti->y = node->size; 
 		//tti->z = 6;
 		loadTextureNode(X3D_NODE(node),NULL);
-		if(tti->ifbobuffer == 0){
+		if(tti->ifbobuffer == 0 && haveFrameBufferObject() ){
 			int j, isize;
 			isize = node->size; //node->size is initializeOnly, we will ignore any change during run
 			tti->x = isize; //by storing and retrieving initial size from here

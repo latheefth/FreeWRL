@@ -373,6 +373,7 @@ struct X3D_Material *get_material_oneSided();
 struct X3D_TwoSidedMaterial *get_material_twoSided();
 void pushnset_viewport(float *vpFraction);
 void popnset_viewport();
+int haveFrameBufferObject();
 void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 	struct X3D_OpacityMapVolumeStyle *style0 = (struct X3D_OpacityMapVolumeStyle*)vstyle;
 	if(style0->enabled){
@@ -432,42 +433,44 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					float vp[4] = {0.0f,1.0f,0.0f,1.0f}; //arbitrary
 
 					glGetIntegerv(GL_VIEWPORT, iviewport); //xmin,ymin,w,h
-					if(fbohandles[0] == 0){
-						GLuint depthrenderbuffer;
-						// https://www.opengl.org/wiki/Framebuffer_Object
-						glGenFramebuffers(1, &fbohandles[0]);
-						pushnset_framebuffer(fbohandles[0]); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
+					if(haveFrameBufferObject()){
+						if(fbohandles[0] == 0){
+							GLuint depthrenderbuffer;
+							// https://www.opengl.org/wiki/Framebuffer_Object
+							glGenFramebuffers(1, &fbohandles[0]);
+							pushnset_framebuffer(fbohandles[0]); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
 
-						// The depth buffer - optional
-						glGenRenderbuffers(1, &depthrenderbuffer);
-						glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-						glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, iviewport[2],iviewport[3]);
-						glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+							// The depth buffer - optional
+							glGenRenderbuffers(1, &depthrenderbuffer);
+							glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+							glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, iviewport[2],iviewport[3]);
+							glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
 
 
-						glGenTextures(1,&fbohandles[1]);
-						glBindTexture(GL_TEXTURE_2D, fbohandles[1]);
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+							glGenTextures(1,&fbohandles[1]);
+							glBindTexture(GL_TEXTURE_2D, fbohandles[1]);
+							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
+							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
 
-						glGenTextures(1,&fbohandles[2]);
-						glBindTexture(GL_TEXTURE_2D, fbohandles[2]);
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+							glGenTextures(1,&fbohandles[2]);
+							glBindTexture(GL_TEXTURE_2D, fbohandles[2]);
+							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-						//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, fbohandles[2], 0);
-						//--dont assign the second texture till after the parent VolumeData has drawn itself
-						//glDrawBuffers(1,&fbohandles[1]);
-						if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-							printf("ouch framebuffer not complete\n");
-						//popnset_framebuffer(); //pop after drawing
-					}else{
-						pushnset_framebuffer(fbohandles[0]);
-						glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
+							//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+1, GL_TEXTURE_2D, fbohandles[2], 0);
+							//--dont assign the second texture till after the parent VolumeData has drawn itself
+							//glDrawBuffers(1,&fbohandles[1]);
+							if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+								printf("ouch framebuffer not complete\n");
+							//popnset_framebuffer(); //pop after drawing
+						}else{
+							pushnset_framebuffer(fbohandles[0]);
+							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
+						}
 					}
 					pushnset_viewport(vp); //something to push so we can pop-and-set below, so any mainloop GL_BACK viewport is restored
 					glViewport(0,0,iviewport[2],iviewport[3]); //viewport we want 
