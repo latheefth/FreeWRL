@@ -327,7 +327,7 @@ int haveFrameBufferObject()
 {
 	int iret = TRUE;
 #if defined(GLEW) || defined(GLEW_MX)
-	iret = GLEW_ARB_framebuffer_object != NULL;
+	iret = GLEW_ARB_framebuffer_object != 0;
 #endif
 	return iret;
 }
