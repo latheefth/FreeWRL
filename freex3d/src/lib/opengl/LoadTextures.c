@@ -81,24 +81,12 @@ void Multi_String_print(struct Multi_String *url);
 #ifdef _MSC_VER
 #include "ImageLoader.h"
 #else
-// OLD_IPHONE_AQUA #if !(defined(TARGET_AQUA) || defined(IPHONE) || defined(_ANDROID) || defined(ANDROIDNDK))
 #if !(defined(_ANDROID) || defined(ANDROIDNDK))
 		#include <Imlib2.h>
 	#endif
 #endif
 
 
-// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA #ifdef IPHONE
-// OLD_IPHONE_AQUA #include <CoreFoundation/CoreFoundation.h>
-// OLD_IPHONE_AQUA #include <CoreGraphics/CoreGraphics.h>
-// OLD_IPHONE_AQUA #include <ImageIO/ImageIO.h>
-// OLD_IPHONE_AQUA #else
-// OLD_IPHONE_AQUA #include <Carbon/Carbon.h>
-// OLD_IPHONE_AQUA #include <QuickTime/QuickTime.h>
-// OLD_IPHONE_AQUA #endif /* IPHONE */
-// OLD_IPHONE_AQUA #endif /* TARGET_AQUA */
 
 ///* is the texture thread up and running yet? */
 //int TextureThreadInitialized = FALSE;
@@ -1660,82 +1648,6 @@ static unsigned char *expandto4bpp(unsigned char *input, int height, int width, 
 
 
 
-// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
-// OLD_IPHONE_AQUA /* render from aCGImageRef into a buffer, to get EXACT bits, as a CGImageRef contains only
-// OLD_IPHONE_AQUA estimates. */
-// OLD_IPHONE_AQUA /* from http://developer.apple.com/qa/qa2007/qa1509.html */
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA static inline double radians (double degrees) {return degrees * M_PI/180;} 
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA int XXX;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA CGContextRef CreateARGBBitmapContext (CGImageRef inImage) {
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	CGContextRef    context = NULL;
-// OLD_IPHONE_AQUA 	CGColorSpaceRef colorSpace;
-// OLD_IPHONE_AQUA 	int             bitmapByteCount;
-// OLD_IPHONE_AQUA 	int             bitmapBytesPerRow;
-// OLD_IPHONE_AQUA 	CGBitmapInfo	bitmapInfo;
-// OLD_IPHONE_AQUA 	size_t		bitsPerComponent;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	 // Get image width, height. Well use the entire image.
-// OLD_IPHONE_AQUA 	int pixelsWide = (int) CGImageGetWidth(inImage);
-// OLD_IPHONE_AQUA 	int pixelsHigh = (int) CGImageGetHeight(inImage);
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	// Declare the number of bytes per row. Each pixel in the bitmap in this
-// OLD_IPHONE_AQUA 	// example is represented by 4 bytes; 8 bits each of red, green, blue, and
-// OLD_IPHONE_AQUA 	// alpha.
-// OLD_IPHONE_AQUA 	bitmapBytesPerRow   = (pixelsWide * 4);
-// OLD_IPHONE_AQUA 	bitmapByteCount     = (bitmapBytesPerRow * pixelsHigh);
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	// Use the generic RGB color space.
-// OLD_IPHONE_AQUA     colorSpace = CGColorSpaceCreateDeviceRGB();
-// OLD_IPHONE_AQUA 	if (colorSpace == NULL)
-// OLD_IPHONE_AQUA 	{
-// OLD_IPHONE_AQUA 	    fprintf(stderr, "Error allocating color space\n");
-// OLD_IPHONE_AQUA 	    return NULL;
-// OLD_IPHONE_AQUA 	}
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 	/* figure out the bitmap mapping */
-// OLD_IPHONE_AQUA 	bitsPerComponent = CGImageGetBitsPerComponent(inImage);
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	if (bitsPerComponent >= 8) {
-// OLD_IPHONE_AQUA 		CGRect rect = CGRectMake(0., 0., pixelsWide, pixelsHigh);
-// OLD_IPHONE_AQUA 		bitmapInfo = kCGImageAlphaNoneSkipLast;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 		bitmapInfo = kCGImageAlphaPremultipliedFirst | kCGBitmapByteOrder32Host;
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		/* Create the bitmap context. We want pre-multiplied ARGB, 8-bits
-// OLD_IPHONE_AQUA 		  per component. Regardless of what the source image format is
-// OLD_IPHONE_AQUA 		  (CMYK, Grayscale, and so on) it will be converted over to the format
-// OLD_IPHONE_AQUA 		  specified here by CGBitmapContextCreate. */
-// OLD_IPHONE_AQUA 		context = CGBitmapContextCreate (NULL, pixelsWide, pixelsHigh,
-// OLD_IPHONE_AQUA 			bitsPerComponent, bitmapBytesPerRow, colorSpace, bitmapInfo); 
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		if (context == NULL) {
-// OLD_IPHONE_AQUA 		    fprintf (stderr, "Context not created!");
-// OLD_IPHONE_AQUA 		} else {
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 			/* try scaling and rotating this image to fit our ideas on life in general */
-// OLD_IPHONE_AQUA 			CGContextTranslateCTM (context, 0, pixelsHigh);
-// OLD_IPHONE_AQUA 			CGContextScaleCTM (context,1.0, -1.0);
-// OLD_IPHONE_AQUA 		}
-// OLD_IPHONE_AQUA 		CGContextDrawImage(context, rect,inImage);
-// OLD_IPHONE_AQUA 	}
-// OLD_IPHONE_AQUA     else
-// OLD_IPHONE_AQUA     {
-// OLD_IPHONE_AQUA         CGColorSpaceRelease(colorSpace);
-// OLD_IPHONE_AQUA 		printf ("bits per component of %d not handled\n",(int) bitsPerComponent);
-// OLD_IPHONE_AQUA 		return NULL;
-// OLD_IPHONE_AQUA 	}
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	/* Make sure and release colorspace before returning */
-// OLD_IPHONE_AQUA 	CGColorSpaceRelease( colorSpace );
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	return context;
-// OLD_IPHONE_AQUA }
-// OLD_IPHONE_AQUA #endif
 
 #ifdef QNX
 #include <img/img.h>
@@ -2483,7 +2395,6 @@ ConsoleMessage(me);}
 
 
 /* LINUX */
-// OLD_IPHONE_AQUA #if !defined (_MSC_VER) && !defined (TARGET_AQUA) && !defined(_ANDROID) && !defined(ANDROIDNDK)
 
 #if !defined (_MSC_VER) && !defined(_ANDROID) && !defined(ANDROIDNDK)
 	Imlib_Image image;
@@ -2509,10 +2420,11 @@ ConsoleMessage(me);}
 		case IMAGETYPE_GIF:
 		case IMAGETYPE_UNKNOWN:
 		default:
-			ret = FALSE;
+			//JAS 	ret = FALSE;
 			//image = imlib_load_image_immediately(filename);
 			//image = imlib_load_image(filename);
 			image = imlib_load_image_with_error_return(filename,&error_return);
+			ret = (error_return == 0);
 
 			if (!image) {
 				char *es = NULL;
@@ -2569,200 +2481,11 @@ ConsoleMessage(me);}
 	}
 
 	FREE(fname);
-	return (ret != 0);
+	return (ret);
 
 
 #endif
 
-// OLD_IPHONE_AQUA /* OSX */
-// OLD_IPHONE_AQUA #if defined (TARGET_AQUA)
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	CGImageRef 	image;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	int 		image_width;
-// OLD_IPHONE_AQUA 	int 		image_height;
-// OLD_IPHONE_AQUA 	int			channels;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA #ifndef FRONTEND_GETS_FILES
-// OLD_IPHONE_AQUA 	CFStringRef	path;
-// OLD_IPHONE_AQUA     CFURLRef 	url;
-// OLD_IPHONE_AQUA #endif
-// OLD_IPHONE_AQUA     
-// OLD_IPHONE_AQUA 	CGContextRef 	cgctx;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	unsigned char *	data;
-// OLD_IPHONE_AQUA 	int		hasAlpha;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	CGImageSourceRef 	sourceRef;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	/* initialization */
-// OLD_IPHONE_AQUA 	image = NULL;
-// OLD_IPHONE_AQUA 	hasAlpha = FALSE;
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA #ifdef FRONTEND_GETS_FILES
-// OLD_IPHONE_AQUA 	openned_file_t *myFile = load_file (filename);
-// OLD_IPHONE_AQUA 	/* printf ("got file from load_file, openned_file_t is %p %d\n", myFile->fileData, myFile->fileDataSize); */
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	/* if we got null for data, lets assume that there was not a file there */
-// OLD_IPHONE_AQUA 	if (myFile->fileData == NULL) {
-// OLD_IPHONE_AQUA 		sourceRef = NULL;
-// OLD_IPHONE_AQUA 		image = NULL;
-// OLD_IPHONE_AQUA 	} else {
-// OLD_IPHONE_AQUA 		//CFDataRef localData = CFDataCreate(NULL,(const UInt8 *)myFile->fileData,myFile->fileDataSize);
-// OLD_IPHONE_AQUA 		CFDataRef localData = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, (const UInt8 *)myFile->fileData,myFile->fileDataSize, kCFAllocatorNull);
-// OLD_IPHONE_AQUA 		sourceRef = CGImageSourceCreateWithData(localData,NULL);
-// OLD_IPHONE_AQUA 		CFRelease(localData);
-// OLD_IPHONE_AQUA 	}
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	/* step 2, if the data exists, was it a file for us? */
-// OLD_IPHONE_AQUA 	if (sourceRef != NULL) {
-// OLD_IPHONE_AQUA 		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
-// OLD_IPHONE_AQUA 		CFRelease (sourceRef);
-// OLD_IPHONE_AQUA 	}
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA #else /* FRONTEND_GETS_FILES */
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	path = CFStringCreateWithCString(NULL, filename, kCFStringEncodingUTF8);
-// OLD_IPHONE_AQUA 	url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, 0);
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	/* ok, we can define USE_CG_DATA_PROVIDERS or TRY_QUICKTIME...*/
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	/* I dont know whether to use quicktime or not... Probably not... as the other ways using core 
-// OLD_IPHONE_AQUA 		graphics seems to be ok. Anyway, I left this code in here, as maybe it might be of use for mpegs
-// OLD_IPHONE_AQUA 	*/
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	sourceRef = CGImageSourceCreateWithURL(url,NULL);
-// OLD_IPHONE_AQUA 	if (sourceRef != NULL) {
-// OLD_IPHONE_AQUA 		image = CGImageSourceCreateImageAtIndex(sourceRef, 0, NULL);
-// OLD_IPHONE_AQUA 		CFRelease (sourceRef);
-// OLD_IPHONE_AQUA 	}
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	CFRelease(url);
-// OLD_IPHONE_AQUA 	CFRelease(path);
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA #endif /* FRONTEND_GETS_FILES */
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 	/* We were able to load in the image here... */
-// OLD_IPHONE_AQUA 	if (image != NULL) {
-// OLD_IPHONE_AQUA 		image_width = (int) CGImageGetWidth(image);
-// OLD_IPHONE_AQUA 		image_height = (int) CGImageGetHeight(image);
-// OLD_IPHONE_AQUA 		// https://developer.apple.com/reference/coregraphics/1408848-cgcolorspacegetnumberofcomponent?language=objc
-// OLD_IPHONE_AQUA 		// https://developer.apple.com/reference/coregraphics/1454858-cgimagegetcolorspace?language=objc
-// OLD_IPHONE_AQUA 
-// OLD_IPHONE_AQUA 		channels = CGColorSpaceGetNumberOfComponents(CGImageGetColorSpace(image));
-// OLD_IPHONE_AQUA 		/* go through every possible return value and check alpha. 
-// OLD_IPHONE_AQUA 			note, in testing, kCGImageAlphaLast and kCGImageAlphaNoneSkipLast
-// OLD_IPHONE_AQUA 			are what got returned - which makes sense for BGRA textures */
-// OLD_IPHONE_AQUA 		switch (CGImageGetAlphaInfo(image)) {
-// OLD_IPHONE_AQUA 			case kCGImageAlphaNone: hasAlpha = FALSE; break;
-// OLD_IPHONE_AQUA 			case kCGImageAlphaPremultipliedLast: hasAlpha = TRUE; break;
-// OLD_IPHONE_AQUA 			case kCGImageAlphaPremultipliedFirst: hasAlpha = TRUE; break;
-// OLD_IPHONE_AQUA 			case kCGImageAlphaLast: hasAlpha = TRUE; break;
-// OLD_IPHONE_AQUA 			case kCGImageAlphaFirst: hasAlpha = TRUE; break;
-// OLD_IPHONE_AQUA 			case kCGImageAlphaNoneSkipLast: hasAlpha = FALSE; break;
-// OLD_IPHONE_AQUA 			case kCGImageAlphaNoneSkipFirst: hasAlpha = FALSE; break;
-// OLD_IPHONE_AQUA 			default: hasAlpha = FALSE; /* should never get here */
-// OLD_IPHONE_AQUA 		}
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		#ifdef TEXVERBOSE
-// OLD_IPHONE_AQUA 		printf ("\nLoadTexture %s\n",filename);
-// OLD_IPHONE_AQUA 		printf ("CGImageGetAlphaInfo(image) returns %x\n",CGImageGetAlphaInfo(image));
-// OLD_IPHONE_AQUA 		printf ("   kCGImageAlphaNone %x\n",   kCGImageAlphaNone);
-// OLD_IPHONE_AQUA 		printf ("   kCGImageAlphaPremultipliedLast %x\n",   kCGImageAlphaPremultipliedLast);
-// OLD_IPHONE_AQUA 		printf ("   kCGImageAlphaPremultipliedFirst %x\n",   kCGImageAlphaPremultipliedFirst);
-// OLD_IPHONE_AQUA 		printf ("   kCGImageAlphaLast %x\n",   kCGImageAlphaLast);
-// OLD_IPHONE_AQUA 		printf ("   kCGImageAlphaFirst %x\n",   kCGImageAlphaFirst);
-// OLD_IPHONE_AQUA 		printf ("   kCGImageAlphaNoneSkipLast %x\n",   kCGImageAlphaNoneSkipLast);
-// OLD_IPHONE_AQUA 		printf ("   kCGImageAlphaNoneSkipFirst %x\n",   kCGImageAlphaNoneSkipFirst);
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		if (hasAlpha) printf ("Image has Alpha channel\n"); else printf ("image - no alpha channel \n");
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		printf ("raw image, AlphaInfo %x\n",(int) CGImageGetAlphaInfo(image));
-// OLD_IPHONE_AQUA 		printf ("raw image, BitmapInfo %x\n",(int) CGImageGetBitmapInfo(image));
-// OLD_IPHONE_AQUA 		printf ("raw image, BitsPerComponent %d\n",(int) CGImageGetBitsPerComponent(image));
-// OLD_IPHONE_AQUA 		printf ("raw image, BitsPerPixel %d\n",(int) CGImageGetBitsPerPixel(image));
-// OLD_IPHONE_AQUA 		printf ("raw image, BytesPerRow %d\n",(int) CGImageGetBytesPerRow(image));
-// OLD_IPHONE_AQUA 		printf ("raw image, ImageHeight %d\n",(int) CGImageGetHeight(image));
-// OLD_IPHONE_AQUA 		printf ("raw image, ImageWidth %d\n",(int) CGImageGetWidth(image));
-// OLD_IPHONE_AQUA 		#endif
-// OLD_IPHONE_AQUA 		
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		/* now, lets "draw" this so that we get the exact bit values */
-// OLD_IPHONE_AQUA 		cgctx = CreateARGBBitmapContext(image);
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		 
-// OLD_IPHONE_AQUA 		#ifdef TEXVERBOSE
-// OLD_IPHONE_AQUA 		printf ("GetAlphaInfo %x\n",(int) CGBitmapContextGetAlphaInfo(cgctx));
-// OLD_IPHONE_AQUA 		printf ("GetBitmapInfo %x\n",(int) CGBitmapContextGetBitmapInfo(cgctx));
-// OLD_IPHONE_AQUA 		printf ("GetBitsPerComponent %d\n",(int) CGBitmapContextGetBitsPerComponent(cgctx));
-// OLD_IPHONE_AQUA 		printf ("GetBitsPerPixel %d\n",(int) CGBitmapContextGetBitsPerPixel(cgctx));
-// OLD_IPHONE_AQUA 		printf ("GetBytesPerRow %d\n",(int) CGBitmapContextGetBytesPerRow(cgctx));
-// OLD_IPHONE_AQUA 		printf ("GetHeight %d\n",(int) CGBitmapContextGetHeight(cgctx));
-// OLD_IPHONE_AQUA 		printf ("GetWidth %d\n",(int) CGBitmapContextGetWidth(cgctx));
-// OLD_IPHONE_AQUA 		#endif
-// OLD_IPHONE_AQUA 		
-// OLD_IPHONE_AQUA 		data = (unsigned char *)CGBitmapContextGetData(cgctx);
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA /*
-// OLD_IPHONE_AQUA 		#ifdef TEXVERBOSE
-// OLD_IPHONE_AQUA 		if (CGBitmapContextGetWidth(cgctx) < 301) {
-// OLD_IPHONE_AQUA 			int i;
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 			printf ("dumping image\n");
-// OLD_IPHONE_AQUA 			for (i=0; i<CGBitmapContextGetBytesPerRow(cgctx)*CGBitmapContextGetHeight(cgctx); i++) {
-// OLD_IPHONE_AQUA 				printf ("index:%d data:%2x\n ",i,data[i]);
-// OLD_IPHONE_AQUA 			}
-// OLD_IPHONE_AQUA 			printf ("\n");
-// OLD_IPHONE_AQUA 		}
-// OLD_IPHONE_AQUA 		#endif
-// OLD_IPHONE_AQUA */
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		/* is there possibly an error here, like a file that is not a texture? */
-// OLD_IPHONE_AQUA 		if (CGImageGetBitsPerPixel(image) == 0) {
-// OLD_IPHONE_AQUA 			ConsoleMessage ("texture file invalid: %s",filename);
-// OLD_IPHONE_AQUA 		}
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		if (data != NULL) {
-// OLD_IPHONE_AQUA 			this_tex->filename = filename;
-// OLD_IPHONE_AQUA 			this_tex->hasAlpha = hasAlpha;
-// OLD_IPHONE_AQUA 			this_tex->channels = channels;
-// OLD_IPHONE_AQUA 			this_tex->frames = 1;
-// OLD_IPHONE_AQUA 			this_tex->x = image_width;
-// OLD_IPHONE_AQUA 			this_tex->y = image_height;
-// OLD_IPHONE_AQUA             
-// OLD_IPHONE_AQUA             int bitmapBytesPerRow = (image_width * 4);
-// OLD_IPHONE_AQUA             size_t bitmapByteCount = (bitmapBytesPerRow * image_height);
-// OLD_IPHONE_AQUA             
-// OLD_IPHONE_AQUA             unsigned char *	texdata = MALLOC(unsigned char*, bitmapByteCount);
-// OLD_IPHONE_AQUA             memcpy(texdata, data, bitmapByteCount);
-// OLD_IPHONE_AQUA             
-// OLD_IPHONE_AQUA 			this_tex->texdata = texdata;
-// OLD_IPHONE_AQUA 		}
-// OLD_IPHONE_AQUA 	
-// OLD_IPHONE_AQUA 		CGContextRelease(cgctx);
-// OLD_IPHONE_AQUA 		CGImageRelease(image);
-// OLD_IPHONE_AQUA #ifdef FRONTEND_GETS_FILES
-// OLD_IPHONE_AQUA         close_openned_file(myFile);
-// OLD_IPHONE_AQUA #endif
-// OLD_IPHONE_AQUA 		return TRUE;
-// OLD_IPHONE_AQUA 	} else {
-// OLD_IPHONE_AQUA #ifdef FRONTEND_GETS_FILES
-// OLD_IPHONE_AQUA         close_openned_file(myFile);
-// OLD_IPHONE_AQUA         FREE_IF_NZ(myFile);
-// OLD_IPHONE_AQUA #endif
-// OLD_IPHONE_AQUA 		/* is this, possibly, a dds file for an ImageCubeMap? */
-// OLD_IPHONE_AQUA 		return textureIsDDS(this_tex, filename);
-// OLD_IPHONE_AQUA 	}
-// OLD_IPHONE_AQUA #ifdef FRONTEND_GETS_FILES
-// OLD_IPHONE_AQUA         close_openned_file(myFile);
-// OLD_IPHONE_AQUA         FREE_IF_NZ(myFile);
-// OLD_IPHONE_AQUA #endif
-// OLD_IPHONE_AQUA     
-// OLD_IPHONE_AQUA #endif
 
 	return FALSE;
 }
