@@ -1,8 +1,45 @@
  
 Instructions are posted at:
 http://freewrl.sourceforge.net/windowsBuild.html 
-Code and libraries are at:
+Code at:
+master branch (usually stable):
+https://sourceforge.net/p/freewrl/git/ci/master/tree/
+develop branch (latest):
+https://sourceforge.net/p/freewrl/git/ci/develop/tree/
+and supporting binary libraries are at:
 http://sourceforge.net/projects/freewrl/files/freewrl-win32
+
+Updated Jan 2017 for freewrl version 4
+2 MSVC versions are used:
+(projectfiles_vc9 vc2008 obsolete except for handy testing: 
+  spidermonkey js engine testing, and older C standard linting/testing,
+  or for any remaining developers building directly on windowsXP with vc2008)
+projectfiles_vc7 - vc2003 - just the activeX plugin for InternetExplorer aka IE (obsolete due to security when used in IE)
+- hard to build with express versions of vc or vs - the mfc activex sdk is missing - see below for more details
+projectfiles_vc12 - vs2013 - normal freewrl.exe build for windows desktop: xp, vista, 7, 8.1, 10
+- Debug_glew and Release_glew (Win32) are the primary configurations 
+- Debug and Release are experimental builds using angleproject, for winGLES2 demo program
+- x64 is a reduced-functionality 64bit, used for SSRserver proj for big datasets
+
+How we support windows XP from vs2013 projectfiles_vc12:
+- pthreadVC2 for desktop > uses XP compatible kernel32 calls 
+- http://glew.sourceforge.net/ run-time testing for FBO (frameBufferObject) support
+    if not available (ie older opengl 2) then a few nodes don't render properly: GeneratedCubeMapTexture and BlendedVolumeStyle
+https://msdn.microsoft.com/en-us/library/jj851139.aspx
+- Using vc12 for windows xp
+- see the vs2013 > freewrl etc proj > Properties > Config Props > General > Platform Toolset > v120_xp setting (triggers use of win71A platform SDK)
+- see prebuildffmpeg proj > Build Events > PreBuild event > command 
+  for how we launch MSYS2 console (to get vc120_xp mixed tools environment) for autotools build of ffmpeg
+ffpmeg is video library for movietexture node. more on building ffmpeg: 
+https://trac.ffmpeg.org/wiki/CompilationGuide/WinRT
+- compiling via msys2
+https://msdn.microsoft.com/en-us/library/ms229859(v=vs.110).aspx
+- developer console concept
+- except we open MSYS2 console from vs2013 prebuildffmpeg project on Rebuild
+-- that gives us the mixed tools environment variables: vc12/C++11 and win71A platform SDK (XP)
+-- exit msys2 console to continue in vs2013 (otherwise blocks while msys2 console open)
+-- need to set -D_WIN32_WINNT=_WIN32_WINNT_WINXP in ffmpeg configure for its pthread thunking
+
 
 Updated Feb 4, 2014
 3 MSVC versions are currently used, in freewrl/freex3d/

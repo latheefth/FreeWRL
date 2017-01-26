@@ -323,6 +323,14 @@ enum {
 //eye *new_eye(){
 //	return MALLOCV(sizeof(eye));
 //}
+int haveFrameBufferObject()
+{
+	int iret = TRUE;
+#if defined(GLEW) || defined(GLEW_MX)
+	iret = GLEW_ARB_framebuffer_object != 0;
+#endif
+	return iret;
+}
 
 void pushnset_framebuffer(int ibuffer){
 	Stack *framebufferstack;
@@ -330,9 +338,13 @@ void pushnset_framebuffer(int ibuffer){
 	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
 	jbuffer = stack_top(int,framebufferstack);
 	stack_push(int,framebufferstack,ibuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
-    glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
-	//printf("pushframebuffer from %d to %d\n",jbuffer,ibuffer);
+
+	//before gl 3.1 fbos were an extension
+	if (haveFrameBufferObject() ){
+		glBindFramebuffer(GL_FRAMEBUFFER,0);
+		glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+		//printf("pushframebuffer from %d to %d\n",jbuffer,ibuffer);
+	}
 }
 void popnset_framebuffer(){
 	int ibuffer, jbuffer;
@@ -341,8 +353,11 @@ void popnset_framebuffer(){
 	jbuffer = stack_top(int,framebufferstack);
 	stack_pop(int,framebufferstack);
 	ibuffer = stack_top(int,framebufferstack);
-	glBindFramebuffer(GL_FRAMEBUFFER,0);
-    glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+	//before gl 3.1 fbos were an extension
+	if (haveFrameBufferObject()){
+		glBindFramebuffer(GL_FRAMEBUFFER,0);
+		glBindFramebuffer(GL_FRAMEBUFFER, ibuffer);
+	}
 	//printf("popframebuffer from %d to %d\n",jbuffer,ibuffer);
 }
 void pushnset_viewport(float *vpFraction){
@@ -2214,7 +2229,13 @@ contenttype *new_contenttype_stagefbo(int width, int height){
 	self->type = STAGETYPE_FBO;
 	self->ivport.W = width;
 	self->ivport.H = height; //can change during render pass
-	glGenTextures(1, &self->itexturebuffer);
+
+	// before gl 3.1 fbos were an extension
+	// https://github.com/opengl-tutorials/ogl/blob/2.1_branch/tutorial14_render_to_texture/tutorial14.cpp#L167
+	if ( !haveFrameBufferObject() ) // GLEW_ARB_framebuffer_object 
+		return _self;
+	
+		glGenTextures(1, &self->itexturebuffer);
 		//bind to set some parameters
 		glBindTexture(GL_TEXTURE_2D, self->itexturebuffer);
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
