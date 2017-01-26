@@ -28,7 +28,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -67,8 +67,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libFreeWRL.lib;libANGLE.lib;libGLESv2.lib;libEGL.lib;pthreadd.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;gdiplus.lib;libxml2.lib;Wininet.lib;Winmm.lib;libtess.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>.\Debug;$(LIBANGLE)\build\Debug_Win32\lib;$(LIBWIN)\pthread\lib;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Debug;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libFreeWRL.lib;libANGLE.lib;libGLESv2.lib;libEGL.lib;pthreadVC2.lib;zlib.lib;libminizip.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;gdiplus.lib;libxml2.lib;Wininet.lib;Winmm.lib;libtess.lib;libnurbs.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>.\Debug;$(LIBANGLE)\build\Debug_Win32\lib;$(LIBWIN)\pthreads.2;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;..\Debug;$(LIBWIN)\libxml2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
