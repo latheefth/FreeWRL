@@ -1077,15 +1077,8 @@ int open_font()
     /* were fonts not found? */
     if (p->font_directory == NULL) {
 
-// OLD_IPHONE_AQUA #ifdef AQUA
-// OLD_IPHONE_AQUA         ConsoleMessage ("No Fonts; this should not happen on OSX computers; contact FreeWRL team\n");
-// OLD_IPHONE_AQUA #else
+        ConsoleMessage ("Have a Text node, but no font library or directory found; continuing with a default builtin font\n");
 
-        ConsoleMessage ("No Fonts; check the build parameter --with-fontsdir, or set FREEWRL_FONTS_DIR environment variable\n");
-
-// OLD_IPHONE_AQUA #endif
-
-		//return FALSE;
     }
 #endif //HAVE_FONTCONFIG
 #endif //ANDROID
@@ -1255,13 +1248,8 @@ int len_utf8(unsigned char *utf8string)
 }
 
 
-// OLD_IPHONE_AQUA #ifdef AQUA
-// OLD_IPHONE_AQUA #include <malloc/malloc.h>
-// OLD_IPHONE_AQUA #else
-
 #include <malloc.h>
 
-// OLD_IPHONE_AQUA #endif
 void register_Polyrep_combiner();
 void prep_screentext(struct X3D_Text *tnode, int num, double screensize);
 /* take a text string, font spec, etc, and make it into an OpenGL Polyrep or rowvec[] for screen(pixel) font
