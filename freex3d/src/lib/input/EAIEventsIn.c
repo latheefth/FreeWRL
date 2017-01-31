@@ -290,6 +290,8 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 
 	
 	if(!useSockets || len <= EAIREADSIZE) {	//go for standard command processing if we are not using sockets or buffer dimension is lesser than packet limit
+		//JAS printf ("EAI_handleBuffer, %d\n",__LINE__);
+
 		tg->EAICore.EAIbuffer[len] = '\0';
 		memcpy(tg->EAICore.EAIbuffer, fromFront, len);
 
@@ -303,6 +305,7 @@ char * EAI_handleBuffer(char *fromFront, bool useSockets) {
 		th = &tg->EAIHelpers;
 		return th->outBuffer ;
 	} else {								//or stop socket reading if buffer dimension is greater than the packet limit
+		//JAS printf ("EAI_handleBuffer, %d\n",__LINE__);
 		fwlio_RxTx_control(CHANNEL_EAI,RxTx_STOP) ;
 		return "";
 	}
@@ -582,6 +585,8 @@ void EAI_core_commands () {
 				/*format int seq# COMMAND vrml text     string EOT*/
 
 				retGroup = createNewX3DNode(NODE_Group);
+				//JAS printf ("CREATEXS, created retGroup of %p\n",retGroup);
+
 				if (command == CREATEVS || command == CREATEXS) {
 					int topWaitLimit=16;
 					int currentWaitCount=0;
@@ -665,13 +670,22 @@ However, nowadays we do not read any sockets directly....
 					FREE_IF_NZ(mypath);
 				}
 
-				/* printf ("ok, we are going to return the following number of nodes: %d\n",retGroup->children.n); */
+				//JAS printf ("CREATEXS ok, we are going to return the following number of nodes: %d\n",retGroup->children.n);
 				sprintf (th->outBuffer,"RE\n%f\n%d\n",TickTime(),count);
 				for (rb = 0; rb < retGroup->children.n; rb++) {
-					sprintf (ctmp,"%d ", registerEAINodeForAccess(X3D_NODE(retGroup->children.p[rb])));
+					struct X3D_Node *node;
+					node = X3D_NODE(retGroup->children.p[rb]);
+					//printf ("CREATEXS, child %d is %p\n",rb,node);
+
+					sprintf (ctmp,"%d ", registerEAINodeForAccess(node));
+					
 					outBufferCat(ctmp);
+
+					// now, ensure this ones parent is removed
+					remove_parent(node,X3D_NODE(retGroup));
 				}
 
+				//printf ("CREATEXS, marking for dispose, group %p\n",X3D_NODE(retGroup));
 				markForDispose(X3D_NODE(retGroup),FALSE);
 				break;
 				}
@@ -911,8 +925,11 @@ However, nowadays we do not read any sockets directly....
 				for (rb = 0; rb < retGroup->children.n; rb++) {
 					sprintf (ctmp,"%ld ", (long int) retGroup->children.p[rb]);
 					outBufferCat(ctmp);
-				}
+printf ("Possible EAI problem, children of container group should have this parent removed\n");
 
+					// now, ensure this ones parent is removed
+					//remove_parent(node,X3D_NODE(retGroup));
+				}
 				markForDispose(X3D_NODE(retGroup),FALSE);
 				break;
 				}
@@ -968,6 +985,8 @@ However, nowadays we do not read any sockets directly....
 		}
 	}
 	tg->EAICore.EAIbufpos = bufPtr;
+eaiverbose=FALSE; //JAS 
+
 	return ;
 }
 

@@ -475,12 +475,14 @@ void AddRemoveChildren (
 	int done;
 
 	int counter, c2;
+
 	#ifdef CRVERBOSE
 	
 	printf ("\n start of AddRemoveChildren; parent is a %s at %p\n",stringNodeType(parent->_nodeType),parent);
 	printf ("AddRemove Children parent %p tn %p, len %d ar %d\n",parent,tn,len,ar);
 	printf ("called at %s:%d\n",file,line);
 	#endif
+
 	oldmal = NULL;
 
 	/* if no elements, just return */

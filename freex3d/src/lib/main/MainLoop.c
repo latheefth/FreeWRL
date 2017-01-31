@@ -4782,7 +4782,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 
 		#if !defined(EXCLUDE_EAI)
 		// the fwlio_SCK* funcs to get data into the system, and calls the fwl_EAI*
-		// funcs to give the data to the EAI,nd the fwl_MIDI* funcs for MIDI
+		// funcs to give the data to the EAI.
 		//
 		// Actions are now separate so that file IO is not tightly coupled
 		// via shared buffers and file descriptors etc. 'The core' now calls
@@ -4792,6 +4792,7 @@ void fwl_RenderSceneUpdateScene0(double dtime) {
 		// handle_EAI(); 
 		{
 		int socketVerbose = fwlio_RxTx_control(CHANNEL_EAI, RxTx_GET_VERBOSITY)  ;
+
 		if ( socketVerbose <= 1 || (socketVerbose > 1 && ((p->slowloop_count % 256) == 0)) ) {
 			if(fwlio_RxTx_control(CHANNEL_EAI, RxTx_REFRESH) == 0) {
 				/* Nothing to be done, maybe not even running */

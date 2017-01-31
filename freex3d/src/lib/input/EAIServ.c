@@ -182,6 +182,7 @@ int fwlio_RxTx_control(int channel, int action) {
 		char *E_SOCK_buffer; 
 
 		if (!service_wanted[channel]) return 0;
+
 		EAIsockfd =  SCK_descriptors[channel][MAINSOCK_FD] ;
 		EAIlistenfd = SCK_descriptors[channel][CLIENT_FD] ;
 		if (!service_connected[channel]) {
@@ -193,12 +194,15 @@ int fwlio_RxTx_control(int channel, int action) {
 				service_status[channel] = RxTx_REFRESH;
 			}
 		}
-		if (!(service_connected[channel] > 1)) {
-			if (service_verbose[channel]) { 
-				printf ("Still no client connection on channel %d\n",channel);
-			}
-			return 0;
-		}
+#ifdef SKIP
+JAS - service_connected is a boolean, how can it be greater than 1?
+JAS		if (!(service_connected[channel] > 1)) {
+JAS			if (service_verbose[channel]) { 
+JAS				printf ("Still no client connection on channel %d\n",channel);
+JAS			}
+JAS			return 0;
+JAS		}
+#endif //SKIP
 
 		/* have we closed connection? */
 		if(SCK_descriptors[channel][CLIENT_FD] < 0) return 0;

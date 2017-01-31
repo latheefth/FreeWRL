@@ -1938,27 +1938,39 @@ void remove_parent(struct X3D_Node *child, struct X3D_Node *parent) {
 	if(!child) return;
 	if(!parent) return;
 	
-#ifdef CHILDVERBOSE
-	printf ("remove_parent, parent %u (%s) , child %u (%s)\n",parent, stringNodeType(parent->_nodeType),
-		child, stringNodeType(child->_nodeType));
-#endif
+	//JAS printf ("remove_parent, parent %p (%s) , child %p (%s)\n",parent, stringNodeType(parent->_nodeType),
+	//JAS 	child, stringNodeType(child->_nodeType));
 
-		pi = -1;
-		for (i=0; i<vectorSize(child->_parentVector); i++) {
-			struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,i);
-			if (n==parent) pi = i;
-		}
+	//JAS printf ("remove_parent, parent vector size %d\n",vectorSize(child->_parentVector));
 
-		if (pi >=0) {
-			struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,vectorSize(child->_parentVector)-1);
-
-			/* get the last entry, and overwrite the entry found */
-			vector_set(struct X3D_Node*, child->_parentVector, pi,n);
-
-			/* take that last entry off the vector */
-			vector_popBack(struct X3D_Node*, child->_parentVector);
+	pi = -1;
+	for (i=0; i<vectorSize(child->_parentVector); i++) {
+		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,i);
+		//JAS printf ("remPar, ele %d was %p\n",i,n);
+		if (n==parent) pi = i;
 	}
+
+	if (pi >=0) {
+		//JAS printf ("remove parent, pi %d\n",pi);
+
+		struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,vectorSize(child->_parentVector)-1);
+
+		/* get the last entry, and overwrite the entry found */
+		vector_set(struct X3D_Node*, child->_parentVector, pi,n);
+
+		/* take that last entry off the vector */
+		vector_popBack(struct X3D_Node*, child->_parentVector);
+	}
+
+	//JAS - verification that parent was indeed removed.
+	//JAS printf ("remove_parent, after parent vector size %d\n",vectorSize(child->_parentVector));
+	//JAS for (i=0; i<vectorSize(child->_parentVector); i++) {
+	//JAS 	struct X3D_Node *n = vector_get(struct X3D_Node *, child->_parentVector,i);
+	//JAS 	printf ("remPar, ele %d was %p\n",i,n);
+	//JAS }
 }
+
+
 #include "../x3d_parser/Bindable.h"
 int fwl_getShadingStyle();
 void push_globalRenderFlags(){

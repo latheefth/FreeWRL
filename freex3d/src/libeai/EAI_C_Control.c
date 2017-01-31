@@ -82,8 +82,11 @@ void X3D_initialize(char *hostname) {
 #endif
 
 	loopCount = 0;
+	// printf ("X3D_initialize, opening socket\n");
 
 	while ((_X3D_FreeWRL_FD = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		//printf ("X3D_initialize, looping %d\n",loopCount);
+
 
 #ifdef WIN32
 		int socket_error = WSAGetLastError();
@@ -140,6 +143,8 @@ void X3D_initialize(char *hostname) {
 		fprintf(stderr,"ERROR, no such host :%s:\n",hostname);
 		exit(0);
 	}
+	// printf ("X3D_initialize, server pointer is %p\n",server);
+
 	bzero((char *) &serv_addr, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
 	bcopy((char *)server->h_addr, 
@@ -149,6 +154,8 @@ void X3D_initialize(char *hostname) {
 		serv_addr.sin_port = htons(EAIBASESOCKET);
 
 	loopCount = 0;
+	// printf ("X3D_initialize, connecting to socket %d\n",EAIBASESOCKET);
+
 	while ((constat = connect(_X3D_FreeWRL_FD,(struct sockaddr *) &serv_addr,sizeof(serv_addr))) < 0) {
 		usleep (100000);
 		loopCount ++;
@@ -169,6 +176,8 @@ void X3D_initialize(char *hostname) {
 	iret2 = pthread_create(&swigThread, NULL, freewrlSwigThread, NULL); 
 #endif
 //#endif
+	// printf ("X3D_initialize, opened, created threads and exiting\n");
+
 }
 
 

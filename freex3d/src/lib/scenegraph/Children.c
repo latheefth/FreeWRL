@@ -94,14 +94,27 @@ void normalChildren(struct Multi_Node ch) {
 
 /* void update_renderFlag (struct X3D_Node *p, int flag) { */
 //void  update_renderFlagB (struct X3D_Node *p, int flag, char *fi, int li) {
-void  update_renderFlagB (struct X3D_Node *p, int flag) {
+void  update_renderFlagB (struct X3D_Node *p, int flag, int li) {
 	int i;
 
 	/* send notification up the chain */
 	
-	/* printf ("start of update_RenderFlag for %d (%s) flag %x parents %d\n",p, stringNodeType(p->_nodeType),
-			flag, vectorSize(p->_parentVector); */
+//JAS 	printf ("start of update_renderFlag from %d for %p (%s) flag %x parents %d\n",li,p, stringNodeType(p->_nodeType),
+//JAS 			flag, vectorSize(p->_parentVector)); 
+//JAS if (p->_nodeType == NODE_Shape) {
+//JAS printf ("... and this one is our Shape...\n");
+//JAS 	for (i = 0; i < vectorSize(p->_parentVector); i++) {
+//JAS 		struct X3D_Node *me = vector_get(struct X3D_Node *,p->_parentVector, i);
+//JAS 		printf ("Shape parent %d is %p, type %s\n",i,me,stringNodeType(me->_nodeType));
+//JAS 	}
+//JAS }
+
+
 	
+//JAS 	if (vectorSize(p->_parentVector) <=0) {
+		//printf ("update_renderFlag, for node %p (%s), parentVector is zero, returning...\n",p,stringNodeType(p->_nodeType));
+//JAS 		return;
+//JAS 	}
 	
 	//if (p==NULL) {
 	//	ConsoleMessage ("update_renderFlag, p NULL from %s:%d\n",fi,li);
@@ -112,12 +125,16 @@ void  update_renderFlagB (struct X3D_Node *p, int flag) {
 
 	if (p->_parentVector == NULL) {
 		//ConsoleMessage ("update_renderFlag, %p->parentVector NULL  refcount %d (%s) from %s:%d\n",p,p->referenceCount,stringNodeType(p->_nodeType),fi,li);
-		ConsoleMessage ("update_renderFlag, %p->parentVector NULL  refcount %d (%s) from %s:%d\n",p,p->referenceCount,stringNodeType(p->_nodeType));
 		return;
 	}
 
 	for (i = 0; i < vectorSize(p->_parentVector); i++) {
 		struct X3D_Node *me = vector_get(struct X3D_Node *,p->_parentVector, i);
+
+		// JAS printf ("update_renderFlagB, reference count for parent %p is %d\n",me,me->referenceCount);
+	if (me->referenceCount > 0) {
+
+		// JAS printf ("update_renderFlagB, line %d node type %p %s\n",__LINE__,me,stringNodeType(me->_nodeType));
 
 		if (me==NULL) {
 			ConsoleMessage ("update_renderFlag, me  NULL for child %d",i);
@@ -126,6 +143,8 @@ void  update_renderFlagB (struct X3D_Node *p, int flag) {
 		}
 
 		if (me->_parentVector == NULL) {
+
+		// JAS printf ("update_renderFlagB, warning, for node %p (%s), pv %d, child has null parentVector\n",p,stringNodeType(p->_nodeType),i);
 			ConsoleMessage ("warning, for node %p (%s), pv %d, child has null parentVector\n",p,stringNodeType(p->_nodeType),i);
 			markForDispose(p, TRUE);
 			return;
@@ -137,34 +156,35 @@ void  update_renderFlagB (struct X3D_Node *p, int flag) {
 			case NODE_Switch:
 				if (is_Switchchild_inrange(X3D_SWITCH(me),p)) {
 					/* printf ("switch, this is the chosen node\n"); */
-					update_renderFlagB(me,flag);
+					update_renderFlagB(me,flag, __LINE__);
 				}
 				break;
 
 			case NODE_LOD:
 				/* works for both X3D and VRML syntax; compare with the "_selected" field */
 				if (p == X3D_LODNODE(me)->_selected) {
-					update_renderFlagB(me,flag);
+					update_renderFlagB(me,flag, __LINE__);
 				}
 				break;
 
 			case NODE_GeoLOD:
 				if (is_GeoLODchild_inrange(X3D_GEOLOD(me),p)) {
 					/* printf ("switch, this is the chosen node\n"); */
-					update_renderFlagB(me,flag);
+					update_renderFlagB(me,flag, __LINE__);
 				}
 				break;
 
 			case NODE_CADLayer:
                 if (is_CADLayerchild_inrange(X3D_CADLAYER(me),p)) {
-                    update_renderFlagB(me,flag);
+                    update_renderFlagB(me,flag, __LINE__);
 				}
                 break;
 
 			default:
 
-				update_renderFlagB(me,flag);
+				update_renderFlagB(me,flag, __LINE__);
 		}
+	} // referenceCount check
 	}
 	/* printf ("finished update_RenderFlag for %d\n",p); */
 }
@@ -174,7 +194,7 @@ void  UPDATE_RENDERFLAG (struct X3D_Node *p, int flag, char *fi, int li){
 		return;
 	}
 	//profile_start("update_rendrflg");
-	update_renderFlagB (p, flag);
+	update_renderFlagB (p, flag, __LINE__);
 	//profile_end("update_rendrflg");
 	return;
 }

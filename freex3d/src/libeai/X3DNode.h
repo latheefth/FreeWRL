@@ -236,7 +236,7 @@ char *_X3D_make1StringCommand (char command, char *name);
 char *_X3D_make2StringCommand (char command, char *str1, char *str2);
 char *_X3D_Browser_SendEventType(int adr,char *name, char *evtype);
 char *_X3D_makeShortCommand (char command);
-void _X3D_sendEvent (char command, char *string);
+void _X3D_sendEvent (char command, char *string, int li);
 void _handleFreeWRLcallback(char *command);
 
 void X3D_error(char *msg);

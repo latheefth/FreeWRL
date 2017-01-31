@@ -331,6 +331,7 @@ static char *sendToFreeWRL(char *callerbuffer, int size, int waitForResponse) {
 #else	
 	ptr = NULL;
 	retval = write(_X3D_FreeWRL_FD, callerbuffer, size);
+	//JAS printf ("sendToFreeWRL, sent callbuffer %s of size %d, retval %d\n",callerbuffer,size,retval);
 	if (retval < 0) 
 #endif
 		 X3D_error("ERROR writing to socket");
@@ -416,14 +417,17 @@ RE_EOT
 }
 
 
-void _X3D_sendEvent (char command, char *string) {
+void _X3D_sendEvent (char command, char *string,int line) {
         char *myptr;
 	UNUSED (myptr); // mitigate compiler warnings
 	EAILOCK
 	verifySendBufferSize (strlen(string));
+	//JAS printf ("_X3D_sendEvent, sending string %s, called from line %d\n",string,line);
+
         sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,string);
         myptr = sendToFreeWRL(sendBuffer, strlen(sendBuffer),WAIT_FOR_RETVAL);
 	EAIUNLOCK
+	//JAS printf ("_X3D_sendEvent, sent, returning...\n");
 }
 
 char *_X3D_makeShortCommand (char command) {
@@ -457,6 +461,7 @@ char *_X3D_make1VoidCommand (char command, int adr) {
 char *_X3D_make1StringCommand (char command, char *name) {
 	char *myptr;
 	
+	//JAS printf ("start _X3D_make1StringCommand, command %c char %s\n",command,name);
 	EAILOCK
 	verifySendBufferSize (strlen(name));
 	sprintf (sendBuffer, "%d %c %s\n",_X3D_queryno,command,name);

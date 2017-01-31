@@ -2,7 +2,7 @@
 INCLUDES=-I/usr/include/FreeWRLEAI
 
 # set this if libFreeWRLEAI is not in the ld-path
-LIBEAILOCATION=
+LIBEAILOCATION=-L/usr/local/lib
 
 all: simple-test advanced-test
 

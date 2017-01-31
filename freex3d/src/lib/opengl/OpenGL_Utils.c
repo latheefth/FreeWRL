@@ -4554,11 +4554,15 @@ int isSiblingAffector(struct X3D_Node *node){
 //might have _siblingAffector field, but not used: LOD, Switch, HAnimJoint, HAnimSegment, CADLayer
 
 
-int hasSiblingAffectorField(struct X3D_Node *node){
+int hasSiblingAffectorField(struct X3D_Node *node, int whereFrom){
 	//assume everything with AddChildren, RemoveChildren fields qualifies 
 	// and this filter has already been applied ie we are inside AddRemoveChildren
 	int ret = 0;
 	// except:
+if (node==NULL) {
+	printf ("hasSiblingAffectorField, node %p from line %d\n",node,whereFrom);
+	return 0;
+}
 	switch(node->_nodeType){
 		case NODE_Proto:
 		case NODE_Inline:
@@ -4613,7 +4617,14 @@ void AddToSibAffectors(struct X3D_Node *parent, struct X3D_Node *affector){
 	// as alternate to VK_ flagging parent, and doing 3 full loops over children[] in X3DGrouping child_ functions
 	// - a kind of short list so child_ functions do:
 	//   a short loop (prep_sibAffectors), full loop (normalChildren), short loop (fin_sibAffectors)
-	if(hasSiblingAffectorField(parent) && isSiblingAffector(affector)){
+
+//JAS
+if (parent==NULL) {
+printf ("in AddToSibAffectors, we have node parent NULL, node is a %s\n",stringNodeType(affector->_nodeType));
+}
+
+
+	if(hasSiblingAffectorField(parent,__LINE__) && isSiblingAffector(affector)){
 		struct Multi_Node *safs = sibAffectorPtr(parent);
 		if(safs){
 			safs->p = REALLOC(safs->p,(safs->n+1)*sizeof(struct X3D_Node*));
@@ -4690,6 +4701,7 @@ void startOfLoopNodeUpdates(void) {
 				// when cleaning up a scene - it calls unregisterX3Dnode()
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
+printf ("node %p has zero reference count...it is a %s\n",node,stringNodeType(node->_nodeType));
 				FREE_IF_NZ(node);
 				vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
 			} else {
@@ -4699,9 +4711,10 @@ void startOfLoopNodeUpdates(void) {
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_localLight);
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_globalLight);
 				node->_renderFlags = node->_renderFlags & (0xFFFF^VF_Blend);
-			}
-			if(hasSiblingAffectorField(node)){
+//JAS - move this within the ELSE statement as node is free'd by this time.
+			if(hasSiblingAffectorField(node,__LINE__)){
 				zeroSibAffectors(node);
+			}
 			}
 		}
 	}
@@ -5226,14 +5239,38 @@ void startOfLoopNodeUpdates(void) {
 
 		/* this node possibly has to do add/remove children? */
 		if (childrenPtr != NULL) {
+			//JAS printf ("ok, childrenPtr is NOT NULL in startOfLoopNodeUpdates\n");
 			if (addChildren != NULL) {
+				int i;
+				for (i=0; i<addChildren->n; i++) {
+					struct X3D_Node *ch = X3D_NODE(addChildren->p[i]);
+					//printf ("SOLNU: adding child indx %d, is %p\n",i,ch);
+				}
+
 				AddRemoveChildren(node,childrenPtr,(struct X3D_Node * *) addChildren->p,addChildren->n,1,__FILE__,__LINE__);
+
+				// now go through and tell the addChildren field that the
+				// event has been processed.
+				for (i=0; i<addChildren->n; i++) {
+					struct X3D_Node *ch = X3D_NODE(addChildren->p[i]);
+					remove_parent(ch,node);
+				}
+
 				addChildren->n=0;
 			}
+
 			if (removeChildren != NULL) {
 				AddRemoveChildren(node,childrenPtr,(struct X3D_Node * *) removeChildren->p,removeChildren->n,2,__FILE__,__LINE__);
+				// now go through and tell the addChildren field that the
+				// event has been processed.
+				for (i=0; i<removeChildren->n; i++) {
+					struct X3D_Node *ch = X3D_NODE(removeChildren->p[i]);
+					remove_parent(ch,node);
+				}
 				removeChildren->n=0;
 			}
+
+
 			/* printf ("OpenGL, marking children changed\n"); */
 			MARK_EVENT(node,offsetOfChildrenPtr);
 			childrenPtr = NULL;
