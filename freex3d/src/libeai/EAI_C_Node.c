@@ -1059,7 +1059,6 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 			printf ("sending in %d nodes\n",node->X3D_MFNode.n);
 			#endif
 
-			printf ("sending in %d nodes\n",node->X3D_MFNode.n);
 			for (count = 0; count < node->X3D_MFNode.n; count ++) {
 				sprintf (myline,"%d %d %s %d\n",
 					dest->nodeptr,

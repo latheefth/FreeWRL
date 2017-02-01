@@ -61,8 +61,10 @@ typedef xmlSAXHandler* XML_Parser;
 #define XML_ParserFree(aaa) FREE_IF_NZ(aaa)
 #define XML_SetUserData(aaa,bbb)
 #define XML_STATUS_ERROR -1
-//OLDCODE #define XML_GetErrorCode(aaa)
-//OLDCODE #define XML_ErrorString(aaa) "errors not currently being reported by libxml port"
+
+
+// function prototype... 
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
 
 struct xml_user_data{
 	Stack *context;
@@ -104,6 +106,7 @@ void free_xml_user_data(struct xml_user_data *ud){
 //currently context isn't a separate struct, its part of X3D_Proto and X3D_Inline, which have
 //the same structure, and can be cross-cast, and represent a web3d executionContext or context for short
 //and that includes DEFnames, ROUTES, protoDeclares, externProtoDeclares, IMPORTS,EXPORTS,scripts
+
 void pushContext(void *userData, struct X3D_Node* context){
 	struct xml_user_data *ud = (struct xml_user_data *)userData;
 	if(context->_nodeType != NODE_Proto && context->_nodeType != NODE_Inline)
@@ -320,6 +323,7 @@ void X3DParser_init(struct tX3DParser *t){
 	}
 }
 void X3DParser_clear(struct tX3DParser *t){
+	//printf ("X3DParser_clear\n");
 	if(t){
 		ppX3DParser p = (ppX3DParser)t->prv;
 		free_xml_user_data(p->user_data);
@@ -477,6 +481,9 @@ void kill_X3DDefs(void) {
 	//FREE_IF_NZ(p->childAttributes);
 	//p->childAttributes = NULL;
 
+printf ("kill_X3DDefs... DEFedNodes %p\n",p->DEFedNodes);
+printf ("kill_X3DDefs... myLexer %p\n",p->myLexer);
+
 	if (p->DEFedNodes != NULL) {
 		for (i=0; i<vectorSize(p->DEFedNodes); i++) {
 			struct Vector * myele = vector_get (struct Vector*, p->DEFedNodes, i);
@@ -503,47 +510,46 @@ void kill_X3DDefs(void) {
 
 
 
-/* return a node assoicated with this name. If the name exists, return the previous node. If not, return
+/* return a node associated with this name. If the name exists, return the previous node. If not, return
 the new node */
 struct X3D_Node *DEFNameIndex (const char *name, struct X3D_Node* node, int force) {
 	indexT ind = ID_UNDEFINED;
 	ppX3DParser p = (ppX3DParser)gglobal()->X3DParser.prv;
+	struct X3D_Node *fromDEFtable;
+
+	// start off with an error condition...
+	fromDEFtable = NULL;
 
 #ifdef X3DPARSERVERBOSE
+	printf ("DEFNameIndex, p is %p\n",p);
 	printf ("DEFNameIndex, looking for :%s:, force %d nodePointer %u\n",name,force,node);
-#endif
-	/* lexer_defineNodeName is #defined as lexer_defineID(me, ret, stack_top(struct Vector*, userNodeNames), TRUE) */
-	/* Checks if this node already exists in the userNodeNames vector.  If it doesn't, adds it. */
-
-	if (p->myLexer == NULL) return NULL;
-	lexer_forceStringCleanup(p->myLexer); 
-	lexer_fromString(p->myLexer,STRDUP(name));
-
-	if(!lexer_defineNodeName(p->myLexer, &ind))
-		printf ("Expected nodeNameId after DEF!\n");
-
-#ifdef X3DPARSERVERBOSE
-	printf ("DEF returns id of %d for %s\n",ind,name);
+	printf ("DEFNameIndex, p->myLexer %p\n",p->myLexer);
+	printf ("DEFNameIndex, stack %p\n",p->DEFedNodes);
+	printf ("DEFNameIndex, p->user_data %p\n",p->user_data);
 #endif
 
-	ASSERT(ind<=vectorSize(stack_top(struct Vector*, p->DEFedNodes)));
+	/* XXX - this is code for ....  */
 
-#ifdef X3DPARSERVERBOSE
-	printf ("so, in DEFNameIndex, we have ind %d, vectorSize %d\n",ind,vectorSize(stack_top(struct Vector*, DEFedNodes)));
-#endif
+	if (p->user_data != NULL) {
+		//printf ("DEFNameIndex, have p->user_data\n");
+		struct xml_user_data *ud = (struct xml_user_data *)p->user_data;
+		struct X3D_Proto *context2 = getContext(ud,TOP);
+		
+		if (ud->context != NULL) {
+			//printf ("so, context2 is %p\n",context2);
+			//printf ("and, DEFnames is %p\n",context2->__DEFnames);
+			//printf ("and, __DEFnames size %d\n",vectorSize(context2->__DEFnames));
+			node = broto_search_DEFname(context2,name);
+			//printf ("found %p\n",node);
+		} else {
+			//printf ("ud->context is NULL...\n");
+		}
 
-	if(ind==vectorSize(stack_top(struct Vector*, p->DEFedNodes))) {
-		vector_pushBack(struct X3D_Node*, stack_top(struct Vector*, p->DEFedNodes), node);
 	}
-	ASSERT(ind<vectorSize(stack_top(struct Vector*, p->DEFedNodes)));
-
-	/* if we did not find this node, just return */
-	if (ind == ID_UNDEFINED) {return NULL; }
-
-	node=vector_get(struct X3D_Node*, stack_top(struct Vector*, p->DEFedNodes),ind);
 
 #ifdef X3DPARSERVERBOSE
-	if (node != NULL) printf ("DEFNameIndex for %s, returning %u, nt %s\n",name, node,stringNodeType(node->_nodeType));
+	if (node != NULL) printf ("DEFNameIndex for %s, returning %u, nt %s\n",
+		name, node,stringNodeType(node->_nodeType));
 	else printf ("DEFNameIndex, node is NULL\n");
 #endif
 
@@ -1387,9 +1393,7 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 	for (i = 0; atts[i]; i += 2) {
 		/* is this a DEF name? if so, record the name and then ignore the field */
 		if (strcmp ("DEF",atts[i]) == 0) {
-			/* printf ("saveAttributes, this is a DEF, name %s\n",atts[i+1]); */
 			defname = atts[i+1];
-			//fromDEFtable = DEFNameIndex ((char *)atts[i+1],node, TRUE);
 			fromDEFtable = broto_search_DEFname(context,defname);
 			if (fromDEFtable) {
 				#ifdef X3DPARSERVERBOSE
@@ -2649,7 +2653,7 @@ int X3DParse (struct X3D_Node* ectx, struct X3D_Node* myParent, const char *inpu
 	ppX3DParser p = (ppX3DParser)tg->X3DParser.prv;
 	p->currentX3DParser = initializeX3DParser();
 
-	/* printf ("X3DParse, current X3DParser is %u\n",currentX3DParser); */
+	//printf ("X3DParse, current X3DParser is %p, p is %p\n",p->currentX3DParser,p); 
 
 
 	DEBUG_X3DPARSER ("X3DPARSE on :\n%s:\n",inputstring);

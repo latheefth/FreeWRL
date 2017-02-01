@@ -4701,7 +4701,9 @@ void startOfLoopNodeUpdates(void) {
 				// when cleaning up a scene - it calls unregisterX3Dnode()
 				//ConsoleMessage ("%d ref %d\n",i,node->referenceCount);
 				//killNode(i);
-printf ("node %p has zero reference count...it is a %s\n",node,stringNodeType(node->_nodeType));
+
+				//JAS printf ("node %p has zero reference count...it is a %s\n",
+				//JAS node,stringNodeType(node->_nodeType));
 				FREE_IF_NZ(node);
 				vector_set(struct X3D_Node *,p->linearNodeTable,i,NULL);
 			} else {

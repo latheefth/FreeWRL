@@ -32,7 +32,11 @@ sleep(2);
 
 
     /* Get a pointer to the node called "ROOT" in the current scenegraph */
+printf ("simple, calling X3D_getNode\n");
+
     myRoot = X3D_getNode("ROOTNODE");
+printf ("simple, got ROOTNODE\n");
+
 
     if (myRoot == 0) {
         printf("ERROR: node not found!\n");
@@ -59,7 +63,7 @@ printf ("simple, result from makeSimpleShape shape1 %p\n",shape1);
 printf ("simple,shape1 has %d nodes\n",shape1->X3D_MFNode.n);
 
 
-printf ("\n\n\nsimple, adding child\n");
+printf ("simple, adding child\n");
     /* Set the value of the EventIn "addChildren" to a blue sphere. */
     X3D_setValue(addChildren, shape1);                 
 printf ("simple, addChildren, shape1 done \n");
