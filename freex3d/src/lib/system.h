@@ -55,7 +55,7 @@ Internal header: system dependencies.
 	//then listed libmozjs185 as a lib that was already ported and avilable on QNX.
 	#undef JAVASCRIPT_SM
 	#undef JAVASCRIPT_DUK
-	#define JAVASCRIPT_STUB
+	#define JAVASCRIPT_STUB 1
 #else
 	/* Everything has JavaScript - define your choice of the following 3 in your config.h */
 	//#define JAVASCRIPT_STUB 
@@ -87,33 +87,34 @@ char *strchr (), *strrchr ();
 # endif
 #endif
 
-#if defined(_ANDROID) || defined(ANDROIDNDK)
-#include <stddef.h>
-typedef int bool;
-# define false 0
-# define true 1
-# define __bool_true_false_are_defined 1
-#else
-#if HAVE_STDBOOL_H
-# include <stdbool.h>
-#else
-# if ! HAVE__BOOL
-#  ifdef __cplusplus
-typedef bool _Bool;
-#  else
-typedef unsigned char _Bool;
-#  endif
-# endif
-# define bool _Bool
-# define false 0
-# define true 1
-# define __bool_true_false_are_defined 1
-#endif
-#endif
+//JAS #if defined(_ANDROID) || defined(ANDROIDNDK)
+//JAS #include <stddef.h>
+//JAS typedef int bool;
+//JAS # define false 0
+//JAS # define true 1
+//JAS # define __bool_true_false_are_defined 1
+//JAS #else
+//JAS #if HAVE_STDBOOL_H
+//JAS # include <stdbool.h>
+//JAS #else
+//JAS # if ! HAVE__BOOL
+//JAS #  ifdef __cplusplus
+//JAS typedef bool _Bool;
+//JAS #  else
+//JAS typedef unsigned char _Bool;
+//JAS #  endif
+//JAS # endif
+//JAS # define bool _Bool
+//JAS # define false 0
+//JAS # define true 1
+//JAS # define __bool_true_false_are_defined 1
+//JAS #endif
+//JAS #endif
 
 #if defined(_ANDROID) || defined(ANDROIDNDK)
-#define JS_FALSE 0
-#define JS_TRUE 1
+#include <stdbool.h>
+#define JS_FALSE false
+#define JS_TRUE true
 #endif
 
 #ifndef TRUE

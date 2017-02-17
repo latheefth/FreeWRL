@@ -94,10 +94,12 @@ void (*newResetGeometry) (void) = NULL;
 	#define USE_OSC 0
 #endif
 
-#if defined(_ANDROID )
-void  setAquaCursor(int ctype) { };
-
-#endif // _ANDROID
+#ifdef OLDCODE
+OLDCODE #if defined(_ANDROID )
+OLDCODE void  setAquaCursor(int ctype) { };
+OLDCODE 
+OLDCODE #endif // _ANDROID
+#endif //OLDCODE
 
 #include "MainLoop.h"
 
@@ -7725,6 +7727,7 @@ void fwl_init_EaiVerbose() {
 
 }
 
+#ifdef OLDCODE
 #if defined (_ANDROID)
 
 void fwl_Android_replaceWorldNeeded() {
@@ -7819,6 +7822,7 @@ void fwl_Android_replaceWorldNeeded() {
 	setMenuStatus("NONE");
 }
 #endif
+#endif //OLDCODE 
 
 
 #if !defined(_ANDROID) || defined(ANDROIDNDK)
@@ -7915,108 +7919,3 @@ void resetSensorEvents(void) {
 	gglobal()->RenderFuncs.hyperhit = 0;
 
 }
-
-#ifdef OLDCODE
-OLDCODE
-OLDCODE#if defined (_ANDROID) || defined (AQUA)
-OLDCODE
-OLDCODEstruct X3D_IndexedLineSet *fwl_makeRootBoundingBox() {
-OLDCODE	struct X3D_Node *shape, *app, *mat, *ils = NULL;
-OLDCODE	struct X3D_Node *bbCoord = NULL;
-OLDCODE
-OLDCODE	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
-OLDCODE        float emis[] = {0.8, 1.0, 0.6};
-OLDCODE        float myp[] = {
-OLDCODE            -2.0, 1.0, 1.0,
-OLDCODE            2.0, 1.0, 1.0,
-OLDCODE            2.0, 1.0, -1.0,
-OLDCODE            -2.0, 1.0, -1.0,
-OLDCODE            -2.0, -1.0, 1.0,
-OLDCODE            2.0, -1.0, 1.0,
-OLDCODE            2.0, -1.0, -1.0,
-OLDCODE            -2.0, -1.0, -1.0
-OLDCODE        };
-OLDCODE        int myci[] = {
-OLDCODE            0, 1, 2, 3, 0, -1,
-OLDCODE            4, 5, 6, 7, 4, -1,
-OLDCODE            0, 4, -1,
-OLDCODE            1, 5, -1,
-OLDCODE            2, 6, -1,
-OLDCODE            3, 7, -1
-OLDCODE
-OLDCODE        };
-OLDCODE
-OLDCODE	if (rn == NULL) return NULL;
-OLDCODE
-OLDCODE	if (rn->children.n > 0) {
-OLDCODE		shape = createNewX3DNode(NODE_Shape);
-OLDCODE		app = createNewX3DNode(NODE_Appearance);
-OLDCODE		mat = createNewX3DNode(NODE_Material);
-OLDCODE		ils = createNewX3DNode(NODE_IndexedLineSet);
-OLDCODE		bbCoord = createNewX3DNode(NODE_Coordinate);
-OLDCODE		//ConsoleMessage ("adding shape to rootNode");
-OLDCODE
-OLDCODE		memcpy(X3D_MATERIAL(mat)->emissiveColor.c,emis,sizeof(float) * 3);
-OLDCODE		X3D_INDEXEDLINESET(ils)->coordIndex.p = MALLOC (int *, sizeof(int) * 24);
-OLDCODE		X3D_INDEXEDLINESET(ils)->coordIndex.n = 24;
-OLDCODE		memcpy(X3D_INDEXEDLINESET(ils)->coordIndex.p, myci, sizeof(int) * 24);
-OLDCODE
-OLDCODE		X3D_COORDINATE(bbCoord)->point.p = MALLOC( struct SFVec3f *, sizeof(struct SFVec3f) * 8);
-OLDCODE		X3D_COORDINATE(bbCoord)->point.n = 8;
-OLDCODE		memcpy(X3D_COORDINATE(bbCoord)->point.p, myp, sizeof (struct SFVec3f) * 8);
-OLDCODE
-OLDCODE		// MFNode field manipulation
-OLDCODE		AddRemoveChildren(X3D_NODE(rootNode()),
-OLDCODE			offsetPointer_deref(void *,rootNode(),
-OLDCODE			offsetof(struct X3D_Group, children)),
-OLDCODE			&shape,1,1,__FILE__,__LINE__);
-OLDCODE
-OLDCODE		// SFNode manipulation
-OLDCODE		X3D_SHAPE(shape)->appearance = app;
-OLDCODE		ADD_PARENT(app,shape);
-OLDCODE
-OLDCODE		X3D_SHAPE(shape)->geometry = ils;
-OLDCODE
-OLDCODE		// we break the back link, so that this IndexedLineSet does not affect the
-OLDCODE		// bounding box. Try this with the 1.wrl test, with a Transform, translation in
-OLDCODE		// it, and see the difference
-OLDCODE		//ADD_PARENT(ils,shape);
-OLDCODE
-OLDCODE		X3D_INDEXEDLINESET(ils)->coord = bbCoord;
-OLDCODE		ADD_PARENT(ils,bbCoord);
-OLDCODE
-OLDCODE		X3D_APPEARANCE(app)->material = mat;
-OLDCODE		ADD_PARENT(mat,app);
-OLDCODE
-OLDCODE		return X3D_INDEXEDLINESET(ils);
-OLDCODE	}
-OLDCODE	return NULL;
-OLDCODE}
-OLDCODE
-OLDCODEvoid fwl_update_boundingBox(struct X3D_IndexedLineSet* node) {
-OLDCODE
-OLDCODE	struct X3D_Group *rn = rootNode(); //attn Disabler, rootNode() is now always X3D_Proto
-OLDCODE	struct SFVec3f newbbc[8];
-OLDCODE
-OLDCODE	if (node==NULL) return;
-OLDCODE	if (rn != NULL) {
-OLDCODE		// x coordinate
-OLDCODE		newbbc[1].c[0] = newbbc[2].c[0]= newbbc[5].c[0] = newbbc[6].c[0]=rn->EXTENT_MAX_X;
-OLDCODE		newbbc[0].c[0] = newbbc[3].c[0]= newbbc[4].c[0] = newbbc[7].c[0]=rn->EXTENT_MIN_X;
-OLDCODE
-OLDCODE		// y coordinate
-OLDCODE		newbbc[0].c[1] = newbbc[1].c[1] = newbbc[2].c[1] = newbbc[3].c[1]=rn->EXTENT_MAX_Y;
-OLDCODE		newbbc[4].c[1] = newbbc[5].c[1] = newbbc[6].c[1] = newbbc[7].c[1]=rn->EXTENT_MIN_Y;
-OLDCODE
-OLDCODE		// z coordinate
-OLDCODE		newbbc[0].c[2] = newbbc[1].c[2] = newbbc[4].c[2] = newbbc[5].c[2]=rn->EXTENT_MAX_Z;
-OLDCODE		newbbc[2].c[2] = newbbc[3].c[2] = newbbc[6].c[2] = newbbc[7].c[2]=rn->EXTENT_MIN_Z;
-OLDCODE
-OLDCODE		memcpy(X3D_COORDINATE(node->coord)->point.p, newbbc, sizeof (struct SFVec3f) * 8);
-OLDCODE
-OLDCODE		node->_change++;
-OLDCODE	}
-OLDCODE}
-OLDCODE#endif // _ANDROID
-#endif // OLDCODE
-

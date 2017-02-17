@@ -29,8 +29,8 @@ X3DRoute type is broken
 X3DScene/X3DExecutionContext - functions not implemented relating to protos
 */
 #include <config.h>
-#if defined(JAVASCRIPT_DUK)
 #include <system.h>
+#if defined(JAVASCRIPT_DUK)
 #include <display.h>
 #include <internal.h>
 

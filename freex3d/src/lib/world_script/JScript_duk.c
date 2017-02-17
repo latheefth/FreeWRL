@@ -26,8 +26,8 @@ To do list Jan 2017
 
 
 #include <config.h>
-#if defined(JAVASCRIPT_DUK)
 #include <system.h>
+#if defined(JAVASCRIPT_DUK)
 #include <display.h>
 #include <internal.h>
 

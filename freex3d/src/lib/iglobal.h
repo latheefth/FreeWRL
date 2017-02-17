@@ -86,10 +86,10 @@ typedef struct iiglobal //InstanceGlobal
 		/* Synchronize / exclusion (main<=>texture) */
 		pthread_mutex_t mutex_texture_list; // = PTHREAD_MUTEX_INITIALIZER;
 		pthread_cond_t texture_list_condition; // = PTHREAD_COND_INITIALIZER;
-		BOOL ResourceThreadRunning;
-		BOOL TextureThreadRunning;
-		BOOL ResourceThreadWaiting;
-		BOOL TextureThreadWaiting;
+		bool ResourceThreadRunning;
+		bool TextureThreadRunning;
+		bool ResourceThreadWaiting;
+		bool TextureThreadWaiting;
 		int MainLoopQuit;
 		int flushing;
 		void *prv;

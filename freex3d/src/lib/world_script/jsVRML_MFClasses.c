@@ -27,9 +27,9 @@
 
 
 #include <config.h>
+#include <system.h>
 #if !(defined(JAVASCRIPT_STUB) || defined(JAVASCRIPT_DUK))
 
-#include <system.h>
 #include <system_threads.h>
 #include <display.h>
 #include <internal.h>
