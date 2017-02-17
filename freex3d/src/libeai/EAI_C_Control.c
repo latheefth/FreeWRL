@@ -140,8 +140,9 @@ void X3D_initialize(char *hostname) {
 
 	server = gethostbyname(hostname);
 	if (server == NULL) {
-		fprintf(stderr,"ERROR, no such host :%s:\n",hostname);
-		exit(0);
+		fprintf(stderr,"LIBEAI ERROR, no such host :%s:\n",hostname);
+		printf("LIBEAI ERROR, no such host :%s:\n",hostname);
+		exit(1);
 	}
 	// printf ("X3D_initialize, server pointer is %p\n",server);
 

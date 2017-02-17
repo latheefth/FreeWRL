@@ -43,7 +43,8 @@ struct timeval tv2;
 
 void X3D_error(char *msg) {
     perror(msg);
-    exit(0);
+    printf ("LIBEAI: X3D_error: %s\n",msg);
+    exit(1);
 }
 
 double mytime;
@@ -286,10 +287,12 @@ void *freewrlReadThread(void* nada)  {
 			retval = read(_X3D_FreeWRL_FD,readbuffer,2048);
 			if (retval  <= 0) {
 #endif
-				printf("ERROR reading fromsocket\n");
+				printf("LIBEAI: ERROR reading fromsocket\n");
 				exit(1);
 			}
 			readbuffer[retval] = '\0';
+
+			//printf ("LIBEAI - reply :%s:\n",readbuffer);
 
 			/* if this is normal data - signal that it is received */
 			if (strncmp ("RE",readbuffer,2) == 0) {
@@ -303,6 +306,7 @@ void *freewrlReadThread(void* nada)  {
 				if(1)
 					_enqueue_readbuffer_ev(readbuffer);
 			} else if (strncmp ("QUIT",readbuffer,4) == 0) {
+				printf ("LIBEAI: got a quit signal\n");
 				exit(0);
 			} else {
 				printf ("readThread - unknown prefix - %s\n",readbuffer);
@@ -384,7 +388,7 @@ RE_EOT
 		SKIP_IF_GT_SPACE
 		SKIP_CONTROLCHARS
 		if (sscanf(ptr,"%lf",&mytime) != 1) {
-			printf ("huh, expected the time, got %s\n",ptr);
+			printf ("LIBEAI: Error: expected the time, got %s\n",ptr);
 			exit(1);
 		}
 		#ifdef VERBOSE
@@ -399,7 +403,7 @@ RE_EOT
 		#endif
 
 		if (sscanf(ptr,"%d",&readquery) != 1) {
-			printf ("huh, expected the time, got %s\n",ptr);
+			printf ("LIBEAI: Error: expected the time, got %s\n",ptr);
 			exit(1);
 		}
 		#ifdef VERBOSE
