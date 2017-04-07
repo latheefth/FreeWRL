@@ -87,29 +87,29 @@ char *strchr (), *strrchr ();
 # endif
 #endif
 
-//JAS #if defined(_ANDROID) || defined(ANDROIDNDK)
-//JAS #include <stddef.h>
-//JAS typedef int bool;
-//JAS # define false 0
-//JAS # define true 1
-//JAS # define __bool_true_false_are_defined 1
-//JAS #else
-//JAS #if HAVE_STDBOOL_H
-//JAS # include <stdbool.h>
-//JAS #else
-//JAS # if ! HAVE__BOOL
-//JAS #  ifdef __cplusplus
-//JAS typedef bool _Bool;
-//JAS #  else
-//JAS typedef unsigned char _Bool;
-//JAS #  endif
-//JAS # endif
-//JAS # define bool _Bool
-//JAS # define false 0
-//JAS # define true 1
-//JAS # define __bool_true_false_are_defined 1
-//JAS #endif
-//JAS #endif
+#if defined(_ANDROID) || defined(ANDROIDNDK)
+#include <stddef.h>
+typedef int bool;
+# define false 0
+# define true 1
+# define __bool_true_false_are_defined 1
+#else
+#if HAVE_STDBOOL_H
+# include <stdbool.h>
+#else
+# if ! HAVE__BOOL
+#  ifdef __cplusplus
+typedef bool _Bool;
+#  else
+typedef unsigned char _Bool;
+#  endif
+# endif
+# define bool _Bool
+# define false 0
+# define true 1
+# define __bool_true_false_are_defined 1
+#endif
+#endif
 
 #if defined(_ANDROID) || defined(ANDROIDNDK)
 #include <stdbool.h>
