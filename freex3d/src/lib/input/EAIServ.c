@@ -495,13 +495,6 @@ int privSocketSetup(int channel, int *ANONsocketfd, int *ANONlistenfd) {
 			sock_buffers[channel] = MALLOC(char *, sock_bufsize[channel] * sizeof (char));
 			/* EBUFFUNLOCK; */
 
-			if(channel == CHANNEL_EAI) {
-				if (service_verbose[channel]) {
-					printf("Go and clear the listener node\n") ;
-				}
-				fwl_EAI_clearListenerNode();
-			}
-
 			/* seems like we are up and running now, and waiting for a command */
 			service_connected[channel] = TRUE;
 		} else {

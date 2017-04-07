@@ -31,32 +31,6 @@
 #include "EAI_C.h"
 
 
-// make a buffer that grows and grows.
-// until it is large enough...
-static char *myline = NULL;
-static int myline_len = 0;
-
-// create, and/or expand buffer
-static void ensure_myline(int requested) {
-
-	//printf ("libeai, ensure_myline %d\n",requested);
-
-        // is this a new line?
-        // just make this a large line, and see if this survives
-
-        if (myline == NULL) {
-                myline = malloc(16384);
-                myline_len = 16384;
-        }
-
-        if (myline_len < requested) {
-                myline_len = requested + 4096;
-                myline = realloc (myline, myline_len);
-        }
-}
-
-
-
 /* get a node pointer */
 X3DNode *X3D_getNode (char *name) {
 	char *ptr;
@@ -371,12 +345,9 @@ X3DFieldDef* X3D_getFieldDef(X3DNode *node, char *name){
 //gets the list of fields of the standard node
 char* X3D_getFieldDefs(int nodeAdr)
 {
+	char myline[200];
 	char *ptr;
 	char *res;
-
-	// ensure we have the buffer malloced.
-	ensure_myline(200);
-
 	sprintf (myline,"%d",nodeAdr);
 	
 	// INCOMPLETE: we get a string containing the fields but we actually do nothing with it.	
@@ -388,30 +359,25 @@ char* X3D_getFieldDefs(int nodeAdr)
 }
 
 void X3D_addRoute (X3DEventOut *from, X3DEventIn *to) {
+	char myline[200];
 	char *ptr;
 	UNUSED(ptr); // for compiler warning mitigation
-
-        // ensure we have the buffer malloced.
-        ensure_myline(200);
-
 
 	sprintf (myline,"%d %s %d %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(ADDROUTE,myline);
 }
 
 void X3D_deleteRoute (X3DEventOut *from, X3DEventIn *to) {
+	char myline[200];
 	char *ptr;
 	UNUSED(ptr); // for compiler warning mitigation
-
-        // ensure we have the buffer malloced.
-        ensure_myline(200);
-
 
 	sprintf (myline,"%d %s %d %s",from->nodeptr,from->field,to->nodeptr,to->field);
 	ptr = _X3D_make1StringCommand(DELETEROUTE,myline);
 }
 
 X3DNode* X3D_getValue (X3DEventOut *src) {
+	char myline[4128];
 	char tstring[1024];
 	int num;
 	int retvals;
@@ -426,9 +392,6 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 	int mytmp;
 	char* temp;
 	int len;
-
-        // ensure we have the buffer malloced.
-        ensure_myline(16384);
 
 	X3DNode* value;
 	value = malloc (sizeof(X3DNode));
@@ -818,13 +781,11 @@ X3DNode* X3D_getValue (X3DEventOut *src) {
 
 
 void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
+	char myline[2048];
 	int count;
 	int i;
 	char tstring[2048];
 	
-        // ensure we have the buffer malloced.
-        ensure_myline(16384);
-
 	//JAS printf ("X3D_setValue sanity: event type %s, value type %s (%d, %d)\n", 
 	//JAS 		FIELDTYPES[(int)dest->datatype], FIELDTYPES[node->X3D_SFNode.type],
 	//JAS 			dest->datatype,node->X3D_SFNode.type);
@@ -845,7 +806,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		return;
 
 		case FIELDTYPE_SFVec3d:
-			sprintf (myline, "%c %d %d %d %.3f %.3f %.3f\n",
+			sprintf (myline, "%c %d %d %d %f %f %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFVec3d.c[0],
@@ -857,7 +818,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 
 		case FIELDTYPE_SFVec3f:
 		case FIELDTYPE_SFColor:
-			sprintf (myline, "%c %d %d %d %.3f %.3f %.3f\n",
+			sprintf (myline, "%c %d %d %d %f %f %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFVec3f.c[0],
@@ -867,7 +828,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_SFVec2f:
-			sprintf (myline, "%c %d %d %d %.3f %.3f\n",
+			sprintf (myline, "%c %d %d %d %f %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFVec2f.c[0],
@@ -877,7 +838,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 
 		case FIELDTYPE_SFRotation:
 		case FIELDTYPE_SFColorRGBA:
-			sprintf (myline, "%c %d %d %d %.3f %.3f %.3f %.3f\n",
+			sprintf (myline, "%c %d %d %d %f %f %f %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFRotation.r[0],
@@ -908,7 +869,7 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 		break;
 
 		case FIELDTYPE_SFFloat:
-			sprintf (myline, "%c %d %d %d %.3f\n",
+			sprintf (myline, "%c %d %d %d %f\n",
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype,
 				node->X3D_SFFloat.value);
@@ -937,9 +898,6 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 			
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 12 * node->X3D_MFInt32.n);
-
 			for (i = 0; i < node->X3D_MFInt32.n; i++) {
 				sprintf(tstring, "%d", node->X3D_MFInt32.p[i].value);
 				strcat(myline, tstring);
@@ -955,9 +913,6 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				mapFieldTypeToEAItype(dest->datatype),
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
-
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 12 * node->X3D_MFBool.n);
 			
 			for (i = 0; i < node->X3D_MFBool.n; i++) {
 				if (node->X3D_MFBool.p[i].value) {
@@ -978,11 +933,8 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 			
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 12 * node->X3D_MFFloat.n);
-			
 			for (i = 0; i < node->X3D_MFFloat.n; i++) {
-				sprintf(tstring, "%.3f", node->X3D_MFFloat.p[i].value);
+				sprintf(tstring, "%f", node->X3D_MFFloat.p[i].value);
 				strcat(myline, tstring);
 				strcat(myline, ", ");
 			}
@@ -997,11 +949,8 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 24 * node->X3D_MFVec3f.n);
-
 			for (i = 0; i < node->X3D_MFVec3f.n; i++) {
-				sprintf(tstring, "%.3f %.3f %.3f, ", node->X3D_MFVec3f.p[i].c[0], node->X3D_MFVec3f.p[i].c[1], node->X3D_MFVec3f.p[i].c[2]);
+				sprintf(tstring, "%f %f %f, ", node->X3D_MFVec3f.p[i].c[0], node->X3D_MFVec3f.p[i].c[1], node->X3D_MFVec3f.p[i].c[2]);
 				strcat(myline, tstring);
 			}
 			strcat(myline, "]");
@@ -1015,9 +964,6 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 36 * node->X3D_MFVec3d.n);
-			
 			for (i = 0; i < node->X3D_MFVec3d.n; i++) {
 				sprintf(tstring, "%lf %lf %lf, ", node->X3D_MFVec3d.p[i].c[0], node->X3D_MFVec3d.p[i].c[1], node->X3D_MFVec3d.p[i].c[2]);
 				strcat(myline, tstring);
@@ -1033,11 +979,8 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 24 * node->X3D_MFColor.n);
-			
 			for (i = 0; i < node->X3D_MFColor.n; i++) {
-				sprintf(tstring, "%.3f %.3f %.3f, ", node->X3D_MFColor.p[i].c[0], node->X3D_MFColor.p[i].c[1], node->X3D_MFColor.p[i].c[2]);
+				sprintf(tstring, "%f %f %f, ", node->X3D_MFColor.p[i].c[0], node->X3D_MFColor.p[i].c[1], node->X3D_MFColor.p[i].c[2]);
 				strcat(myline, tstring);
 			}
 			strcat(myline, "]");
@@ -1051,11 +994,8 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 24 * node->X3D_MFVec2f.n);
-			
 			for (i = 0; i < node->X3D_MFVec2f.n; i++) {
-				sprintf(tstring, "%.3f %.3f, ", node->X3D_MFVec2f.p[i].c[0], node->X3D_MFVec2f.p[i].c[1]);
+				sprintf(tstring, "%f %f, ", node->X3D_MFVec2f.p[i].c[0], node->X3D_MFVec2f.p[i].c[1]);
 				strcat(myline, tstring);
 			}
 			strcat(myline, "]");
@@ -1069,11 +1009,8 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 24 * node->X3D_MFRotation.n);
-			
 			for (i = 0; i < node->X3D_MFRotation.n; i++) {
-				sprintf(tstring, "%.3f %.3f %.3f %.3f, ", node->X3D_MFRotation.p[i].r[0], node->X3D_MFRotation.p[i].r[1], node->X3D_MFRotation.p[i].r[2], node->X3D_MFRotation.p[i].r[3]);
+				sprintf(tstring, "%f %f %f %f, ", node->X3D_MFRotation.p[i].r[0], node->X3D_MFRotation.p[i].r[1], node->X3D_MFRotation.p[i].r[2], node->X3D_MFRotation.p[i].r[3]);
 				strcat(myline, tstring);
 			}
 			strcat(myline, "]");
@@ -1087,11 +1024,8 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 24 * node->X3D_MFColorRGBA.n);
-			
 			for (i = 0; i < node->X3D_MFColorRGBA.n; i++) {
-				sprintf(tstring, "%.3f %.3f %.3f %.3f, ", node->X3D_MFColorRGBA.p[i].r[0], node->X3D_MFColorRGBA.p[i].r[1], node->X3D_MFColorRGBA.p[i].r[2], node->X3D_MFColorRGBA.p[i].r[3]);
+				sprintf(tstring, "%f %f %f %f, ", node->X3D_MFColorRGBA.p[i].r[0], node->X3D_MFColorRGBA.p[i].r[1], node->X3D_MFColorRGBA.p[i].r[2], node->X3D_MFColorRGBA.p[i].r[3]);
 				strcat(myline, tstring);
 			}
 			strcat(myline, "]");
@@ -1105,9 +1039,6 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 				dest->nodeptr, dest->offset, dest->scripttype
 				);
 
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 1000 + node->X3D_MFString.n);
-			
 			for (i = 0; i < node->X3D_MFString.n; i++) {
 				strcat(myline, "\"");
 				strcat(myline, node->X3D_MFString.p[i].strptr);
@@ -1128,9 +1059,6 @@ void X3D_setValue (X3DEventIn *dest, X3DNode *node) {
 			printf ("sending in %d nodes\n",node->X3D_MFNode.n);
 			#endif
 
-			// ensure we have enough space for this one, this is a guestimate
-			ensure_myline( 8 * node->X3D_MFNode.n);
-			
 			for (count = 0; count < node->X3D_MFNode.n; count ++) {
 				sprintf (myline,"%d %d %s %d\n",
 					dest->nodeptr,
@@ -1210,8 +1138,8 @@ float X3D_getCurrentSpeed() {
 	float curspeed;
 	ptr = _X3D_makeShortCommand(GETCURSPEED);
 	if (sscanf(ptr,"%f",&curspeed) == 0) {
-		printf ("LIBEAI: client, error - problem reading float from %s\n",ptr);
-		exit(1);
+		printf ("client, error - problem reading float from %s\n",ptr);
+		exit(0);
 	}
 	return curspeed;
 }
@@ -1222,8 +1150,8 @@ float X3D_getCurrentFrameRate() {
 	float curframe;
 	ptr = _X3D_makeShortCommand(GETFRAMERATE);
 	if (sscanf(ptr,"%f",&curframe) == 0) {
-		printf ("LIBEAI: client, error - problem reading float from %s\n",ptr);
-		exit(1);
+		printf ("client, error - problem reading float from %s\n",ptr);
+		exit(0);
 	}
 	return curframe;
 }

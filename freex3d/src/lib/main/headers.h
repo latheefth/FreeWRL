@@ -604,7 +604,7 @@ void CRoutes_Register(int adrem,        struct X3D_Node *from,
                                  int length,
                                  void *intptr,
                                  int scrdir,
-                                 int extra);
+                                 void* extra);
 void CRoutes_free(void);
 void propagate_events(void);
 int getRoutesCount(void);

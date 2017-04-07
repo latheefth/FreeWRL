@@ -291,8 +291,8 @@ int registerEAINodeForAccess(struct X3D_Node* myn) {
 	eaiverbose = tg->EAI_C_CommonFunctions.eaiverbose;
 	p = (ppEAIHelpers)tg->EAIHelpers.prv;
 
-	if (eaiverbose) printf ("registerEAINodeForAccess - myn %lu\n",(unsigned long int) myn);
 	if (myn == NULL) return -1;
+	if (eaiverbose) printf ("registerEAINodeForAccess - myn %p, type %s\n",myn,stringNodeType(myn->_nodeType));
 
 	if (p->EAINodeIndex == NULL) {
 		struct EAINodeIndexStruct *newp = MALLOC (struct EAINodeIndexStruct *, sizeof (struct EAINodeIndexStruct));
@@ -457,8 +457,8 @@ static int changeExpandedPROTOtoActualNode(int cNode, struct X3D_Node **np, char
 	if ((*np) == 0) return FALSE;
 
 	if (eaiverbose) {
-		printf ("np is %lu\n",(unsigned long int) *np);
-		printf ("and, found node %lu type %s\n",(unsigned long int) *np, stringNodeType((*np)->_nodeType));
+		printf ("np is %p\n", *np);
+		printf ("and, found node %p type %s\n",*np, stringNodeType((*np)->_nodeType));
 	}
 
 	/* change the fieldName, depending on the direction */
@@ -532,7 +532,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	if (eaiverbose) {
-		printf ("start of EAI_GetType, this is a valid C node %lu\n",(unsigned long int) nodePtr);
+		printf ("start of EAI_GetType, this is a valid C node %p\n",nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 
@@ -577,7 +577,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
 	}
 
 	if (eaiverbose) {
-		printf ("node here is %lu\n",(unsigned long int) nodePtr);
+		printf ("node here is %p\n",nodePtr);
 		printf ("ok, going to try and find field :%s: in a node of type :%s:\n",fieldString,stringNodeType(nodePtr->_nodeType));
 	}
 
@@ -590,7 +590,7 @@ void EAI_GetType (int cNode,  char *inputFieldString, char *accessMethod,
        	findFieldInOFFSETS(nodePtr->_nodeType, myField, &myFieldOffs, &ctype, accessType);
 
 	if (eaiverbose) {
-		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %lu\n",(unsigned long int)nodePtr);
+		printf ("EAI_GetType, after changeExpandedPROTOtoActualNode, C node %p\n",nodePtr);
 		printf ("	of string type %s\n",stringNodeType(nodePtr->_nodeType)); 
 	}	
 

@@ -48,12 +48,6 @@
 #include "EAIHeaders.h"
 #include "EAIHelpers.h"
 
-/* TODO: clean-up Rewire */
-// JAS - OLDCODE #ifdef REWIRE
-// JAS - OLDCODE # include "../../libeai/EAI_C.h"
-// JAS - OLDCODE # define ADD_PARENT(a,b)
-// JAS - OLDCODE #endif
-
 /* assume eaiverbose is false, unless told otherwise */
 //int eaiverbose = FALSE;
 typedef struct pEAI_C_CommonFunctions{

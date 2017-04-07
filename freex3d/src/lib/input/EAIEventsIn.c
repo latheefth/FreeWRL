@@ -133,7 +133,7 @@ struct X3D_Anchor EAI_AnchorNode;
 }* ppEAIEventsIn;
 void *EAIEventsIn_constructor()
 {
-	void *v = MALLOCV(sizeof(struct pEAIEventsIn));
+	void *v = MALLOC(void *,sizeof(struct pEAIEventsIn));
 	memset(v,0,sizeof(struct pEAIEventsIn));
 	return v;
 }
@@ -159,12 +159,11 @@ void EAIEventsIn_init(struct tEAIEventsIn* t)
  */
 typedef struct pEAICore{
 	pthread_mutex_t eaibufferlock;// = PTHREAD_MUTEX_INITIALIZER;
-	char EAIListenerData[8192]; //EAIREADSIZE]; 
 }* ppEAICore;
 
 void *EAICore_constructor()
 {
-	void *v = MALLOCV(sizeof(struct pEAICore));
+	void *v = MALLOC(void *,sizeof(struct pEAICore));
 	memset(v,0,sizeof(struct pEAICore));
 	return v;
 }
@@ -174,7 +173,6 @@ void EAICore_init(struct tEAICore* t){
 	{
 		ppEAICore p = (ppEAICore)t->prv;
 		pthread_mutex_init(&(p->eaibufferlock), NULL);
-		t->EAIListenerData = p->EAIListenerData;
 	}
 	//public
 	t->EAIbufsize = EAIREADSIZE ;
@@ -724,8 +722,12 @@ However, nowadays we do not read any sockets directly....
 
 				/*143024848 88 8 e 6*/
 				retint=sscanf (&EAI_BUFFER_CUR,"%d %d %c %d",&tmp_a,&tmp_b,ctmp,&tmp_c);
+printf ("REGLISTENER, calling getEAINodeFromTable(%d, %d)\n",tmp_a,tmp_b);
 				node = getEAINodeFromTable(tmp_a, tmp_b);
+printf ("REGLISTENER, calling getEAIActualOffset(%d, %d)\n",tmp_a,tmp_b);
 				offset = getEAIActualOffset(tmp_a, tmp_b);
+printf ("REGLISTENER, have node %p, offset %d (%s)\n",node,offset, stringNodeType(node->_nodeType));
+printf ("REGLISTENER, ctmp tells us that type is %c\n",ctmp[0]);
 
 				/* is this a script node? if so, get the actual string name in the table for this one */
 				if (node->_nodeType == NODE_Script) {
@@ -757,8 +759,33 @@ However, nowadays we do not read any sockets directly....
 				/* set up the route from this variable to the handle Listener routine */
 				if (eaiverbose)  printf ("going to register route for RegisterListener, have type %d\n",tmp_c); 
 
-				CRoutes_Register  (1,node, offset, X3D_NODE(tg->EAICore.EAIListenerData), 0, (int) tmp_c,(void *) 
-					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
+
+				// encode field type, node id, and field offset id here
+				struct EAI_Extra_Data *ed = MALLOC(struct EAI_Extra_Data *,sizeof(struct EAI_Extra_Data));
+				ed->field_type = mapEAItypeToFieldType(ctmp[0]);
+				ed->listener_id = count;
+				ed->field_id = tmp_b;
+				ed-> node_id = tmp_a;
+
+/*
+{
+        int field_id;
+        int node_id;
+        int field_type;
+        int listener_id;
+};
+*/
+
+printf ("registering, field_id %d, node_id %d, field_type %d, listener_id %d\n",ed->field_id, ed->node_id, ed->field_type, ed->listener_id);
+
+
+				CRoutes_Register  (1,node, offset, NULL, 0, (int) tmp_c,(void *) 
+					&EAIListener, directionFlag, ed);
+/*
+(mapEAItypeToFieldType(ctmp[0])<<24)
+						+(tmp_a<<8)
+						+tmp_b);
+*/
 
 				sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);
 				break;
@@ -799,7 +826,7 @@ However, nowadays we do not read any sockets directly....
 				/* put the address of the listener area in a string format for registering
 				   the route - the route propagation will copy data to here */
 				/* set up the route from this variable to the handle Listener routine */
-				CRoutes_Register  (0,node, offset, X3D_NODE(tg->EAICore.EAIListenerData), 0, (int) tmp_c,(void *) 
+				CRoutes_Register  (0,node, offset, NULL, 0, (int) tmp_c,(void *) 
 					&EAIListener, directionFlag, (count<<8)+mapEAItypeToFieldType(ctmp[0])); /* encode id and type here*/
 
 				sprintf (th->outBuffer,"RE\n%f\n%d\n0",TickTime(),count);

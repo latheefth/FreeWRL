@@ -163,12 +163,6 @@ Different nodes produce eventins/eventouts...
 //int max_script_found = -1;			/* the maximum script number found */
 //int max_script_found_and_initialized = -1;	/* the maximum script number found */
 
-///* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
-//int CRoutesExtra = 0;
-
-/* global return value for getting the value of a variable within Javascript */
-//jsval JSglobal_return_val;
-//void *JSSFpointer;
 
 /* ClockTick structure for processing all of the initevents - eg, TimeSensors */
 struct FirstStruct {
@@ -191,7 +185,7 @@ struct CR_RegStruct {
 		int fieldType;
 		void *intptr;
 		int scrdir;
-		int extra;
+		void *extra;
 #ifdef HAVE_OPENCL
     cl_kernel CL_Interpolator;
 #endif //HAVE_OPENCL
@@ -258,8 +252,8 @@ void *CRoutes_constructor(){
 }
 void CRoutes_init(struct tCRoutes *t){
 	//public
-	/* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
-	t->CRoutesExtra = 0;
+	/* EAI needs the extra parameters, so we put it globally when a RegisteredListener is clicked. */
+	t->CRoutesExtra = NULL;
 	//t->scr_act = 0;				/* this script has been sent an eventIn */
 	t->max_script_found = -1;			/* the maximum script number found */
 	t->max_script_found_and_initialized = -1;	/* the maximum script number found */
@@ -866,7 +860,6 @@ void CRoutes_RegisterSimple(
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  	void* interpolatorPointer;
- 	int extraData = 0;
 	int dir = 0;
 
 
@@ -914,7 +907,7 @@ void CRoutes_RegisterSimple(
 		interpolatorPointer=returnInterpolatorPointer(to->_nodeType);
 	else
 		interpolatorPointer=NULL;
-	CRoutes_Register(1, from, fromOfs, to,toOfs, type, interpolatorPointer, dir, extraData);
+	CRoutes_Register(1, from, fromOfs, to,toOfs, type, interpolatorPointer, dir, NULL);
 }
 int usesBuiltin(struct X3D_Node* node){
 	//builtin 1, user field 0
@@ -966,12 +959,11 @@ void CRoutes_RemoveSimple(
 
  	/* 10+1+3+1=15:  Number <5000000000, :, number <999, \0 */
  	void* interpolatorPointer;
- 	int extraData = 0;
 
   	interpolatorPointer=returnInterpolatorPointer(to->_nodeType);
 
  	CRoutes_Register(0, from, fromOfs, to, toOfs, type, 
-  		interpolatorPointer, 0, extraData);
+  		interpolatorPointer, 0, NULL);
 }
 
 void CRoutes_RemoveSimpleB(struct X3D_Node* from, int fromIndex,
@@ -1007,7 +999,7 @@ void CRoutes_Register(
 		int type,
 		void *intptr,
 		int scrdir,
-		int extra) {
+		void *extra) {
 
 	struct CR_RegStruct *newEntry;
 	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
@@ -1019,14 +1011,24 @@ void CRoutes_Register(
 #endif //HAVE_OPENCL
 
     
+
 /*
-ConsoleMessage ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (%s) toOfs %d type %d intptr %p scrdir %d extra %d\n",
+printf ("Croutes.c, line %d...\n",__LINE__);
+printf ("CRoutes_Register - adrem %d, from %p fromoffset %d to %p toOfs %d type %d intptr %p scrdir %d extra %d\n",
+                        adrem, from,
+                        fromoffset, to,
+                        toOfs, type, intptr, scrdir, extra);
+
+note the following will fail for Interpolators, as toNode will be NULL
+
+printf ("CRoutes_Register - adrem %d, from %p (%s) fromoffset %d to %p (%s) toOfs %d type %d intptr %p scrdir %d extra %d\n",
                         adrem, from,
                         stringNodeType(from->_nodeType),
                         fromoffset, to,
                         stringNodeType(to->_nodeType),
                         toOfs, type, intptr, scrdir, extra);
 */
+
 
 
 	// do we have an Interpolator running on the GPU?
@@ -1346,7 +1348,7 @@ static void actually_do_CRoutes_Register() {
 	#ifdef CRVERBOSE 
 				printf ("routing table now %d\n",p->CRoutes_Count);
 				for (shifter = 0; shifter < p->CRoutes_Count; shifter ++) {
-					printf ("%d: from: %p offset: %u Interpolator %p direction %d, len %d extra %d : ",shifter,
+					printf ("%d: from: %p offset: %u Interpolator %p direction %d, len %d extra %p : ",shifter,
 						p->CRoutes[shifter].routeFromNode, p->CRoutes[shifter].fnptr,
 						p->CRoutes[shifter].interpptr, p->CRoutes[shifter].direction_flag, p->CRoutes[shifter].len, p->CRoutes[shifter].extra);
 					for (insert_here = 0; insert_here < p->CRoutes[shifter].tonode_count; insert_here++) {
@@ -1364,7 +1366,7 @@ static void actually_do_CRoutes_Register() {
 	#ifdef CRVERBOSE 
 		printf ("routing table now %d\n",p->CRoutes_Count);
 		for (shifter = 0; shifter < p->CRoutes_Count; shifter ++) {
-			printf ("%3d from: %p offset: %u Interp %p dir %d, len %d extra %d :\n",shifter,
+			printf ("%3d from: %p offset: %u Interp %p dir %d, len %d extra %p :\n",shifter,
 				p->CRoutes[shifter].routeFromNode, p->CRoutes[shifter].fnptr,
 				p->CRoutes[shifter].interpptr, p->CRoutes[shifter].direction_flag, p->CRoutes[shifter].len, p->CRoutes[shifter].extra);
 			for (insert_here = 0; insert_here < p->CRoutes[shifter].tonode_count; insert_here++) {
@@ -2541,7 +2543,8 @@ void propagate_events_B() {
     int markme;
 
     
-	int len, isize, type, sftype, isMF, extra, itime, nRoutesDone, modeFrom, modeTo, debugRoutes;
+	int len, isize, type, sftype, isMF, itime, nRoutesDone, modeFrom, modeTo, debugRoutes;
+	void *extra;
 
 	CRnodeStruct *to_ptr = NULL;
 	ppCRoutes p;
@@ -2616,7 +2619,7 @@ void propagate_events_B() {
 							if(!(fromNode==lastFromNode && fromOffset==lastFromOffset)){
 								//gatherScriptEventOut_B copies from javascript to the script field ->value
 								int JSparamNameIndex = sfield->fieldDecl->JSparamNameIndex;
-								markme = gatherScriptEventOut_B(fromAny,shader,JSparamNameIndex,type,extra,len);
+								markme = gatherScriptEventOut_B(fromAny,shader,JSparamNameIndex,type,0,len);
 							}
 							if(markme){
 								if (p->CRoutes[counter].intTimeStamp!=p->thisIntTimeStamp) {
@@ -2705,6 +2708,8 @@ void propagate_events_B() {
 					toOffset = to_ptr->foffset; //p->CRoutes[counter].fnptr;
 					//MARK_EVENT(toNode, toOffset);
 
+					// EAI RegisterListener gives a node of NULL, so...
+					if (toNode != NULL) {
 					switch(toNode->_nodeType)
 					{
 						case NODE_ShaderProgram:
@@ -2756,6 +2761,7 @@ void propagate_events_B() {
 							}
 							break;
 					}
+					} // of toNode != NULL...
 
 					//we now have from and to as *anyVrml, so lets copy
 					//there should be a shallow_clean_field(type,toAny) that releases old mallocs 
@@ -2766,11 +2772,19 @@ void propagate_events_B() {
 					//  3. if yes, is there something in toField now?
 					//  4. if yes, get it, remove toNode as parent, refcount-- (let killNode in startofloopnodeupdates garbage collect it)
 					//  5. if it was an MFNode, release the p* array
+
+					// EAI RegisterListener gives a node of NULL, so...
+					if (toNode != NULL) {
 					cleanFieldIfManaged(type,modeTo,1,toNode,toOffset); //see unlink_node/killNode policy
+
 					shallow_copy_field(type,fromAny,toAny);
 					//if(isMF && sftype == FIELDTYPE_SFNode)
 					//	add_mfparents(toNode,toAny,type);
 					registerParentIfManagedField(type,modeTo,1, toAny, toNode); //see unlink_node/killNode policy
+
+					}
+
+
 					//OK we copied. 
 					//if(extra == 1 || extra == -1)
 					mark_event_B(fromNode,fromOffset, toNode, toOffset);
@@ -2806,6 +2820,8 @@ void propagate_events_B() {
 					//#endif
 					nRoutesDone++;
 					//Some target node types need special processing ie sensors and scripts
+					// EAI RegisterListener gives a node of NULL, so...
+					if (toNode != NULL) {
 					switch(toNode->_nodeType)
 					{
 						case NODE_Script:
@@ -2873,6 +2889,8 @@ void propagate_events_B() {
 							havinterp = FALSE;
 							break;
 					}
+					} // end of test for toNode == NULL
+
 					if (p->CRoutes[counter].interpptr != 0) 
 					{
 						/* this is an interpolator, call it */
@@ -2881,7 +2899,9 @@ void propagate_events_B() {
 						printf("propagate_events: index %d is an interpolator\n",counter);
 						#endif
 						/* copy over this "extra" data, EAI "advise" calls need this */
+
 						tg->CRoutes.CRoutesExtra = p->CRoutes[counter].extra;
+
 						p->CRoutes[counter].interpptr((void *)(toNode));
 					} else {
 						/* just an eventIn node. signal to the reciever to update */
@@ -2960,8 +2980,9 @@ void do_first() {
 		ne = p->num_ClockEvents;
 		for (counter =0; counter < ne; counter ++) {
 			ce = p->ClockEvents[counter]; 
-			if (ce.tonode)
+			if (ce.tonode) {
 				ce.interpptr(ce.tonode);
+			}
 		}
 		//for (counter = 0; counter < p->num_ClockEvents; counter++) {
 		//	if (p->ClockEvents[counter].tonode)
@@ -3016,8 +3037,9 @@ void do_first() {
 		ne = p->num_ClockEvents;
 		for (counter =0; counter < ne; counter ++) {
 			ce = p->ClockEvents[counter]; 
-			if (ce.tonode)
+			if (ce.tonode) {
 				ce.interpptr(ce.tonode);
+			}
 		}
 		usehit_clear();
 		//for (counter = 0; counter < p->num_ClockEvents; counter++) {
@@ -3222,7 +3244,11 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 	/* is this an MFNode or SFNode? */
 	{
 	//ppEAICore p = (ppEAICore)gglobal()->EAICore.prv;
-	if (toNode != (struct X3D_Node*) gglobal()->EAICore.EAIListenerData) {
+
+
+
+
+	if (toNode != NULL) {
 		if (multitype==ROUTING_SFNODE) {
 			unsigned int fnvalue;
 			unsigned int *fnlocation;

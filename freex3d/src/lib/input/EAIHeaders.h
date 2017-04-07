@@ -71,6 +71,17 @@ void EAI_Anchor_Response(int);						/* from EAIEventsIn.c */
 /* debugging */
 char *eaiPrintCommand (char command);
 
+
+// structure for passing data to Listener nodes.
+struct EAI_Extra_Data {
+        int field_id;	// an internal table entry
+        int node_id;	// an internal table entry
+        int field_type;	// type of the field  - eg FIELDTYPE_SFBool
+        int listener_id;// the EAI program connecting - this is the ID of the RegisterListener for it.
+};
+
+
+
 // #define EAIREADSIZE	8192
 #define EAI_NODETYPE_STANDARD   93435
 #define EAI_NODETYPE_PROTO      43534
