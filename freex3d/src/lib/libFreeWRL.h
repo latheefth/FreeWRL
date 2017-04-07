@@ -277,7 +277,6 @@ void	fwlio_RxTx_sendbuffer(char *fromFile, int fromLine, int channel, char *str)
 char *	fwlio_RxTx_waitfor(int channel, char *str);
 
 void	fwl_init_EaiVerbose();
-void	fwl_EAI_clearListenerNode(void);
 char *	fwl_EAI_handleBuffer(char *tempEAIdata);
 int	fwl_EAI_allDone();
 char *	fwl_EAI_handleRest();

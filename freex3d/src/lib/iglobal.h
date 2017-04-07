@@ -119,7 +119,6 @@ typedef struct iiglobal //InstanceGlobal
 		int EAIbufcount;				/* pointer into buffer*/
 		int EAIbufpos;
 		int EAIbufsize;				/* current size in bytes of input buffer*/
-		char *EAIListenerData; /* this is the location for getting Listenered data back again.*/
 		void *prv;
 	} EAICore;
 	struct tSensInterps{
@@ -376,7 +375,7 @@ iOLDCODE	}Component_Networking;
 	}CParseParser;
 	struct tCRoutes{
 		/* EAI needs the extra parameter, so we put it globally when a RegisteredListener is clicked. */
-		int CRoutesExtra;// = 0;
+		void *CRoutesExtra;// = 0;
 		//jsval JSglobal_return_val;
 		void *JSSFpointer;
 		int max_script_found;// = -1;			/* the maximum script number found */
