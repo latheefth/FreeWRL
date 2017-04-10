@@ -58,8 +58,6 @@
 //#define CRVERBOSE 1
 
 /* static void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, void *fn, size_t multitype); */
-static void sendScriptEventIn(int num);
-static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfsetValue, int *offsetOfvalueChanged);
 
 /* fix usage-before-definition for this function */
 #ifdef HAVE_OPENCL
@@ -1711,140 +1709,6 @@ eventOuts for this script
 
 ********************************************************************/
 
-static void gatherScriptEventOuts(void) {
-	int route;
-	size_t fptr;
-	size_t tptr;
-	size_t len;
- 	struct X3D_Node* tn;
-	//OLDCODE struct X3D_Node* fn;
-
-	int fromalready=FALSE;	 /* we have already got the from value string */
-	int touched_flag=FALSE;
-	int to_counter;
-	CRnodeStruct *to_ptr = NULL;
-	ppCRoutes p;
-	ttglobal tg = gglobal();
-	struct CRjsnameStruct *JSparamnames = getJSparamnames();
-	p = (ppCRoutes)tg->CRoutes.prv;
-
-	/* NOTE - parts of things in here might need to be wrapped by BeginRequest ??? */
-
-	/* go through all routes, looking for this script as an eventOut */
-
-	/* do we have any routes yet? - we can gather events before any routes are made */
-	if (!p->CRoutes_Initiated) return;
-
-	/* go from beginning to end in the routing table */
-	route=1;
-	while (route < (p->CRoutes_Count-1)) {
-		#ifdef CRVERBOSE
-		printf ("gather, routing %d is %s\n",route,
-			stringNodeType(X3D_NODE(p->CRoutes[route].routeFromNode)->_nodeType));
-		#endif
-
-	if (X3D_NODE(p->CRoutes[route].routeFromNode)->_nodeType == NODE_Script) {
-		struct X3D_Script *mys = X3D_SCRIPT(p->CRoutes[route].routeFromNode);
-		struct Shader_Script *sp = (struct Shader_Script *) mys->__scriptObj;
-		int actualscript = sp->num;
-
-		/* printf ("gatherEvents, found a script at element %d, it is script number %d and node %u\n",
-			route, actualscript,mys);  */
-		/* this script initialized yet? We make sure that on initialization that the Parse Thread
-		   does the initialization, once it is finished parsing. */
-		//if (!p->ScriptControl[actualscript]._initialized) {
-		if(!isScriptControlInitialized(actualscript)){
-
-			/* printf ("waiting for initializing script %d at %s:%d\n",actualscript, __FILE__,__LINE__); */
-			return;
-		}
-
-		if (actualscript > tg->CRoutes.max_script_found_and_initialized) {
-			/* printf ("gatherScriptEventOut, waiting for script %d to become initialized\n"); */
-			return;
-		}
-
-		//if (!p->ScriptControl[actualscript].scriptOK) {
-		if (!isScriptControlOK(actualscript)){
-
-			/* printf ("gatherScriptEventOuts - script initialized but not OK\n"); */
-			return;
-		}
-		
-		/* is this the same from node/field as before? */
-		if ((p->CRoutes[route].routeFromNode == p->CRoutes[route-1].routeFromNode) &&
-			(p->CRoutes[route].fnptr == p->CRoutes[route-1].fnptr) &&
-			(route > 1)) {
-			fromalready=TRUE;
-		} else {
-			/* printf ("different from, have to get value\n"); */
-			fromalready=FALSE;
-		}
-
-		fptr = p->CRoutes[route].fnptr;
-		//OLDCODE fn = p->CRoutes[route].routeFromNode;
-		len = p->CRoutes[route].len;
-
-		#ifdef CRVERBOSE
-			printf ("\ngatherSentEvents, script %d from %s type %d len %d\n",actualscript, JSparamnames[fptr].name,
-				JSparamnames[fptr].type, len);
-		#endif
-
-		/* now, set the actual properties - switch as documented above */
-		if (!fromalready) {
-			#ifdef CRVERBOSE 
-				printf ("Not found yet, getting touched flag fptr %d script %d \n",fptr,actualscript);
-			#endif
-			touched_flag = get_valueChanged_flag((int)fptr,actualscript);
-		}
-
-		if (touched_flag!= 0) {
-			/* get some easy to use pointers */
-			for (to_counter = 0; to_counter < p->CRoutes[route].tonode_count; to_counter++) {
-				to_ptr = &(p->CRoutes[route].tonodes[to_counter]);
-				tn = to_ptr->routeToNode;
-				tptr = to_ptr->foffset;
-
-				#ifdef CRVERBOSE 
-					printf ("%s script %d VALUE CHANGED! copy value and update %p\n",JSparamnames[fptr].name,actualscript,tn);
-				#endif
-
-				/* eventOuts go to VRML data structures */
-				js_setField_javascriptEventOut(tn,(unsigned int) tptr,JSparamnames[fptr].type, (int) len, p->CRoutes[route].extra,
-					actualscript);
-					//p->ScriptControl[actualscript].cx);
-
-				/* tell this node now needs to redraw */
-				markScriptResults(tn, (int) tptr, route, to_ptr->routeToNode);
-
-				#ifdef CRVERBOSE 
-					printf ("%s script %d has successfully updated  %u\n",JSparamnames[fptr].name,actualscript,tn);
-				#endif
-
-			}
-		}
-
-		/* unset the touched flag */
-		resetScriptTouchedFlag ((int) actualscript, (int) fptr);
-
-		/* 
-#if defined(JS_THREADSAFE)
-		JS_BeginRequest(p->ScriptControl[actualscript].cx);
-#endif
-		REMOVE_ROOT(p->ScriptControl[actualscript].cx,global_return_val); 
-#if defined(JS_THREADSAFE)
-		JS_EndRequest(p->ScriptControl[actualscript].cx);
-#endif
-		*/
-	}
-	route ++;
-	}
-
-	#ifdef CRVERBOSE 
-		printf ("%f finished  gatherScriptEventOuts loop\n",TickTime());
-	#endif
-}
-
 static BOOL gatherScriptEventOut_B(union anyVrml* any, struct Shader_Script *shader, 
 			int JSparamNameIndex, int type, int extra, int len) {
 	//dug9 this version stores the value back in the script field instead of toNode.
@@ -2011,7 +1875,7 @@ void kill_javascript(void) {
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
 	struct CRscriptStruct *ScriptControl; // = getScriptControl();
 
-	/* printf ("calling kill_javascript()\n"); */
+	printf ("calling kill_javascript()\n");
 	zeroScriptHandles();
 	if (jsIsRunning() != 0) {
 		for (i=0; i<=tg->CRoutes.max_script_found_and_initialized; i++) {
@@ -2035,6 +1899,7 @@ void kill_javascript(void) {
 	//FREE_IF_NZ (ScriptControl);
 	//FREE_IF_NZ(p->scr_act);
 
+	printf ("done kill_javascript\n");
 
 }
 
@@ -2099,6 +1964,7 @@ struct CRscriptStruct *newScriptControl(){
 //	//FREE_IF_NZ(scr_act);
 //	
 //}
+
 void JSMaxAlloc2(int num){
 	ttglobal tg = gglobal();
 	ppCRoutes p = (ppCRoutes)tg->CRoutes.prv;
@@ -2127,12 +1993,7 @@ int	unInitializeScript(struct X3D_Node *node){
 		struct Shader_Script *sscript = scriptnode->__scriptObj;
 		if(sscript){
 			int count;
-			ttglobal tg;
-			ppCRoutes p;
-
 			struct CRscriptStruct *ScriptControl; // = getScriptControl();
-			tg = gglobal();
-			p = (ppCRoutes)tg->CRoutes.prv;
 
 			//sscript->loaded = FALSE;
 			count = sscript->num;
@@ -2271,74 +2132,6 @@ int JSparamIndex (const char *name, const char *type) {
 }
 
 
-
-
-
-/* we have a Script/Shader at routing table element %d, send events to it */
-static void sendScriptEventIn(int num) {
-	int to_counter;
-	ppCRoutes p = (ppCRoutes)gglobal()->CRoutes.prv;
-    
-	CRnodeStruct *to_ptr = NULL;
-
-
-	#ifdef CRVERBOSE
-	  printf("----BEGIN-------\nsendScriptEventIn, num %d direction %d\n",num,
-		p->CRoutes[num].direction_flag);
-	#endif
-
-
-	/* script value: 1: this is a from script route
-			 2: this is a to script route
-			 (3 = SCRIPT_TO_SCRIPT - this gets changed in to a FROM and a TO;
-			 check for SCRIPT_TO_SCRIPT in this file */
-
-	if (p->CRoutes[num].direction_flag == TO_SCRIPT) {
-		for (to_counter = 0; to_counter < p->CRoutes[num].tonode_count; to_counter++) {
-			
-            to_ptr = &(p->CRoutes[num].tonodes[to_counter]);
-            
-			if (to_ptr->routeToNode->_nodeType == NODE_Script) {
-                struct Shader_Script *myObj;
-                
-				/* this script initialized yet? We make sure that on initialization that the Parse Thread
-				   does the initialization, once it is finished parsing. */
-
-				/* get the value from the VRML structure, in order to propagate it to a script */
-				myObj = X3D_SCRIPT(to_ptr->routeToNode)->__scriptObj;
-
-				#ifdef CRVERBOSE
-				printf ("myScriptNumber is %d\n",myObj->num);
-				#endif
-
-
-				/* is the script ok and initialized? */
-				//if ((!p->ScriptControl[myObj->num]._initialized) || (!p->ScriptControl[myObj->num].scriptOK)) {
-				if((!isScriptControlInitialized(myObj->num)) ||(!isScriptControlOK(myObj->num))){
-					/* printf ("waiting for initializing script %d at %s:%d\n",(uintptr_t)to_ptr->routeToNode, __FILE__,__LINE__); */
-					return;
-				}
-
-				/* mark that this script has been active SCRIPTS ARE INTEGER NUMBERS */
-				mark_script(myObj->num);
-				getField_ToJavascript(num,to_ptr->foffset);
-
-			} else {
-				getField_ToShader(to_ptr->routeToNode, num);
-			}
-			
-
-		}
-	} else {
-		#ifdef CRVERBOSE 
-			printf ("not a TO_SCRIPT value, ignoring this entry\n");
-		#endif
-	}
-	#ifdef CRVERBOSE 
-		printf("-----END-----\n");
-	#endif
-
-}
 
 /********************************************************************
 
@@ -2544,7 +2337,6 @@ void propagate_events_B() {
 
     
 	int len, isize, type, sftype, isMF, itime, nRoutesDone, modeFrom, modeTo, debugRoutes;
-	void *extra;
 
 	CRnodeStruct *to_ptr = NULL;
 	ppCRoutes p;
@@ -2575,8 +2367,6 @@ void propagate_events_B() {
 			//JAS union anyVrml tempAny;
 			fromNode = p->CRoutes[counter].routeFromNode;
 			fromOffset = p->CRoutes[counter].fnptr;
-			extra = p->CRoutes[counter].extra;
-			//len = p->CRoutes[counter].len; //this has -ve sentinal values - we need +ve
 			itime = p->CRoutes[counter].intTimeStamp;
 			switch(fromNode->_nodeType)
 			{
@@ -2827,7 +2617,6 @@ void propagate_events_B() {
 						case NODE_Script:
 							{
 
-								//OLDCODE struct X3D_Script* scr = (struct X3D_Script*)toNode;
 								struct Shader_Script* shader;
 								struct ScriptFieldDecl* sfield;
 								shader =(struct Shader_Script *)(X3D_SCRIPT(toNode)->__scriptObj);
@@ -2871,14 +2660,6 @@ void propagate_events_B() {
 						case NODE_Effect:
 						case NODE_PackagedShader:
 							{
-								struct Shader_Script* shader = NULL;
-								switch(toNode->_nodeType) 
-								{ 
-  									case NODE_ComposedShader: shader =(struct Shader_Script *)(X3D_COMPOSEDSHADER(toNode)->_shaderUserDefinedFields); break;
-  									case NODE_Effect: shader =(struct Shader_Script *)(X3D_EFFECT(toNode)->_shaderUserDefinedFields); break;
-  									case NODE_ShaderProgram:  shader =(struct Shader_Script *)(X3D_SHADERPROGRAM(toNode)->_shaderUserDefinedFields); break;
-  									case NODE_PackagedShader: shader =(struct Shader_Script *)(X3D_PACKAGEDSHADER(toNode)->_shaderUserDefinedFields); break;
-								}
 								// note, "shader" can not be NULL here...
 								// otherwise we'd never be here in this switch
 								getField_ToShader(toNode, counter); //feb2015 shader->num);
@@ -3116,6 +2897,7 @@ void kill_routing (void) {
                 p->CRoutes_MAX = 0;
                 FREE_IF_NZ (p->CRoutes);
         }
+	printf ("kill_routing done\n");
 }
 
 
@@ -3287,31 +3069,6 @@ void Multimemcpy (struct X3D_Node *toNode, struct X3D_Node *fromNode, void *tn, 
 
 /*********************************************************************************************/
 
-static struct X3D_Node *returnSpecificTypeNode(int requestedType, int *offsetOfsetValue, int *offsetOfvalueChanged) {
-	struct X3D_Node *rv;
-
-	rv = NULL;
-	switch  (requestedType) {
-                 #define SF_TYPE(fttype, type, ttype) \
-                        case FIELDTYPE_##fttype: \
-			rv = createNewX3DNode(NODE_Metadata##fttype); \
-			*offsetOfsetValue = (int) offsetof (struct X3D_Metadata##fttype, setValue); \
-			*offsetOfvalueChanged = (int) offsetof (struct X3D_Metadata##fttype, valueChanged); \
-			break; 
-
-                        #define MF_TYPE(fttype, type, ttype) \
-                                SF_TYPE(fttype, type, ttype)
-
-                        #include "VrmlTypeList.h"
-
-                        #undef SF_TYPE
-                        #undef MF_TYPE
-			default: {
-				printf ("returnSpecific, not found %d\n",requestedType);
-			}
-	}
-	return rv;
-}
 
 #ifdef HAVE_OPENCL
 static bool canRouteOnGPUTo(struct X3D_Node *me) {

@@ -267,22 +267,9 @@ https://github.com/WebGLSamples/WebGLSamples.github.io/tree/master/dynamic-cubem
 
 static int lookup_xxyyzz_face_from_count [] = {0,1,2,3,4,5}; // {1,0,2,3,5,4}; //swaps left-right front-back faces
 
-/* testing */
-//OLDCODE #define CUBE_MAP_SIZE 256
 
 #ifndef GL_EXT_texture_cube_map
-//OLDCODE # define GL_NORMAL_MAP_EXT                   0x8511
-//OLDCODE # define GL_REFLECTION_MAP_EXT               0x8512
-//OLDCODE # define GL_TEXTURE_CUBE_MAP_EXT             0x8513
-//OLDCODE # define GL_TEXTURE_BINDING_CUBE_MAP_EXT     0x8514
 # define GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT  0x8515
-//OLDCODE # define GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT  0x8516
-//OLDCODE # define GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT  0x8517
-//OLDCODE # define GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT  0x8518
-//OLDCODE # define GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT  0x8519
-//OLDCODE # define GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT  0x851A
-//OLDCODE # define GL_PROXY_TEXTURE_CUBE_MAP_EXT       0x851B
-//OLDCODE # define GL_MAX_CUBE_MAP_TEXTURE_SIZE_EXT    0x851C
 #endif
 
 

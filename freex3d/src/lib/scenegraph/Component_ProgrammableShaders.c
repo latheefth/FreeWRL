@@ -144,20 +144,6 @@ void Component_ProgrammableShaders_clear(struct tComponent_ProgrammableShaders *
 		node->isValid = FALSE; \
 	}
 
-#ifdef OLDCODE
-OLDCODE #define MAX_INFO_LOG_SIZE 512
-OLDCODE static void shaderErrorLog(GLuint myShader) {
-OLDCODE 	#ifdef GL_VERSION_2_0 
-OLDCODE 		GLchar infoLog[MAX_INFO_LOG_SIZE]; 
-OLDCODE 		glGetShaderInfoLog(myShader, MAX_INFO_LOG_SIZE, NULL, infoLog); 
-OLDCODE 		ConsoleMessage ("problem with VERTEX shader: %s",infoLog); 
-OLDCODE 	#else 
-OLDCODE 		ConsoleMessage ("Problem compiling shader"); 
-OLDCODE 	#endif 
-OLDCODE }
-#endif //OLDCODE
-
-
 // local structure for passing args to threaded shader compiler functions.
 struct myArgs {
 	struct X3D_Node *node;

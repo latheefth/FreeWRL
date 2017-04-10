@@ -51,7 +51,7 @@
 #define UNUSED(v) ((void) v)
 
 static int checkIfX3DVRMLFile(char *fn);
-static int checkIfHTMLFile(char *fn);
+// OLDCODE static int checkIfHTMLFile(char *fn);
 
 /* get all system commands, and pass them through here. What we do
  * is take parameters and execl them, in specific formats, to stop
@@ -426,14 +426,14 @@ static int checkIfX3DVRMLFile(char *fn) {
 	}
 	return FALSE;
 }
-static int checkIfHTMLFile(char *fn) {
-	if ((strstr(fn,".html") > 0) ||
-		(strstr(fn,".HTML") > 0) 
-		) {
-		return TRUE;
-	}
-	return FALSE;
-}
+// OLDCODE static int checkIfHTMLFile(char *fn) {
+// OLDCODE 	if ((strstr(fn,".html") > 0) ||
+// OLDCODE 		(strstr(fn,".HTML") > 0) 
+// OLDCODE 		) {
+// OLDCODE 		return TRUE;
+// OLDCODE 	}
+// OLDCODE 	return FALSE;
+// OLDCODE }
 
 
 void new_root();

@@ -374,13 +374,11 @@ void unload_libraryscenes(){
 		for(i=0;i<vectorSize(p->libraries);i++){
 			struct X3D_Proto *libscn;
 			char *url;
-			resource_item_t *res;
 			void3 *ul;
 			ul = vector_get(struct void3*,p->libraries,i);
 			if(ul){
 				url = (char *)ul->one;
 				libscn = (struct X3D_Proto*) ul->two;
-				res = (resource_item_t*)ul->three;
 				//unload_broto(libscn); //nothing to un-register - library scenes aren't registered
 				gc_broto_instance(libscn);
 				deleteVector(struct X3D_Node*,libscn->_parentVector);
@@ -1057,18 +1055,6 @@ void initializeLightTables() {
         }
         setLightState(HEADLIGHT_LIGHT, TRUE);
 
-#ifdef OLDCODE
-OLDCODE	#ifndef GL_ES_VERSION_2_0
-OLDCODE        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
-OLDCODE        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-OLDCODE        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_FALSE);
-OLDCODE        FW_GL_LIGHTMODELI(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-OLDCODE        FW_GL_LIGHTMODELFV(GL_LIGHT_MODEL_AMBIENT,As);
-OLDCODE	#else
-OLDCODE	//printf ("skipping light setups\n");
-OLDCODE	#endif
-#endif //OLDCODE
-
     LIGHTING_INITIALIZE
 	
 
@@ -1173,7 +1159,6 @@ void prepare_model_view_pickmatrix0(GLDOUBLE *modelMatrix, GLDOUBLE *mvp){
 	//prepares a matrix that will transform a point in geometry-local coordintes
 	//into eye/pickray/bearing coordinates ie along the pickray 0,0,1
 	GLDOUBLE *pickMatrixi;
-	ttglobal tg = gglobal();
 
 	pickMatrixi = getPickrayMatrix(1);
 
@@ -1187,7 +1172,6 @@ void prepare_model_view_pickmatrix_inverse0(GLDOUBLE *modelMatrix, GLDOUBLE *mvp
 	// eye/pickray -> geometry-local
 	GLDOUBLE mvi[16];
 	GLDOUBLE *pickMatrix;
-	ttglobal tg = gglobal();
 
 	pickMatrix = getPickrayMatrix(0);
 
@@ -1259,7 +1243,6 @@ void rayhit(float rat, float cx,float cy,float cz, float nx,float ny,float nz,
 void upd_ray0(struct point_XYZ *t_r1, struct point_XYZ *t_r2, struct point_XYZ *t_r3) {
 	//struct point_XYZ t_r1,t_r2,t_r3;
 	GLDOUBLE modelMatrix[16];
-	ttglobal tg = gglobal();
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 /*
 {int i; printf ("\n"); 
@@ -1318,13 +1301,9 @@ int pickrayHitsMBB(struct X3D_Node *node){
 	//FLOPs	112 double:	matmultiplyAFFINE 36, matinverseAFFINE 49, 3x transform (affine) 9 =27
 	GLDOUBLE mvp[16]; //, mvpi[16];
 	GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
-	GLDOUBLE *pickMatrix,*pickMatrixi;
 	int retval;
-	ttglobal tg = gglobal();
 	retval = TRUE;
 
-	pickMatrix = getPickrayMatrix(0);
-	pickMatrixi = getPickrayMatrix(1);
 	//struct point_XYZ r11 = {0.0,0.0,-1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 
@@ -1651,7 +1630,6 @@ void render_node(struct X3D_Node *node) {
 	//int sch = 0;
 	int justGeom = 0;
 	int pushed_ray;
-	int pushed_render_geom;
 	int pushed_sensor;
 	//struct currayhit *srh = NULL;
 	ppRenderFuncs p;
@@ -1738,7 +1716,6 @@ void render_node(struct X3D_Node *node) {
 	}
 	justGeom = p->renderstate.render_geom && !p->renderstate.render_sensitive && !p->renderstate.render_blend;
 	pushed_ray = FALSE;
-	pushed_render_geom = FALSE;
 	pushed_sensor = FALSE;
 
 	if(virt->prep) {
@@ -2218,8 +2195,8 @@ void checkParentLink (struct X3D_Node *node,struct X3D_Node *parent) {
 
 				if (offsetptr[2] == FIELDTYPE_SFNode) {
 					/* get the field as a POINTER VALUE, not just a pointer... */
-					voidptr = (intptr_t *) memptr;
-					voidptr = (intptr_t *) *voidptr;
+					voidptr = (uintptr_t *) memptr;
+					voidptr = (uintptr_t *) *voidptr;
 
 					/* is there a node here? */
 					if (voidptr != NULL) {

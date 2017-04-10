@@ -214,24 +214,6 @@ void lexer_destroyIdStack(Stack* s)
 }
 
 
-#ifdef OLDCODE
-void lexer_destroyIdVector(struct Vector* v)
-OLDCODE{
-OLDCODE int i;
-OLDCODE if (v==NULL) {
-OLDCODE	ConsoleMessage("lexer_destroyIdVector - vector already NULL");
-OLDCODE	return;
-OLDCODE }
-OLDCODE
-OLDCODE ASSERT(v);
-OLDCODE for(i=0; i!=vectorSize(v); ++i) {
-OLDCODE  FREE_IF_NZ (vector_get(char*, v, i));
-OLDCODE }
-OLDCODE
-OLDCODE deleteVector(char*, v);
-OLDCODE}
-#endif //OLDCODE
-
 void lexer_destroyData(struct VRMLLexer* me)
 {
  #define DESTROY_IDVEC(v) \

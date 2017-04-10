@@ -443,6 +443,7 @@ void restoreLightState(int *);
 		restoreLightState(savedlight); }
 */
 
+/* comments rearranged by John Stewart to get around compiler warnings
 //#define LOCAL_LIGHT_CHILDREN(a) \
 //	if ((node->_renderFlags & VF_localLight)==VF_localLight && renderstate()->render_light != VF_globalLight){ \
 //	  saveLightState2(&lastlight);\
@@ -456,6 +457,9 @@ void restoreLightState(int *);
 //		}\
 //		restoreLightState2(lastlight); \
 //	}
+*/
+
+
 void prep_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors);
 void fin_sibAffectors(struct X3D_Node *parent, struct Multi_Node* affectors);
 

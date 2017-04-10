@@ -51,7 +51,7 @@ struct CRStruct {
         void    (*interpptr)(void *); /* pointer to an interpolator to run */
         int     direction_flag; /* if non-zero indicates script in/out,
                                                    proto in/out */
-        int     extra;          /* used to pass a parameter (eg, 1 = addChildren..) */
+        void    *extra;          /* used to pass a parameter (eg, 1 = addChildren..) */
 	int 	intTimeStamp;	/* used for ROUTE loop breaking */
 #ifdef HAVE_OPENCL
     cl_kernel CL_Interpolator;

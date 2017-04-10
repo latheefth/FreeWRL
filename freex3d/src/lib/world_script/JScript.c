@@ -1346,11 +1346,13 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 
 /****************************** ECMA types ******************************************/
 
-/* "Bool" might be already declared - we DO NOT want it to be declared as an "int" */
-#define savedBool Bool
-#ifdef Bool
-#undef Bool
-#endif
+#ifdef OLDCODE
+OLDCODE /* "Bool" might be already declared - we DO NOT want it to be declared as an "int" */
+OLDCODE #define savedBool Bool
+OLDCODE #ifdef Bool
+OLDCODE #undef Bool
+OLDCODE #endif
+#endif //OLDCODE
 
 /* NOTE - BeginRequest is already called prior to any GET_* defines */
 
@@ -1394,8 +1396,11 @@ static int JSaddGlobalAssignProperty(int num, const char *name, const char *str)
 				JSENDREQUEST_SUBSTITUTION(scriptcontrol->cx) \
 				break; \
 			}
-/* in case Bool was defined above, restore the value */
-#define Bool savedBool
+
+#ifdef OLDCODE
+OLDCODE /* in case Bool was defined above, restore the value */
+OLDCODE #define Bool savedBool
+#endif //OLDCODE
 
 
 

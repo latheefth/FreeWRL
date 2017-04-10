@@ -68,22 +68,8 @@ http://freewrl.sf.net"
 
 void setDefaultBackground(int colour);
 
-#ifdef OLDCODE
-OLDCODE /* background colours - must be sequential range */
-#endif //OLDCODE 
-
 #define colourBlack     0
 
-#ifdef OLDCODE
-OLDCODE #define colourRed       1
-OLDCODE #define colourGreen     2
-OLDCODE #define colourBlue      3
-OLDCODE #define colourMagenta   4
-OLDCODE #define colourYellow    5
-OLDCODE #define colourCyan      6
-OLDCODE #define colourGrey      7
-OLDCODE #define colourOrange    8
-#endif //OLDCODE
 #define colourWhite     9
 
 /* because of threading issues in Linux, if we can only use 1 thread, we

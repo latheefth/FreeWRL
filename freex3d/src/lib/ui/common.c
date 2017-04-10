@@ -661,7 +661,6 @@ int set_keyval(char *keyval){
 char *get_key_val(char *key){
 	int index;
 	keyval k_v;
-	char *ret = NULL;
 	ppcommon p = (ppcommon)gglobal()->common.prv;
 
 	index = searchkeyvals(key);
@@ -720,7 +719,7 @@ int print_help(){
 }
 struct command *getCommand(char *key){
 	struct command *ret;
-	int i, ok = 0;
+	int i;
 	i = 0;
 	ret = NULL;
 	while(commands[i].key){

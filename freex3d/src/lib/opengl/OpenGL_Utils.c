@@ -118,63 +118,65 @@ static void makeAndCompileShader(struct shaderTableEntry *);
 #define MATRIX_SIZE 16		/* 4 x 4 matrix */
 typedef GLDOUBLE MATRIX4[MATRIX_SIZE];
 
-
-#ifdef DISABLER
-void fwl_glGenQueries(GLsizei n, GLuint* ids)
-{
-#if defined(IPHONE)
-	s_renderer_capabilities_t *rdr_caps;
-	ttglobal tg = gglobal();
-	rdr_caps = tg->display.rdr_caps;
-	if (rdr_caps->have_GL_VERSION_3_0)
-	{
-		glGenQueries(n, ids);
-	}
-	else
-	{
-		glGenQueriesEXT(n, ids);
-	}
-#else
-	glGenQueries(n, ids);
-#endif
-}
-void fwl_glDeleteQueries(GLsizei n, const GLuint* ids)
-{
-#if defined(IPHONE)
-	s_renderer_capabilities_t *rdr_caps;
-	ttglobal tg = gglobal();
-	rdr_caps = tg->display.rdr_caps;
-	if (rdr_caps->have_GL_VERSION_3_0)
-	{
-		glDeleteQueries(n, ids);
-	}
-	else
-	{
-		glDeleteQueriesEXT(n, ids);
-	}
-#else
-	glDeleteQueries(n, ids);
-#endif
-}
-void fwl_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params)
-{
-#if defined(IPHONE)
-	s_renderer_capabilities_t *rdr_caps;
-	ttglobal tg = gglobal();
-	rdr_caps = tg->display.rdr_caps;
-	if (rdr_caps->have_GL_VERSION_3_0)
-	{
-		glGetQueryObjectuiv(id, pname, params);
-	}
-	else
-	{
-		glGetQueryObjectuivEXT(id, pname, params);
-	}
-#else
-	glGetQueryObjectuiv(id, pname, params);
-#endif
-}
-#endif
+#ifdef OLDCODE
+OLDCODE
+OLDCODE#ifdef DISABLER
+OLDCODEvoid fwl_glGenQueries(GLsizei n, GLuint* ids)
+OLDCODE{
+OLDCODE#if defined(IPHONE)
+OLDCODE	s_renderer_capabilities_t *rdr_caps;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	rdr_caps = tg->display.rdr_caps;
+OLDCODE	if (rdr_caps->have_GL_VERSION_3_0)
+OLDCODE	{
+OLDCODE		glGenQueries(n, ids);
+OLDCODE	}
+OLDCODE	else
+OLDCODE	{
+OLDCODE		glGenQueriesEXT(n, ids);
+OLDCODE	}
+OLDCODE#else
+OLDCODE	glGenQueries(n, ids);
+OLDCODE#endif
+OLDCODE}
+OLDCODEvoid fwl_glDeleteQueries(GLsizei n, const GLuint* ids)
+OLDCODE{
+OLDCODE#if defined(IPHONE)
+OLDCODE	s_renderer_capabilities_t *rdr_caps;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	rdr_caps = tg->display.rdr_caps;
+OLDCODE	if (rdr_caps->have_GL_VERSION_3_0)
+OLDCODE	{
+OLDCODE		glDeleteQueries(n, ids);
+OLDCODE	}
+OLDCODE	else
+OLDCODE	{
+OLDCODE		glDeleteQueriesEXT(n, ids);
+OLDCODE	}
+OLDCODE#else
+OLDCODE	glDeleteQueries(n, ids);
+OLDCODE#endif
+OLDCODE}
+OLDCODEvoid fwl_glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params)
+OLDCODE{
+OLDCODE#if defined(IPHONE)
+OLDCODE	s_renderer_capabilities_t *rdr_caps;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	rdr_caps = tg->display.rdr_caps;
+OLDCODE	if (rdr_caps->have_GL_VERSION_3_0)
+OLDCODE	{
+OLDCODE		glGetQueryObjectuiv(id, pname, params);
+OLDCODE	}
+OLDCODE	else
+OLDCODE	{
+OLDCODE		glGetQueryObjectuivEXT(id, pname, params);
+OLDCODE	}
+OLDCODE#else
+OLDCODE	glGetQueryObjectuiv(id, pname, params);
+OLDCODE#endif
+OLDCODE}
+OLDCODE#endif
+#endif //OLDCODE
 
 
 typedef struct pOpenGL_Utils{
@@ -1196,101 +1198,108 @@ void fwl_set_MaterialFloatValue(struct Vector **shapeNodes, int whichEntry, int 
 	}
 }
 
+#ifdef OLDCODE
+OLDCODE#undef JASTESTING
+OLDCODE#ifdef JASTESTING
+OLDCODE
+OLDCODE
+OLDCODE/* this is for looking at and manipulating the node memory table. Expect it to disappear sometime */
+OLDCODEvoid printNodeMemoryTable(void) {
+OLDCODE
+OLDCODE	int tc;
+OLDCODE	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
+OLDCODE
+OLDCODE	int foundHoleCount = 0;
+OLDCODE
+OLDCODE	LOCK_MEMORYTABLE
+OLDCODE	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
+OLDCODE		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);
+OLDCODE
+OLDCODE		if (node != NULL) {
+OLDCODE		if (node->_nodeType == NODE_Shape)  {
+OLDCODE		//ConsoleMessage ("have shape/n");
+OLDCODE		struct X3D_Shape *sh = X3D_SHAPE(node);
+OLDCODE		if (sh->appearance != NULL) {
+OLDCODE			struct X3D_Appearance *ap = X3D_APPEARANCE(sh->appearance);
+OLDCODE					//ConsoleMessage ("have appearance\n");
+OLDCODE			if (ap->material != NULL) {
+OLDCODE				int i;
+OLDCODE				struct X3D_Material *mt = X3D_MATERIAL(ap->material);
+OLDCODE				//ConsoleMessage("have material\n");
+OLDCODE
+OLDCODE/*
+OLDCODE				for (i=0; i<3; i++) {
+OLDCODE				mt->diffuseColor.c[i] += 0.2;
+OLDCODE				if (mt->diffuseColor.c[i] > 0.95) mt->diffuseColor.c[i] = 0.2;
+OLDCODE				}
+OLDCODE*/
+OLDCODE
+OLDCODE				mt->transparency += 0.05;
+OLDCODE				if (mt->transparency > 1.0) mt->transparency=0.0;
+OLDCODE				mt->_change ++;
+OLDCODE			}
+OLDCODE
+OLDCODE		}
+OLDCODE
+OLDCODE/*
+OLDCODE		ConsoleMessage ("mem table %d is %s ref %d\n",tc,stringNodeType(node->_nodeType),node->referenceCount);
+OLDCODE		ConsoleMessage ("   shape appearance %p, geometry %p bbox %f %f %f bbcen %f %f %f\n",
+OLDCODE			sh->appearance, sh->geometry,sh->bboxSize.c[0],sh->bboxSize.c[1],sh->bboxSize.c[2],
+OLDCODE			sh->bboxCenter.c[0],sh->bboxCenter.c[1],sh->bboxCenter.c[2]);
+OLDCODE*/
+OLDCODE
+OLDCODE
+OLDCODE		}
+OLDCODE		} else {
+OLDCODE			foundHoleCount ++;
+OLDCODE		}
+OLDCODE	}
+OLDCODE
+OLDCODE	//ConsoleMessage ("potentialHoleCount %d, foundHoleCount %d",p->potentialHoleCount, foundHoleCount);
+OLDCODE
+OLDCODE	UNLOCK_MEMORYTABLE
+OLDCODE
+OLDCODE}
+OLDCODE#endif //JASTESTING
+#endif //OLDCODE
 
-#undef JASTESTING
-#ifdef JASTESTING
-
-
-/* this is for looking at and manipulating the node memory table. Expect it to disappear sometime */
-void printNodeMemoryTable(void) {
-
-	int tc;
-	ppOpenGL_Utils p = (ppOpenGL_Utils)gglobal()->OpenGL_Utils.prv;
-
-	int foundHoleCount = 0;
-
-	LOCK_MEMORYTABLE
-	for (tc=0; tc<vectorSize(p->linearNodeTable); tc++){
-		struct X3D_Node *node = vector_get(struct X3D_Node *,p->linearNodeTable,tc);
-
-		if (node != NULL) {
-		if (node->_nodeType == NODE_Shape)  {
-		//ConsoleMessage ("have shape/n");
-		struct X3D_Shape *sh = X3D_SHAPE(node);
-		if (sh->appearance != NULL) {
-			struct X3D_Appearance *ap = X3D_APPEARANCE(sh->appearance);
-					//ConsoleMessage ("have appearance\n");
-			if (ap->material != NULL) {
-				int i;
-				struct X3D_Material *mt = X3D_MATERIAL(ap->material);
-				//ConsoleMessage("have material\n");
-
-/*
-				for (i=0; i<3; i++) {
-				mt->diffuseColor.c[i] += 0.2;
-				if (mt->diffuseColor.c[i] > 0.95) mt->diffuseColor.c[i] = 0.2;
-				}
-*/
-
-				mt->transparency += 0.05;
-				if (mt->transparency > 1.0) mt->transparency=0.0;
-				mt->_change ++;
-			}
-
-		}
-
-/*
-		ConsoleMessage ("mem table %d is %s ref %d\n",tc,stringNodeType(node->_nodeType),node->referenceCount);
-		ConsoleMessage ("   shape appearance %p, geometry %p bbox %f %f %f bbcen %f %f %f\n",
-			sh->appearance, sh->geometry,sh->bboxSize.c[0],sh->bboxSize.c[1],sh->bboxSize.c[2],
-			sh->bboxCenter.c[0],sh->bboxCenter.c[1],sh->bboxCenter.c[2]);
-*/
-
-
-		}
-		} else {
-			foundHoleCount ++;
-		}
-	}
-
-	//ConsoleMessage ("potentialHoleCount %d, foundHoleCount %d",p->potentialHoleCount, foundHoleCount);
-
-	UNLOCK_MEMORYTABLE
-
-}
-#endif //JASTESTING
 #endif //ANDROID
 
 #define TURN_OFF_SHOULDSORTCHILDREN node->_renderFlags = node->_renderFlags & (0xFFFF^ VF_shouldSortChildren);
-/******************************************************************/
-/* textureTransforms of all kinds */
 
-/* change the clear colour, selected from the GUI, but do the command in the
-   OpenGL thread */
 
-void fwl_set_glClearColor (float red , float green , float blue , float alpha) {
-	ppOpenGL_Utils p;
-	ttglobal tg = gglobal();
-	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
-	p->cc_red = red; p->cc_green = green ; p->cc_blue = blue ; p->cc_alpha = alpha ;
-	tg->OpenGL_Utils.cc_changed = TRUE;
-}
-
-void setglClearColor (float *val) {
-	ppOpenGL_Utils p;
-	ttglobal tg = gglobal();
-	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
-	p->cc_red = *val; val++;
-	p->cc_green = *val; val++;
-	p->cc_blue = *val;
-
-// OLD_IPHONE_AQUA #ifdef AQUA
-// OLD_IPHONE_AQUA 	val++;
-// OLD_IPHONE_AQUA 	p->cc_alpha = *val;
-// OLD_IPHONE_AQUA #endif
-
-	tg->OpenGL_Utils.cc_changed = TRUE;
-}
+#ifdef OLDCODE
+OLDCODE/******************************************************************/
+OLDCODE/* textureTransforms of all kinds */
+OLDCODE
+OLDCODE/* change the clear colour, selected from the GUI, but do the command in the
+OLDCODE   OpenGL thread */
+OLDCODE
+OLDCODEvoid fwl_set_glClearColor (float red , float green , float blue , float alpha) {
+OLDCODE	ppOpenGL_Utils p;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+OLDCODE	p->cc_red = red; p->cc_green = green ; p->cc_blue = blue ; p->cc_alpha = alpha ;
+OLDCODE	tg->OpenGL_Utils.cc_changed = TRUE;
+OLDCODE}
+OLDCODE
+OLDCODEvoid setglClearColor (float *val) {
+OLDCODE	ppOpenGL_Utils p;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+OLDCODE	p->cc_red = *val; val++;
+OLDCODE	p->cc_green = *val; val++;
+OLDCODE	p->cc_blue = *val;
+OLDCODE
+OLDCODE// OLD_IPHONE_AQUA #ifdef AQUA
+OLDCODE// OLD_IPHONE_AQUA 	val++;
+OLDCODE// OLD_IPHONE_AQUA 	p->cc_alpha = *val;
+OLDCODE// OLD_IPHONE_AQUA #endif
+OLDCODE
+OLDCODE	tg->OpenGL_Utils.cc_changed = TRUE;
+OLDCODE}
+OLDCODE
+#endif //OLDCODE
 
 void fwl_setShadingStyle(int val) {
 	//0=flat 1=gouraud 2=phong 3=wireframe
@@ -1299,7 +1308,6 @@ void fwl_setShadingStyle(int val) {
 	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
 	p->shadingStyle = val;
 }
-
 int fwl_getShadingStyle() {
 	ppOpenGL_Utils p;
 	ttglobal tg = gglobal();
@@ -1307,21 +1315,24 @@ int fwl_getShadingStyle() {
 	return p->shadingStyle;
 }
 
-// use phong shading - better light reflectivity if set to true
-void fwl_set_phongShading (int val) {
-	ppOpenGL_Utils p;
-	ttglobal tg = gglobal();
-	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
-	if(val) fwl_setShadingStyle(2);
-	else fwl_setShadingStyle(1);
-}
-
-int fwl_get_phongShading () {
-	ppOpenGL_Utils p;
-	ttglobal tg = gglobal();
-	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
-	return fwl_getShadingStyle() == 2 ? TRUE : FALSE;
-}
+#ifdef OLDCODE
+OLDCODE
+OLDCODE// use phong shading - better light reflectivity if set to true
+OLDCODEvoid fwl_set_phongShading (int val) {
+OLDCODE	ppOpenGL_Utils p;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+OLDCODE	if(val) fwl_setShadingStyle(2);
+OLDCODE	else fwl_setShadingStyle(1);
+OLDCODE}
+OLDCODE
+OLDCODEint fwl_get_phongShading () {
+OLDCODE	ppOpenGL_Utils p;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+OLDCODE	return fwl_getShadingStyle() == 2 ? TRUE : FALSE;
+OLDCODE}
+#endif //OLDCODE
 
 
 
@@ -3519,14 +3530,6 @@ void fw_glLoadIdentity(void) {
 	FW_GL_LOADMATRIX(p->currentMatrix);
 }
 
-//#define PUSHMAT(a,b,c,d) case a: \
-//	b++;\
-//	if (b>=c) {b=c-1; \
-//		printf ("stack overflow, whichmode %d\n",p->whichMode); } \
-//	memcpy ((void *)d[b], (void *)d[b-1],sizeof(GLDOUBLE)*16);\
-//	p->currentMatrix = d[b];\
-//	break;
-
 MATRIX4* PushMat( int a, int *b, int c, MATRIX4 *d){
 	(*b)++;
 	if (*b >= c) {
@@ -4407,15 +4410,18 @@ void zeroVisibilityFlag(void) {
 			}
 			//above - polyrep needs to compile after set_coordIndex is copied to coordIndex
 
-/* just tell the parent (a grouping node) that there is a locally scoped light as a child */
-/* do NOT send this up the scenegraph! */
-#define LOCAL_LIGHT_PARENT_FLAG \
-{ int i; \
-	for (i = 0; i < vectorSize(pnode->_parentVector); i++) { \
-		struct X3D_Node *n = vector_get(struct X3D_Node*, pnode->_parentVector, i); \
-		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
-	} \
-}
+#ifdef OLDCODE
+OLDCODE/* just tell the parent (a grouping node) that there is a locally scoped light as a child */
+OLDCODE/* do NOT send this up the scenegraph! */
+OLDCODE#define LOCAL_LIGHT_PARENT_FLAG \
+OLDCODE{ int i; \
+OLDCODE	for (i = 0; i < vectorSize(pnode->_parentVector); i++) { \
+OLDCODE		struct X3D_Node *n = vector_get(struct X3D_Node*, pnode->_parentVector, i); \
+OLDCODE		if( n != 0 ) n->_renderFlags = n->_renderFlags | VF_localLight; \
+OLDCODE	} \
+OLDCODE}
+#endif //OLDCODE
+
 #define ADD_TO_PARENT_SIBAFFECTORS \
 { int i; \
 	for (i = 0; i < vectorSize(pnode->_parentVector); i++) { \
@@ -5243,11 +5249,11 @@ void startOfLoopNodeUpdates(void) {
 		if (childrenPtr != NULL) {
 			//JAS printf ("ok, childrenPtr is NOT NULL in startOfLoopNodeUpdates\n");
 			if (addChildren != NULL) {
-				int i;
-				for (i=0; i<addChildren->n; i++) {
-					struct X3D_Node *ch = X3D_NODE(addChildren->p[i]);
+				//int i;
+				//for (i=0; i<addChildren->n; i++) {
+					//struct X3D_Node *ch = X3D_NODE(addChildren->p[i]);
 					//printf ("SOLNU: adding child indx %d, is %p\n",i,ch);
-				}
+				//}
 
 				AddRemoveChildren(node,childrenPtr,(struct X3D_Node * *) addChildren->p,addChildren->n,1,__FILE__,__LINE__);
 
@@ -5431,62 +5437,63 @@ void markForDispose(struct X3D_Node *node, int recursive){
 }
 #undef VERBOSE
 
-#define DELETE_IF_IN_PRODCON(aaa) \
-	if (tg->ProdCon.aaa) { \
-		bool foundIt = FALSE; \
-		/* ConsoleMessage ("ProdCon stack is %d in size\n",vectorSize(tg->ProdCon.aaa)); */ \
-		for (i=0; i<vectorSize(tg->ProdCon.aaa); i++) { \
-			if (vector_get(struct X3D_Node*,tg->ProdCon.aaa, i) == structptr) { \
-				foundIt = TRUE; \
-				/* ConsoleMessage ("found it in the stack!\n"); */ \
-			} \
-		} \
-		if (foundIt) { \
-			struct Vector *newStack = newVector(struct X3D_Node*, 2); \
-			for (i=0; i<vectorSize(tg->ProdCon.aaa); i++) { \
-				if (vector_get(struct X3D_Node*,tg->ProdCon.aaa, i) != structptr) { \
-					vector_pushBack(struct X3D_Node*, newStack,  \
-						vector_get(struct X3D_Node*,tg->ProdCon.aaa,i)); \
-				} \
-			} \
-			deleteVector(struct X3D_Node*, tg->ProdCon.aaa); \
-			tg->ProdCon.aaa = newStack; \
-		} \
-	}
-
 #ifdef OLDCODE
-#define DELETE_IF_IN_STACK(aaa) \
-	if (tg->Bindable.aaa) { \
-		bool foundIt = FALSE; \
-		/* ConsoleMessage ("Bindable stack is %d in size\n",vectorSize(tg->Bindable.aaa)); */ \
-		for (i=0; i<vectorSize(tg->Bindable.aaa); i++) { \
-			if (vector_get(struct X3D_Node*,tg->Bindable.aaa, i) == structptr) { \
-				foundIt = TRUE; \
-				/* ConsoleMessage ("found it in the stack!\n"); */ \
-			} \
-		} \
-		if (foundIt) { \
-			struct Vector *newStack = newVector(struct X3D_Node*, 2); \
-			for (i=0; i<vectorSize(tg->Bindable.aaa); i++) { \
-				if (vector_get(struct X3D_Node*,tg->Bindable.aaa, i) != structptr) { \
-					vector_pushBack(struct X3D_Node*, newStack,  \
-						vector_get(struct X3D_Node*,tg->Bindable.aaa,i)); \
-				} \
-			} \
-			deleteVector(struct X3D_Node*, tg->Bindable.aaa); \
-			tg->Bindable.aaa = newStack; \
-		} \
-	}
-#endif
+OLDCODE #define DELETE_IF_IN_PRODCON(aaa) \
+OLDCODE 	if (tg->ProdCon.aaa) { \
+OLDCODE 		bool foundIt = FALSE; \
+OLDCODE 		/* ConsoleMessage ("ProdCon stack is %d in size\n",vectorSize(tg->ProdCon.aaa)); */ \
+OLDCODE 		for (i=0; i<vectorSize(tg->ProdCon.aaa); i++) { \
+OLDCODE 			if (vector_get(struct X3D_Node*,tg->ProdCon.aaa, i) == structptr) { \
+OLDCODE 				foundIt = TRUE; \
+OLDCODE 				/* ConsoleMessage ("found it in the stack!\n"); */ \
+OLDCODE 			} \
+OLDCODE 		} \
+OLDCODE 		if (foundIt) { \
+OLDCODE 			struct Vector *newStack = newVector(struct X3D_Node*, 2); \
+OLDCODE 			for (i=0; i<vectorSize(tg->ProdCon.aaa); i++) { \
+OLDCODE 				if (vector_get(struct X3D_Node*,tg->ProdCon.aaa, i) != structptr) { \
+OLDCODE 					vector_pushBack(struct X3D_Node*, newStack,  \
+OLDCODE 						vector_get(struct X3D_Node*,tg->ProdCon.aaa,i)); \
+OLDCODE 				} \
+OLDCODE 			} \
+OLDCODE 			deleteVector(struct X3D_Node*, tg->ProdCon.aaa); \
+OLDCODE 			tg->ProdCon.aaa = newStack; \
+OLDCODE 		} \
+OLDCODE 	}
+OLDCODE 
+OLDCODE #define DELETE_IF_IN_STACK(aaa) \
+OLDCODE 	if (tg->Bindable.aaa) { \
+OLDCODE 		bool foundIt = FALSE; \
+OLDCODE 		/* ConsoleMessage ("Bindable stack is %d in size\n",vectorSize(tg->Bindable.aaa)); */ \
+OLDCODE 		for (i=0; i<vectorSize(tg->Bindable.aaa); i++) { \
+OLDCODE 			if (vector_get(struct X3D_Node*,tg->Bindable.aaa, i) == structptr) { \
+OLDCODE 				foundIt = TRUE; \
+OLDCODE 				/* ConsoleMessage ("found it in the stack!\n"); */ \
+OLDCODE 			} \
+OLDCODE 		} \
+OLDCODE 		if (foundIt) { \
+OLDCODE 			struct Vector *newStack = newVector(struct X3D_Node*, 2); \
+OLDCODE 			for (i=0; i<vectorSize(tg->Bindable.aaa); i++) { \
+OLDCODE 				if (vector_get(struct X3D_Node*,tg->Bindable.aaa, i) != structptr) { \
+OLDCODE 					vector_pushBack(struct X3D_Node*, newStack,  \
+OLDCODE 						vector_get(struct X3D_Node*,tg->Bindable.aaa,i)); \
+OLDCODE 				} \
+OLDCODE 			} \
+OLDCODE 			deleteVector(struct X3D_Node*, tg->Bindable.aaa); \
+OLDCODE 			tg->Bindable.aaa = newStack; \
+OLDCODE 		} \
+OLDCODE 	}
+#endif //OLDCODE
 
 //#define WRLMODE(val) (((val) % 4)+4) //jan 2013 codegen PROTOKEYWORDS[] was ordered with x3d synonyms first, wrl last
 //#define X3DMODE(val)  ((val) % 4)
-#ifndef DISABLER
+
+// OLDCODE #ifndef DISABLER
 BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(), void* callbackData)
-#else
-BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,
-                                            const char *fieldName, indexT mode, indexT type,int isource,BOOL publicfield), void* callbackData)
-#endif
+// OLDCODE #else
+// OLDCODE BOOL walk_fields(struct X3D_Node* node, BOOL (*callbackFunc)(void *callbackData,struct X3D_Node* node,int jfield,union anyVrml *fieldPtr,
+// OLDCODE                                             const char *fieldName, indexT mode, indexT type,int isource,BOOL publicfield), void* callbackData)
+// OLDCODE #endif
 {
 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 	int type,mode,source;
@@ -5978,238 +5985,242 @@ void freeMallocedNodeFields(struct X3D_Node* node){
 		freeMallocedNodeFields0(node);
 	}
 }
-/*delete node created
-static void killNode_hide_obsolete (int index) {
-	int j=0;
-	int *fieldOffsetsPtr;
-	char * fieldPtr;
-	struct X3D_Node* structptr;
-	struct Multi_Float* MFloat;
-	struct Multi_Rotation* MRotation;
-	struct Multi_Vec3f* MVec3f;
-	struct Multi_Bool* Mbool;
-	struct Multi_Int32* MInt32;
-	struct Multi_Node* MNode;
-	struct Multi_Color* MColor;
-	struct Multi_ColorRGBA* MColorRGBA;
-	struct Multi_Time* MTime;
-	struct Multi_String* MString;
-	struct Multi_Vec2f* MVec2f;
-	intptr_t * VPtr;
-	struct Uni_String *MyS;
- 	int i;
 
-	ppOpenGL_Utils p;
-	ttglobal tg = gglobal();
-	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+#ifdef OLDCODE
 
-	structptr = vector_get(struct X3D_Node *,p->linearNodeTable,index);
-	//ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n", structptr,stringNodeType(structptr->_nodeType));
-
-	if( structptr->referenceCount > -1 ){
-		// unlinking the node from special arrays, parents and children
-		//   we just need to do this once, and early in the kill process
-		//   - I wish we had a sentinal value for 'unlinked' 
-		DELETE_IF_IN_STACK(viewpoint_stack);
-		DELETE_IF_IN_STACK(background_stack);
-		DELETE_IF_IN_STACK(fog_stack);
-		DELETE_IF_IN_STACK(navigation_stack);
-		DELETE_IF_IN_PRODCON(viewpointNodes);
-		delete_first(structptr);
-		//print_node_links(structptr);
-		unlink_node(structptr); //unlink before settledown deleting..
-		//printf("after: \n");
-		//print_node_links(structptr);
-	}
-
-	// give this time for things to "settle" in terms of rendering, etc
-	//JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering,
-	//what happens is that the GL calls get queued up for the GPU, then run when possible. So, there
-	//is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused
-	//node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't
-	//know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a
-	//random certainty when removing nodes, and data from these nodes."
-	
-	structptr->referenceCount --;
-	if (structptr->referenceCount > -10) {
-		//ConsoleMessage ("ref count for %p is just %d, waiting\n",structptr,structptr->referenceCount);
-		return;
-	}
-	//ConsoleMessage ("kn %d %s\n",index,stringNodeType(structptr->_nodeType));
-
-	#ifdef VERBOSE
-	printf("killNode: Node pointer	= %p entry %d of %d ",structptr,i,vectorSize(p->linearNodeTable));
-	if (structptr) {
-	if (structptr->_parentVector)
-	printf (" number of parents %d ", vectorSize(structptr->_parentVector));
-	printf("Node Type	= %s",stringNodeType(structptr->_nodeType));
-	} printf ("\n");
-	#endif
-	// node must be already unlinked with unlink_node() when we get here 
-	// delete parent vector. 
- 	deleteVector(char*, structptr->_parentVector);
-	// clear child vector - done below 
-
-	fieldOffsetsPtr = (int *)NODE_OFFSETS[structptr->_nodeType];
-	//go thru all field
-	while (*fieldOffsetsPtr != -1) {
-		fieldPtr = offsetPointer_deref(char *, structptr,*(fieldOffsetsPtr+1));
-		#ifdef VERBOSE
-		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]);
-		#endif
-
-		// some fields we skip, as the pointers are duplicated, and we CAN NOT free both 
-		if (*fieldOffsetsPtr == FIELDNAMES_setValue)
-			break; // can be a duplicate SF/MFNode pointer 
-
-		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged)
-			break; // can be a duplicate SF/MFNode pointer 
-
-		if (*fieldOffsetsPtr == FIELDNAMES__parentResource)
-			break; // can be a duplicate SF/MFNode pointer 
-
-
-		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata)
-			break; // can be a duplicate SFNode pointer 
-
-		if (*fieldOffsetsPtr == FIELDNAMES__selected)
-			break; // can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD 
-
-		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren)
-			break; // can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD 
-
-		if (*fieldOffsetsPtr == FIELDNAMES___oldMFString)
-			break;
-
-		if (*fieldOffsetsPtr == FIELDNAMES___scriptObj)
-			break;
-
-		if (*fieldOffsetsPtr == FIELDNAMES___oldSFString)
-			break;
-
-		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr)
-			break; // used for seeing if interpolator values change 
-
-		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr)
-			break; // used for seeing if interpolator values change 
-
-
-		// GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes 
-		if (structptr->_nodeType == NODE_GeoLOD) {
-			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
-		}
-
-		// nope, not a special field, lets just get rid of it as best we can 
-		//	dug9 sept 2014: GC garbage collection: I wonder if it would be easier/simpler when we malloc something,
-		//	to put it into a flat scene-GC list (and inline-GC list?) - as we do for a few things already, like nodes - 
-		//	and don't GC here for fields on occassionally removed nodes, just when we change scenes
-		//	wipe out the whole GC table(s)?
-		//
-		switch(*(fieldOffsetsPtr+2)){
-			case FIELDTYPE_MFFloat:
-				MFloat=(struct Multi_Float *)fieldPtr;
-				MFloat->n=0;
-				FREE_IF_NZ(MFloat->p);
-				break;
-			case FIELDTYPE_MFRotation:
-				MRotation=(struct Multi_Rotation *)fieldPtr;
-				MRotation->n=0;
-				FREE_IF_NZ(MRotation->p);
-				break;
-			case FIELDTYPE_MFVec3f:
-				MVec3f=(struct Multi_Vec3f *)fieldPtr;
-				MVec3f->n=0;
-				FREE_IF_NZ(MVec3f->p);
-				break;
-			case FIELDTYPE_MFBool:
-				Mbool=(struct Multi_Bool *)fieldPtr;
-				Mbool->n=0;
-				FREE_IF_NZ(Mbool->p);
-				break;
-			case FIELDTYPE_MFInt32:
-				MInt32=(struct Multi_Int32 *)fieldPtr;
-				MInt32->n=0;
-				FREE_IF_NZ(MInt32->p);
-				break;
-			case FIELDTYPE_MFNode:
-				MNode=(struct Multi_Node *)fieldPtr;
-				#ifdef VERBOSE
-				//verify node structure. Each child should point back to me. 
-				{
-					int i;
-					struct X3D_Node *tp;
-					for (i=0; i<MNode->n; i++) {
-						tp = MNode->p[i];
-						printf ("	MNode field has child %p\n",tp);
-						if (tp!=NULL)
-						printf ("	ct %s\n",stringNodeType(tp->_nodeType));
-					}
-				}
-				#endif
-				MNode->n=0;
-				FREE_IF_NZ(MNode->p);
-				break;
-
-			case FIELDTYPE_MFColor:
-				MColor=(struct Multi_Color *)fieldPtr;
-				MColor->n=0;
-				FREE_IF_NZ(MColor->p);
-				break;
-			case FIELDTYPE_MFColorRGBA:
-				MColorRGBA=(struct Multi_ColorRGBA *)fieldPtr;
-				MColorRGBA->n=0;
-				FREE_IF_NZ(MColorRGBA->p);
-				break;
-			case FIELDTYPE_MFTime:
-				MTime=(struct Multi_Time *)fieldPtr;
-				MTime->n=0;
-				FREE_IF_NZ(MTime->p);
-				break;
-			case FIELDTYPE_MFString:
-				MString=(struct Multi_String *)fieldPtr;
-				{
-				struct Uni_String* ustr;
-				for (j=0; j<MString->n; j++) {
-					ustr=MString->p[j];
-					if (ustr != NULL) {
-					ustr->len=0;
-					ustr->touched=0;
-					FREE_IF_NZ(ustr->strptr);
-					}
-				}
-				MString->n=0;
-				FREE_IF_NZ(MString->p);
-				}
-				break;
-			case FIELDTYPE_MFVec2f:
-				MVec2f=(struct Multi_Vec2f *)fieldPtr;
-				MVec2f->n=0;
-				FREE_IF_NZ(MVec2f->p);
-				break;
-			case FIELDTYPE_FreeWRLPTR:
-				VPtr = (intptr_t *) fieldPtr;
-				VPtr = (intptr_t *) (*VPtr);
-				FREE_IF_NZ(VPtr);
-				break;
-			case FIELDTYPE_SFString:
-				VPtr = (intptr_t *) fieldPtr;
-				MyS = (struct Uni_String *) *VPtr;
-				MyS->len = 0;
-				FREE_IF_NZ(MyS->strptr);
-				FREE_IF_NZ(MyS);
-				break;
-
-			default:; // do nothing - field not malloc'd 
-		}
-		fieldOffsetsPtr+=5;
-	}
-
-	FREE_IF_NZ(structptr);
-	vector_set(struct X3D_Node *, p->linearNodeTable,index,NULL);
-	p->potentialHoleCount++;
-	//ConsoleMessage ("kill, index %d, phc %d",index,p->potentialHoleCount);
-}
-*/
+OLDCODE/*delete node created
+OLDCODEstatic void killNode_hide_obsolete (int index) {
+OLDCODE	int j=0;
+OLDCODE	int *fieldOffsetsPtr;
+OLDCODE	char * fieldPtr;
+OLDCODE	struct X3D_Node* structptr;
+OLDCODE	struct Multi_Float* MFloat;
+OLDCODE	struct Multi_Rotation* MRotation;
+OLDCODE	struct Multi_Vec3f* MVec3f;
+OLDCODE	struct Multi_Bool* Mbool;
+OLDCODE	struct Multi_Int32* MInt32;
+OLDCODE	struct Multi_Node* MNode;
+OLDCODE	struct Multi_Color* MColor;
+OLDCODE	struct Multi_ColorRGBA* MColorRGBA;
+OLDCODE	struct Multi_Time* MTime;
+OLDCODE	struct Multi_String* MString;
+OLDCODE	struct Multi_Vec2f* MVec2f;
+OLDCODE	intptr_t * VPtr;
+OLDCODE	struct Uni_String *MyS;
+OLDCODE 	int i;
+OLDCODE
+OLDCODE	ppOpenGL_Utils p;
+OLDCODE	ttglobal tg = gglobal();
+OLDCODE	p = (ppOpenGL_Utils)tg->OpenGL_Utils.prv;
+OLDCODE
+OLDCODE	structptr = vector_get(struct X3D_Node *,p->linearNodeTable,index);
+OLDCODE	//ConsoleMessage("killNode - looking for node %p of type %s in one of the stacks\n", structptr,stringNodeType(structptr->_nodeType));
+OLDCODE
+OLDCODE	if( structptr->referenceCount > -1 ){
+OLDCODE		// unlinking the node from special arrays, parents and children
+OLDCODE		//   we just need to do this once, and early in the kill process
+OLDCODE		//   - I wish we had a sentinal value for 'unlinked' 
+OLDCODE		DELETE_IF_IN_STACK(viewpoint_stack);
+OLDCODE		DELETE_IF_IN_STACK(background_stack);
+OLDCODE		DELETE_IF_IN_STACK(fog_stack);
+OLDCODE		DELETE_IF_IN_STACK(navigation_stack);
+OLDCODE		DELETE_IF_IN_PRODCON(viewpointNodes);
+OLDCODE		delete_first(structptr);
+OLDCODE		//print_node_links(structptr);
+OLDCODE		unlink_node(structptr); //unlink before settledown deleting..
+OLDCODE		//printf("after: \n");
+OLDCODE		//print_node_links(structptr);
+OLDCODE	}
+OLDCODE
+OLDCODE	// give this time for things to "settle" in terms of rendering, etc
+OLDCODE	//JAS: "OpenGL - old code called flush() or finish(), but when the front-end does the actual rendering,
+OLDCODE	//what happens is that the GL calls get queued up for the GPU, then run when possible. So, there
+OLDCODE	//is a "hidden" multi-threading going on there. IIRC, I gave it 10 rendering loops for an unused
+OLDCODE	//node before deleting any of the items in it; really 1 or 2 loops should be fine. (1, but don't
+OLDCODE	//know about double buffering; 10 is a safe overkill) Without that, having OpenGL issues was a
+OLDCODE	//random certainty when removing nodes, and data from these nodes."
+OLDCODE	
+OLDCODE	structptr->referenceCount --;
+OLDCODE	if (structptr->referenceCount > -10) {
+OLDCODE		//ConsoleMessage ("ref count for %p is just %d, waiting\n",structptr,structptr->referenceCount);
+OLDCODE		return;
+OLDCODE	}
+OLDCODE	//ConsoleMessage ("kn %d %s\n",index,stringNodeType(structptr->_nodeType));
+OLDCODE
+OLDCODE	#ifdef VERBOSE
+OLDCODE	printf("killNode: Node pointer	= %p entry %d of %d ",structptr,i,vectorSize(p->linearNodeTable));
+OLDCODE	if (structptr) {
+OLDCODE	if (structptr->_parentVector)
+OLDCODE	printf (" number of parents %d ", vectorSize(structptr->_parentVector));
+OLDCODE	printf("Node Type	= %s",stringNodeType(structptr->_nodeType));
+OLDCODE	} printf ("\n");
+OLDCODE	#endif
+OLDCODE	// node must be already unlinked with unlink_node() when we get here 
+OLDCODE	// delete parent vector. 
+OLDCODE 	deleteVector(char*, structptr->_parentVector);
+OLDCODE	// clear child vector - done below 
+OLDCODE
+OLDCODE	fieldOffsetsPtr = (int *)NODE_OFFSETS[structptr->_nodeType];
+OLDCODE	//go thru all field
+OLDCODE	while (*fieldOffsetsPtr != -1) {
+OLDCODE		fieldPtr = offsetPointer_deref(char *, structptr,*(fieldOffsetsPtr+1));
+OLDCODE		#ifdef VERBOSE
+OLDCODE		printf ("looking at field %s type %s\n",FIELDNAMES[*fieldOffsetsPtr],FIELDTYPES[*(fieldOffsetsPtr+2)]);
+OLDCODE		#endif
+OLDCODE
+OLDCODE		// some fields we skip, as the pointers are duplicated, and we CAN NOT free both 
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES_setValue)
+OLDCODE			break; // can be a duplicate SF/MFNode pointer 
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES_valueChanged)
+OLDCODE			break; // can be a duplicate SF/MFNode pointer 
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES__parentResource)
+OLDCODE			break; // can be a duplicate SF/MFNode pointer 
+OLDCODE
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES___oldmetadata)
+OLDCODE			break; // can be a duplicate SFNode pointer 
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES__selected)
+OLDCODE			break; // can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD 
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES___oldChildren)
+OLDCODE			break; // can be a duplicate SFNode pointer - field only in NODE_LOD and NODE_GeoLOD 
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES___oldMFString)
+OLDCODE			break;
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES___scriptObj)
+OLDCODE			break;
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES___oldSFString)
+OLDCODE			break;
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyPtr)
+OLDCODE			break; // used for seeing if interpolator values change 
+OLDCODE
+OLDCODE		if (*fieldOffsetsPtr == FIELDNAMES___oldKeyValuePtr)
+OLDCODE			break; // used for seeing if interpolator values change 
+OLDCODE
+OLDCODE
+OLDCODE		// GeoLOD nodes, the children field exports either the rootNode, or the list of child nodes 
+OLDCODE		if (structptr->_nodeType == NODE_GeoLOD) {
+OLDCODE			if (*fieldOffsetsPtr == FIELDNAMES_children) break;
+OLDCODE		}
+OLDCODE
+OLDCODE		// nope, not a special field, lets just get rid of it as best we can 
+OLDCODE		//	dug9 sept 2014: GC garbage collection: I wonder if it would be easier/simpler when we malloc something,
+OLDCODE		//	to put it into a flat scene-GC list (and inline-GC list?) - as we do for a few things already, like nodes - 
+OLDCODE		//	and don't GC here for fields on occassionally removed nodes, just when we change scenes
+OLDCODE		//	wipe out the whole GC table(s)?
+OLDCODE		//
+OLDCODE		switch(*(fieldOffsetsPtr+2)){
+OLDCODE			case FIELDTYPE_MFFloat:
+OLDCODE				MFloat=(struct Multi_Float *)fieldPtr;
+OLDCODE				MFloat->n=0;
+OLDCODE				FREE_IF_NZ(MFloat->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFRotation:
+OLDCODE				MRotation=(struct Multi_Rotation *)fieldPtr;
+OLDCODE				MRotation->n=0;
+OLDCODE				FREE_IF_NZ(MRotation->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFVec3f:
+OLDCODE				MVec3f=(struct Multi_Vec3f *)fieldPtr;
+OLDCODE				MVec3f->n=0;
+OLDCODE				FREE_IF_NZ(MVec3f->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFBool:
+OLDCODE				Mbool=(struct Multi_Bool *)fieldPtr;
+OLDCODE				Mbool->n=0;
+OLDCODE				FREE_IF_NZ(Mbool->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFInt32:
+OLDCODE				MInt32=(struct Multi_Int32 *)fieldPtr;
+OLDCODE				MInt32->n=0;
+OLDCODE				FREE_IF_NZ(MInt32->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFNode:
+OLDCODE				MNode=(struct Multi_Node *)fieldPtr;
+OLDCODE				#ifdef VERBOSE
+OLDCODE				//verify node structure. Each child should point back to me. 
+OLDCODE				{
+OLDCODE					int i;
+OLDCODE					struct X3D_Node *tp;
+OLDCODE					for (i=0; i<MNode->n; i++) {
+OLDCODE						tp = MNode->p[i];
+OLDCODE						printf ("	MNode field has child %p\n",tp);
+OLDCODE						if (tp!=NULL)
+OLDCODE						printf ("	ct %s\n",stringNodeType(tp->_nodeType));
+OLDCODE					}
+OLDCODE				}
+OLDCODE				#endif
+OLDCODE				MNode->n=0;
+OLDCODE				FREE_IF_NZ(MNode->p);
+OLDCODE				break;
+OLDCODE
+OLDCODE			case FIELDTYPE_MFColor:
+OLDCODE				MColor=(struct Multi_Color *)fieldPtr;
+OLDCODE				MColor->n=0;
+OLDCODE				FREE_IF_NZ(MColor->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFColorRGBA:
+OLDCODE				MColorRGBA=(struct Multi_ColorRGBA *)fieldPtr;
+OLDCODE				MColorRGBA->n=0;
+OLDCODE				FREE_IF_NZ(MColorRGBA->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFTime:
+OLDCODE				MTime=(struct Multi_Time *)fieldPtr;
+OLDCODE				MTime->n=0;
+OLDCODE				FREE_IF_NZ(MTime->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFString:
+OLDCODE				MString=(struct Multi_String *)fieldPtr;
+OLDCODE				{
+OLDCODE				struct Uni_String* ustr;
+OLDCODE				for (j=0; j<MString->n; j++) {
+OLDCODE					ustr=MString->p[j];
+OLDCODE					if (ustr != NULL) {
+OLDCODE					ustr->len=0;
+OLDCODE					ustr->touched=0;
+OLDCODE					FREE_IF_NZ(ustr->strptr);
+OLDCODE					}
+OLDCODE				}
+OLDCODE				MString->n=0;
+OLDCODE				FREE_IF_NZ(MString->p);
+OLDCODE				}
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_MFVec2f:
+OLDCODE				MVec2f=(struct Multi_Vec2f *)fieldPtr;
+OLDCODE				MVec2f->n=0;
+OLDCODE				FREE_IF_NZ(MVec2f->p);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_FreeWRLPTR:
+OLDCODE				VPtr = (intptr_t *) fieldPtr;
+OLDCODE				VPtr = (intptr_t *) (*VPtr);
+OLDCODE				FREE_IF_NZ(VPtr);
+OLDCODE				break;
+OLDCODE			case FIELDTYPE_SFString:
+OLDCODE				VPtr = (intptr_t *) fieldPtr;
+OLDCODE				MyS = (struct Uni_String *) *VPtr;
+OLDCODE				MyS->len = 0;
+OLDCODE				FREE_IF_NZ(MyS->strptr);
+OLDCODE				FREE_IF_NZ(MyS);
+OLDCODE				break;
+OLDCODE
+OLDCODE			default:; // do nothing - field not malloc'd 
+OLDCODE		}
+OLDCODE		fieldOffsetsPtr+=5;
+OLDCODE	}
+OLDCODE
+OLDCODE	FREE_IF_NZ(structptr);
+OLDCODE	vector_set(struct X3D_Node *, p->linearNodeTable,index,NULL);
+OLDCODE	p->potentialHoleCount++;
+OLDCODE	//ConsoleMessage ("kill, index %d, phc %d",index,p->potentialHoleCount);
+OLDCODE}
+OLDCODE*/
+#endif //OLDCODE 
 
 #ifdef DEBUG_FW_LOADMAT
 	static void fw_glLoadMatrixd(GLDOUBLE *val,char *where, int line) {
@@ -6386,22 +6397,6 @@ if (me->myMat != -1) { GLUNIFORM1F(me->myMat,myVal);}
 if (me->myMat != -1) { GLUNIFORM1I(me->myMat,myVal);}
 
 
-//struct fogParams \n\
-//{  \n\
-//  vec4 fogColor; \n\
-//  float visibilityRange; \n\
-//  float fogScale; \n\
-//  int fogType; // 0 None, 1= FOGTYPE_LINEAR, 2 = FOGTYPE_EXPONENTIAL \n\
-//  // ifdefed int haveFogCoords; \n\
-//} fogParams; \n\
-//uniform fogParams fw_fogparams; \n\
-//#ifdef FOGCOORD \n\
-//attribute vec3 fw_FogCoords; \n\
-	//GLint fogColor;  //Aug 2016
-	//GLint fogvisibilityRange;
-	//GLint fogScale;
-	//GLint fogType;
-	//GLint fogHaveCoords;
 struct X3D_Node *getFogParams();
 void sendFogToShader(s_shader_capabilities_t *me) {
 	float color4[4];

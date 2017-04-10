@@ -45,76 +45,17 @@ savePng2dotc = 1; // if you read png and want to save to a bitmap .c struct, put
 //#define KIOSK 1
 //#define TOUCH 1
 
-#ifdef OLDCODE
-OLDCODE 
-OLDCODE /*the colors listed here are for a default. But are over-ridden now by colors and default 
-OLDCODE 	listed in common.c in freewrl
-OLDCODE */
-OLDCODE // StatusbarHud color schemes:
-OLDCODE //#define OLDCOLORS 1
-OLDCODE //#define MIDNIGHT 1
-OLDCODE //#define ANGRY 1
-OLDCODE //#define FREEWRLICO 1
-OLDCODE //#define AQUA 1
-OLDCODE //#define NEON 1
-OLDCODE 
-#endif //OLDCODE
-
-
 static GLfloat colorButtonHighlight[4]	= {.5f,.5f,.5f,.5f};
 static GLfloat colorButtonCTRL[4]		= {.6f,.6f,.6f,.5f};
-
-#ifdef OLDCODE
-OLDCODE 
-OLDCODE #ifdef OLDCOLORS
-OLDCODE static GLfloat colorClear[4]			= {.922f,.91f,.844f,1.0f};  //offwhite
-OLDCODE static GLfloat colorButtonIcon[4]		= {0.37f,0.37f,0.9f,1.0f};  //medium blue
-OLDCODE static GLfloat colorStatusbarText[4]	= {.2f, .2f, .2f, 1.0f};	//very dark grey
-OLDCODE static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //white
-OLDCODE #elif MIDNIGHT 
-OLDCODE static GLfloat colorClear[4]			= {0.0f,0.0f,0.0f,1.0f};  //bleck
-OLDCODE static GLfloat colorButtonIcon[4]		= {1.f,1.f,1.0f,1.0f}; //white
-OLDCODE static GLfloat colorStatusbarText[4]	= {1.0f, 1.0f, 1.0f, 1.0f}; //white
-OLDCODE static GLfloat colorMessageText[4]		= {1.0f, 1.0f, 1.0f, 1.0f}; //white
-OLDCODE #elif ANGRY 
-OLDCODE static GLfloat colorClear[4]			= {0.0f,0.2f,0.2f,1.0f};  //slightly blue-green black
-OLDCODE static GLfloat colorButtonIcon[4]		= {1.0f, 0.0f, 0.0f, 1.0f}; //red
-OLDCODE static GLfloat colorStatusbarText[4]	= {1.0f, 0.0f, 0.0f, 1.0f}; //red
-OLDCODE static GLfloat colorMessageText[4]		= {1.0f, 0.0f, 0.0f, 1.0f}; //red
-OLDCODE #elif FREEWRLICO 
-OLDCODE static GLfloat colorClear[4]			= {0.0f,0.25f,0.45f,1.0f}; //indigo
-OLDCODE static GLfloat colorButtonIcon[4]		= {.57f, 0.8f, 0.94f, 1.0f}; //light aqua
-OLDCODE static GLfloat colorStatusbarText[4]	= {1.0f, 0.47f, 0.0f, 1.0f}; //orange
-OLDCODE static GLfloat colorMessageText[4]		= {1.0f, 0.47f, 0.0f, 1.0f}; //orange
-OLDCODE #elif AQUA 
-OLDCODE static GLfloat colorClear[4]			= {0.75f,0.83f,0.74f,1.0f}; //clamshell
-OLDCODE static GLfloat colorButtonIcon[4]		= {.0f, 0.44f, 0.52f, 1.0f};  //dark aqua/indigo
-OLDCODE static GLfloat colorStatusbarText[4]	= {.32f, 0.45f, 0.43f, 1.0f};  //dark clamshell
-OLDCODE static GLfloat colorMessageText[4]		= {.06f, 0.69f, 0.8f, 1.0f}; //aqua
-OLDCODE //which is often black
-OLDCODE #elif NEON
-OLDCODE 
-#endif //OLDCODE
 
 static GLfloat colorClear[4]			= {0.24f,0.27f,0.34f,1.0f};  //steely grey
 #define LIME {.8f,1.0f,0.0f,1.0f}
 
 
-#ifdef OLDCODE
-OLDCODE 
-OLDCODE #define YELLOW {1.0f,1.0f,.2f,1.0f}
-OLDCODE #define CYAN {0.0f,1.0f,1.0f,1.0f}
-OLDCODE #define PINK {1.0f,.47f,1.0f,1.0f}
-#endif //OLDCODE
-
 #define HIGHLIGHT LIME
 static GLfloat colorButtonIcon[4]		= HIGHLIGHT;
 static GLfloat colorStatusbarText[4]	= HIGHLIGHT;
 static GLfloat colorMessageText[4]		= HIGHLIGHT; //over VRML window, which is often black
-
-#ifdef OLDCODE
-OLDCODE #endif //elif NEON
-#endif //OLDCODE
 
 static int ui_color_changed = -1;
 
@@ -1771,19 +1712,6 @@ void initButtons()
 			}; 
 		static int togglesets [][8] = {{ACTION_FLY,4,ACTION_YAWZ, ACTION_XY, ACTION_YAWPITCH, ACTION_ROLL},{0}};
 
-#ifdef OLDCODE
-OLDCODE 		//main menubar initial layout new mar 2015
-OLDCODE 		static int mainbar_withFileOpen [] = {
-OLDCODE 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
-OLDCODE 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST, 
-OLDCODE 			ACTION_SHIFT, ACTION_HOVER, ACTION_PEDAL, ACTION_LEVEL, ACTION_HEADLIGHT, ACTION_COLLISION, ACTION_PREV,
-OLDCODE 			ACTION_NEXT, ACTION_HELP, ACTION_MESSAGES, ACTION_OPTIONS, 
-OLDCODE 			//ACTION_RELOAD, ACTION_URL, 
-OLDCODE 			ACTION_FILE,
-OLDCODE 			-1,
-OLDCODE 			};
-#endif //OLDCODE
-
 		static int mainbar_linux [] = {
 			ACTION_WALK, ACTION_FLY, ACTION_EXAMINE,
 			ACTION_EXPLORE, ACTION_SPHERICAL, ACTION_TURNTABLE, ACTION_LOOKAT, ACTION_DIST,
@@ -1797,12 +1725,6 @@ OLDCODE 			};
 
 		p->pmenu.nitems = NACTION; //number of action items, even if not shown on menubar
 		mainbar = mainbar_linux;
-
-#ifdef OLDCODE
-OLDCODE //#ifdef _MSC_VER
-OLDCODE //		mainbar = mainbar_withFileOpen;
-OLDCODE //#endif
-#endif //OLDCODE 
 
 		//count number of menubar items, assuming last item is -1 sentinal value
 		i=0;
@@ -1836,8 +1758,6 @@ OLDCODE //#endif
 		{
 			int j,k,irow,icol;
 			int kt;
-			// OLDCODE int mt;
-
 
 			p->pmenu.items[i].action = actionlist[i];
 			p->pmenu.items[i].help = help_for_action(actionlist[i]);
@@ -1910,7 +1830,6 @@ OLDCODE //#endif
 			//Q. how will I flexibly do the highlight?
 			//I think I would loop through the buttons to do the highlighting, but then the buttons themselves
 			//can be done with a single mesh.
-			// OLDCODE mt = i*2*4;
 			kt = 0;
 			// 1 3   vertex order
 			// 0 2
@@ -2553,17 +2472,13 @@ void renderButtons()
 	for(i=0;i<p->pmenu.nbitems;i++)
 	{
 		int do_ctrl;
-		// OLDCODE GLfloat rgba[4] = {1.0, 1.0, 1.0, 1.0};
 		bool highlightIt = p->pmenu.bitems[i].item->butStatus;
 		do_ctrl = ctrl && i < 8;
 
-		// OLDCODE if(p->pmenu.bitems[i].item->butStatus) 
-			// OLDCODE rgba[0] = .7f; rgba[1] = .7f; rgba[2] = .7f; //DEPRESSED/TOGGLED BUTTON BACKGROUND COLOR
 		if(highlightIt) //i==p->isOver || p->pmenu.items[i].butStatus)
 		{
 			/*draw a background highlight rectangle*/
 
-			//OLDCODE glUniform4f(p->color4fLoc,rgba[0],rgba[1],rgba[2],rgba[3]); //..8f,.87f,.97f,1.0f);
 			if(do_ctrl)
 				glUniform4f(p->color4fLoc,colorButtonCTRL[0],colorButtonCTRL[1],colorButtonCTRL[2],colorButtonCTRL[3]);
 			else

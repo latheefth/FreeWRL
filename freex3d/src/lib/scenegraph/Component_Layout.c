@@ -206,8 +206,6 @@ void child_LayoutGroup(struct X3D_Node *_node){
 }
 void fin_LayoutGroup(struct X3D_Node *_node){
 	if(_node->_nodeType == NODE_LayoutGroup){
-		// OLDCODE ttglobal tg;
-		// OLDCODE ppComponent_Layout p;
 		ttrenderstate rs;
 		struct X3D_LayoutGroup *node = (struct X3D_LayoutGroup*)_node;
 
@@ -217,8 +215,6 @@ void fin_LayoutGroup(struct X3D_Node *_node){
 		
 		if(node->layout) fin_Layout(node->layout);
 		if(node->viewport) fin_Viewport(node->viewport);
-		// OLDCODE tg = gglobal();
-		// OLDCODE p = (ppComponent_Layout)tg->Component_Layout.prv;
 		rs = renderstate();
 
 		FW_GL_POP_MATRIX();

@@ -407,81 +407,84 @@ static openned_file_t* load_file_read(const char *filename)
 	}
 	return retval;
 }
-static openned_file_t* load_file_read_old(const char *filename)
-{
-	struct stat ss;
-	int fd;
-	unsigned char *text, *current;
-	int left2read; //need signed int for math below
-#ifdef _MSC_VER
-	size_t blocksz, readsz; //, left2read;
-#else
-	ssize_t blocksz, readsz; //, left2read;
-#endif
+#ifdef OLDCODE
+OLDCODEstatic openned_file_t* load_file_read_old(const char *filename)
+OLDCODE{
+OLDCODE	struct stat ss;
+OLDCODE	int fd;
+OLDCODE	unsigned char *text, *current;
+OLDCODE	int left2read; //need signed int for math below
+OLDCODE#ifdef _MSC_VER
+OLDCODE	size_t blocksz, readsz; //, left2read;
+OLDCODE#else
+OLDCODE	ssize_t blocksz, readsz; //, left2read;
+OLDCODE#endif
+OLDCODE
+OLDCODE	if (stat(filename, &ss) < 0) {
+OLDCODE		PERROR_MSG("load_file_read: could not stat: %s\n", filename);
+OLDCODE		return NULL;
+OLDCODE	}
+OLDCODE#ifdef _MSC_VER
+OLDCODE	fd = open(filename, O_RDONLY | O_BINARY);
+OLDCODE#else
+OLDCODE	fd = open(filename, O_RDONLY | O_NONBLOCK);
+OLDCODE#endif
+OLDCODE	if (fd < 0) {
+OLDCODE		PERROR_MSG("load_file_read: could not open: %s\n", filename);
+OLDCODE		return NULL;
+OLDCODE	}
+OLDCODE	if (!ss.st_size) {
+OLDCODE		ERROR_MSG("load_file_read: file is empty %s\n", filename);
+OLDCODE		close(fd);
+OLDCODE		return NULL;
+OLDCODE	}
+OLDCODE
+OLDCODE	text = current = MALLOC(unsigned char *, ss.st_size +1); /* include space for a null terminating character */
+OLDCODE	if (!text) {
+OLDCODE		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
+OLDCODE		close(fd);
+OLDCODE		return NULL;
+OLDCODE	}
+OLDCODE
+OLDCODE	if (ss.st_size > SSIZE_MAX) {
+OLDCODE		/* file is greater that read's max block size: we must make a loop */
+OLDCODE		blocksz = SSIZE_MAX;
+OLDCODE	} else {
+OLDCODE		blocksz = ss.st_size+1;
+OLDCODE	}
+OLDCODE
+OLDCODE	left2read = ss.st_size; //+1;
+OLDCODE	readsz = 0;
+OLDCODE
+OLDCODE	while (left2read > 0) {
+OLDCODE		readsz = read(fd, current, blocksz);
+OLDCODE		if (readsz > 0) {
+OLDCODE			/* ok, we have read a block, continue */
+OLDCODE			current += blocksz;
+OLDCODE			left2read -= blocksz;
+OLDCODE		} else {
+OLDCODE			/* is this the end of the file ? */
+OLDCODE			if (readsz == 0) {
+OLDCODE				/* yes */
+OLDCODE				break;
+OLDCODE			} else {
+OLDCODE				/* error */
+OLDCODE				PERROR_MSG("load_file_read: error reading file %s\n", filename);
+OLDCODE				/* cleanup */
+OLDCODE				FREE(text);
+OLDCODE				close(fd);
+OLDCODE				return NULL;
+OLDCODE			}
+OLDCODE		}
+OLDCODE	}
+OLDCODE	/* null terminate this string */
+OLDCODE	text[ss.st_size] = '\0';
+OLDCODE	close(fd);
+OLDCODE	fd = 0; //NULL;
+OLDCODE	return create_openned_file(filename, fd, ss.st_size+1, text,0,0,FALSE);
+OLDCODE}
+#endif //OLDCODE
 
-	if (stat(filename, &ss) < 0) {
-		PERROR_MSG("load_file_read: could not stat: %s\n", filename);
-		return NULL;
-	}
-#ifdef _MSC_VER
-	fd = open(filename, O_RDONLY | O_BINARY);
-#else
-	fd = open(filename, O_RDONLY | O_NONBLOCK);
-#endif
-	if (fd < 0) {
-		PERROR_MSG("load_file_read: could not open: %s\n", filename);
-		return NULL;
-	}
-	if (!ss.st_size) {
-		ERROR_MSG("load_file_read: file is empty %s\n", filename);
-		close(fd);
-		return NULL;
-	}
-
-	text = current = MALLOC(unsigned char *, ss.st_size +1); /* include space for a null terminating character */
-	if (!text) {
-		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
-		close(fd);
-		return NULL;
-	}
-
-	if (ss.st_size > SSIZE_MAX) {
-		/* file is greater that read's max block size: we must make a loop */
-		blocksz = SSIZE_MAX;
-	} else {
-		blocksz = ss.st_size+1;
-	}
-
-	left2read = ss.st_size; //+1;
-	readsz = 0;
-
-	while (left2read > 0) {
-		readsz = read(fd, current, blocksz);
-		if (readsz > 0) {
-			/* ok, we have read a block, continue */
-			current += blocksz;
-			left2read -= blocksz;
-		} else {
-			/* is this the end of the file ? */
-			if (readsz == 0) {
-				/* yes */
-				break;
-			} else {
-				/* error */
-				PERROR_MSG("load_file_read: error reading file %s\n", filename);
-				/* cleanup */
-				FREE(text);
-				close(fd);
-				return NULL;
-			}
-		}
-	}
-	/* null terminate this string */
-	text[ss.st_size] = '\0';
-	close(fd);
-	fd = 0; //NULL;
-	return create_openned_file(filename, fd, ss.st_size+1, text,0,0,FALSE);
-}
 
 
 

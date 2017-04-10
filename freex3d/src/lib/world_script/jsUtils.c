@@ -65,7 +65,7 @@ which is the sample application included with the javascript engine.
 	#define USE_OSC 0
 	#define TRACK_FIFO_MSG 0
 #endif
-#define TRY_PROTO_FIX 1
+
 extern void dump_scene (FILE *fp, int level, struct X3D_Node* node); // in GeneratedCode.c
 extern char *parser_getNameFromNode(struct X3D_Node *ptr) ; /* vi +/dump_scene src/lib/scenegraph/GeneratedCode.c */
 
