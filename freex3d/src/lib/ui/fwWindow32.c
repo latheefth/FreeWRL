@@ -804,7 +804,7 @@ static int shiftState = 0;
     case WM_CLOSE: 
 		//fwCloseContext();
 		//DestroyWindow (hWnd);
-		fwl_doQuit();
+		fwl_doQuit(__FILE__,__LINE__);
 	break; 
 
 

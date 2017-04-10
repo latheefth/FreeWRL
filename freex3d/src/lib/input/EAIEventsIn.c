@@ -866,7 +866,7 @@ printf ("registering, field_id %d, node_id %d, field_type %d, listener_id %d\n",
 
 		  	case STOPFREEWRL: {
 				if (!RUNNINGASPLUGIN) {
-					fwl_doQuit();
+					fwl_doQuit(__FILE__,__LINE__);
 				    break;
 				}
 			    }

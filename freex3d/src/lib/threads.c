@@ -141,13 +141,12 @@ void threads_init(struct tthreads* t)
 	pthread_mutex_init(&t->mutex_frontend_list,NULL);
 #endif
 
-	t->ResourceThreadRunning = FALSE;
-	t->TextureThreadRunning = FALSE;
-	t->ResourceThreadWaiting = FALSE;
-	t->TextureThreadWaiting = FALSE;
-
+	t->ResourceThreadRunning = false;
+	t->TextureThreadRunning = false;
+	t->ResourceThreadWaiting = false;
+	t->TextureThreadWaiting = false;
 	t->MainLoopQuit = 0;
-	t->flushing = 0;
+	t->flushing = false;
 	//private
 	//t->prv = threads_constructor();
 	//{

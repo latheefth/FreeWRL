@@ -621,7 +621,7 @@ void handle_Xevents(XEvent event) {
 				#ifdef VERBOSE
 				printf("---XClient sent wmDeleteMessage, quitting freewrl\n");
 				#endif
-				fwl_doQuit();
+				fwl_doQuit(__FILE__,__LINE__);
 			}
 			break;
 		case KeyPress:

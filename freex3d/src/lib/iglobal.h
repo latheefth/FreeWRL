@@ -90,8 +90,8 @@ typedef struct iiglobal //InstanceGlobal
 		bool TextureThreadRunning;
 		bool ResourceThreadWaiting;
 		bool TextureThreadWaiting;
+		bool flushing;
 		int MainLoopQuit;
-		int flushing;
 		void *prv;
 	} threads;
     

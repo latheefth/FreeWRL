@@ -2726,6 +2726,7 @@ void _textureThread(void *globalcontext)
 			void* elem;
 			s_list_t *item = texitem_dequeue();
 			elem = ml_elem(item);
+			// printf ("textureThread - got a hit - tg %p\n",tg);
 			if (elem == &tex_command_exit){
 				FREE_IF_NZ(item);
 				break;

@@ -356,7 +356,7 @@ void fv_aboutFreeWRLpopUp (Widget w, XtPointer data, XtPointer callData)
 /* quit selected */
 void fv_quitMenuBar (Widget w, XtPointer data, XtPointer callData)
 { 
-    fwl_doQuit();
+    fwl_doQuit(__FILE__,__LINE__);
 }
 
 void fv_reloadFile (Widget w, XtPointer data, XtPointer callData)

@@ -1540,6 +1540,8 @@ void _inputParseThread(void *globalcontext)
 				FREE_IF_NZ(item);
 				break;
 			}
+			//printf ("thread hit, flushing %d, tg %p, resource thread\n",tg->threads.flushing, tg);
+
 			if (tg->threads.flushing){
 				FREE_IF_NZ(item);
 				continue;
@@ -1548,9 +1550,6 @@ void _inputParseThread(void *globalcontext)
 			//result = 
 			parser_process_res(item); //,&p->resource_list_to_parse);
 			p->inputThreadParsing = FALSE;
-			//#if defined (IPHONE) || defined (_ANDROID)
-   //         		if (result) setMenuStatus ("ok"); else setMenuStatus("not ok");
-			//#endif
 		}
 
 		tg->threads.ResourceThreadRunning = FALSE;
@@ -1559,52 +1558,6 @@ void _inputParseThread(void *globalcontext)
 	}
 }
 
-
-#ifdef OLDCODE
-OLDCODEstatic void unbind_node(struct X3D_Node* node) {
-OLDCODE	switch (node->_nodeType) {
-OLDCODE		case NODE_Viewpoint:
-OLDCODE			X3D_VIEWPOINT(node)->isBound = 0;
-OLDCODE			break;
-OLDCODE		case NODE_OrthoViewpoint:
-OLDCODE			X3D_ORTHOVIEWPOINT(node)->isBound = 0;
-OLDCODE			break;
-OLDCODE		case NODE_GeoViewpoint:
-OLDCODE			X3D_GEOVIEWPOINT(node)->isBound = 0;
-OLDCODE			break;
-OLDCODE		case NODE_Background:
-OLDCODE			X3D_BACKGROUND(node)->isBound = 0;
-OLDCODE			break;
-OLDCODE		case NODE_TextureBackground:
-OLDCODE			X3D_TEXTUREBACKGROUND(node)->isBound = 0;
-OLDCODE			break;
-OLDCODE		case NODE_NavigationInfo:
-OLDCODE			X3D_NAVIGATIONINFO(node)->isBound = 0;
-OLDCODE			break;
-OLDCODE		case NODE_Fog:
-OLDCODE			X3D_FOG(node)->isBound = 0;
-OLDCODE			break;
-OLDCODE		default: {
-OLDCODE			/* do nothing with this node */
-OLDCODE			return;
-OLDCODE		}
-OLDCODE	}
-OLDCODE}
-OLDCODE
-OLDCODE /* for ReplaceWorld (or, just, on start up) forget about previous bindables */
-OLDCODE #define KILL_BINDABLE(zzz) \
-OLDCODE     printf("KILL_BINDABLE, stack %p size %d\n",zzz,vectorSize(zzz)); \
-OLDCODE 	{ int i; for (i=0; i<vectorSize(zzz); i++) { \
-OLDCODE         printf ("KILL_BINDABLE %d of %d\n",i,vectorSize(zzz)); \
-OLDCODE 		struct X3D_Node* me = vector_get(struct X3D_Node*,zzz,i); \
-OLDCODE 		unbind_node(me); \
-OLDCODE 	} \
-OLDCODE 	deleteVector(struct X3D_Node *,zzz); \
-OLDCODE 	zzz = newVector(struct X3D_Node *,8);\
-OLDCODE     printf ("KILL_BINDABLE, new stack is %p\n",zzz); \
-OLDCODE 	/*causes segfault, do not do this zzz = NULL;*/ \
-OLDCODE 	}
-#endif //OLDCODE
 
 
 void kill_bindables (void) {

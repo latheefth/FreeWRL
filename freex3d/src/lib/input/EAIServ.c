@@ -582,7 +582,7 @@ char *privSocketRead(int channel, char *bf, int *bfct, int *bfsz, int *EAIlisten
 				if(service_onclose[channel] == TRUE) {
 					/* And, lets just exit FreeWRL*/
 					printf ("FreeWRL:EAI socket closed, exiting...\n");
-					fwl_doQuit();
+					fwl_doQuit(__FILE__,__LINE__);
 					return (bf);
 				} else {
 					return (bf);

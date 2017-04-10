@@ -33,7 +33,6 @@
 int fw_exit(int val);
 void setDisplayed(int);
 void resetSensorEvents(void);
-void finalizeRenderSceneUpdateScene(void);
 
 void fwl_replaceWorldNeededRes(resource_item_t *multiResWithParent);
 

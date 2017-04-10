@@ -133,8 +133,10 @@ struct SensStruct {
         void (*interpptr)(void *, int, int, int);
 };
 #define LMB 1
-#define MMB 2
 #define RMB 3
+// and course #define MMB 2
+// but it gives a compiler warning on Linux...
+
 //conceptually a Touch isa Drag. A touch device will send in multiple coordinates, with the same ID,
 // and what that means is you are updating the terminal endpoint of a Touch or Drag. 
 // If its a new touch/drag ID then of course you also are setting the start point.
@@ -336,9 +338,9 @@ int haveFrameBufferObject()
 
 void pushnset_framebuffer(int ibuffer){
 	Stack *framebufferstack;
-	int jbuffer;
+	//int jbuffer;
 	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
-	jbuffer = stack_top(int,framebufferstack);
+	//jbuffer = stack_top(int,framebufferstack);
 	stack_push(int,framebufferstack,ibuffer);
 
 	//before gl 3.1 fbos were an extension
@@ -349,10 +351,11 @@ void pushnset_framebuffer(int ibuffer){
 	}
 }
 void popnset_framebuffer(){
-	int ibuffer, jbuffer;
+	int ibuffer;
+	//int jbuffer;
 	Stack *framebufferstack;
 	framebufferstack = (Stack *)gglobal()->Mainloop._framebufferstack;
-	jbuffer = stack_top(int,framebufferstack);
+	//jbuffer = stack_top(int,framebufferstack);
 	stack_pop(int,framebufferstack);
 	ibuffer = stack_top(int,framebufferstack);
 	//before gl 3.1 fbos were an extension
@@ -1132,7 +1135,7 @@ void textpanel_render_blobmethod(contenttype_textpanel *_self, ivec4 ivport){
 
 		if(atlasOK)
 		for(i=0;i<nrows;i++){
-			unsigned char *row;
+			char *row;
 			int l0, l1, i0, lenrow, pen_x, pen_y;
 			ivec2 xy;
 
@@ -1408,7 +1411,7 @@ typedef struct contenttype_e3dmouse {
 } contenttype_e3dmouse;
 void e3dmouse_render(void *_self){
 	//render + over contents
-	contenttype_e3dmouse *self = (contenttype_e3dmouse*)_self;
+	// OLDCODE contenttype_e3dmouse *self = (contenttype_e3dmouse*)_self;
 	content_render(_self);
 	//render self over top
 	if(1){
@@ -1437,7 +1440,7 @@ int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsi
 	//RMB - toggle on/off spherical 
 	//NONE - spherical navigation, mouseXY = .5
 	//LMB - in spherical mode: click, with mousexy = .5
-	int iret, mev2, but2, x,y;
+	int iret, but2, x,y;
 	unsigned int ID0, ID1;
 	ivec4 ivport;
 	Stack *vportstack;
@@ -1451,7 +1454,6 @@ int e3dmouse_pick(void *_self, int mev, int butnum, int mouseX, int mouseY, unsi
 	y = ivport.H/2 + ivport.Y;
 
 
-	mev2 = mev;
 	but2 = LMB;
 	ID0 = 0; //navigation
 	ID1 = 1; //sensor dragging
@@ -1698,7 +1700,8 @@ void stereo_sidebyside_render(void *_self){
 	c = self->t1.contents;
 	i=0;
 	while(c){
-		ivec4 vport, ivport2;
+		// OLDCODE ivec4 vport;
+		ivec4 ivport2;
 		ivec2 fidcenter;
 		Stack *vportstack;
 		ttglobal tg = gglobal();
@@ -1707,7 +1710,7 @@ void stereo_sidebyside_render(void *_self){
 		viewer->isideB = i; //set_viewmatrix needs to know
 
 		vportstack = (Stack*)tg->Mainloop._vportstack;
-		vport = stack_top(ivec4,vportstack);
+		// OLDCODE vport = stack_top(ivec4,vportstack);
 
 		compute_sidebyside_viewport_and_fiducial(viewer->isideB,&ivport2,&fidcenter);
 
@@ -2001,16 +2004,16 @@ void stereo_shutter_render(void *_self){
 	contenttype *c;
 	contenttype_stereo_shutter *self;
 	X3D_Viewer *viewer;
-	Stack *vportstack;
+	// OLDCODE Stack *vportstack;
 	static double shuttertime;
 	static int shutterside;
-	ttglobal tg = gglobal();
+	// OLDCODE ttglobal tg = gglobal();
 
 	self = (contenttype_stereo_shutter *)_self;
 	viewer = Viewer();
 	viewer->isStereoB = 1; //we're using the B so old isStereo not activated, backend thinks its rendering a mono scene
 
-	vportstack = (Stack*)tg->Mainloop._vportstack;
+	// OLDCODE vportstack = (Stack*)tg->Mainloop._vportstack;
 	shutterGlasses = 2;
 	if(viewer->haveQuadbuffer)
 		shutterGlasses = 1;
@@ -2054,13 +2057,13 @@ int stereo_shutter_pick(void *_self, int mev, int butnum, int mouseX, int mouseY
 	contenttype *c;
 	contenttype_stereo_shutter *self;
 	X3D_Viewer *viewer;
-	Stack *vportstack;
-	ttglobal tg = gglobal();
+	// OLDCODE Stack *vportstack;
+	// OLDCODE ttglobal tg = gglobal();
 
 	self = (contenttype_stereo_shutter *)_self;
 	viewer = Viewer();
 	viewer->isStereoB = 1;
-	vportstack = (Stack*)tg->Mainloop._vportstack;
+	// OLDCODE vportstack = (Stack*)tg->Mainloop._vportstack;
 
 	iret = 0;
 	if(checknpush_viewport(self->t1.viewport,mouseX,mouseY)){  //generic viewport
@@ -3209,24 +3212,14 @@ int fwl_hwnd_to_windex(void *hWnd){
 	return 0;
 }
 
-//double *get_view_matrixd() {
-//	bindablestack *bstack;
-//	ppMainloop p;
-//	ttglobal tg = gglobal();
-//	p = (ppMainloop)tg->Mainloop.prv;
-//
-//	bstack = getActiveBindableStacks(tg);
-//	return bstack->viewtransformmatrix;
-//
-//}
 void get_view_matrix(double *savePosOri, double *saveView) {
 	//iq 2 3
 	//   0 1
 	//no comprendo - por que no veo difference.
 	bindablestack *bstack;
-	ppMainloop p;
+	// OLDCODE ppMainloop p;
 	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	// OLDCODE p = (ppMainloop)tg->Mainloop.prv;
 
 		bstack = getActiveBindableStacks(tg);
 		matcopy(saveView,bstack->viewtransformmatrix);
@@ -3335,26 +3328,6 @@ void activate_OSCsensors();
   A: look in Makefile.am (vtempl will create it automatically in internal_version.c).
 
 */
-
-/* stop the display thread. Used (when this comment was made) by the OSX Safari plugin; keeps
-most things around, just stops display thread, when the user exits a world. */
-static void stopDisplayThread()
-{
-	ttglobal tg = gglobal();
-	if (!TEST_NULL_THREAD(tg->threads.DispThrd)) {
-		//((ppMainloop)(tg->Mainloop.prv))->quitThread = TRUE;
-		tg->threads.MainLoopQuit = max(1, tg->threads.MainLoopQuit); //make sure we don't go backwards in the quit process with a double 'q'
-		//pthread_join(tg->threads.DispThrd,NULL);
-		//ZERO_THREAD(tg->threads.DispThrd);
-	}
-}
-#ifndef SIGTERM
-#define SIGTERM SIG_TERM
-#endif
-
-
-
-
 
 
 #if !defined(_MSC_VER)
@@ -3589,11 +3562,12 @@ void free_contenttypes(){
 
 void setup_stagesNORMAL(){
 	int i;
-	targetwindow *twindows, *t;
+	//OLDCODE targetwindow *twindows;
+	targetwindow *t;
 	ttglobal tg = gglobal();
 	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
-	twindows = p->cwindows;
+	//OLDCODE twindows = p->cwindows;
 	//t = twindows;
 	//while(t){
 	for(i=0;i<p->nwindow;i++){
@@ -3718,11 +3692,11 @@ void setup_stagesNORMAL(){
 		}
 		{
 			//4. e3dmouse: multitouch emulation, layer, (e3dmouse > scene), statusbarHud, 
-			contenttype *csbh, *cscene, *cmultitouch, *ce3dmouse;
+			contenttype *csbh, *cscene, *ce3dmouse; // UNUSED cmultitouch
 
 			csbh = new_contenttype_statusbar();
 			ce3dmouse = new_contenttype_e3dmouse();
-			cmultitouch = new_contenttype_multitouch();
+			// UNUSED cmultitouch = new_contenttype_multitouch();
 			cscene = new_contenttype_scene();
 
 			csbh->t1.contents = ce3dmouse;
@@ -4141,9 +4115,9 @@ void render_multitouch2(struct Touch *touchlist, int ntouch){
 }
 void record_multitouch(struct Touch *touchlist, int mev, int butnum, int mouseX, int mouseY, int ID, int windex, int ihandle){
 	struct Touch *touch;
-	ppMainloop p;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	//ppMainloop p;
+	//ttglobal tg = gglobal();
+	//p = (ppMainloop)tg->Mainloop.prv;
 
 	touch = &touchlist[ID];
 	if(ihandle == -2){
@@ -4325,8 +4299,8 @@ int fwl_handle_mouse(int mev, int butnum, int mouseX, int mouseY, int windex){
 int fwl_handle_touch(int mev, unsigned int ID, int mouseX, int mouseY, int windex) {
 	int cstyle;
 	int ibut;
-	ttglobal tg = gglobal();
-	ppMainloop p = (ppMainloop)tg->Mainloop.prv;
+	// OLDCODE ttglobal tg = gglobal();
+	// OLDCODE ppMainloop p = (ppMainloop)tg->Mainloop.prv;
 
 	//mobile: touch drags only occur when something is down, so LMB is constant
 	//localhost: touch drags can have mev = move, with no Press preceding, for a mouse up drag
@@ -4343,7 +4317,8 @@ void viewer_setpose(double *quat4, double *vec3);
 static int using_sensors_for_navigation = 1; //in theory we could use for other things, or turn off
 static int using_magnetic = 0;
 static int using_gyro = 1;
-static int using_accelerometer = 0;
+//OLDCODE static int using_accelerometer = 0;
+
 void fwl_handle_gyro(float rx, float ry, float rz) {
 	if(using_sensors_for_navigation &&  using_gyro){
 		double axyz[3], dd[3], quat4[4], vec3[3]; //, ypr[3]; //Axyz[3], 
@@ -4437,99 +4412,101 @@ void fwl_handle_magnetic(float azimuth, float pitch, float roll) {
 	}
 }
 
-void fwl_handle_magnetic_old(float azimuth, float pitch, float roll) {
-	ConsoleMessage("hi from handle_magnetic %f %f %f\n", azimuth, pitch, roll);
-	if(using_sensors_for_navigation && using_magnetic){
-		static int initialized = 0;
-		static float home_azimuth = 0.0f, home_pitch = 0.0f, home_roll = 0.0f;
-		static double lasttime, curtime, dt;
-		Quaternion qq, qq2;
-		static Quaternion qq0;
-		float dazimuth,ddazimuth, dpitch, droll; //,ddroll;ddpitch,
-		double quat4[4], vec3[3], rxyz[3];
-		static double ypr[3];
-		static float lazimuth, lpitch, lroll;
-		//we'll use use azimuth relative * time, and pitch absolute
-		//assume startup azimuth is home azimuth
-		// x the axes are mixed up
-		// x seems to depend on orientation
-		// x my quat2yawpitch isn't comprehensive enought, need roll to understand
-		if(!initialized){
-			home_azimuth = azimuth;
-			home_pitch = pitch;
-			home_roll = roll;
-			lazimuth = azimuth;
-			lpitch = pitch;
-			lroll = roll;
-			lasttime = Time1970sec();
-			initialized = 1;
-			if(0){
-			viewer_getpose(quat4, vec3);
-			double2quat(&qq0, quat4);
-			quaternion_normalize(&qq0);
-			//quat2yawpitch(ypr, &qq0); 
-			quat2euler(ypr,0,&qq0);
-			//in thoery euler rotations can be extracted sequentially from quaternions:
-			// qy = quat2yaw(q0) // gets yaw
-			// q1 = qy.inverse()*q0 //gets pitch+roll
-			// qp = quat2pitch(q1) // gets pitch
-			// qr = qp.inverse()*q1 //gets roll 
-			// yaw = qy.toEuler()
-			// pitch = qp.toEuler()
-			// roll = qr.toEuler()
-			// and you would get different value depending on the sequence, 
-			// but when multiplied back together in reverse sequence you would/should get original q0
-			}
-
-		}
-		curtime = Time1970sec();
-		dt = curtime - lasttime;
-		lasttime = curtime;
-
-		if(1){
-		viewer_getpose(quat4, vec3);
-		double2quat(&qq0,quat4);
-		quaternion_normalize(&qq0);
-		//quat2yawpitch(ypr,&qq0);
-		quat2euler(ypr,0,&qq0);
-		}
-		//quat2euler(rxyz,0,&qq);
-		dazimuth = (azimuth - home_azimuth);// * dt; // * .1;
-		ddazimuth = dazimuth - lazimuth;
-		lazimuth = dazimuth;
-		if (fabs(ddazimuth) < .7f)
-			dazimuth = 0.0;
-		if(fabs(ddazimuth) < 2.0f)
-			dazimuth = .01f * dazimuth;
-		if(fabs(ddazimuth) < 10.0f)
-			dazimuth = .1f * dazimuth;
-
-		dpitch = (pitch - home_pitch);
-		droll = (roll - home_roll);
-		//time based azimuth is doing nothing
-		//roll throws it off, pitch crazy.
-		// I don't have the right formula and not sure tinkering will help
-		rxyz[2] = dazimuth*PI/180.0;
-		rxyz[1] = (50.0 - droll )*PI/50.0*dt; //180.0;
-		//rxyz[2] = 0.0;
-		rxyz[0] = 0.0;
-		rxyz[1] = 0.0;
-		//rxyz[1] = droll; // dpitch;
-		//rxyz[2] = dpitch;
-		//rxyz[1] = roll*PI/180.0;
-		//rxyz[0] = azimuth*PI/180.0;
-		euler2quat(&qq2,rxyz[0],rxyz[1],-rxyz[2]);
-		quaternion_multiply(&qq,&qq2,&qq0); //cumquat should be in world2vp sense like view
-		quaternion_normalize(&qq);
-
-		quat2double(quat4,&qq);
-		viewer_setpose(quat4,vec3);
-		//home_azimuth = azimuth;
-		home_pitch = pitch;
-		//home_roll = roll;
-
-	}
-}
+#ifdef OLDCODE 
+OLDCODE void fwl_handle_magnetic_old(float azimuth, float pitch, float roll) {
+OLDCODE 	ConsoleMessage("hi from handle_magnetic %f %f %f\n", azimuth, pitch, roll);
+OLDCODE 	if(using_sensors_for_navigation && using_magnetic){
+OLDCODE 		static int initialized = 0;
+OLDCODE 		static float home_azimuth = 0.0f, home_pitch = 0.0f, home_roll = 0.0f;
+OLDCODE 		static double lasttime, curtime, dt;
+OLDCODE 		Quaternion qq, qq2;
+OLDCODE 		static Quaternion qq0;
+OLDCODE 		float dazimuth,ddazimuth, dpitch, droll; //,ddroll;ddpitch,
+OLDCODE 		double quat4[4], vec3[3], rxyz[3];
+OLDCODE 		static double ypr[3];
+OLDCODE 		static float lazimuth, lpitch, lroll;
+OLDCODE 		//we'll use use azimuth relative * time, and pitch absolute
+OLDCODE 		//assume startup azimuth is home azimuth
+OLDCODE 		// x the axes are mixed up
+OLDCODE 		// x seems to depend on orientation
+OLDCODE 		// x my quat2yawpitch isn't comprehensive enought, need roll to understand
+OLDCODE 		if(!initialized){
+OLDCODE 			home_azimuth = azimuth;
+OLDCODE 			home_pitch = pitch;
+OLDCODE 			home_roll = roll;
+OLDCODE 			lazimuth = azimuth;
+OLDCODE 			lpitch = pitch;
+OLDCODE 			lroll = roll;
+OLDCODE 			lasttime = Time1970sec();
+OLDCODE 			initialized = 1;
+OLDCODE 			if(0){
+OLDCODE 			viewer_getpose(quat4, vec3);
+OLDCODE 			double2quat(&qq0, quat4);
+OLDCODE 			quaternion_normalize(&qq0);
+OLDCODE 			//quat2yawpitch(ypr, &qq0); 
+OLDCODE 			quat2euler(ypr,0,&qq0);
+OLDCODE 			//in thoery euler rotations can be extracted sequentially from quaternions:
+OLDCODE 			// qy = quat2yaw(q0) // gets yaw
+OLDCODE 			// q1 = qy.inverse()*q0 //gets pitch+roll
+OLDCODE 			// qp = quat2pitch(q1) // gets pitch
+OLDCODE 			// qr = qp.inverse()*q1 //gets roll 
+OLDCODE 			// yaw = qy.toEuler()
+OLDCODE 			// pitch = qp.toEuler()
+OLDCODE 			// roll = qr.toEuler()
+OLDCODE 			// and you would get different value depending on the sequence, 
+OLDCODE 			// but when multiplied back together in reverse sequence you would/should get original q0
+OLDCODE 			}
+OLDCODE 
+OLDCODE 		}
+OLDCODE 		curtime = Time1970sec();
+OLDCODE 		dt = curtime - lasttime;
+OLDCODE 		lasttime = curtime;
+OLDCODE 
+OLDCODE 		if(1){
+OLDCODE 		viewer_getpose(quat4, vec3);
+OLDCODE 		double2quat(&qq0,quat4);
+OLDCODE 		quaternion_normalize(&qq0);
+OLDCODE 		//quat2yawpitch(ypr,&qq0);
+OLDCODE 		quat2euler(ypr,0,&qq0);
+OLDCODE 		}
+OLDCODE 		//quat2euler(rxyz,0,&qq);
+OLDCODE 		dazimuth = (azimuth - home_azimuth);// * dt; // * .1;
+OLDCODE 		ddazimuth = dazimuth - lazimuth;
+OLDCODE 		lazimuth = dazimuth;
+OLDCODE 		if (fabs(ddazimuth) < .7f)
+OLDCODE 			dazimuth = 0.0;
+OLDCODE 		if(fabs(ddazimuth) < 2.0f)
+OLDCODE 			dazimuth = .01f * dazimuth;
+OLDCODE 		if(fabs(ddazimuth) < 10.0f)
+OLDCODE 			dazimuth = .1f * dazimuth;
+OLDCODE 
+OLDCODE 		dpitch = (pitch - home_pitch);
+OLDCODE 		droll = (roll - home_roll);
+OLDCODE 		//time based azimuth is doing nothing
+OLDCODE 		//roll throws it off, pitch crazy.
+OLDCODE 		// I don't have the right formula and not sure tinkering will help
+OLDCODE 		rxyz[2] = dazimuth*PI/180.0;
+OLDCODE 		rxyz[1] = (50.0 - droll )*PI/50.0*dt; //180.0;
+OLDCODE 		//rxyz[2] = 0.0;
+OLDCODE 		rxyz[0] = 0.0;
+OLDCODE 		rxyz[1] = 0.0;
+OLDCODE 		//rxyz[1] = droll; // dpitch;
+OLDCODE 		//rxyz[2] = dpitch;
+OLDCODE 		//rxyz[1] = roll*PI/180.0;
+OLDCODE 		//rxyz[0] = azimuth*PI/180.0;
+OLDCODE 		euler2quat(&qq2,rxyz[0],rxyz[1],-rxyz[2]);
+OLDCODE 		quaternion_multiply(&qq,&qq2,&qq0); //cumquat should be in world2vp sense like view
+OLDCODE 		quaternion_normalize(&qq);
+OLDCODE 
+OLDCODE 		quat2double(quat4,&qq);
+OLDCODE 		viewer_setpose(quat4,vec3);
+OLDCODE 		//home_azimuth = azimuth;
+OLDCODE 		home_pitch = pitch;
+OLDCODE 		//home_roll = roll;
+OLDCODE 
+OLDCODE 	}
+OLDCODE }
+#endif // OLDCODE
 
 void (*fwl_RenderSceneUpdateScenePTR)() = fwl_RenderSceneUpdateSceneTARGETWINDOWS;
 //#else //MULTI_WINDOW
@@ -5455,7 +5432,7 @@ void setup_pickray0()
 	int viewport[4], x, y;
 	double A[3], B[3], C[3], a[3], b[3];
 	double yaw, pitch, yy,xx;
-	ttglobal tg = gglobal();
+	//OLDCODE ttglobal tg = gglobal();
 
 	getPickrayXY(&x,&y);
 	loadIdentityMatrix(mvident);
@@ -5695,9 +5672,9 @@ void setup_viewpoint_part1() {
 */
 	bindablestack *bstack;
 	X3D_Viewer *viewer;
-	ppMainloop p;
+	// OLDCODE ppMainloop p;
 	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	// OLDCODE p = (ppMainloop)tg->Mainloop.prv;
 
 	bstack = getActiveBindableStacks(tg);
 	viewer = Viewer();
@@ -5821,10 +5798,10 @@ void setup_viewpoint_part2() {
 	 e) transform stack between scene root and currently bound viewpoint (render_hier(rootnode,VF_Viewpoint))
 
 */
-	ppMainloop p;
+	// OLDCODE ppMainloop p;
 	struct X3D_Viewpoint *boundvp;
-	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	// OLDCODE ttglobal tg = gglobal();
+	// OLDCODE p = (ppMainloop)tg->Mainloop.prv;
 
 
 	//capture view part of modelview ie scenegraph transforms between scene root and bound viewpoint
@@ -5863,13 +5840,13 @@ void setup_viewpoint_part3() {
 */
 	double viewmatrix[16];
 	bindablestack *bstack;
-	X3D_Viewer *viewer;
-	ppMainloop p;
+	//OLDCODE X3D_Viewer *viewer;
+	//OLDCODE ppMainloop p;
 	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	//OLDCODE p = (ppMainloop)tg->Mainloop.prv;
 
 	bstack = getActiveBindableStacks(tg);
-	viewer = Viewer();
+	//OLDCODE viewer = Viewer();
 	PRINT_GL_ERROR_IF_ANY("XEvents::setup_viewpoint");
 			fw_glGetDoublev(GL_MODELVIEW_MATRIX, bstack->viewtransformmatrix);
 
@@ -5911,9 +5888,9 @@ void set_viewmatrix0(int iplace) {
 	double viewmatrix[16];
 	bindablestack *bstack;
 	X3D_Viewer *viewer;
-	ppMainloop p;
+	// OLDCODE ppMainloop p;
 	ttglobal tg = gglobal();
-	p = (ppMainloop)tg->Mainloop.prv;
+	// OLDCODE p = (ppMainloop)tg->Mainloop.prv;
 
 	bstack = getActiveBindableStacks(tg);
 	viewer = Viewer();
@@ -6009,7 +5986,7 @@ void fwl_clearWorld(){
 	}
 	if(!done){
 		tg->Mainloop.replaceWorldRequest = NULL;
-		tg->threads.flushing = 1;
+		tg->threads.flushing = true;
 	}
 	return;
 }
@@ -6109,7 +6086,7 @@ void fwl_do_keyPress0(int key, int type) {
 				case '$': resource_tree_dump(0, (resource_item_t*)tg->resources.root_res); break;
 				case '*': resource_tree_list_files(0, (resource_item_t*)tg->resources.root_res); break;
 				case 'q': { if (!RUNNINGASPLUGIN) {
-							fwl_doQuit();
+							fwl_doQuit(__FILE__,__LINE__);
 							}
 							break;
 						}
@@ -6566,9 +6543,9 @@ void get_hyperhit() {
 	struct point_XYZ r11 = {0.0,0.0,1.0}; //note viewpoint/avatar Z=1 behind the viewer, to match the glu_unproject method WinZ = -1
 	struct point_XYZ tp;
 
-	struct currayhit *rh;  //*rhh,
+	//OLDCODE struct currayhit *rh;  //*rhh,
 	ttglobal tg = gglobal();
-	rh = (struct currayhit *)tg->RenderFuncs.rayHit;
+	//OLDCODE rh = (struct currayhit *)tg->RenderFuncs.rayHit;
 
 	//transform last bearing/pickray-local intersection to sensor-local space 
 	// using current?frozen? modelview and current pickmatrix
@@ -6903,18 +6880,19 @@ C. delete instance data
 */
 
 
-int workers_waiting(){
+static int workers_waiting(){
 	BOOL waiting;
 	ttglobal tg = gglobal();
 	waiting = tg->threads.ResourceThreadWaiting && tg->threads.TextureThreadWaiting;
+
 	return waiting;
 }
-void workers_stop()
+static void workers_stop()
 {
 	resitem_queue_exit();
 	texitem_queue_exit();
 }
-int workers_running(){
+static int workers_running(){
 	BOOL more;
 	ttglobal tg = gglobal();
 	more = tg->threads.ResourceThreadRunning || tg->threads.TextureThreadRunning;
@@ -6970,16 +6948,14 @@ void end_of_run_tests(){
 	}
 }
 
-void finalizeRenderSceneUpdateScene() {
+static void finalizeRenderSceneUpdateScene() {
 	//C. delete instance data
 	struct X3D_Node* rn;
 	ttglobal tg = gglobal();
 	printf ("finalizeRenderSceneUpdateScene\n");
 
 	/* set geometry to normal size from fullscreen */
-// OLD_IPHONE_AQUA #ifndef AQUA
 	if (newResetGeometry != NULL) newResetGeometry();
-// OLD_IPHONE_AQUA #endif
 	/* kill any remaining children processes like sound processes or consoles */
 	killErrantChildren();
 	/* tested on win32 console program July9,2011 seems OK */
@@ -7004,7 +6980,7 @@ void finalizeRenderSceneUpdateScene() {
 int checkReplaceWorldRequest(){
 	ttglobal tg = gglobal();
 	if (tg->Mainloop.replaceWorldRequest || tg->Mainloop.replaceWorldRequestMulti){
-		tg->threads.flushing = 1;
+		tg->threads.flushing = true;
 	}
 	return tg->threads.flushing;
 }
@@ -7013,10 +6989,11 @@ int checkExitRequest(){
 	return exitRequest;
 }
 
-int checkQuitRequest(){
+static int checkQuitRequest(){
 	ttglobal tg = gglobal();
-	if (tg->threads.MainLoopQuit == 1){
-		tg->threads.flushing = 1;
+	if ((tg->threads.MainLoopQuit) == 1){
+		//printf ("checkQuitRequest, setting thread.flushing to true\n");
+		tg->threads.flushing = true;
 	}
 	return tg->threads.MainLoopQuit;
 }
@@ -7045,7 +7022,7 @@ void doReplaceWorldRequest()
 		//send_resource_to_parser_async(resm);
 		resitem_enqueue(ml_new(resm));
 	}
-	tg->threads.flushing = 0;
+	tg->threads.flushing = false;
 }
 static int(*view_initialize)() = NULL;
 //
@@ -7095,14 +7072,15 @@ int fwl_draw()
 		}
 		p->draw_initialized = TRUE;
 	}
-	if(more) //more = TRUE;
+	if(more) {//more = TRUE;
 	switch (tg->threads.MainLoopQuit){
 	case 0:
 	case 1:
 		//PRINTF("event loop\n");
-		switch (tg->threads.flushing)
+		//switch (tg->threads.flushing)
+		if (tg->threads.flushing ==false) 
 		{
-		case 0:
+		//case 0:
 			profile_end("frontend");
 			profile_start("mainloop");
 			//model: udate yourself
@@ -7111,40 +7089,48 @@ int fwl_draw()
 			profile_start("frontend");
 
 			PRINT_GL_ERROR_IF_ANY("XEvents::render");
-			checkReplaceWorldRequest(); //will set flushing=1
-			checkQuitRequest(); //will set flushing=1
-			break;
-		case 1:
+			checkReplaceWorldRequest(); //will set flushing=true
+			checkQuitRequest(); //will set flushing=true
+			//break;
+		} else {
+		//case 1:
 			if (workers_waiting()) //one way to tell if workers finished flushing is if their queues are empty, and they are not busy
 			{
-                //if (!tg->Mainloop.replaceWorldRequest || tg->threads.MainLoopQuit) //attn Disabler
+
 				//kill_oldWorldB(__FILE__, __LINE__); //cleans up old scene while leaving gglobal intact ready to load new scene
 				reset_Browser(); //rename
-				tg->threads.flushing = 0;
+				tg->threads.flushing = false;
 				if (tg->threads.MainLoopQuit)
 					tg->threads.MainLoopQuit++; //quiting takes priority over replacing
 				else
 					doReplaceWorldRequest();
+			} else {
+				//printf ("fwl_draw, mainLoopQuit %d, workers NOT waiting\n",tg->threads.MainLoopQuit);
+				tg->threads.MainLoopQuit++;
 			}
-		}
+		} // end of threads.flushing test
+
 		break;
 	case 2:
 		//tell worker threads to stop gracefully
 		workers_stop();
 		//killNodes(); //deallocates nodes MarkForDisposed
 		//killed above kill_oldWorldB(__FILE__,__LINE__);
+
 		tg->threads.MainLoopQuit++;
 		break;
 	case 3:
 		//check if worker threads have exited
 		more = workers_running();
-        if (more == 0)
-        {
-			//moved from desktop.c for disabler
-            finalizeRenderSceneUpdateScene();
-        }
+        	if (more == 0)
+        	{
+        	    finalizeRenderSceneUpdateScene();
+        	}
 		break;
-	}
+	} // end of case
+	} // end of if (more) clause 
+
+
 	return more;
 }
 
@@ -7195,9 +7181,11 @@ void _disposeThread(void *globalcontext);
 void fwl_doQuitInstance(void *tg_remote)
 {
     ttglobal tg = gglobal();
+printf ("fwl_doQuitInstance called\n");
+
     if (tg_remote == tg)
     {
-        fwl_doQuit();
+        fwl_doQuit(__FILE__,__LINE__);
         fwl_draw();
         workers_stop();
         fwl_clearCurrentHandle();
@@ -7236,17 +7224,19 @@ void _disposeThread(void *globalcontext)
     }
 }
 
-void fwl_doQuit()
+void fwl_doQuit(char *fl, int ln)
 {
 	ttglobal tg = gglobal();
 	tg->threads.MainLoopQuit = max(1,tg->threads.MainLoopQuit); //make sure we don't go backwards in the quit process with a double 'q'
+	// printf ("fwl_doQuit - setting MainLoopQuit to %d from file %s:%d\n", tg->threads.MainLoopQuit,
+	// fl,ln);
 }
 
 void fwl_doQuitAndWait(){
 	pthread_t displaythread;
 	ttglobal tg = gglobal();
 	displaythread = tg->threads.DispThrd;
-	fwl_doQuit();
+	fwl_doQuit(__FILE__,__LINE__);
 	pthread_join(displaythread,NULL);
 
 }
@@ -7265,7 +7255,7 @@ void fwl_tmpFileLocation(char *tmpFileLocation) {
 void close_internetHandles();
 void freewrlDie (const char *format) {
         ConsoleMessage ("Catastrophic error: %s\n",format);
-        fwl_doQuit();
+        fwl_doQuit(__FILE__,__LINE__);
 }
 
 //with multi-touch, touches are flowing in and around, but you normally have 20 or fewer fingers on the screen
@@ -7539,89 +7529,6 @@ void update_navigation(){
 	}
 }
 
-/* old function BROKEN but need orientation code for repair */
-int fwl_handle_aqua1(const int mev, const unsigned int button, int x, int yup, int windex) {
-	int screenWidth, screenHeight;
-    ttglobal tg = gglobal();
-
-	/* printf ("fwl_handle_aqua, type %d, screen wid:%d height:%d, orig x,y %d %d\n",
-            mev,tg->display.screenWidth, tg->display.screenHeight,x,y); */
-	fwl_getWindowSize1(windex,&screenWidth,&screenHeight);
-
-	// do we have to worry about screen orientations (think mobile devices)
-	#if defined (IPHONE) || defined (_ANDROID)
-	{
-
-        // iPhone - with home button on bottom, in portrait mode,
-        // top left hand corner is x=0, y=0;
-        // bottom left, 0, 468)
-        // while standard opengl is (0,0) in lower left hand corner...
-		int ox,oy,y;
-		ox = x;
-		oy = yup;
-
-		y = screenHeight - yup;
-		// these make sense for walk navigation
-		if (Viewer()->type == VIEWER_WALK) {
-			switch (Viewer()->screenOrientation) {
-				case 0:
-					x = screenHeight-x;
-
-					break;
-				case 90:
-					x = oy;
-					y = ox;
-					break;
-				case 180:
-					x = x;
-					y = -y;
-					break;
-				case 270:
-					x = screenWidth - oy;
-					y = screenHeight - ox;
-					break;
-				default:{}
-			}
-
-		// these make sense for examine navigation
-		} else if (Viewer()->type == VIEWER_EXAMINE) {
-			switch (Viewer()->screenOrientation) {
-				case 0:
-					break;
-				case 90:
-					x = screenWidth - oy;
-					y = ox;
-					break;
-				case 180:
-					x = screenWidth -x;
-					y = screenHeight -y;
-					break;
-				case 270:
-					// nope x = tg->display.screenWidth - oy;
-					// nope y = tg->display.screenHeight - ox;
-
-					x = screenHeight - oy;
-					y = screenWidth - ox;
-
-					//printf ("resulting in x %d  y %d\n",x,y);
-					break;
-				default:{}
-			}
-
-		}
-		yup = screenHeight - y;
-	}
-
-	#endif
-
-	//if(((ppMainloop)(tg->Mainloop.prv))->EMULATE_MULTITOUCH){
-	//	emulate_multitouch(mev,button,x, yup,windex);
-	//}else{
-	//	fwl_handle_aqua_multi(mev,button,x,yup,0,windex);
-	//}
-	return getCursorStyle();
-}
-
 /* mobile devices - set screen orientation */
 /* "0" is "normal" orientation; degrees clockwise; note that face up and face down not
    coded; assume only landscape/portrait style orientations */
@@ -7848,18 +7755,6 @@ void fwl_reload()
 }
 
 #endif //NOT _ANDROID
-
-
-/* OSX the Plugin is telling the displayThread to stop and clean everything up */
-void stopRenderingLoop(void) {
-	ttglobal tg = gglobal();
-
-	if(!((freewrl_params_t*)(tg->display.params))->frontend_handles_display_thread)
-    	stopDisplayThread();
-
-    setAnchorsAnchor( NULL );
-    tg->RenderFuncs.BrowserAction = TRUE;
-}
 
 
 /* send the description to the statusbar line */
