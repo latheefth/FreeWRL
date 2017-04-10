@@ -154,8 +154,11 @@ static int sniffImageFileHeader(char *filename) {
 // except through the file conents we can get the signature
 	char header[20];
 	int iret;
+	size_t rvt;
+	UNUSED(rvt);
+
 	FILE* fp = fopen(filename,"rb");
-	fread(header,20,1,fp);
+	rvt=fread(header,20,1,fp);
 	fclose(fp);
 
 	iret = IMAGETYPE_UNKNOWN;
@@ -486,8 +489,14 @@ int loadImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 
 	fp = fopen(fname,"r");
 	if (fp != NULL) {
+		char *rv;
+		int rvi;
 		char line [1000];
-		fgets(line,1000,fp);
+
+		UNUSED(rv);
+		UNUSED(rvi);
+
+		rv=fgets(line,1000,fp);
 		if(strncmp(line,"x3di3d",6)){
 			//not our type
 			fclose(fp);
@@ -495,7 +504,7 @@ int loadImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 		}
 		ishex = 0;
 		if(!strncmp(line,"x3di3d x",8)) ishex = 1;
-		fscanf(fp,"%d %d %d %d",&nchan, &nx,&ny,&nz);
+		rvi=fscanf(fp,"%d %d %d %d",&nchan, &nx,&ny,&nz);
 		totalbytes = 4 * nx * ny * nz;
 		if(totalbytes <= 128 * 128 * 128 * 4){
 			unsigned char *rgbablob;
@@ -508,9 +517,9 @@ int loadImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 					for(k=0;k<nx;k++){
 						unsigned char pixel[4],*rgba;
 						if(ishex)
-							fscanf(fp,"%x",&pixint);
+							rvi=fscanf(fp,"%x",&pixint);
 						else
-							fscanf(fp,"%d",&pixint);
+							rvi=fscanf(fp,"%d",&pixint);
 						//assume incoming red is high order, alpha is low order byte
 						pixel[0] = (pixint >> 0) & 0xff; //low byte/little endian ie alpha, or B for RGB
 						pixel[1] = (pixint >> 8) & 0xff;
@@ -556,12 +565,10 @@ void saveImage3D_x3di3d(struct textureTableIndexStruct *tti, char *fname){
 	3 channgels, nx=4, ny=6, nz=2 and one int string per pixel
 	format 'invented' by dug9 for testing
 */
-	int i,j,k,nx,ny,nz, iret, ipix, nchan;
+	int i,j,k,nx,ny,nz, ipix, nchan;
 	unsigned int pixint;
-	char *rgbablob;
+	unsigned char *rgbablob;
 	FILE *fp;
-
-	iret = FALSE;
 
 	fp = fopen(fname,"w+");
 	nchan = tti->channels;
@@ -642,38 +649,41 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 
 	fp = fopen(fname,"r");
 	if (fp != NULL) {
+		char *rv; 
+		UNUSED(rv);
+
 		char line [1000];
-		fgets(line,1000,fp);
+		rv = fgets(line,1000,fp);
 		if(strncmp(line,"web3dit",7)){
 			//not our type
 			fclose(fp);
 			return iret;
 		}
 		//could sniff Geometry here, if caller says what geometry type is OK for them, return if not OK
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%c",&Geometry);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%d",&version);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%s",ODescription);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%c",&Type);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%d %d",&Rmin,&Rmax);
 
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%d",&Nchannelspervalue);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%d",&Mvaluesperpixel);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%s",Componentnames);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%d",&Dimensions);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%d %d %d",&Pixels[0], &Pixels[1], &Pixels[2]);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%c",&YDirection);
-		fgets(line,1000,fp); //waste #I Image warning line
+		rv=fgets(line,1000,fp); //waste #I Image warning line
 
 
 		nx = ny = nz = 1;
@@ -699,16 +709,19 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 						unsigned char pixel[4],*rgba, n;
 						pixel[0] = pixel[1] = pixel[2] = pixel[3] = 0;
 						for(m=0;m<nv;m++){
+							int rvi;
+							UNUSED(rvi);
+
 							switch(Type){
 								case 'f':
-								fscanf(fp,"%f",&pixfloat);
+								rvi=fscanf(fp,"%f",&pixfloat);
 								break;
 								case 'x':
-								fscanf(fp,"%x",&pixint);
+								rvi=fscanf(fp,"%x",&pixint);
 								break;
 								case 'i':
 								default:
-								fscanf(fp,"%d",&pixint);
+								rvi=fscanf(fp,"%d",&pixint);
 								break;
 							}
 							for(n=0;n<nc;n++){
@@ -757,10 +770,11 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 				for(i=0;i<tti->z;i++){
 					for(j=0;j<tti->y;j++){
 						for(k=0;k<tti->x;k++){
-							int ipix,jpix,kpix;
+							int ipix,kpix;
+							// int jpix;
 							unsigned int pixint;
 							ipix = (i*tti->y + j)*tti->x + k;
-							jpix = (i*tti->y + (tti->y -1 - j))*tti->x + k;
+							//jpix = (i*tti->y + (tti->y -1 - j))*tti->x + k;
 							kpix = ipix; //print it like we see it
 							memcpy(&pixint,&tti->texdata[kpix*4],4);
 							printf("%x ",pixint);
@@ -806,15 +820,13 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 	"""
 	format 'invented' by dug9 for testing freewrl, License: MIT
 */
-	int i,j,k,nx,ny,nz, iret, ipix, jpix, kpix, iydown, nchan;
+	int i,j,k,nx,ny,nz, ipix, jpix, kpix, iydown, nchan;
 	int version, Rmin, Rmax, Nchannelspervalue, Mvaluesperpixel, Dimensions;
 	unsigned int pixint;
-	char Geometry, *ODescription, Type, *Componentnames, Pixels[10], YDirection;
+	char Geometry, *ODescription, Type, *Componentnames, YDirection;
+	//char Pixels[10];
 	static char *LRGBA [] = {"L","LA","RGB","RGBA"};
 	FILE *fp;
-
-
-	iret = FALSE;
 
 	fp = fopen(fname,"w+");
 	if (fp != NULL) {
@@ -825,9 +837,9 @@ D       #Y {U,D} image y-Down or texture y-Up row order
 		nz = tti->z;
 		rgbablob = tti->texdata;
 		Dimensions = nz == 1 ? 2 : 3;
-		Pixels[0] = nx;
-		Pixels[1] = ny;
-		Pixels[2] = nz;
+		//Pixels[0] = nx;
+		//Pixels[1] = ny;
+		//Pixels[2] = nz;
 		Nchannelspervalue = nchan;
 		Mvaluesperpixel = 1;
 		Rmin = 0;
@@ -911,7 +923,8 @@ The endian is one of
 0 for big endian (most significant byte first). For example Motorola processors, Sun, SGI, some HP.
 1 for little endian (least significant byte first). For example Intel processors, Dec Alphas.
 */
-	int i,j,k,nx,ny,nz, bitsperpixel, bpp, iendian, iret, totalbytes, ipix, jpix, nchan;
+	int i,j,k,nx,ny,nz, bitsperpixel, bpp, iendian, iret, totalbytes, ipix, nchan;
+	// unused int jpix;
 	float sx,sy,sz,tx,ty,tz;
 	FILE *fp;
 
@@ -919,20 +932,23 @@ The endian is one of
 
 	fp = fopen(fname,"r+b");
 	if (fp != NULL) {
+		char *rv;
+		UNUSED(rv);
+
 		char line [1000];
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		if(strncmp(line,"vol",3)){
 			//for now we'll enforce 'vol' as first the chars of file for sniffing, but not enforcable
 			fclose(fp);
 			return iret;
 		}
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%d %d %d",&nx,&ny,&nz);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%f %f %f",&sx,&sy,&sz);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%f %f %f",&tx,&ty,&tz);
-		fgets(line,1000,fp);
+		rv=fgets(line,1000,fp);
 		sscanf(line,"%d %d",&bitsperpixel,&iendian);
 		bpp = bitsperpixel / 8;
 		nchan = 1;
@@ -956,18 +972,21 @@ The endian is one of
 		totalbytes = bpp * nx * ny * nz;
 		if(totalbytes < 128 * 128 * 128 *4){
 			unsigned char* blob, *rgbablob;
+			size_t rvt;
+			UNUSED(rvt);
+
 			blob = malloc(totalbytes + 4);
 			rgbablob = malloc(nx * ny * nz * 4);
 			memset(rgbablob,0,nx*ny*nz*4);
 
-			fread(blob,totalbytes,1,fp);
+			rvt=fread(blob,totalbytes,1,fp);
 			//now convert to RGBA 4 bytes per pixel
 			for(i=0;i<nz;i++){
 				for(j=0;j<ny;j++){
 					for(k=0;k<nx;k++){
 						unsigned char *pixel,*rgba;
 						ipix = (i*ny +j)*nx +k; //incoming image 
-						jpix = (i*ny +(ny-1-j))*nx +  k;
+						//jpix = (i*ny +(ny-1-j))*nx +  k;
 						pixel = &blob[ipix*bpp];
 						rgba = &rgbablob[ipix*4];
 						rgba[3] = 255;
@@ -1141,7 +1160,9 @@ encoding: raw
 	fp = fopen(fname,"r+b"); //need +b for binary mode, to read over nulls
 	if (fp != NULL) {
 		unsigned long long i,j,k;
-		int ifieldtype, idatatype, kdatatype, idim, ilen, isize[4], iendian, iencoding, ifound,slen,klen, bsize;
+		int ifieldtype, idatatype;
+		// int kdatatype;
+		int idim, ilen, isize[4], iendian, iencoding, ifound,slen,klen, bsize;
 		char line [2048];
 		char cendian[256], cencoding[256];
 		char *remainder;
@@ -1153,24 +1174,29 @@ encoding: raw
 		double dhi, dlo; 
 		double d255range;
 		int counts[256]; //histogram
+		char *rv;
+		UNUSED(rv);
 
-		fgets(line,2047,fp);
+		dhi=0.0; dlo=0.0;
+
+		rv=fgets(line,2047,fp);
 		if(strncmp(line,"NRRD",4)){
 			//not our type
 			fclose(fp);
 			return iret;
 		}
 
+		fmt = "";
 		iendian = 0;// NRRDENDIAN_LITTLE;
 		idim = 0; //3;
 		idatatype = 0; // CDATATYPE_int;
 		isize[0] = isize[1] = isize[2] = isize[3] = 0;
 		iencoding = 0; //NRRDENCODING_RAW;
 		bsize = 1; //binary size of voxel, in bytes, for mallocing
-		kdatatype = 0; //index into nrrddatatypes array
+		// kdatatype = 0; //index into nrrddatatypes array
 		//read header field, one per loop:
 		for(;;){
-			fgets(line,2047,fp);
+			rv=fgets(line,2047,fp);
 			i = 0;
 			ifieldtype = 0; //unknown
 			ilen = 0; //length of field string
@@ -1215,7 +1241,7 @@ encoding: raw
 								if(!strncmp(remainder,nrrddatatypes[k].stypes[j],klen)){
 									ifound = TRUE;
 									idatatype = nrrddatatypes[k].itype;
-									kdatatype = (int)k;
+									//kdatatype = (int)k;
 									bsize = nrrddatatypes[k].bsize;
 									fmt = nrrddatatypes[k].fmt;
 									break; //break out of 0,7 loop
@@ -1308,7 +1334,7 @@ encoding: raw
 				//data endian doesnt match machine endian - swap unconditionally
 				printf("swapping endian\n");
 				for(i=0;i<nvoxel;i++){
-					char * voxel = &data[i*bsize];
+					unsigned char * voxel = &data[i*bsize];
 					for(j=0;j<bsize/2;j++){
 						char c;
 						k = bsize -1 - j;
@@ -1326,8 +1352,11 @@ encoding: raw
 				for(j=0;j<isize[1];j++){
 					//read a row
 					for(k=0;k<isize[0];k++){
+						int rvi;
+						UNUSED(rvi);
+
 						//read a voxel - unfamiliar theory/method, dont trust
-						fscanf(fp,fmt,voxel);
+						rvi=fscanf(fp,fmt,voxel);
 						//put voxel in data
 						memcpy(&data[kvox*bsize],voxel,bsize);
 					}
@@ -1381,7 +1410,7 @@ encoding: raw
 		for(i=0;i<nvoxel;i++){
 			unsigned char *voxel;
 			//unsigned char A;
-			unsigned char *rgba = &tti->texdata[i*4];
+			// unused unsigned char *rgba = &tti->texdata[i*4];
 			//LUM-ALPHA with RGB=1, A= voxel scalar
 			voxel = &data[i*bsize];
 			switch(idatatype){
@@ -1445,6 +1474,8 @@ encoding: raw
 			unsigned char A;
 			unsigned char *rgba = &tti->texdata[i*4];
 			//LUM-ALPHA with RGB=1, A= voxel scalar
+
+			A = '\0';
 			voxel = &data[i*bsize];
 			if(1){
 				//no range-scale method - might be needed for experiments
@@ -1460,7 +1491,7 @@ encoding: raw
 					break;
 					case CDATATYPE_ushort: 
 						{
-						static unsigned short lastushort = 1;
+						//static unsigned short lastushort = 1;
 						unsigned short thisushort;
 						memcpy(&thisushort,voxel,bsize);
 						//thisushort = *(unsigned short*)voxel;
@@ -1472,7 +1503,7 @@ encoding: raw
 						//if(thisushort != lastushort)
 						//	printf("%d ", (int)thisushort);
 						counts[thisushort]++;
-						lastushort = thisushort;
+						//lastushort = thisushort;
 						A = (unsigned char) thisushort;
 						}
 					break;
@@ -2005,7 +2036,7 @@ static int loadImageTexture_png(textureTableIndexStruct_s* this_tex, char *filen
 	if(tactic == TACTIC_FROM_FILE){
 		char header[8];
 		fp = fopen(filename,"rb");
-		fread(header, 1, 8, fp);
+		rvt=fread(header, 1, 8, fp);
 		is_png = !png_sig_cmp(png_data, 0, 8);
 		fclose(fp);
 		if (!is_png)
@@ -2202,8 +2233,11 @@ static void __reallyloadImageTexture(textureTableIndexStruct_s* this_tex, char *
 // right now we aren't passing in the .xxx or mime or signature bytes
 // except through the file conents we can get the signature
 	char header[20];
+	size_t rvt;
+	UNUSED(rvt);
+
 	FILE* fp = fopen(filename,"rb");
-	fread(header,20,1,fp);
+	rvt=fread(header,20,1,fp);
 	fclose(fp);
 
 #ifdef HAVE_LIBPNG_H
@@ -2466,7 +2500,8 @@ ConsoleMessage(me);}
 
 			this_tex->texdata = (unsigned char *) imlib_image_get_data_for_reading_only(); 
 			{
-				int nchan, imtype;
+				int nchan;
+				//int nchan, imtype;
 				if(imtype == IMAGETYPE_JPEG)
 					nchan = 3; //jpeg always rgb, no alpha
 				else
@@ -2652,7 +2687,7 @@ static void texture_process_list_item(s_list_t *item)
 }
 
 void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
-s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero, int* wait);
+s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero, bool* wait);
 
 void texitem_enqueue(s_list_t *item){
 	ppLoadTextures p;

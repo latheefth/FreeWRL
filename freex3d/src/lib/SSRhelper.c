@@ -23,7 +23,7 @@
 void threadsafe_enqueue_item(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock);
 s_list_t* threadsafe_dequeue_item(s_list_t** queue, pthread_mutex_t *queue_lock );
 void threadsafe_enqueue_item_signal(s_list_t *item, s_list_t** queue, pthread_mutex_t* queue_lock, pthread_cond_t *queue_nonzero);
-s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero, int *waiting );
+s_list_t* threadsafe_dequeue_item_wait(s_list_t** queue, pthread_mutex_t *queue_lock, pthread_cond_t *queue_nonzero, bool *waiting );
 //from io_files.c L.310
 int load_file_blob(const char *filename, char **blob, int *len);
 //from Viewer.c L.1978
@@ -37,7 +37,7 @@ typedef struct iiglobal *ttglobal;
 static s_list_t *ssr_queue = NULL;
 static pthread_mutex_t ssr_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t ssr_queue_condition = PTHREAD_COND_INITIALIZER;
-static int ssr_server_waiting = FALSE;
+static bool ssr_server_waiting = FALSE;
 
 void SSRserver_enqueue_request_and_wait(void *fwctx, SSR_request *request){
 	//called by A -> B -> C
