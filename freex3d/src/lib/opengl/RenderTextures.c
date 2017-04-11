@@ -46,9 +46,16 @@ texture enabling - works for single texture, for multitexture.
 #include "Material.h"
 
 
+struct multiTexParams {
+int multitex_mode[2];
+int multitex_source[2];
+int multitex_function;
+};
+
 typedef struct pRenderTextures{
 	struct multiTexParams textureParameterStack[MAX_MULTITEXTURE];
 }* ppRenderTextures;
+
 void *RenderTextures_constructor(){
 	void *v = MALLOCV(sizeof(struct pRenderTextures));
 	memset(v,0,sizeof(struct pRenderTextures));

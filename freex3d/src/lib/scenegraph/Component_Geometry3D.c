@@ -439,7 +439,6 @@ void compile_Cylinder (struct X3D_Cylinder * node) {
 		{
 			//prepare flat normals for flat shading style
 			int i3;
-			float *flat_normal = MALLOC(GLfloat*,indx*sizeof(struct SFColor));
 			for(i=0;i<indx/3;i++){
 				float a[3],b[3],c[3],d[3], e[3], f[3], g[3];
 				i3 = i*3;
@@ -657,7 +656,6 @@ void compile_Cone (struct X3D_Cone *node) {
 	{
 		//prepare flat normals for flat shading style
 		int i3;
-		float *flat_normal = MALLOC(GLfloat*,indx*sizeof(struct SFColor));
 		for(i=0;i<indx/3;i++){
 			float a[3],b[3],c[3],d[3], e[3], f[3], g[3];
 			i3 = i*3;
@@ -893,11 +891,9 @@ void compile_Sphere (struct X3D_Sphere *node) {
 
 			{
 				//prepare wireframe indices - we'll use the pindices from above, still on the stack
-				int i, i3, i6, nlines, ntris;
+				int i, i3, i6, ntris;
 				ushort lindex[SPHDIV*SPHDIV*2*3*2];
 				ntris = SPHDIV * SPHDIV * 2;
-				nlines = ntris * 3;
-				//ushort *lindex = MALLOC(ushort *,nlines * 2 * sizeof(ushort));
 				glGenBuffers(1,(GLuint *) &node->__wireindicesVBO);
 				for(i=0;i<ntris;i++){
 					i3 = i*3;

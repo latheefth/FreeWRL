@@ -340,56 +340,55 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 /* or not at all. */
 
 #if !defined( mydds_h )
-#define mydds_h
 
 //  little-endian, of course
 #define DDS_MAGIC 0x20534444
 
 
 //  DDS_header.dwFlags
-#define DDSD_CAPS                   0x00000001 
-#define DDSD_HEIGHT                 0x00000002 
-#define DDSD_WIDTH                  0x00000004 
-#define DDSD_PITCH                  0x00000008 
-#define DDSD_PIXELFORMAT            0x00001000 
-#define DDSD_MIPMAPCOUNT            0x00020000 
-#define DDSD_LINEARSIZE             0x00080000 
-#define DDSD_DEPTH                  0x00800000 
+	#define DDSD_CAPS                   0x00000001 
+//	#define DDSD_HEIGHT                 0x00000002 
+//	#define DDSD_WIDTH                  0x00000004 
+//	#define DDSD_PITCH                  0x00000008 
+	#define DDSD_PIXELFORMAT            0x00001000 
+	#define DDSD_MIPMAPCOUNT            0x00020000 
+//	#define DDSD_LINEARSIZE             0x00080000 
+	#define DDSD_DEPTH                  0x00800000 
 
 //  DDS_header.sPixelFormat.dwFlags
-#define DDPF_ALPHAPIXELS            0x00000001 
-#define DDPF_FOURCC                 0x00000004 
-#define DDPF_INDEXED                0x00000020 
-#define DDPF_RGB                    0x00000040 
+	#define DDPF_ALPHAPIXELS            0x00000001 
+	#define DDPF_FOURCC                 0x00000004 
+	#define DDPF_INDEXED                0x00000020 
+	#define DDPF_RGB                    0x00000040 
 
 //  DDS_header.sCaps.dwCaps1
-#define DDSCAPS_COMPLEX             0x00000008 
-#define DDSCAPS_TEXTURE             0x00001000 
-#define DDSCAPS_MIPMAP              0x00400000 
+	#define DDSCAPS_COMPLEX             0x00000008 
+//	#define DDSCAPS_TEXTURE             0x00001000 
+//	#define DDSCAPS_MIPMAP              0x00400000 
 
 //  DDS_header.sCaps.dwCaps2
-#define DDSCAPS2_CUBEMAP            0x00000200 
-#define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400 
-#define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800 
-#define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000 
-#define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000 
-#define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000 
-#define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000 
-#define DDSCAPS2_VOLUME             0x00200000 
+	#define DDSCAPS2_CUBEMAP            0x00000200 
+	#define DDSCAPS2_CUBEMAP_POSITIVEX  0x00000400 
+	#define DDSCAPS2_CUBEMAP_NEGATIVEX  0x00000800 
+	#define DDSCAPS2_CUBEMAP_POSITIVEY  0x00001000 
+	#define DDSCAPS2_CUBEMAP_NEGATIVEY  0x00002000 
+	#define DDSCAPS2_CUBEMAP_POSITIVEZ  0x00004000 
+	#define DDSCAPS2_CUBEMAP_NEGATIVEZ  0x00008000 
+	#define DDSCAPS2_VOLUME             0x00200000 
 
 /* old way - use 4-char string and cast later, not a good idea 
-#define D3DFMT_DXT1     "1TXD"    //  DXT1 compression texture format 
-#define D3DFMT_DXT2     "2TXD"    //  DXT2 compression texture format 
-#define D3DFMT_DXT3     "3TXD"    //  DXT3 compression texture format 
-#define D3DFMT_DXT4     "4TXD"    //  DXT4 compression texture format 
-#define D3DFMT_DXT5     "5TXD"    //  DXT5 compression texture format 
+	#define D3DFMT_DXT1     "1TXD"    //  DXT1 compression texture format 
+	#define D3DFMT_DXT2     "2TXD"    //  DXT2 compression texture format 
+	#define D3DFMT_DXT3     "3TXD"    //  DXT3 compression texture format 
+	#define D3DFMT_DXT4     "4TXD"    //  DXT4 compression texture format 
+	#define D3DFMT_DXT5     "5TXD"    //  DXT5 compression texture format 
 */
 /* new way - use actual four-byte unsigned integer value */
-#define D3DFMT_DXT1	0x31545844
-#define D3DFMT_DXT2	0x32545844
-#define D3DFMT_DXT3	0x33545844
-#define D3DFMT_DXT4	0x34545844
-#define D3DFMT_DXT5	0x35545844
+	#define D3DFMT_DXT1	0x31545844
+//	#define D3DFMT_DXT2	0x32545844
+	#define D3DFMT_DXT3	0x33545844
+//	#define D3DFMT_DXT4	0x34545844
+	#define D3DFMT_DXT5	0x35545844
 
 
 #define PF_IS_DXT1(pf) \
@@ -936,7 +935,7 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 	/* do we have to split this CubeMap raw data apart? */
 	if (node->__regenSubTextures) {
 		/* Yes! Get the image data from the file, and split it apart */
-		loadTextureNode(X3D_NODE(node),NULL);
+		loadTextureNode(X3D_NODE(node));
 	} else {
 		/* we have the 6 faces from the image, just go through and render them as a cube */
 		if (node->__subTextures.n == 0) return; /* not generated yet - see changed_ImageCubeMapTexture */
@@ -1203,7 +1202,7 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 		tti->status = TEX_NEEDSBINDING; //I found I didn't need - yet
 		tti->x = tti->y = node->size; 
 		//tti->z = 6;
-		loadTextureNode(X3D_NODE(node),NULL);
+		loadTextureNode(X3D_NODE(node));
 		if(tti->ifbobuffer == 0 && haveFrameBufferObject() ){
 			int j, isize;
 			isize = node->size; //node->size is initializeOnly, we will ignore any change during run
@@ -1309,7 +1308,7 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 
 	/* do we have to split this CubeMap raw data apart? */
 	//if (node->__regenSubTextures) {
-	//	loadTextureNode(X3D_NODE(node),NULL);
+	//	loadTextureNode(X3D_NODE(node));
 	//} 
 	//else 
 	{

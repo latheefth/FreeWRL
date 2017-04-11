@@ -402,7 +402,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 						//problem: I don't want it sending image dimensions to my volume shader,
 						// which could confuse the voxel sampler
 						//render_node(tmpN); //render_node(node->texture); 
-						loadTextureNode(tmpN,NULL);
+						loadTextureNode(tmpN);
 						tti = getTableTableFromTextureNode(tmpN);
 						if(tti && tti->status >= TEX_LOADED){
 							glActiveTexture(GL_TEXTURE0+3); 
@@ -967,7 +967,7 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 								//problem: I don't want it sending image dimensions to my volume shader,
 								// which could confuse the voxel sampler
 								//render_node(tmpN); //render_node(node->texture); 
-								loadTextureNode(tmpN,NULL);
+								loadTextureNode(tmpN);
 								tti = getTableTableFromTextureNode(tmpN);
 								if(tti && tti->status >= TEX_LOADED){
 									glActiveTexture(GL_TEXTURE0+2); 
@@ -987,7 +987,7 @@ void fin_volumestyle(struct X3D_Node *vstyle, struct X3D_VolumeData *dataParent)
 								//problem: I don't want it sending image dimensions to my volume shader,
 								// which could confuse the voxel sampler
 								//render_node(tmpN); //render_node(node->texture); 
-								loadTextureNode(tmpN,NULL);
+								loadTextureNode(tmpN);
 								tti = getTableTableFromTextureNode(tmpN);
 								if(tti && tti->status >= TEX_LOADED){
 									glActiveTexture(GL_TEXTURE0+3); 

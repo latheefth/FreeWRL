@@ -99,10 +99,10 @@ void MNX0(struct X3D_Node* node){
 	//MNX Mark Node Changed
 	node->_change++;
 }
-#define NNC(A) NNC0(X3D_NODE(A))
-#define MNC(A) MNC0(X3D_NODE(A))
-#define MNX(A) MNX0(X3D_NODE(A))
-#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
+// #define NNC(A) NNC0(X3D_NODE(A))
+// #define MNC(A) MNC0(X3D_NODE(A))
+// #define MNX(A) MNX0(X3D_NODE(A))
+// #define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
 
 
 void rbp_run_physics();

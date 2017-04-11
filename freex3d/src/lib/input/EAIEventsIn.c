@@ -1140,13 +1140,6 @@ static void handleGETNODEPARENTS (char *bufptr, int repno)
 		free(parentArray);
 }
 
-#define IGNORE_IF_FABRICATED_INTERNAL_NAME \
-	if (cptr!=NULL) if (strncmp(FABRICATED_DEF_HEADER,cptr,strlen(FABRICATED_DEF_HEADER))==0) { \
-		/* printf ("ok, got FABRICATED_DEF_HEADER from %s, ignoring this one\n",cptr); */ \
-		cptr = NULL; \
-	}
-
-
 
 /* get the actual node type, whether Group, IndexedFaceSet, etc, and its DEF name, if applicapable */
 static void handleGETEAINODETYPE (char *bufptr, int repno) {
@@ -1187,8 +1180,6 @@ static void handleGETEAINODETYPE (char *bufptr, int repno) {
 	#else
 	cptr = X3DParser_getNameFromNode(myNode);
 	#endif
-	//IGNORE_IF_FABRICATED_INTERNAL_NAME
-
 
 	if (cptr != NULL) {
 		sprintf (th->outBuffer,"RE\n%f\n%d\n%s %s",TickTime(),repno,myNT, cptr);
@@ -1197,7 +1188,6 @@ static void handleGETEAINODETYPE (char *bufptr, int repno) {
 
         /* Try to get VRML node name */
 	cptr= parser_getNameFromNode(myNode);
-	//IGNORE_IF_FABRICATED_INTERNAL_NAME
 	if (cptr != NULL) {
 		/* Only one of these is right ..... */
 		/* I think it is the first one, because we would have had to know the DEF name in the first place. */

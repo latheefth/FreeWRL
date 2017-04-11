@@ -277,7 +277,8 @@ void do_PickSensorTick(void *ptr){
 	if(unodes->n && pnode){
 		//check all USE-USE combinations of this node and pickTargets
 		//find ME: the picksensor, in the usehit list
-		while(mehit = usehit_next(menode,mehit)){  //hopefully there's only one instance of me/picksensor node in the scenegraph
+		while((mehit = usehit_next(menode,mehit))){  
+			//hopefully there's only one instance of me/picksensor node in the scenegraph
 			//int iret;
 			double meinv[16],memin[3],memax[3];
 			float emin[3], emax[3]; //, halfsize[3];
@@ -322,7 +323,7 @@ void do_PickSensorTick(void *ptr){
 			uhit = NULL;
 			for(j=0;j<unodes->n;j++){
 				unode = unodes->p[j];
-				while(uhit = usehit_next(unode,uhit)){
+				while((uhit = usehit_next(unode,uhit))){
 					//see if they intersect, if so do something about it
 					//-prepare matrixTarget2this
 					int intypes,pickable;
@@ -536,17 +537,17 @@ void do_PickSensorTick(void *ptr){
 											//  create plumbline
 											//  intersect plumbline with target geom and see if intersection count is odd
 											//  if odd (point inside) accumulate geometry list
-											float *points, cumdist;
+											float *points; //, cumdist;
 											int npoints,cumcount,ik;
 											struct X3D_PointSet *ps = (struct X3D_PointSet*)pnode;
 											struct X3D_Coordinate *cc = (struct X3D_Coordinate *)ps->coord;
 											points = (float*)cc->point.p;
 											npoints = cc->point.n;
 
-											cumdist = 0.0f;
+											// cumdist = 0.0f;
 											cumcount = 0;
 											for(ik=0;ik<npoints;ik++){
-												float p1[3], p2[3];
+												float p1[3], p2[4];
 												double dd[3];
 												int ixcount;
 
@@ -559,7 +560,7 @@ void do_PickSensorTick(void *ptr){
 
 												//printf("p1,p2 in cylinder space: [%f %f %f][%f %f %f]\n",
 												//	p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]);
-												if(ixcount = intersect_polyrep2(ghit->node, p1, p2, p->stack_intersections )){
+												if((ixcount = intersect_polyrep2(ghit->node, p1, p2, p->stack_intersections ))){
 													if(ixcount % 2){
 														//if odd number of intersections, then the point is inside
 														struct intersection_info iinfo;
@@ -636,13 +637,14 @@ void do_PickSensorTick(void *ptr){
 														break;
 														case NODE_Cylinder:
 														{
-															float R,H,h,rp;
+															float R,H,rp;
+															//float h;
 															struct X3D_Cylinder * cyl = (struct X3D_Cylinder*)pnode;
 															H = cyl->height;
 															R = cyl->radius;
 															if(pp[1] >= -H/2.0f && pp[1] < H/2.0f){
 																float xz[2];
-																h = pp[1] - (-H/2.0f);
+																//h = pp[1] - (-H/2.0f);
 																xz[0] = pp[0];
 																xz[1] = pp[2];
 																rp = veclength2f(xz);
@@ -678,7 +680,7 @@ void do_PickSensorTick(void *ptr){
 															struct X3D_Box * box = (struct X3D_Box*)pnode;
 															inside = TRUE;
 															for(im=0;im<3;im++)
-																inside = inside && pp[i] >= -box->size.c[i] && pp[i] <= box->size.c[i];
+																inside = inside && pp[im] >= -box->size.c[im] && pp[im] <= box->size.c[im];
 															if(inside){
 																struct intersection_info iinfo;
 																iinfo.dist = veclength3f(pp);
@@ -729,7 +731,7 @@ void do_PickSensorTick(void *ptr){
 													transformAFFINEd(dd,dd,u2meg);
 													double2float(pp,dd,3);
 													{
-														float p1[3], p2[3];
+														float p1[3], p2[4];
 														//double dd[3];
 														int ixcount;
 														veccopy3f(p1, pp);
@@ -738,7 +740,7 @@ void do_PickSensorTick(void *ptr){
 
 														//printf("p1,p2 in cylinder space: [%f %f %f][%f %f %f]\n",
 														//	p1[0],p1[1],p1[2],p2[0],p2[1],p2[2]);
-														if(ixcount = intersect_polyrep2(pnode, p1, p2, p->stack_intersections )){
+														if((ixcount = intersect_polyrep2(pnode, p1, p2, p->stack_intersections ))){
 															if(ixcount % 2){
 																//if odd number of intersections, then the point is inside
 																struct intersection_info iinfo;

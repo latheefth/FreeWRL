@@ -264,7 +264,7 @@ void Component_HAnim_clear(struct tComponent_HAnim *t){
 	//public
 	//private
 	{
-		ppComponent_HAnim p = (ppComponent_HAnim)t->prv;
+		//ppComponent_HAnim p = (ppComponent_HAnim)t->prv;
 	}
 }
 //ppComponent_HAnim p = (ppComponent_HAnim)gglobal()->Component_HAnim.prv;
@@ -560,12 +560,12 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 	}
 	//step 4: add on any Displacer displacements
 	if(p->HH->skinCoord && node->displacers.n ){
-		int nsc, ndp, ni, i;
+		int ni, i;
 		float *psc, *pdp;
 		int *ci;
 		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)p->HH->skinCoord;
 		psc = (float*)nc->point.p;
-		nsc = nc->point.n;
+		// nsc = nc->point.n;
 		for(i=0;i<node->displacers.n;i++){
 			int index, j;
 			float *point, weight, wdisp[3];
@@ -574,7 +574,7 @@ void render_HAnimJoint (struct X3D_HAnimJoint * node) {
 			weight = dp->weight;
 			//printf(" %f ",weight);
 			pdp = (float*)dp->displacements.p;
-			ndp = dp->displacements.n;
+			// ndp = dp->displacements.n;
 
 			ni = dp->coordIndex.n;
 			ci = dp->coordIndex.p;
@@ -647,12 +647,13 @@ void compile_HAnimHumanoid(struct X3D_HAnimHumanoid *node){
 		node->_NV = nsc;
 	}
 	//allocate the transform array
-	if(node->_JT == NULL)
+	if(node->_JT == NULL) {
 		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_GPU){
 			//new stack quat + position
 		}else if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 			node->_JT = newStack(JMATRIX); //we don't know how many joints there are - need to count as we go
 		}
+	}
 	MARK_NODE_COMPILED
 }
 
@@ -753,7 +754,8 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 		if(vertexTransformMethod == VERTEXTRANSFORMMETHOD_CPU){
 			//save original coordinates
 			//transform each vertex and its normal using weighted transform
-			int i,j,nsc = 0, nsn = 0;
+			int i,j,nsc = 0;
+			// int  nsn = 0;
 			float *psc = NULL, *psn = NULL;
 			if(node->skinCoord && node->skinCoord->_nodeType == NODE_Coordinate){
 				struct X3D_Coordinate * nc = (struct X3D_Coordinate * )node->skinCoord;
@@ -762,7 +764,7 @@ printf ("hanimHumanoid, segment coutns %d %d %d %d %d %d\n",
 				psc = (float*)nc->point.p;
 				//memcpy(psc,node->_origCoords,3*nsc*sizeof(float));
 				if(nn){
-					nsn = nn->vector.n;
+					// nsn = nn->vector.n;
 					psn = (float *)nn->vector.p;
 					//memcpy(psn,node->_origNorms,3*nsn*sizeof(float));
 				}
@@ -909,7 +911,7 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 	/* now, just render the non-directionalLight children */
 	if(node->coord && node->displacers.n){
 
-		int nsc, ndp, ni, i;
+		int nsc, ni, i;
 		float *psc, *pdp;
 		int *ci;
 		struct X3D_Coordinate *nc = (struct X3D_Coordinate*)node->coord;
@@ -926,7 +928,7 @@ void child_HAnimSegment(struct X3D_HAnimSegment *node) {
 			weight = dp->weight;
 			//printf(" %f ",weight);
 			pdp = (float*)dp->displacements.p;
-			ndp = dp->displacements.n;
+			// ndp = dp->displacements.n;
 
 			ni = dp->coordIndex.n;
 			ci = dp->coordIndex.p;

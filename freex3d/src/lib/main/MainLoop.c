@@ -781,7 +781,9 @@ contenttype *new_contenttype_captiontext(char *fontname, int EMpixels, vec4 colo
 	//self->set = (void *)self->font->set; //searchAtlasFontForSizeOrMake(self->font,EMpixels);
 	return (contenttype*)self;
 }
-int *utf8_to_utf32(unsigned char *utf8string, unsigned int *str32, unsigned int *len32);
+
+// in ComponentTextures.c ... JAS 
+unsigned int *utf8_to_utf32(unsigned char *utf8string, unsigned int *str32, unsigned int *len32);
 void captiontext_setString(void *_self, char *utf8string){
 	int lenstr;
 	contenttype_captiontext *self = (contenttype_captiontext *)_self;

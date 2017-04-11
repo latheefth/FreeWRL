@@ -113,7 +113,6 @@ void EAIListener () {
 	int node_id, field_id;
 	int field_type, listener_id;
 	char buf[EAIREADSIZE];
-	struct Multi_Node *mfptr;	/* used for freeing memory*/
 	int eaiverbose;
 	//ppEAICore p;
 	ttglobal tg = gglobal();

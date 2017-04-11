@@ -105,7 +105,8 @@ extern int display_status;
 #define TEXTURE_NO_ALPHA 1
 #define TEXTURE_ALPHA 2
 
-void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param);
+// OLDCODE void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param);
+void loadTextureNode (struct X3D_Node *node);
 void bind_image(int type, struct Uni_String *parenturl, struct Multi_String url,
 				GLuint *texture_num,
 				int repeatS,

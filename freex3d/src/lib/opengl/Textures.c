@@ -67,6 +67,13 @@
 
 
 
+struct multiTexParams {
+int multitex_mode[2];
+int multitex_source[2];
+int multitex_function;
+};
+
+
 #ifndef GL_EXT_texture_cube_map
 //OLDCODE # define GL_NORMAL_MAP_EXT                   0x8511
 //OLDCODE # define GL_REFLECTION_MAP_EXT               0x8512
@@ -83,7 +90,7 @@
 #endif
 
 
-static void new_bind_image(struct X3D_Node *node, struct multiTexParams *param);
+static void new_bind_image(struct X3D_Node *node);
 textureTableIndexStruct_s *getTableIndex(int i);
 
 typedef struct pTextures{
@@ -1016,18 +1023,12 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 }
 
 /* load in a texture, if possible */
-void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param) 
+void loadTextureNode (struct X3D_Node *node) 
 {
-    //printf ("loadTextureNode, node %p, params %p",node,param);
     if (NODE_NEEDS_COMPILING) {
 
 	DEBUG_TEX ("FORCE NODE RELOAD: %p %s\n", node, stringNodeType(node->_nodeType));
 
-	/* force a node reload - make it a new texture. Don't change
-	   the parameters for the original number, because if this
-	   texture is shared, then ALL references will change! so,
-	   we just accept that the current texture parameters have to
-	   be left behind. */
 	MARK_NODE_COMPILED;
 	
 	/* this will cause bind_image to create a new "slot" for this texture */
@@ -1074,7 +1075,7 @@ void loadTextureNode (struct X3D_Node *node, struct multiTexParams *param)
 	    }
 	}
 
-    new_bind_image (X3D_NODE(node), param);
+    new_bind_image (X3D_NODE(node));
 	return;
 }
 
@@ -1278,7 +1279,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			case NODE_PixelTexture:
 			case NODE_ImageTexture : 
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
-				loadTextureNode (X3D_NODE(nt),paramPtr);
+				loadTextureNode (X3D_NODE(nt));
 				break;
 			case NODE_MultiTexture:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
@@ -1786,7 +1787,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						int rc,sc,c,cube_root, max_size;
 						unsigned char *texdataTiles = NULL;
 						uint32 *p2, *p1;
-						int nx, ny, ix, iy, nxx, nyy, xy;
+						int nx, ny, ix, iy, nxx, nyy;
 						int iz,j,k;
 
 						max_size = rdr_caps->runtime_max_texture_size;
@@ -1857,7 +1858,6 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 						nyy = ny*ry;
 
 						//place in tile formation - a series of fullish y strips
-						xy = x*y;
 						texdataTiles =  MALLOC(unsigned char *,nxx * nyy * 4);
 						p2 = (uint32 *)texdataTiles;
 						p1 = (uint32 *)dest;
@@ -1869,11 +1869,9 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 									int ifrom, ito;
 									uint32 pixel;
 									ifrom = (iz*y + j)*x + k;
-									//ito = iy*nx*xy + j*nxx + ix*x + k;
 									ito = (iy*y + j)*nxx + (ix*x) + k;
 									pixel = p1[ifrom];
 									p2[ito] = pixel;
-									//p2[iy*nx*xy + j*nxx + ix*x + k] = p1[i*xy + j*x + k];
 								}
 							}
 						}
@@ -1888,10 +1886,6 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 							tti3->texdata = texdataTiles;
 							saveImage_web3dit(tti3, "test_tiled_texture.web3dit");
 						}
-						if (gglobal()->internalc.global_print_opengl_errors) {
-							DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
-						}
-						//printf("after proxy image stuff, size %d %d\n",rx,ry);
 
 						myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  nxx, nyy, 0, format, GL_UNSIGNED_BYTE, texdataTiles);
 						ConsoleMessage("final texture2D size %d %d\n",nxx,nyy);
@@ -1945,11 +1939,6 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 					}
 				
 		
-					if (gglobal()->internalc.global_print_opengl_errors) {
-						DEBUG_MSG("after proxy image stuff, size %d %d\n",rx,ry);
-					}
-					//printf("after proxy image stuff, size %d %d\n",rx,ry);
-
 					myTexImage2D(generateMipMaps, GL_TEXTURE_2D, 0, iformat,  rx, ry, 0, format, GL_UNSIGNED_BYTE, dest);
 				}
 				if(mytexdata != dest) {
@@ -1987,7 +1976,7 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	param - vrml fields, but translated into GL_TEXTURE_ENV_MODE, GL_MODULATE, etc.
 ************************************************************************************/
-void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
+void new_bind_image(struct X3D_Node *node) {
 	int thisTexture;
 	int thisTextureType;
 	struct X3D_ImageTexture *it;
@@ -2092,14 +2081,6 @@ void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
             //printf ("new_bind, boundTextureStack[%d] set to %d\n",tg->RenderFuncs.textureStackTop,myTableIndex->OpenGLTexture);
                 
 
-			/* save the texture params for when we go through the MultiTexture stack. Non
-			   MultiTextures should have this textureStackTop as 0 */
-			 
-			if (param != NULL) {
-				struct multiTexParams *textureParameterStack = (struct multiTexParams *) tg->RenderTextures.textureParameterStack;
-				memcpy(&(textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
-				//memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
-			}
 			p->textureInProcess = -1; /* we have finished the whole process */
 			break;
 			

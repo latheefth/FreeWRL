@@ -43,13 +43,13 @@ X3D Texturing Component
 
 
 void render_PixelTexture (struct X3D_PixelTexture *node) {
-	loadTextureNode(X3D_NODE(node),NULL);
+	loadTextureNode(X3D_NODE(node));
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
 void render_ImageTexture (struct X3D_ImageTexture *node) {
 	/* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
-	loadTextureNode(X3D_NODE(node),NULL);
+	loadTextureNode(X3D_NODE(node));
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 
@@ -61,7 +61,7 @@ void render_MovieTexture (struct X3D_MovieTexture *node) {
 	//july 2016 movietexture fields put in same order as audioclip, so can up-caste and delegate
 	struct X3D_AudioClip *anode = (struct X3D_AudioClip*)node;
 	render_AudioClip(anode); //just checks if loaded, schedules if not
-	loadTextureNode(X3D_NODE(node),NULL);
+	loadTextureNode(X3D_NODE(node));
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 
 }

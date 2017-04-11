@@ -584,7 +584,8 @@ void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float *positio
 	struct X3D_BoundedPhysicsModel *px = (struct X3D_BoundedPhysicsModel *)physics;
 	if(px->enabled && px->geometry ) {   //&& pp->mass != 0.0f){
 		//shall we assume its a 100% elastic bounce?
-		int nintersections, ntries;
+		int nintersections;
+		// int ntries;
 		struct X3D_Node *node = (struct X3D_Node *) px->geometry;
 		float pos1[3], pos2[3], pnearest[3],normal[3], delta[3];
 		static int count;
@@ -600,7 +601,7 @@ void apply_boundedphysics(particle *pp, struct X3D_Node *physics, float *positio
 		veccopy3f(pos1,pp->origin);
 		//vecadd3f(pos2,pp->position,positionChange);
 		vecadd3f(pos2,pp->position,positionChange);
-		ntries = 0;
+		//ntries = 0;
 		count = 0;
 		//for(;;) //in theory we may travel far enough for 2 bounces
 		{
@@ -1048,6 +1049,8 @@ void updateColorRamp(struct X3D_ParticleSystem *node, particle *pp, GLint cramp)
 void updateTexCoordRamp(struct X3D_ParticleSystem *node, particle *pp, float *texcoord){
 	int found, ifloor,j;
 	float fraclife, fracKey;
+
+	ifloor = 0; 
 	fraclife = pp->age / pp->lifespan;
 	fracKey = 1.0f / (float)(node->texCoordKey.n); 
 	//if(node->_geometryType != GEOM_LINE)
@@ -1062,7 +1065,6 @@ void updateTexCoordRamp(struct X3D_ParticleSystem *node, particle *pp, float *te
 		}
 	}
 	if(found){
-		struct X3D_TextureCoordinate *tc = (struct X3D_TextureCoordinate *)node->texCoordRamp;
 		switch(node->_geometryType){
 			case GEOM_LINE:
 				FW_GL_TEXCOORD_POINTER (2,GL_FLOAT,0,(float *)&texcoord[ifloor*2*2],0);
@@ -1096,7 +1098,7 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	//  velocity direction if LINE)
 	//
 	//s_shader_capabilities_t *caps;
-	static int once = 0;
+	// static int once = 0;
 	COMPILE_IF_REQUIRED
 	if (renderstate()->render_blend == (node->_renderFlags & VF_Blend)) {
 	if(node->enabled){
@@ -1528,5 +1530,5 @@ void child_ParticleSystem(struct X3D_ParticleSystem *node){
 	} //isActive
 	} //enabled
 	} //VF_Blend
-	once = 1;
+	// once = 1;
 }
