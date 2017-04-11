@@ -24,8 +24,8 @@
 	http://castle-engine.sourceforge.net/compositing_shaders.php
 
 	In the starting default/base shader, structured for web3d lighting model, with PLUG deckarations:
-		/* PLUG: texture_apply (fragment_color, normal_eye_fragment) */
-/*
+		...  PLUG: texture_apply (fragment_color, normal_eye_fragment) 
+
 	In an additive effect shader:
         void PLUG_texture_color(inout vec4 texture_color,
           const in vec4 tex_coord)
@@ -190,7 +190,7 @@ int LookForPlugDeclarations( char * CodeForPlugDeclarations, int bsize, char *Pl
 
 void replaceAll(char *buffer,int bsize, char *oldstr, char *newstr){
 	char *found;
-	while(found = strstr(buffer,oldstr)){
+	while((found = strstr(buffer,oldstr))){
 		removeAt(found,strlen(oldstr));
 		insertBefore(found,newstr,buffer,bsize);
 	}
@@ -259,6 +259,8 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	char *found;
 	int err;
 
+	UNUSED(err);
+
 	//var
 	// Code: string list;
 	//begin
@@ -270,7 +272,8 @@ void Plug( int EffectPartType, const char *PlugValue, char **CompleteCode, int *
 	//HasGeometryMain := HasGeometryMain or
 	//  ( EffectPartType = geometry and
 	//    PlugValue contains 'main()' );
-	HasGeometryMain = HasGeometryMain || EffectPartType == SHADERPART_GEOMETRY && strstr("main(",Plug);
+	HasGeometryMain = HasGeometryMain || 
+		((EffectPartType == SHADERPART_GEOMETRY) && strstr("main(",Plug));
 
 	//while we can find PLUG_xxx inside PlugValue do
 	//begin
@@ -341,6 +344,8 @@ void AddVersion( int EffectPartType, int versionNumber, char **CompleteCode){
 	char *found;
 	int err;
 
+	UNUSED(err);
+
 	if (!CompleteCode[EffectPartType]) return;
 	err = fw_strcpy_s(Code, SBUFSIZE, CompleteCode[EffectPartType]);
 
@@ -358,6 +363,8 @@ void AddDefine0( int EffectPartType, const char *defineName, int defineValue, ch
 	char Code[SBUFSIZE], line[1000];
 	char *found;
 	int err;
+
+	UNUSED(err);
 
 	if(!CompleteCode[EffectPartType]) return;
 	err = fw_strcpy_s(Code,SBUFSIZE, CompleteCode[EffectPartType]);
@@ -389,6 +396,8 @@ void AddDefine( int EffectPartType, const char *defineName, char **CompleteCode)
 void EnableEffect(struct X3D_Node * node, char **CompletedCode, int *unique_int){
 	int i, ipart;
 	char *str;
+
+	ipart=SHADERPART_VERTEX;
 	struct X3D_Effect *effect = (struct X3D_Effect *)node;
 	for(i=0;i<effect->parts.n;i++){
 		struct X3D_EffectPart *part = (struct X3D_EffectPart*)effect->parts.p[i];
@@ -419,11 +428,11 @@ void EnableEffects( char **CompletedCode, int *unique_int){
 
 
 
-//maxLights = 8;\n\
-//#if defined (GL_ES_VERSION_2_0)\n\
-//precision highp float;\n\
-//precision mediump float;\n\
-//#endif\n\
+//maxLights = 8;
+//#if defined (GL_ES_VERSION_2_0)
+//precision highp float;
+//precision mediump float;
+//#endif
 
 /*
 started with: http://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine/src/x3d/opengl/glsl/template_mobile.vs
@@ -1430,10 +1439,12 @@ void PLUG_texture_apply (inout vec4 finalFrag, in vec3 normal_eye_fragment ){ \n
 // incoming eyeposition and eyenormal are of the surface vertex and normal
 // .. in the view/eye coordinate system (so eye is at 0,0,0 and eye direction is 0,0,-1
 
+#ifdef OLDCODE
 static const GLchar *plug_vertex_lighting_matemissive = "\n\
 void PLUG_add_light_contribution (inout vec4 vertexcolor, in vec4 myPosition, in vec3 myNormal, in float shininess ) {\n\
 	vertexcolor.rgb += fw_FrontMaterial.emissive.rgb; \n\
 ";
+#endif //OLDCODE
 
 static const GLchar *plug_vertex_lighting_ADSLightModel = "\n\
 /* use ADSLightModel here the ADS colour is returned from the function.  */ \n\
@@ -1731,7 +1742,6 @@ int getSpecificShaderSourceCastlePlugs (const GLchar **vertexSource, const GLcha
 		If you do want to modulate ie the above quote "to modulate", comment out the define
 		I put a mantis issue to web3d.org for clarification Aug 16, 2016
 	*/
-	#define NOT_MODULATE_IMG_AND_MAT_ALPHAS 1  
 
 	if(DESIRE(whichOne.base,HAVE_UNLIT_COLOR)){
 		AddDefine(SHADERPART_VERTEX,"UNLIT",CompleteCode);
@@ -2218,10 +2228,11 @@ void main(void) \n\
 ";
 
 
-//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { \n\
+//void PLUG_voxel_apply (inout vec4 voxel, inout vec3 gradient) { 
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/volume.html#OpacityMapVolumeStyle
 // opacity with intensity == intensity lookup/transferFunction
+
 static const GLchar *plug_voxel_DEFAULT =	"\
 void voxel_apply_DEFAULT (inout vec4 voxel, inout vec3 gradient) { \n\
 	float alpha = voxel.a; \n\
@@ -2751,7 +2762,7 @@ int getSpecificShaderSourceVolume (const GLchar **vertexSource, const GLchar **f
 	//unsigned int 32 bits - 4 for basic, leaves 28/4 = max 7 styles
 	//work from left to right (the order declared), skip any 0/null/empties
 	volflags = whichOne.volume;
-	volflag[7];
+	// this was just here, but is defined above. volflag[7];
 	kflags = 0;
 	for(i=0;i<7;i++){
 		int iflag = (volflags >> (7-i)*4) & 0xF;

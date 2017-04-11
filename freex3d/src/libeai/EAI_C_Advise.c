@@ -135,8 +135,24 @@ void _handleFreeWRLcallback (char *line) {
 				send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber),0);
                 send(_X3D_FreeWRL_Swig_FD, (const char *) EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea),0);
 #else
-                wc = write(_X3D_FreeWRL_Swig_FD, (const void *)EAI_ListenerTable[count].FreeWRL_RegisterNumber, sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber));
-                wc = write(_X3D_FreeWRL_Swig_FD, EAI_ListenerTable[count].dataArea, sizeof(EAI_ListenerTable[count].dataArea));
+				{
+				// JAS - Apr 2017. 
+				// issue with casting an int to a const void*...
+				// lets try this:
+				void *tmp = NULL;
+				memcpy(tmp,&(EAI_ListenerTable[count].FreeWRL_RegisterNumber), 
+					sizeof (int));
+		
+             		   wc = write(_X3D_FreeWRL_Swig_FD, 
+					(const void *)/* EAI_ListenerTable[count].FreeWRL_RegisterNumber, */
+					tmp,
+					sizeof(EAI_ListenerTable[count].FreeWRL_RegisterNumber));
+				}
+
+
+	                wc = write(_X3D_FreeWRL_Swig_FD, 
+				EAI_ListenerTable[count].dataArea, 
+				sizeof(EAI_ListenerTable[count].dataArea));
 #endif
 			} else {
 				printf("no socket connected for callbacks!");

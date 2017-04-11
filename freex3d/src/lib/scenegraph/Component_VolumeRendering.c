@@ -298,11 +298,14 @@ void pushnset_framebuffer(int ibuffer);
 void popnset_framebuffer();
 
 
+#ifdef OLDCODE
 #ifdef GL_DEPTH_COMPONENT32
 #define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT32
 #else
 #define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
 #endif
+#endif //OLDCODE
+
 
 void __gluMultMatricesd(const GLDOUBLE a[16], const GLDOUBLE b[16],	GLDOUBLE r[16]);
 int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16]);
@@ -437,7 +440,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 						if(fbohandles[0] == 0){
 							GLuint depthrenderbuffer;
 							// https://www.opengl.org/wiki/Framebuffer_Object
-							glGenFramebuffers(1, &fbohandles[0]);
+							glGenFramebuffers(1, (GLuint *) &fbohandles[0]);
 							pushnset_framebuffer(fbohandles[0]); //binds framebuffer. we push here, in case higher up we are already rendering the whole scene to an fbo
 
 							// The depth buffer - optional
@@ -447,7 +450,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 							glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
 
 
-							glGenTextures(1,&fbohandles[1]);
+							glGenTextures(1,(GLuint *) &fbohandles[1]);
 							glBindTexture(GL_TEXTURE_2D, fbohandles[1]);
 							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
 							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -455,7 +458,8 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 
 							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbohandles[1], 0);
 
-							glGenTextures(1,&fbohandles[2]);
+							
+							glGenTextures(1,(GLuint *)&fbohandles[2]);
 							glBindTexture(GL_TEXTURE_2D, fbohandles[2]);
 							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, iviewport[2], iviewport[3], 0, GL_RGBA , GL_UNSIGNED_BYTE, 0);
 							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -550,7 +554,7 @@ void render_volumestyle(struct X3D_Node *vstyle, GLint myProg){
 					//SFFloat  [in,out] intensityThreshold 0     [0,1]
 					//SFString [in,put] type               "MAX" ["MAX", "MIN", "AVERAGE"]
 					GLint iintensity, itype;
-					int ktype;
+					int ktype = 1; // initialize this to something that makes sense
 					char *ctype;
 					iintensity = GET_UNIFORM(myProg,"fw_intensityThreshold");
 					glUniform1f(iintensity,style->intensityThreshold);
@@ -1123,7 +1127,6 @@ s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int ns
 	unsigned int volflags;
 	int i;
 	s_shader_capabilities_t *caps;
-	ttglobal tg = gglobal();
 
 	if(!once)
 		ConsoleMessage("getVolumeProgram\n");
@@ -1161,8 +1164,7 @@ s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int ns
 	//GPU VERSION
 	{
 		shaderflagsstruct shader_requirements; //shaderflags, 
-		GLint myProg;
-		int old_shape_way = 0;
+		// OLDCODE GLint myProg;
 
 		memset(&shader_requirements,0,sizeof(shaderflagsstruct));
 		//shaderflags = getShaderFlags();
@@ -1173,7 +1175,7 @@ s_shader_capabilities_t * getVolumeProgram(struct X3D_Node **renderStyle, int ns
 		// by default we'll mash it in: shader_requirements.volume |= TEX3D_SHADER;
 		caps = getMyShaders(shader_requirements);
 		enableGlobalShader(caps);
-		myProg =  caps->myShaderProgram;
+		// OLDCODE myProg =  caps->myShaderProgram;
 	}
 	//Step 1: set the 3D texture
 	once = 1;
@@ -1472,12 +1474,13 @@ void render_ISO_volume_data(s_shader_capabilities_t *caps,struct X3D_IsoSurfaceV
 	glUniform1i(invals,node->surfaceValues.n);
 	if(node->renderStyle.n){
 		int i;
-		GLint istyles, instyles;
+		// OLDCODE GLint istyles;
+		GLint instyles;
 		int *styleflags = MALLOC(int*,sizeof(int)*node->renderStyle.n);
 		for(i=0;i<node->renderStyle.n;i++){
 			styleflags[i] = prep_volumestyle(node->renderStyle.p[i],0);
 		}
-		istyles = GET_UNIFORM(myProg,"fw_surfaceStyles");
+		// OLDCODE istyles = GET_UNIFORM(myProg,"fw_surfaceStyles");
 		glUniform1iv(ivals,node->renderStyle.n,styleflags);
 		instyles = GET_UNIFORM(myProg,"fw_nStyles");
 		glUniform1i(instyles,node->renderStyle.n);
