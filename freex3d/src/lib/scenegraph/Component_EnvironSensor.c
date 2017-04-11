@@ -53,11 +53,14 @@ typedef struct pComponent_EnvironSensor{
 	int candoVisibility;// = TRUE;
 
 }* ppComponent_EnvironSensor;
-void *Component_EnvironSensor_constructor(){
+
+static void *Component_EnvironSensor_constructor(){
 	void *v = MALLOCV(sizeof(struct pComponent_EnvironSensor));
 	memset(v,0,sizeof(struct pComponent_EnvironSensor));
 	return v;
 }
+
+// iglobal.c calls this one.
 void Component_EnvironSensor_init(struct tComponent_EnvironSensor *t){
 	//public
 	//private
@@ -298,7 +301,8 @@ int transformMBB4d(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform,
 int __gluInvertMatrixd(const GLDOUBLE m[16], GLDOUBLE invOut[16]);
 void __gluMultMatrixVecd(const GLDOUBLE matrix[16], const GLDOUBLE in[4], GLDOUBLE out[4]);
 
-void twoPoints2RayMatrix(double *ptnear, double* ptfar, double* rayMatrix){
+
+static void twoPoints2RayMatrix(double *ptnear, double* ptfar, double* rayMatrix){
 	double R1[16], R2[16], R3[16], T[16], rayMatrixInverse[16];
 	double *A, *B, C[3];
 	double yaw, pitch;
@@ -329,16 +333,15 @@ void twoPoints2RayMatrix(double *ptnear, double* ptfar, double* rayMatrix){
 	matinverseAFFINE(rayMatrix,rayMatrixInverse);
 
 }
-int frustumHitsMBB(float *extent){
+
+static int frustumHitsMBB(float *extent){
 	//goal say if an extent is maybe inside (err toward inside) of the view frustum
 	//http://cgvr.informatik.uni-bremen.de/teaching/cg_literatur/lighthouse3d_view_frustum_culling/index.html
 	// overlap tests: https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
 	// cuboid space: frustum is a -1 to 1 cube
 	GLDOUBLE modelMatrix[16], projectionMatrix[16];
-	int i,isIn, iret; // j, 
+	int i,isIn; 
 	GLDOUBLE smin[3], smax[3], shapeMBBmin[3], shapeMBBmax[3];
-	int retval;
-	retval = FALSE;
 
 	FW_GL_GETDOUBLEV(GL_MODELVIEW_MATRIX, modelMatrix);
 	FW_GL_GETDOUBLEV(GL_PROJECTION_MATRIX, projectionMatrix);
@@ -385,7 +388,7 @@ int frustumHitsMBB(float *extent){
 		//-transform frustum cuboid to view via projection inverse, to set up 'plus' 
 		//-transform node extent to view via modelview matrix, 'plus' a bit to align with frustum
 
-		iret = __gluInvertMatrixd( projectionMatrix, projInverse);
+		// OLDCODE iret = __gluInvertMatrixd( projectionMatrix, projInverse);
 
 		//k: from lower-left corner of frustum to upper-right corner...
 		for(k=-1;k<=1;k+=2) 
@@ -701,7 +704,7 @@ void do_TransformSensorTick (void *ptr) {
 	if(unode){
 		//check all USE-USE combinations of this node and targetObject
 		//find next this
-		while(mehit = usehit_next(menode,mehit)){
+		while((mehit = usehit_next(menode,mehit))){
 			//int iret;
 			double meinv[16],memin[3],memax[3];
 			float emin[3], emax[3], halfsize[3];
@@ -739,7 +742,7 @@ void do_TransformSensorTick (void *ptr) {
 
 			//find next target
 			uhit = NULL;
-			while(uhit = usehit_next(unode,uhit)){
+			while((uhit = usehit_next(unode,uhit))){
 				//see if they intersect, if so do something about it
 				//-prepare matrixTarget2this
 				double u2me[16], umin[3],umax[3],uumin[3],uumax[3];

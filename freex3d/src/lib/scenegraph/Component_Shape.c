@@ -62,7 +62,7 @@ typedef struct pComponent_Shape{
     
 }* ppComponent_Shape;
 
-void *Component_Shape_constructor(){
+static void *Component_Shape_constructor(){
 	void *v = MALLOCV(sizeof(struct pComponent_Shape));
 	memset(v,0,sizeof(struct pComponent_Shape));
 	return v;
@@ -1022,7 +1022,7 @@ void compile_Shape (struct X3D_Shape *node) {
 	int whichUnlitGeometry = 0;
 	struct X3D_Node *tmpN = NULL;
 	struct X3D_Node *tmpG = NULL;
-	struct X3D_Appearance *appearance = NULL;
+	// struct X3D_Appearance *appearance = NULL;
 	int userDefinedShader = 0;
 //	int colorSource, alphaSource, channels, isLit;
 

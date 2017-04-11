@@ -351,7 +351,7 @@ void render_ComposedCubeMapTexture (struct X3D_ComposedCubeMapTexture *node) {
 //	#define DDSD_WIDTH                  0x00000004 
 //	#define DDSD_PITCH                  0x00000008 
 	#define DDSD_PIXELFORMAT            0x00001000 
-	#define DDSD_MIPMAPCOUNT            0x00020000 
+//	#define DDSD_MIPMAPCOUNT            0x00020000 
 //	#define DDSD_LINEARSIZE             0x00080000 
 	#define DDSD_DEPTH                  0x00800000 
 
@@ -539,22 +539,27 @@ struct DdsLoadInfo loadInfoBGR8 = {
 struct DdsLoadInfo loadInfoBGR565 = {
   false, true, false, 1, 2, GL_RGB5, GL_RGB, GL_UNSIGNED_SHORT_5_6_5
 };
-unsigned int GetLowestBitPos(unsigned int value)
-{
-   unsigned int pos = 0;
-   assert(value != 0); // handled separately
 
-   while (!(value & 1))
-   {
-      value >>= 1;
-      ++pos;
-	  if(pos == 32) break;
-   }
-   return pos;
-}
+#ifdef OLDCODE
+OLDCODE static unsigned int GetLowestBitPos(unsigned int value)
+OLDCODE {
+OLDCODE    unsigned int pos = 0;
+OLDCODE    assert(value != 0); // handled separately
+OLDCODE 
+OLDCODE    while (!(value & 1))
+OLDCODE    {
+OLDCODE       value >>= 1;
+OLDCODE       ++pos;
+OLDCODE 	  if(pos == 32) break;
+OLDCODE    }
+OLDCODE    return pos;
+OLDCODE }
+#endif //OLDCODE
+
+// LoadTextures.c likes to call this one
 int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	FILE *file;
-	char *buffer, *bdata; //, *bdata2;
+	unsigned char *buffer, *bdata; //, *bdata2;
 	char sniffbuf[20];
 	unsigned long fileLen;
 	union DDS_header hdr;
@@ -563,8 +568,8 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	unsigned int z = 0;
 	//unsigned int rshift[4]; //to go with color bitmask
 	int nchan, idoFrontBackSwap;
-	unsigned int mipMapCount = 0;
-	unsigned int size,xSize, ySize,zSize;
+	//unsigned int mipMapCount = 0;
+	unsigned int xSize, ySize,zSize;
 
 	struct DdsLoadInfo * li;
 	size_t xx;
@@ -600,7 +605,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 	fseek(file, 0, SEEK_SET);
 
 	/* llocate memory */
-	buffer=MALLOC(char *, fileLen+1);
+	buffer=MALLOC(unsigned char *, fileLen+1);
 	if (!buffer) {
 		fclose(file);
 		return FALSE;
@@ -728,7 +733,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			//simple, convert to rgba and set tti
 			int ipix,jpix,bpp, ir, ig, ib;
 			unsigned int i,j,k;
-			char * rgbablob = malloc(x*y*z *4);
+			unsigned char * rgbablob = malloc(x*y*z *4);
 			bpp = hdr.sPixelFormat.dwRGBBitCount / 8;
 			ir = 0; ig = 1; ib = 2; //if incoming is BGR order
 			if(hdr.sPixelFormat.dwRBitMask > hdr.sPixelFormat.dwBBitMask){
@@ -780,7 +785,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			return FALSE;
 		}
 
-		mipMapCount = (hdr.dwFlags & DDSD_MIPMAPCOUNT) ? hdr.dwMipMapCount : 1;
+		//mipMapCount = (hdr.dwFlags & DDSD_MIPMAPCOUNT) ? hdr.dwMipMapCount : 1;
 		//printf ("mipMapCount %d\n",mipMapCount);
 
 		if( li->compressed ) {
@@ -836,6 +841,8 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			free( unpacked );
 			*/  
 		} else {
+			//int size;
+
 			if( li->swap ) {
 			//printf ("swap\n");
 
@@ -843,7 +850,7 @@ int textureIsDDS(textureTableIndexStruct_s* this_tex, char *filename) {
 			glPixelStorei( GL_UNPACK_SWAP_BYTES, GL_TRUE );
 			*/
 			}
-			size = x * y * li->blockBytes;
+			//size = x * y * li->blockBytes;
 
 			//printf ("size is %d\n",size);
 			/*
@@ -978,6 +985,9 @@ static int offsets[]={
 /* fill in the 6 PixelTextures from the data in the texture 
 	this is for when you have a single .png image with 6 sub-patches
 */
+
+
+// Textures.c loves to call this one. 
 void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	int size;
 	int count;
@@ -1058,7 +1068,7 @@ void unpackImageCubeMap (textureTableIndexStruct_s* me) {
 	FREE_IF_NZ(me->texdata);
 }
 
-
+// Textures.c references this baby.
 void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
 	//for .DDS and .web3dit that are in cubemap format ie 6 contiguous images in tti->teximage
 	// incoming order of images: +x,-x,+y,-y,+z,-z (or R,L,F,B,T,D ?) */
@@ -1142,11 +1152,14 @@ void unpackImageCubeMap6 (textureTableIndexStruct_s* me) {
  typedef struct pComponent_CubeMapTexturing{
 	Stack * gencube_stack;
 }* ppComponent_CubeMapTexturing;
-void *Component_CubeMapTexturing_constructor(){
+
+static void *Component_CubeMapTexturing_constructor(){
 	void *v = MALLOCV(sizeof(struct pComponent_CubeMapTexturing));
 	memset(v,0,sizeof(struct pComponent_CubeMapTexturing));
 	return v;
 }
+
+// iglobal.c loves to call this one.
 void Component_CubeMapTexturing_init(struct tComponent_CubeMapTexturing *t){
 	//public
 	//private
@@ -1156,6 +1169,8 @@ void Component_CubeMapTexturing_init(struct tComponent_CubeMapTexturing *t){
 		p->gencube_stack = newStack(usehit);
 	}
 }
+
+// iglobal.c loves to call this one.
 void Component_CubeMapTexturing_clear(struct tComponent_CubeMapTexturing *t){
 	//public
 	//private
@@ -1164,6 +1179,7 @@ void Component_CubeMapTexturing_clear(struct tComponent_CubeMapTexturing *t){
 		deleteVector(usehit,p->gencube_stack);
 	}
 }
+
 //ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)gglobal()->Component_CubeMapTexturing.prv;
 
  // uni_string update ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
@@ -1178,6 +1194,8 @@ void popnset_framebuffer();
 #define FW_GL_DEPTH_COMPONENT GL_DEPTH_COMPONENT16
 #endif
 int haveFrameBufferObject();
+
+// called from the scene traversal, linked in GeneratedCode.c
 void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 	if (node->__subTextures.n == 0) {
 		int i;
@@ -1217,10 +1235,10 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, tti->idepthbuffer);
 
 			for(j=0;j<node->__subTextures.n;j++){  //should be 6
-				textureTableIndexStruct_s* ttip;
-				struct X3D_PixelTexture * nodep;
-				nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
-				ttip = getTableIndex(nodep->__textureTableIndex);
+				//textureTableIndexStruct_s* ttip;
+				//struct X3D_PixelTexture * nodep;
+				//nodep = (struct X3D_PixelTexture *)node->__subTextures.p[j];
+				//ttip = getTableIndex(nodep->__textureTableIndex);
 				//glGenTextures(1,&ttip->OpenGLTexture);
 				//glBindTexture(GL_TEXTURE_2D, ttip->OpenGLTexture);
 
@@ -1245,9 +1263,12 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 	//we leave it up to shape nodes to detect if they have generatedcubemaptexture 
 	// and if so not draw themselves on VF_Cube pass
 }
+
 //double *get_view_matrixd();
 void get_view_matrix(double *savePosOri, double *saveView);
 void freeASCIIString(struct Uni_String *us);
+
+// called from the scene traversal, linked in GeneratedCode.c
 void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 	int count, iface;
 
@@ -1327,8 +1348,8 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 	}
     /* Finished rendering CubeMap, set it back for normal textures */
     getAppearanceProperties()->cubeFace = 0; 
-
 }
+
 //Stack *getGenCubeList(){
 //	ppComponent_CubeMapTexturing p = (ppComponent_CubeMapTexturing)gglobal()->Component_CubeMapTexturing.prv;	
 //	return p->gencube_stack;
@@ -1354,6 +1375,9 @@ void saveImage_web3dit(struct textureTableIndexStruct *tti, char *fname);
 void fw_gluPerspective_2(GLDOUBLE xcenter, GLDOUBLE fovy, GLDOUBLE aspect, GLDOUBLE zNear, GLDOUBLE zFar);
 void pushnset_viewport(float *vpFraction);
 void popnset_viewport();
+
+// called from MainLoop.c
+
 void generate_GeneratedCubeMapTextures(){
 	//call from mainloop once per frame:
 	//foreach cubemaptexture location in cubgen list
