@@ -180,13 +180,13 @@ int isTex3D(struct X3D_Node *node){
 }
 
 void render_PixelTexture3D (struct X3D_PixelTexture3D *node) {
-	loadTextureNode(X3D_NODE(node));
+	loadTextureNode(X3D_NODE(node),NULL);
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 void move_texture_to_opengl(textureTableIndexStruct_s* me);
 void render_ImageTexture3D (struct X3D_ImageTexture3D *node) {
 	/* printf ("render_ImageTexture, global Transparency %f\n",getAppearanceProperties()->transparency); */
-	loadTextureNode(X3D_NODE(node));
+	loadTextureNode(X3D_NODE(node),NULL);
 	gglobal()->RenderFuncs.textureStackTop=1; /* not multitexture - should have saved to boundTextureStack[0] */
 }
 textureTableIndexStruct_s *getTableTableFromTextureNode(struct X3D_Node *textureNode);
@@ -246,7 +246,7 @@ void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
 		for(i=0;i<min(tex->n,MAX_MULTITEXTURE);i++){
 			//doing layers, we can only handle up to MAX_MULTITEXTURE textures in the shader
 			//gglobal()->RenderFuncs.textureStackTop = ntextures; /* not multitexture - should have saved to boundTextureStack[0] */
-			loadTextureNode(X3D_NODE(tex->p[i]));
+			loadTextureNode(X3D_NODE(tex->p[i]),NULL);
 			allLoaded = allLoaded && getTableTableFromTextureNode(X3D_NODE(tex->p[i]))->status >= TEX_LOADED;
         	gglobal()->RenderFuncs.textureStackTop++;
 			//loadMultiTexture(node);
@@ -257,7 +257,7 @@ void render_ComposedTexture3D (struct X3D_ComposedTexture3D *node) {
 			textureTableIndexStruct_s *tti;
 			tti = getTableTableFromTextureNode(X3D_NODE(node));
 			tti->status = max(TEX_NEEDSBINDING, tti->status);
-			loadTextureNode(X3D_NODE(node));
+			loadTextureNode(X3D_NODE(node),NULL);
 		}
 	}
 }

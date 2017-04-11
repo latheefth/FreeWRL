@@ -935,7 +935,7 @@ void render_ImageCubeMapTexture (struct X3D_ImageCubeMapTexture *node) {
 	/* do we have to split this CubeMap raw data apart? */
 	if (node->__regenSubTextures) {
 		/* Yes! Get the image data from the file, and split it apart */
-		loadTextureNode(X3D_NODE(node));
+		loadTextureNode(X3D_NODE(node),NULL);
 	} else {
 		/* we have the 6 faces from the image, just go through and render them as a cube */
 		if (node->__subTextures.n == 0) return; /* not generated yet - see changed_ImageCubeMapTexture */
@@ -1202,7 +1202,7 @@ void compile_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) 
 		tti->status = TEX_NEEDSBINDING; //I found I didn't need - yet
 		tti->x = tti->y = node->size; 
 		//tti->z = 6;
-		loadTextureNode(X3D_NODE(node));
+		loadTextureNode(X3D_NODE(node),NULL);
 		if(tti->ifbobuffer == 0 && haveFrameBufferObject() ){
 			int j, isize;
 			isize = node->size; //node->size is initializeOnly, we will ignore any change during run
@@ -1308,7 +1308,7 @@ void render_GeneratedCubeMapTexture (struct X3D_GeneratedCubeMapTexture *node) {
 
 	/* do we have to split this CubeMap raw data apart? */
 	//if (node->__regenSubTextures) {
-	//	loadTextureNode(X3D_NODE(node));
+	//	loadTextureNode(X3D_NODE(node),NULL);
 	//} 
 	//else 
 	{

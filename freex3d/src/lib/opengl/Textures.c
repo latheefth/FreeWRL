@@ -90,7 +90,7 @@ int multitex_function;
 #endif
 
 
-static void new_bind_image(struct X3D_Node *node);
+static void new_bind_image(struct X3D_Node *node, struct multiTexParams *vparam);
 textureTableIndexStruct_s *getTableIndex(int i);
 
 typedef struct pTextures{
@@ -1022,13 +1022,20 @@ void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	}
 }
 
+
 /* load in a texture, if possible */
-void loadTextureNode (struct X3D_Node *node) 
+void loadTextureNode (struct X3D_Node *node, void *vparam) 
 {
+    //printf ("loadTextureNode, node %p, params %p",node,param);
     if (NODE_NEEDS_COMPILING) {
 
 	DEBUG_TEX ("FORCE NODE RELOAD: %p %s\n", node, stringNodeType(node->_nodeType));
 
+	/* force a node reload - make it a new texture. Don't change
+	   the parameters for the original number, because if this
+	   texture is shared, then ALL references will change! so,
+	   we just accept that the current texture parameters have to
+	   be left behind. */
 	MARK_NODE_COMPILED;
 	
 	/* this will cause bind_image to create a new "slot" for this texture */
@@ -1075,7 +1082,7 @@ void loadTextureNode (struct X3D_Node *node)
 	    }
 	}
 
-    new_bind_image (X3D_NODE(node));
+    new_bind_image (X3D_NODE(node), (struct multiTexParams *)vparam);
 	return;
 }
 
@@ -1095,7 +1102,7 @@ static void compileMultiTexture (struct X3D_MultiTexture *node) {
 		/* printf ("loadMulti, MALLOCing for params\n"); */
 		node->__xparams = MALLOC (void *, sizeof (struct multiTexParams) * rdr_caps->texture_units);
 
-		// printf ("just mallocd %ld in size for __params\n",sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
+		 //printf ("just mallocd %ld in size for __params\n",sizeof (struct multiTexParams) * gglobal()->display.rdr_caps.texture_units);
 
 		//printf ("paramPtr is %p\n",(int *)node->__params);
 
@@ -1279,7 +1286,7 @@ void loadMultiTexture (struct X3D_MultiTexture *node) {
 			case NODE_PixelTexture:
 			case NODE_ImageTexture : 
 				/* printf ("MultiTexture %d is a ImageTexture param %d\n",count,*paramPtr);  */
-				loadTextureNode (X3D_NODE(nt));
+				loadTextureNode (X3D_NODE(nt),paramPtr);
 				break;
 			case NODE_MultiTexture:
 				printf ("MultiTexture texture %d is a MULTITEXTURE!!\n",count);
@@ -1976,7 +1983,8 @@ void move_texture_to_opengl(textureTableIndexStruct_s* me) {
 
 	param - vrml fields, but translated into GL_TEXTURE_ENV_MODE, GL_MODULATE, etc.
 ************************************************************************************/
-void new_bind_image(struct X3D_Node *node) {
+
+void new_bind_image(struct X3D_Node *node, struct multiTexParams *param) {
 	int thisTexture;
 	int thisTextureType;
 	struct X3D_ImageTexture *it;
@@ -2081,6 +2089,14 @@ void new_bind_image(struct X3D_Node *node) {
             //printf ("new_bind, boundTextureStack[%d] set to %d\n",tg->RenderFuncs.textureStackTop,myTableIndex->OpenGLTexture);
                 
 
+			/* save the texture params for when we go through the MultiTexture stack. Non
+			   MultiTextures should have this textureStackTop as 0 */
+			 
+			if (param != NULL) {
+				struct multiTexParams *textureParameterStack = (struct multiTexParams *) tg->RenderTextures.textureParameterStack;
+				memcpy(&(textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
+				//memcpy(&(tg->RenderTextures.textureParameterStack[tg->RenderFuncs.textureStackTop]), param,sizeof (struct multiTexParams)); 
+			}
 			p->textureInProcess = -1; /* we have finished the whole process */
 			break;
 			
@@ -2091,5 +2107,4 @@ void new_bind_image(struct X3D_Node *node) {
 	}
 	//#define DEBUG_TEX
 }
-
 
