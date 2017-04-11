@@ -1302,6 +1302,9 @@ int transformMBB4d(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform,
 void transformMBB(GLDOUBLE *rMBBmin, GLDOUBLE *rMBBmax, GLDOUBLE *matTransform, GLDOUBLE* inMBBmin, GLDOUBLE* inMBBmax){
 	//AFFINE version, assumes matTransform is not projection / has no projection matrix
 	int isAffine = 1, iret;
+
+	UNUSED(iret);
+
 	iret = transformMBB4d(rMBBmin, rMBBmax, matTransform, inMBBmin, inMBBmax,isAffine);
 }
 

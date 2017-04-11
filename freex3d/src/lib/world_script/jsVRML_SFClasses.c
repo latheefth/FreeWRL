@@ -1621,7 +1621,7 @@ SFNodeGetProperty(JSContext *cx, JSObject *obj, jsid iid, jsval *vp)
 	return JS_TRUE;
 }
 
-void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, const char *value, int isXML);
 
 JSBool
 #if JS_VERSION < 185

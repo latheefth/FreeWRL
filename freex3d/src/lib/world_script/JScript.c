@@ -2352,7 +2352,7 @@ void setField_javascriptEventOut(struct X3D_Node *tn,unsigned int tptr,  int fie
 	#endif
 }
 
-void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, char *value, int isXML);
+void Parser_scanStringValueToMem_B(union anyVrml* any, indexT ctype, const char *value, int isXML);
 
 void setField_javascriptEventOut_B(union anyVrml* any,
 			int fieldType, unsigned len, int extraData, JSContext *scriptContext)

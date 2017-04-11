@@ -323,7 +323,7 @@ static void* load_file_mmap(const char *filename)
  int load_file_blob(const char *filename, char **blob, int *len){
  	struct stat ss;
 	int fd;
-	unsigned char *text, *current;
+	char *text, *current;
 	int left2read; //need signed int for math below
 #ifdef _MSC_VER
 	size_t blocksz, readsz; //, left2read;
@@ -350,7 +350,7 @@ static void* load_file_mmap(const char *filename)
 		return 0;
 	}
 
-	text = current = MALLOC(unsigned char *, ss.st_size +1); /* include space for a null terminating character */
+	text = current = MALLOC(char *, ss.st_size +1); /* include space for a null terminating character */
 	if (!text) {
 		ERROR_MSG("load_file_read: cannot allocate memory to read file %s\n", filename);
 		close(fd);

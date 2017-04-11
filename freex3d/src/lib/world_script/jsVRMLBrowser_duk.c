@@ -953,7 +953,7 @@ struct proftablestruct {
 	int level; //dug9
 };
 struct proftablestruct *getProfTable();
-int * getCapabilitiesTable();
+const int * getCapabilitiesTable();
 int BrowserGetter(FWType fwt, int index, void *ec, void *fwn, FWval fwretval){
 	int nr = 1;
 	//fwretval->itype = 'S'; //0 = null, N=numeric I=Integer B=Boolean S=String, W=Object-web3d O-js Object P=ptr F=flexiString(SFString,MFString[0] or ecmaString)
@@ -1281,7 +1281,7 @@ FWTYPE ProfileInfoType = {
 
 
 
-struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, const char *name);
 struct X3D_Node * broto_search_ALLnames(struct X3D_Proto *context, char *name, int *source);
 int X3DExecutionContext_getNamedNode(FWType fwtype, void *ec, void *fwn, int argc, FWval fwpars, FWval fwretval){
 	int nr = 0;

@@ -44,7 +44,7 @@ bool do_dir_exists(const char *dir);
 int fw_mkdir(const char* path);
 
 typedef struct openned_file {
-	char *fileFileName;
+	const char *fileFileName;
 	int fileDescriptor;
 	int fileDataSize;
 	char *fileData;

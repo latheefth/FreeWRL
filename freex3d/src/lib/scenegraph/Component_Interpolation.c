@@ -60,8 +60,8 @@ void MNC0(struct X3D_Node* node);
 void MNX0(struct X3D_Node* node);
 #define NNC(A) NNC0(X3D_NODE(A))  //node needs compiling
 #define MNC(A) MNC0(X3D_NODE(A))  //mark node compiled
-#define MNX(A) MNX0(X3D_NODE(A))  //mark node changed
-#define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
+// #define MNX(A) MNX0(X3D_NODE(A))  //mark node changed
+// #define PPX(A) getTypeNode(X3D_NODE(A)) //possible proto expansion
 
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html
 // see also SenseInterps.c for other interpolator componenent implementations
@@ -134,7 +134,7 @@ void do_EaseInEaseOut(void *node){
 	- and in general {answer, val*, vel*} are vectors or types ie SFVec3f, SFRotation, SFfloat
 
 */
-void spline_interp(int dim, float *result, float s, float *val0, float *val1, float *T00, float *T11){
+static void spline_interp(int dim, float *result, float s, float *val0, float *val1, float *T00, float *T11){
 	// dim - dimension of val and vel ie 3 for xyz
 	// s - span fraction 0-1
 	// interpolates one value, given the span values
@@ -167,7 +167,7 @@ void spline_interp(int dim, float *result, float s, float *val0, float *val1, fl
 }
 
 //for xyz dim =3, for xy dim=2 for scalar dim=1
-void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti ){
+static void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, int nvel, float* vel, float *Ti ){
 	//please malloc Ti = malloc(nval*dim*sizeof(float)) before calling
 	if(nvel && vel && nvel == nval){
 		if(!normalize){
@@ -230,7 +230,8 @@ void compute_spline_velocity_Ti(int dim, int normalize, int nval, float *val, in
 		}
 	}
 }
-int iwrap(int i, int istart, int iend){
+
+static int iwrap(int i, int istart, int iend){
 	//if they don't duplicate - the last point != first point - then iend = n
 	//if they duplicate last point == first point, then iend = n-1
 	// normally istart = 0, iend = n
@@ -241,7 +242,7 @@ int iwrap(int i, int istart, int iend){
 	if(iret >= iend ) iret = istart + (iret - iend);
 	return iret;
 }
-void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1){
+static void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *key, float *Ti, float* T0, float *T1){
 	//before calling please malloc T0 and T1 = malloc(nval * dim * sizeof(float))
 	float Fp, Fm;
 	int istart, iend, jend,i,j;
@@ -273,11 +274,12 @@ void spline_velocity_adjust_for_keyspan(int dim, int closed, int nval, float *ke
 	}
 }
 
-float span_fraction(float t, float t0, float t1){
+static float span_fraction(float t, float t0, float t1){
 	float ret;
 	ret = (t - t0) /(t1 - t0);
 	return ret;
 }
+
 void do_SplinePositionInterpolator(void *node){
 	//	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/interp.html#SplinePositionInterpolator
 	int dim;
@@ -348,6 +350,7 @@ void do_SplinePositionInterpolator(void *node){
 		px->keyValue.p[ispan].c, px->keyValue.p[ispan+1].c, 
 		px->_T0.p[ispan].c, px->_T1.p[ispan+1].c);
 }
+
 void do_SplinePositionInterpolator2D(void *node){
 	int dim;
 	int kin, kvin;
@@ -418,6 +421,7 @@ void do_SplinePositionInterpolator2D(void *node){
 		px->_T0.p[ispan].c, px->_T1.p[ispan+1].c);
 
 }
+
 void do_SplineScalarInterpolator(void *node){
 	// SplineScalarInterpolator - store final value in px->value_changed 
 	//  - body of function copied from ScalarInterpolator and node cast to SplineScalarInterpolator
@@ -502,21 +506,21 @@ void do_SplineScalarInterpolator(void *node){
 
 // START MIT LIC >>>>
 
-double *quaternion2double(double *xyzw, Quaternion *q){
+static double *quaternion2double(double *xyzw, const Quaternion *q){
 	xyzw[0] = q->x;
 	xyzw[1] = q->y;
 	xyzw[2] = q->z;
 	xyzw[3] = q->w;
 	return xyzw;
 }
-Quaternion *double2quaternion(Quaternion *q, double* xyzw){
+static Quaternion *double2quaternion(Quaternion *q, const double* xyzw){
 	q->x = xyzw[0];
 	q->y = xyzw[1];
 	q->z = xyzw[2];
 	q->w = xyzw[3];
 	return q;
 }
-void quaternion_addition(Quaternion *ret, const Quaternion *q1, const Quaternion *q2){
+static void quaternion_addition(Quaternion *ret, const Quaternion *q1, const Quaternion *q2){
 	//the quaternion_add in Quanternions.c seems too complicated. 
 	// supposed to be q+q' = [s+s',v+v']
 	double xyzw1[4],xyzw2[4],xyzw[4];
@@ -526,7 +530,7 @@ void quaternion_addition(Quaternion *ret, const Quaternion *q1, const Quaternion
 	xyzw[3] = xyzw1[3] + xyzw2[3];
 	double2quaternion(ret,xyzw);
 }
-void quaternion_subtraction(Quaternion *ret, const Quaternion *q1, const Quaternion *q2){
+static void quaternion_subtraction(Quaternion *ret, const Quaternion *q1, const Quaternion *q2){
 	// supposed to be q-q' = [s-s',v-v']
 	double xyzw1[4],xyzw2[4],xyzw[4];
 	quaternion2double(xyzw1,q1);
@@ -535,13 +539,13 @@ void quaternion_subtraction(Quaternion *ret, const Quaternion *q1, const Quatern
 	xyzw[3] = xyzw1[3] - xyzw2[3];
 	double2quaternion(ret,xyzw);
 }
-double fwclampd(double val, double low, double hi){
+static double fwclampd(const double val, const double low, const double hi){
 	double ret = val;
 	ret = min(ret,hi);
 	ret = max(ret,low);
 	return ret;
 }
-double quaternion_dot(Quaternion *q1, Quaternion *q2){
+static double quaternion_dot(const Quaternion *q1, const Quaternion *q2){
 	double xyzw1[4], xyzw2[4], dot;
 	int i;
 	quaternion2double(xyzw1,q1);
@@ -551,7 +555,7 @@ double quaternion_dot(Quaternion *q1, Quaternion *q2){
 		dot += xyzw1[i]*xyzw2[i];
 	return dot; 
 }
-void quaternion_negate(Quaternion *q){
+static void quaternion_negate(Quaternion *q){
 	int i;
 	double xyzw[4];
 	quaternion2double(xyzw,q);
@@ -559,7 +563,7 @@ void quaternion_negate(Quaternion *q){
 		xyzw[i] = -xyzw[i];
 	double2quaternion(q,xyzw);
 }
-void quaternion_log(Quaternion *ret, Quaternion *q){
+static void quaternion_log(Quaternion *ret, const Quaternion *q){
 	double angle, angle_over_sine, xyzw[4];
 
 	quaternion2double(xyzw,q);
@@ -570,7 +574,7 @@ void quaternion_log(Quaternion *ret, Quaternion *q){
 	xyzw[3]=0.0;
 	double2quaternion(ret,xyzw);
 }
-void quaternion_exp(Quaternion *ret, Quaternion *q){
+static void quaternion_exp(Quaternion *ret, const Quaternion *q){
 	double angle, xyzw[4], sine_over_angle;
 
 	quaternion2double(xyzw,q);
@@ -581,7 +585,7 @@ void quaternion_exp(Quaternion *ret, Quaternion *q){
 	xyzw[3] = cos(angle);
 	double2quaternion(ret,xyzw);
 }
-void compute_si(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim1){
+static void compute_si(Quaternion *si,Quaternion *qi, const Quaternion *qip1, const Quaternion *qim1){
 	//si is like the (quaternion-space) slope at point qi, or like a bezier tangent control point
 	//and is supposed to be the average from either side of (quaternion-space) point qi
 	//or more precisely, the 2 slopes / 1st derivitives are set equal
@@ -618,7 +622,7 @@ void compute_si(Quaternion *si,Quaternion *qi, Quaternion *qip1, Quaternion *qim
 
 }
 
-void debug_SquadOrientationInterpolator(struct X3D_SquadOrientationInterpolator *px){
+static void debug_SquadOrientationInterpolator(struct X3D_SquadOrientationInterpolator *px){
 	//just a mess of crap, plus: normalization of axisangle axis
 	// qinterp = Squad(qi, qi+1,si,si+1,h) = Slerp( Slerp(qi,qi+1,h), Slerp(si,si+1,h), 2h(1-h))
 	//in theory, the vrmlrot_to_quaternion and compute_si can be done in a compile_squadorientationinterpolator step
@@ -678,7 +682,7 @@ void debug_SquadOrientationInterpolator(struct X3D_SquadOrientationInterpolator 
 	printf("\n");
 }
 
-void quaternion_lerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t){
+static void quaternion_lerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t){
 	Quaternion t1, t2;
 	t1 = *q1;
 	t2 = *q2;
@@ -686,7 +690,7 @@ void quaternion_lerp(Quaternion *ret, const Quaternion *q1, const Quaternion *q2
 	quaternion_scalar_multiply(&t1,1.0 -t);
 	quaternion_addition(ret,&t1,&t2);
 }
-void quaternion_slerp2(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t){
+static void quaternion_slerp2(Quaternion *ret, const Quaternion *q1, const Quaternion *q2, const double t){
 	double dot, dn1,dn2;
 	Quaternion r;
 
@@ -715,7 +719,7 @@ void quaternion_slerp2(Quaternion *ret, const Quaternion *q1, const Quaternion *
 
 }
 
-void quaternion_squad_prepare(Quaternion *qim1,Quaternion *qi,Quaternion *qip1,Quaternion *qip2,
+static void quaternion_squad_prepare(Quaternion *qim1,Quaternion *qi,Quaternion *qip1,Quaternion *qip2,
 	Quaternion *s1,Quaternion *s2,Quaternion *qc){
 	Quaternion qp,qm, q0,q1,q2,q3;
 	q0 = *qim1;
@@ -743,14 +747,14 @@ void quaternion_squad_prepare(Quaternion *qim1,Quaternion *qi,Quaternion *qip1,Q
 	*qc = q2; //qip1 could have changed sign, use the sign-changed version in squad slerping
 
 }
-void quaternion_squad(Quaternion *final,Quaternion *q1,Quaternion *q2, Quaternion *s1,Quaternion *s2,double t){
+static void quaternion_squad(Quaternion *final,Quaternion *q1,Quaternion *q2, Quaternion *s1,Quaternion *s2,double t){
 	Quaternion qs, ss;
 	quaternion_slerp2(&qs,q1,q2,t); //qip1 replaceed with possibly negated qc, helps test D
 	quaternion_slerp2(&ss,s1,s2,t);
 	quaternion_slerp2(final, &qs, &ss, 2.0*t*(1.0 -t));
 	quaternion_normalize(final);
 }
-void quaternion_diff(Quaternion *qdiff, Quaternion *q2, Quaternion *q1){
+static void quaternion_diff(Quaternion *qdiff, Quaternion *q2, Quaternion *q1){
 	// diff * q1 = q2  --->  diff = q2 * inverse(q1)
 	//where:  inverse(q1) = conjugate(q1) / abs(q1)}
 	Quaternion q1inv;
@@ -762,7 +766,7 @@ void quaternion_diff(Quaternion *qdiff, Quaternion *q2, Quaternion *q1){
 	}
 
 }
-void squad_compute_velocity_normalized_key_keyvalue(int closed, 
+static void squad_compute_velocity_normalized_key_keyvalue(int closed, 
 			int n,		float *keys, float *values,
 			int *nnorm, float **normkeys, float **normvals)
 {

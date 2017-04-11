@@ -280,7 +280,7 @@ void handleMetaDataStringString(struct Uni_String *val1, struct Uni_String *val2
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/core.html#UNITStatement
 // http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html#General
 // http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/concepts.html#t-Standardunits
-char * unitcategories [] = {
+const char * unitcategories [] = {
 	"angle",
 	"force",
 	"length",
@@ -291,18 +291,18 @@ char * unitcategories [] = {
 	"speed",
 	"volume",
 };
-#define UNITCATEGORIES_COUNT 9
-char * unitnames [] = {
+//#define UNITCATEGORIES_COUNT 9
+const char * unitnames [] = {
 	"radian",
 	"newton",
 	"metre",
 	"kilogram",
 };
-#define UNITNAMES_COUNT 4
+//#define UNITNAMES_COUNT 4
 void handleUnitDataStringString(char *categoryname, char *unitname, double conversionfactor) {
-	int i1, i2;
-	i1 = findFieldInARR(categoryname,unitcategories,UNITCATEGORIES_COUNT);
-	i2 = findFieldInARR(unitname,unitnames,UNITNAMES_COUNT);
+	//int i1, i2;
+	//i1 = findFieldInARR(categoryname,unitcategories,UNITCATEGORIES_COUNT);
+	//i2 = findFieldInARR(unitname,unitnames,UNITNAMES_COUNT);
 	#ifdef CAPABILITIESVERBOSE
 	printf ("handleMetaDataStringString, :%s:, :%s:\n",val1->strptr, val2->strptr);
 	#endif
@@ -364,7 +364,7 @@ int capabilitiesHandler_getTableLength(int* table){
 struct proftablestruct *getProfTable(){
 	return profTable;
 }
-int * getCapabilitiesTable(){
+const int * getCapabilitiesTable(){
 	return capabilities;
 }
 

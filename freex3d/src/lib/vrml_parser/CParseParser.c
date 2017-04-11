@@ -649,7 +649,7 @@ void parse_proto_body(struct VRMLParser* me)
     }
 }
 
-void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name);
+void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, const char *name);
 static BOOL parser_node_B(struct VRMLParser* me, vrmlNodeT* ret, int ind);
 
 static BOOL parser_node(struct VRMLParser* me, vrmlNodeT* node, int ival)
@@ -1121,7 +1121,7 @@ struct X3D_Proto *hasContext(struct X3D_Node* node){
 		}
 	return context;
 }
-struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, const char *name);
 
 void handleExport_B (void *ctxnodeptr, char *nodename, char *as) {
 	/* handle export statements. as will be either a string pointer, or NULL */
@@ -3691,7 +3691,7 @@ static BOOL parser_routeStatement_B(struct VRMLParser* me)
 //	struct X3D_Node* node;
 //	char* name;
 //};
-void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, char *name)
+void broto_store_DEF(struct X3D_Proto* proto,struct X3D_Node* node, const char *name)
 {
 	Stack *defs;
 	struct brotoDefpair def;
@@ -3735,7 +3735,7 @@ void broto_clear_DEF_by_node(struct X3D_Proto* proto,struct X3D_Node* node)
 		vector_removeElement(sizeof(struct brotoDefpair),defs,index);
 	}
 }
-struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name){
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, const char *name){
 	int i, istart, iend;
 	struct brotoDefpair def;
 	//in theory we should search backward. test 9.wrl has 2 TRs. If you make the first one with no children, 

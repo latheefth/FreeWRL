@@ -505,7 +505,7 @@ void child_Anchor (struct X3D_Anchor *node) {
 	//LOCAL_LIGHT_OFF
 }
 
-struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, char *name);
+struct X3D_Node *broto_search_DEFname(struct X3D_Proto *context, const char *name);
 struct IMEXPORT *broto_search_IMPORTname(struct X3D_Proto *context, char *name);
 struct IMEXPORT *broto_search_EXPORTname(struct X3D_Proto *context, char *name);
 

@@ -757,10 +757,14 @@ void resource_destroy(resource_item_t *res)
 	case rest_string:
 		/* Nothing to do */
 		break;
+
+	case rest_multi:
+		/* JAS Apr 2017 - entry was not handled in case; do nothing? */
+		break;
 	}
 
 	/* Free the list */
-	ml_delete_all2(res->m_request, ml_free);
+	ml_delete_all2(res->m_request, (void (*)(void *))ml_free);
 	res->m_request = NULL;
 
 	FREE_IF_NZ(res->URLbase);
