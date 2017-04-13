@@ -264,7 +264,7 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libnurbs.lib;libFreeWRL.lib;glew32mx.lib;Opengl32.lib;pthreadVC2.lib;zlib.lib;libminizip.lib;gdiplus.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;windowscodecs.lib;libxml2.lib;Wininet.lib;Winmm.lib;mozjs185-1.0.lib;OpenAL32.lib;alut.lib;ode_doubled.lib;avcodec.lib;swscale.lib;avformat.lib;avutil.lib;avfilter.lib;swresample.lib;avdevice.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libnurbs.lib;libFreeWRL.lib;glew32mx.lib;Opengl32.lib;pthreadVC2.lib;zlib.lib;libminizip.lib;gdiplus.lib;ws2_32.lib;freetype252.lib;shlwapi.lib;windowscodecs.lib;libxml2.lib;Wininet.lib;Winmm.lib;OpenAL32.lib;alut.lib;ode_doubled.lib;avcodec.lib;swscale.lib;avformat.lib;avutil.lib;avfilter.lib;swresample.lib;avdevice.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(LIBWIN)\freeALUT\lib;$(LIBWIN)\openALsoft\lib;$(LIBWIN)\MSopenGL\lib;$(LIBWIN)\glew\lib\Release MX\Win32;$(LIBWIN)\js185\lib;$(LIBWIN)\pthreadS.2;$(LIBWIN)\freetype2\lib;$(LIBWIN)\zlib\lib;$(LIBWIN)\libxml2\lib;$(LIBWIN)\ODE\lib;$(LIBWIN)\ffmpeg\x86xp\lib;..\Debug_glew;..\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
