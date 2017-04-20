@@ -2494,6 +2494,7 @@ void propagate_events_B() {
 
 
 					//dug9 >> toAny
+					toAny = NULL;
 					toNode = to_ptr->routeToNode; //p->CRoutes[counter].routeFromNode;
 					toOffset = to_ptr->foffset; //p->CRoutes[counter].fnptr;
 					//MARK_EVENT(toNode, toOffset);
