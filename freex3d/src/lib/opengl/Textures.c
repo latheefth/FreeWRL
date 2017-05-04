@@ -868,6 +868,7 @@ void unRegisterPolyRep(struct X3D_Node *tmp)
 
 void add_node_to_broto_context(struct X3D_Proto *currentContext,struct X3D_Node *node);
 /* do TextureBackground textures, if possible */
+void reallyDraw();
 void loadBackgroundTextures (struct X3D_Background *node) {
 	struct X3D_ImageTexture *thistex;
 	struct X3D_TextureProperties *thistp;
@@ -943,12 +944,12 @@ void loadBackgroundTextures (struct X3D_Background *node) {
         		FW_GL_NORMAL_POINTER(GL_FLOAT,0,Backnorms);
 
         		sendArraysToGPU (GL_TRIANGLES, count*6, 6);
+				reallyDraw();
 				textureTransform_end();
 
 		}
 	}
 }
-void reallyDraw();
 /* do TextureBackground textures, if possible */
 void loadTextureBackgroundTextures (struct X3D_TextureBackground *node) {
 	struct X3D_Node *thistex = NULL;
