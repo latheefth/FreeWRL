@@ -1185,7 +1185,7 @@ if so, we will be here for the USE fields.
 /********************************************************/
 
 
-static void **shaderFields(struct X3D_Node* node){
+void **shaderFields(struct X3D_Node* node){
 	void **shaderfield;
 	switch(node->_nodeType){
 	case NODE_Script:
