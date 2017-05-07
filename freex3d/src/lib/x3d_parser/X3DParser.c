@@ -1313,8 +1313,10 @@ static void startBuiltin_B(void *ud, int myNodeType, const xmlChar *name, char**
 		kids = indexChildrenName(node);
 		if(kids > -1)
 			suggestedChildField = FIELDNAMES[kids];
-		if(node->_nodeType == NODE_Script)
+		if(node->_nodeType == NODE_Script || node->_nodeType == NODE_ShaderPart 
+			|| node->_nodeType == NODE_ShaderProgram || node->_nodeType == NODE_EffectPart)
 			suggestedChildField = FIELDNAMES[FIELDNAMES_url]; //for CDATA 
+
 		pushField(ud,suggestedChildField);
 
 		parseAttributes_B(ud,atts);
