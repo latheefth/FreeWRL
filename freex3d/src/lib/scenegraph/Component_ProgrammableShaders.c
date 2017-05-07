@@ -470,6 +470,7 @@ more...
 	H: you can cache the compiled shader number in the user shader node (unconfirmed)
 	H: you can cache uniform variable IDs / offsets / compiled-shader-uniform-location 
 		in the user-shader-node user-field, for faster access
+		uniform_location = fieldDecl_getshaderVariableID(...)
 	first time using the compiled shader in child_shape, 
 	    you can check shader._initialized and if FALSE, update all the uniforms
 		and set _initialized = TRUE
@@ -489,7 +490,6 @@ void getField_ToShader(struct X3D_Node *node, int toOffset, union anyVrml *toAny
 	struct CRStruct *CRoutes = getCRoutes();
 	struct CRjsnameStruct *JSparamnames = getJSparamnames();
 
-	
 	memset(&shaderflags,0,sizeof(shaderflagsstruct));
 
 	// ProgramShaders have fields for each ShaderProgram field, and we can have a couple of fields
@@ -916,12 +916,13 @@ void sendInitialFieldsToShader(struct X3D_Node * node) {
 			X3D_COMPOSEDSHADER(node)->_initialized = TRUE;
 			break;
 			}
-		case NODE_Effect: {
-			/* anything to do here? */ 
-				send_fieldToShader(myShader, X3D_NODE(node));
-			//X3D_EFFECT(node)->_initialized = TRUE;
-			break;
-			}
+		//2017: effects aren't part of usershaders, just the normal shaders
+		//case NODE_Effect: {
+		//	/* anything to do here? */ 
+		//		send_fieldToShader(myShader, X3D_NODE(node));
+		//	//X3D_EFFECT(node)->_initialized = TRUE;
+		//	break;
+		//	}
 	}
 }
 
