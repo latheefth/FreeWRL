@@ -4599,13 +4599,13 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 		offsets = (finfo)NODE_OFFSETS[(*source)->_nodeType];
 		ifield = 0;
 		field = &offsets[ifield];
-		printf("\n");
+		//printf("\n");
 		while( field->nameIndex > -1) 
 		{
 			int is_source;
 			struct brotoIS * isrecord;
-			printf(" %s",FIELDNAMES[field->nameIndex]); //[0]]);
-			printf(" (%s)\n",FIELDTYPES[field->typeIndex]); //field[2]]);
+			//printf(" %s",FIELDNAMES[field->nameIndex]); //[0]]);
+			//printf(" (%s)\n",FIELDTYPES[field->typeIndex]); //field[2]]);
 			isrecord = NULL;
 			is_source = 0; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
             isrecord = in_IStable(*source,ifield,(Stack *)ctx->__IS, is_source);
