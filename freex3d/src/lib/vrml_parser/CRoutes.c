@@ -2658,12 +2658,12 @@ void propagate_events_B() {
 							break;
 						case NODE_ShaderProgram:
 						case NODE_ComposedShader:
-						case NODE_Effect:
+						//case NODE_Effect: //an effect can apply to many compiled shader permutations, so update done in child_shape per appearance
 						case NODE_PackagedShader:
 							{
 								// note, "shader" can not be NULL here...
 								// otherwise we'd never be here in this switch
-								getField_ToShader(toNode, counter); //feb2015 shader->num);
+								getField_ToShader(toNode, toOffset, toAny, type); //feb2015 shader->num);
 								havinterp = TRUE;
 							}
 							break;

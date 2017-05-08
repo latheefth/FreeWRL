@@ -435,8 +435,49 @@ static void sendValueToShader(struct ScriptFieldDecl* myField) {
 	}
 }
 
-/* Routing - sending a value to a shader - we get passed the routing table entry number */
-void getField_ToShader(struct X3D_Node *node, int num) {
+/* Routing - sending a value to a shader - we get passed the routing table entry number 
+Note: Effect and EffectPart do not route-update their uniforms here.
+Reason: Effect/EffectPart can be composed into many compiled base shader permutations, 
+	so they are updated from fieldvalues in child_shape
+more...	
+2016 - added Effect and EffectPart to our bifurcated system of shaders:
+1. ubershader
+1a. base shaders - normal shaders for normal rendering of appearance, no shader nodes of any type involved
+	- mostly does in GLES2 what desktop opengl 3+ does, except
+	-- shader permutations are formed by what what gl features are needed for each Appearance
+	-- Effect plug stubs are pre-positioned
+	- there's no way to directly route to base shaders, so no route-updating done here
+1b. Effect/EffectPart nodes - new in 2016, makes base shaders + effects 'composable' into shader permutations
+	- not in web3d specs, although being discussed for future spec versions ie 4+
+	- Appearance m:1 compiled shader 1:1 base shader 1:m Effect/EffectPart
+	- compiled shader permutations are cached so if another Shape needs the same permutation, it re-uses the compiled
+			Appearance m:1 compiled_shader
+	- and when an Effect is on the transform stack instead of in Appearance scope, 
+		then it gets composed into multiple shaders:
+			specific-Effect/EffectPart 1:m Appearance / compiled shader 
+		therefore routing to an Effect/EffectPart would/could require setting uniforms in many compiled shaders
+		so updating uniforms in response to route-updating an Effect field is done per shape/appearance scope 
+		in child_shape() {... update_effect_uniforms(); ...}
+1c. VolumeRendering component uses a separate set of base shaders with no EffectPlugs, but with permutations
+	- no way to directly route to underlying shaders, so route-updating of uniforms not done here
+
+2. user shaders: web3d specs Programmable Shadeers component 
+	http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/shaders.html
+	user shader 1:1 compiled shader 1:1 Appearance 1:m Shape
+	a user shader replaces the entire base shader+effect in Appearance
+	if you route-update a field on a user shader, you only need to find one instance of the compiled shader
+		and update the uniform in that compiled shader
+	H: you can cache the compiled shader number in the user shader node (unconfirmed)
+	H: you can cache uniform variable IDs / offsets / compiled-shader-uniform-location 
+		in the user-shader-node user-field, for faster access
+		uniform_location = fieldDecl_getshaderVariableID(...)
+	first time using the compiled shader in child_shape, 
+	    you can check shader._initialized and if FALSE, update all the uniforms
+		and set _initialized = TRUE
+
+*/
+void getField_ToShader(struct X3D_Node *node, int toOffset, union anyVrml *toAny, int type) {
+	// update the compiled shader uniform when routing to a user shader
 	struct Shader_Script *myObj[2];
 	int numObjs = 1;
 	int to_counter;
@@ -463,6 +504,7 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 	//for (i=0; i<vectorSize(node->_parentVector); i++) {
 		struct X3D_Appearance *ap = vector_get(struct X3D_Appearance *,parents, i);
 		//ConsoleMessage ("and, parent is type %s",stringNodeType(ap->_nodeType));
+		if( ap->_nodeType == NODE_Proto) ap = vector_get(struct X3D_Appearance *,ap->_parentVector, 0);
 		if (ap->_nodeType == NODE_Appearance) {
 			for (j=0; j<vectorSize(ap->_parentVector); j++) {
 				struct X3D_Shape *sh = vector_get(struct X3D_Shape *, ap->_parentVector, j);
@@ -498,29 +540,31 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 	myObj[0] = NULL;
 	myObj[1] = NULL;
 
-	/* go through each destination for this node */
-	for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
-		CRnodeStruct *to_ptr = NULL;
+	///* go through each destination for this node */
+	//for (to_counter = 0; to_counter < CRoutes[num].tonode_count; to_counter++) {
+	//	CRnodeStruct *to_ptr = NULL;
 
-		to_ptr = &(CRoutes[num].tonodes[to_counter]);
-		fromFieldID = to_ptr->foffset;
-		//printf ("getField_ToShader, num %d, foffset %d to a %s\n",num,fromFieldID,stringNodeType(to_ptr->routeToNode->_nodeType));  
+	//	to_ptr = &(CRoutes[num].tonodes[to_counter]);
+	//	fromFieldID = to_ptr->foffset;
+	//	//printf ("getField_ToShader, num %d, foffset %d to a %s\n",num,fromFieldID,stringNodeType(to_ptr->routeToNode->_nodeType));  
 
-		switch (to_ptr->routeToNode->_nodeType) {
+		//switch (to_ptr->routeToNode->_nodeType) {
+		numObjs = 1;
+		switch(node->_nodeType){
 			case NODE_ComposedShader:
-				myObj[0] = (struct Shader_Script *)(X3D_COMPOSEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
+				myObj[0] = (struct Shader_Script *)(X3D_COMPOSEDSHADER(node)->_shaderUserDefinedFields);
 				break;
-			case NODE_Effect:
-				myObj[0] = (struct Shader_Script *)(X3D_EFFECT(to_ptr->routeToNode)->_shaderUserDefinedFields);
-				break;
+			//case NODE_Effect:
+			//	myObj[0] = (struct Shader_Script *)(X3D_EFFECT(node)->_shaderUserDefinedFields);
+			//	break;
 			case NODE_PackagedShader:
-				myObj[0] = (struct Shader_Script *)(X3D_PACKAGEDSHADER(to_ptr->routeToNode)->_shaderUserDefinedFields);
+				myObj[0] = (struct Shader_Script *)(X3D_PACKAGEDSHADER(node)->_shaderUserDefinedFields);
 				break;
 			case NODE_ProgramShader:{
 				//feb 2015, dug9: I don't think we should be routing to ProgramShader, rather directly to its contained ShaderPrograms
 				int i;
-				for (i=0; i<X3D_PROGRAMSHADER(to_ptr->routeToNode)->programs.n; i++) {
-					struct X3D_ShaderProgram *ps = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(to_ptr->routeToNode)->programs.p[i]);
+				for (i=0; i<X3D_PROGRAMSHADER(node)->programs.n; i++) {
+					struct X3D_ShaderProgram *ps = X3D_SHADERPROGRAM(X3D_PROGRAMSHADER(node)->programs.p[i]);
 					// trying this Hopefully we only have a Fragment and a Vertex
 					if (i<2) {
 						myObj[i] = (struct Shader_Script *)ps->_shaderUserDefinedFields;
@@ -530,13 +574,13 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 				break;}
 			case NODE_ShaderProgram:
 				//feb 2015, dug9: new - I think we should route here
-				myObj[0] = (struct Shader_Script *)(X3D_SHADERPROGRAM(to_ptr->routeToNode)->_shaderUserDefinedFields);
+				myObj[0] = (struct Shader_Script *)(X3D_SHADERPROGRAM(node)->_shaderUserDefinedFields);
 				break;
 			default: {
 				ConsoleMessage ("getField_ToShader, unhandled type??");
 				return;
 				}
-		}
+			}
 		/* we have the struct Shader_Script; go through the fields and find the correct one */
 
 
@@ -561,6 +605,10 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 
 		//printf ("going through fields.... have %d fields\n",vectorSize(myObj->fields)); 
 		for (j=0; j<numObjs; j++) {
+			struct ScriptFieldDecl* toField;
+			toField = vector_get(struct ScriptFieldDecl*, myObj[j]->fields, toOffset);
+			fromFieldID = fieldDecl_getshaderVariableID(toField->fieldDecl);
+
 			for(i=0; i!=vectorSize(myObj[j]->fields); ++i) {
 				GLint shaderVariable;
 				struct ScriptFieldDecl* curField;
@@ -570,21 +618,21 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 				curField = vector_get(struct ScriptFieldDecl*, myObj[j]->fields, i);
 				myf = curField->fieldDecl;
 				shaderVariable = fieldDecl_getshaderVariableID(myf);
-				/*
-				printf ("for field %d, shaderVariable %d\n",i,shaderVariable);
+				
+				//printf ("for field %d, shaderVariable %d\n",i,shaderVariable);
 		
 		
-				printf ("curField %d name %d type %d ",i,
-						fieldDecl_getIndexName(myf), fieldDecl_getType(myf));
-				printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",
-						fieldDecl_getAccessType(myf),
-						stringPROTOKeywordType(fieldDecl_getAccessType(myf)), 
-							fieldDecl_getType(myf), stringFieldtypeType(fieldDecl_getType(myf)),
-							fieldDecl_getIndexName(myf));
-				printf ("comparing fromFieldID %d and name %d\n",fromFieldID, fieldDecl_getIndexName(myf));
-				printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
-				printf ("	shader ascii name is %s\n",fieldDecl_getShaderScriptName(curField->fieldDecl));
-					*/
+				//printf ("curField %d name %d type %d ",i,
+				//		fieldDecl_getIndexName(myf), fieldDecl_getType(myf));
+				//printf ("fieldDecl mode %d (%s) type %d (%s) name %d\n",
+				//		fieldDecl_getAccessType(myf),
+				//		stringPROTOKeywordType(fieldDecl_getAccessType(myf)), 
+				//			fieldDecl_getType(myf), stringFieldtypeType(fieldDecl_getType(myf)),
+				//			fieldDecl_getIndexName(myf));
+				//printf ("comparing fromFieldID %d and name %d\n",fromFieldID, fieldDecl_getIndexName(myf));
+				//printf ("	types %d, %d\n",JSparamnames[fromFieldID].type,fieldDecl_getType(myf));
+				//printf ("	shader ascii name is %s\n",fieldDecl_getShaderScriptName(curField->fieldDecl));
+					
 		
 
 				if (fromFieldID == fieldDecl_getShaderScriptIndex(myf)) {
@@ -597,7 +645,9 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 
 					/* ok, here we have the Shader_Script, the field offset, and the entry */
 
-					sourceData = offsetPointer_deref(GLfloat *,CRoutes[num].routeFromNode, CRoutes[num].fnptr);
+					//sourceData = offsetPointer_deref(GLfloat *,CRoutes[num].routeFromNode, CRoutes[num].fnptr);
+					sourceData = &toAny->sffloat;
+					//printf("[[%f]]",*sourceData);
 		
 #define ROUTE_SF_FLOAT_TO_SHADER(ty1) \
 					case FIELDTYPE_SF##ty1: \
@@ -698,8 +748,9 @@ void getField_ToShader(struct X3D_Node *node, int num) {
 			}
 		}
 		finishedWithGlobalShader();
-	}
+	//}
 }
+
 
 /* send fields to a shader; expect either a ShaderProgram, or a ComposedShader */
 static void send_fieldToShader (GLuint myShader, struct X3D_Node *node) {
@@ -865,12 +916,13 @@ void sendInitialFieldsToShader(struct X3D_Node * node) {
 			X3D_COMPOSEDSHADER(node)->_initialized = TRUE;
 			break;
 			}
-		case NODE_Effect: {
-			/* anything to do here? */ 
-				send_fieldToShader(myShader, X3D_NODE(node));
-			//X3D_EFFECT(node)->_initialized = TRUE;
-			break;
-			}
+		//2017: effects aren't part of usershaders, just the normal shaders
+		//case NODE_Effect: {
+		//	/* anything to do here? */ 
+		//		send_fieldToShader(myShader, X3D_NODE(node));
+		//	//X3D_EFFECT(node)->_initialized = TRUE;
+		//	break;
+		//	}
 	}
 }
 

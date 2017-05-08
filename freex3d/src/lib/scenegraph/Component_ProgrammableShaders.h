@@ -28,7 +28,8 @@ Proximity sensor macro.
 #ifndef __FREEWRL_SCENEGRAPH_PROGRAMMABLESHADERS_H__
 #define __FREEWRL_SCENEGRAPH_PROGRAMMABLESHADERS_H__
 
-void getField_ToShader(struct X3D_Node *, int me);
+//void getField_ToShader(struct X3D_Node *, int me);
+void getField_ToShader(struct X3D_Node *node, int toOffset, union anyVrml *toAny, int type);
 void sendInitialFieldsToShader(struct X3D_Node * node);
 
 #endif /* __FREEWRL_SCENEGRAPH_PROGRAMMABLESHADERS_H__ */

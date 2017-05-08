@@ -4549,11 +4549,13 @@ void registerParentIfManagedField(int type, int mode, BOOL isPublic, union anyVr
 void freeMallocedNodeFields(struct X3D_Node* node);
 void deleteProtoDefinition(struct ProtoDefinition *ret);
 void freePublicBuiltinNodeFields(struct X3D_Node* node);
+void **shaderFields(struct X3D_Node* node);
 void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vector *p2p, Stack *instancedScripts, 
 					struct X3D_Proto* ctx)
 {
 	struct pointer2pointer pair;
 	struct X3D_Node* parent;
+	void **shaderfield = NULL;
 	if(*source == NULL){
 		*dest = NULL;
 		return;
@@ -4580,6 +4582,7 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 	pair.pp = *source;
 	pair.pn = *dest;
 	vector_pushBack(struct pointer2pointer, p2p, pair);
+	shaderfield = shaderFields(*source);
 	//copy fields
 	{
 		typedef struct field_info{
@@ -4596,12 +4599,13 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 		offsets = (finfo)NODE_OFFSETS[(*source)->_nodeType];
 		ifield = 0;
 		field = &offsets[ifield];
+		//printf("\n");
 		while( field->nameIndex > -1) 
 		{
 			int is_source;
 			struct brotoIS * isrecord;
 			//printf(" %s",FIELDNAMES[field->nameIndex]); //[0]]);
-			//printf(" (%s)",FIELDTYPES[field->typeIndex]); //field[2]]);
+			//printf(" (%s)\n",FIELDTYPES[field->typeIndex]); //field[2]]);
 			isrecord = NULL;
 			is_source = 0; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
             isrecord = in_IStable(*source,ifield,(Stack *)ctx->__IS, is_source);
@@ -4628,6 +4632,10 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 				//   ie builtin offset vs scriptfield/brotofield/userfield index
 				//   while remembering some node types could have either ie Script{ url IS protofield_URL SFString hemoglobin IS protofield_blood...
 			}
+			//in general we don't generically copy private fields starting with '_'
+			//that's because usually its the compile_(nodetype)() function that populates those private fields,
+			//and compile_ will get a shot at the node later, if/when its compiled.
+			//except user field list pointers for proto, script etc we need to deep copy here
 			else if((*source)->_nodeType == NODE_Proto && !strcmp(FIELDNAMES[field->nameIndex],"__protoDef") )
 			{
 				int k;
@@ -4729,6 +4737,96 @@ void deep_copy_node(struct X3D_Node** source, struct X3D_Node** dest, struct Vec
 					dfield->fieldDecl = MALLOC(struct FieldDecl *,sizeof(struct FieldDecl));
 					bzero(dfield->fieldDecl,sizeof(struct FieldDecl));
 					is_source = 1; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
+					sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+
+					isrecord = in_IStable(*source,k,(Stack *)ctx->__IS, is_source);
+					isInitialize = isrecord && (isrecord->mode == PKW_initializeOnly || isrecord->mode == PKW_inputOutput);
+					if( isInitialize )
+					{
+						//do something to change from:
+						// copy *source to *dest, to 
+						// copy ctx->interface[ctx->__IS[is_addr].interfacefieldIndex]].value to *dest.[ifield] 
+						union anyVrml *source_field, *dest_field;
+						struct ProtoDefinition *sp; 
+						struct ProtoFieldDecl *sdecl;
+
+						sp = ctx->__protoDef;
+						sdecl = protoDefinition_getFieldByNum(sp, isrecord->iprotofield);
+						if(sdecl->fieldString)
+							dfield->ASCIIvalue = STRDUP(sdecl->fieldString);
+						memcpy(dfield->fieldDecl,sfield->fieldDecl,sizeof(struct FieldDecl));
+						//ddecl = dfield->fieldDecl;
+						//ddecl->fieldType = sdecl->type;
+						//ddecl->JSparamNameIndex = sfield->fieldDecl->;
+						//ddecl->lexerNameIndex = sdecl->name;
+						//ddecl->PKWmode = sdecl->mode;
+						//ddecl->shaderVariableID = 0;
+						//source_field = (union anyVrml*)&((char*)*source)[field->offset];
+						source_field = (union anyVrml*)&(sdecl->defaultVal);
+						dest_field   = (union anyVrml*)&(dfield->value);
+						//copy_field(field->typeIndex,source_field,dest_field,p2p,instancedScripts,ctx);
+						shallow_copy_field(sdecl->type, source_field, dest_field);
+						registerParentIfManagedField(sdecl->type, sdecl->mode, 1, dest_field, *dest);
+
+					}else{
+						if(sfield->ASCIIvalue)
+							dfield->ASCIIvalue = STRDUP(sfield->ASCIIvalue);
+						//*(output->fieldDecl) = *(sfield->fieldDecl);
+						memcpy(dfield->fieldDecl,sfield->fieldDecl,sizeof(struct FieldDecl));
+						/* shallow copy for testing some scenarios*/
+						if(0){
+							dfield->value = sfield->value;
+						}
+						/* proper deep copy we must do to get value-holding SFNode fields 
+						   (event fields will have uninitialized junk)*/
+						if(sfield->fieldDecl->PKWmode == PKW_initializeOnly || sfield->fieldDecl->PKWmode == PKW_inputOutput){
+							union anyVrml *source_field, *dest_field;
+							source_field = (union anyVrml*)&(sfield->value);
+							dest_field   = (union anyVrml*)&(dfield->value);
+							copy_field(dfield->fieldDecl->fieldType,source_field,dest_field,p2p,instancedScripts,ctx,parent);
+						}
+						dfield->valueSet = sfield->valueSet;
+					}
+					vector_pushBack(struct ScriptFieldDecl *, dp->fields, dfield);
+				}
+			}
+			else if(shaderfield && !strcmp(FIELDNAMES[field->nameIndex],"_shaderUserDefinedFields") )
+			{
+				/*copied block above for Script, and hacked a few lines to abstract 
+					the __scriptObj vs _shaderUserDefinedFields 
+					Applies to: 
+						ComposedShader
+						Effect
+						ShaderProgram
+						PackagedShader
+					see function shaderFields in X3DParser.c
+
+				*/
+				/*deep copy script user fields */
+				int k;
+				struct Vector *sfields;
+				struct ScriptFieldDecl *sfield, *dfield;
+				struct Shader_Script *sp, *dp;
+				void **dshaderfield;
+				//struct X3D_Script *s, *d;
+
+				//s = (struct X3D_Script*)*source;
+				//d = (struct X3D_Script*)*dest;
+				dshaderfield = shaderFields(*dest);
+				sp = *shaderfield; //s->__scriptObj;
+				dp =  new_Shader_ScriptB(*dest); 
+				(*dshaderfield) = (void*) dp;
+				dp->loaded = sp->loaded; //s.b. FALSE
+				dp->num = sp->num; //s.b. -1
+				sfields = sp->fields;
+				for(k=0;k<sfields->n;k++)
+				{
+					BOOL isInitialize;
+					dfield = MALLOC(struct ScriptFieldDecl*,sizeof(struct ScriptFieldDecl));
+					bzero(dfield,sizeof(struct ScriptFieldDecl));
+					dfield->fieldDecl = MALLOC(struct FieldDecl *,sizeof(struct FieldDecl));
+					bzero(dfield->fieldDecl,sizeof(struct FieldDecl));
+					is_source = 2; 	//field isource: 0=builtin 1=script user field 2=shader_program user field 3=Proto/Broto user field 4=group __protoDef
 					sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
 
 					isrecord = in_IStable(*source,k,(Stack *)ctx->__IS, is_source);
@@ -5226,13 +5324,15 @@ int count_fields(struct X3D_Node* node)
 	return count;
 }
 //========
-
+void **shaderFields(struct X3D_Node* node);
 //convenience wrappers to get details for built-in fields and -on script and protoInstance- dynamic fields
 int getFieldFromNodeAndName0(struct X3D_Node* node,const char *fieldname, int *type, int *kind, int *iifield, union anyVrml **value){
+	void **shaderfield;
 	*type = 0;
 	*kind = 0;
 	*iifield = -1;
 	*value = NULL;
+	shaderfield = shaderFields(node);
 	//Q. what about shader script?
 	if(node->_nodeType == NODE_Script) 
 	{
@@ -5246,6 +5346,33 @@ int getFieldFromNodeAndName0(struct X3D_Node* node,const char *fieldname, int *t
 
 		snode = (struct X3D_Script*)node;
 		sp = (struct Shader_Script *)snode->__scriptObj;
+		sfields = sp->fields;
+		for(k=0;k<sfields->n;k++)
+		{
+			char *fieldName;
+			sfield = vector_get(struct ScriptFieldDecl *,sfields,k);
+			//if(sfield->ASCIIvalue) printf("Ascii value=%s\n",sfield->ASCIIvalue);
+			fdecl = sfield->fieldDecl;
+			fieldName = fieldDecl_getShaderScriptName(fdecl);
+			if(!strcmp(fieldName,fieldname)){
+				*type = fdecl->fieldType;
+				*kind = fdecl->PKWmode;
+				*value = &(sfield->value);
+				*iifield = k; 
+				return 1;
+			}
+		}
+	}
+	else if(shaderfield) 
+	{
+		int k;
+		struct Vector *sfields;
+		struct ScriptFieldDecl *sfield;
+		struct FieldDecl *fdecl;
+		struct Shader_Script *sp;
+		struct CRjsnameStruct *JSparamnames = getJSparamnames();
+
+		sp = (struct Shader_Script *)(*shaderfield);
 		sfields = sp->fields;
 		for(k=0;k<sfields->n;k++)
 		{
@@ -5461,12 +5588,12 @@ void broto_store_IS(struct X3D_Proto *proto,char *protofieldname,int pmode, int 
 
 	is = MALLOC(struct brotoIS*,sizeof(struct brotoIS));
 	is->proto = proto;
-	is->protofieldname = protofieldname;
+	is->protofieldname = strdup(protofieldname);
 	is->pmode = pmode;
 	is->iprotofield = iprotofield;
 	is->type = type;
 	is->node = node;
-	is->nodefieldname = nodefieldname;
+	is->nodefieldname = strdup(nodefieldname);
 	is->mode = mode;
 	is->ifield = ifield;
 	is->source = source;

@@ -60,6 +60,9 @@
 
 /* JavaScript-"protocols" */
 const char* JS_PROTOCOLS[]={
+ "x-shader", //https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Adding_2D_content_to_a_WebGL_context
+ "text/plain",
+ "glsl",
  "shader",
  "javascript",
  "ecmascript",
